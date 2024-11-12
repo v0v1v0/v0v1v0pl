@@ -1,0 +1,350 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rstar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Inference on a scalar function of interest by the r* statistic
+</h2>
+
+<h3>Description</h3>
+
+<p>This function evaluates the  r* statistic for testing of a scalar function of interest.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rstar(data, thetainit, floglik, fscore=NULL, fpsi, psival, datagen, R=1000, seed=NULL, 
+      trace=TRUE, ronly=FALSE,  psidesc=NULL, constr.opt="solnp")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data as a list. All the elements required to compute the log likelihood function 
+at a given parameter value should be included in this list.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thetainit</code></td>
+<td>
+
+<p>A numerical vector containing the initial value for the parameter of the model. It will be used 
+as starting point in the numerical optimization of the log likelihood function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floglik</code></td>
+<td>
+
+<p>A function which returns the log likelihood function at a given parameter value. 
+In particular, for a certain parameter value contained in a numerical vector <code>theta</code>,
+a call <code>floglik(theta, data)</code> should return a scalar numerical value, the log likelihood
+function at <code>theta</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fscore</code></td>
+<td>
+
+<p>An optional function which returns the score function at a given parameter value. It must return a numerical
+vector of the same length of <code>thetainit</code>. For a certain parameter value contained in a numerical vector <code>theta</code>,
+a call <code>fscore(theta, data)</code> should return the gradient of the log likelihood function at <code>theta</code>. Default 
+is <code>NULL</code>, implying that numerical differentiation will be employed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fpsi</code></td>
+<td>
+
+<p>A function which specifies the parameter of interest. A call <code>fpsi(theta)</code> should return a scalar value. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psival</code></td>
+<td>
+
+<p>A numerical scalar value containing the value of the parameter of interest under testing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datagen</code></td>
+<td>
+
+<p>A function which simulates a data set. A call <code>datagen(theta, data)</code> will generate a copy of the <code>data</code> list, with the  
+values of the response variable replaced by a set of values simulated from the parametric statistical model assumed for the response 	
+variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>The number of Monte Carlo replicates used for computing the r* statistic. A positive integer, default is <code>1000</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>Optional positive integer, the random seed for the Monte Carlo computation. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>Logical. When set to <code>TRUE</code> will cause some information on the computation to be printed. Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ronly</code></td>
+<td>
+
+<p>Logical. If set to <code>TRUE</code> the computation of the r* statistic will be skipped, and only the value of the 
+signed  likelihood ratio test statistic r will be returned by the procedure, without any Monte Carlo computation. 
+Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psidesc</code></td>
+<td>
+
+<p>An optional character string describing the nature of the parameter of interest. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constr.opt</code></td>
+<td>
+  
+<p>Constrained optimizer used for maximizing the log likelihood function under the null hypothesis. Possible
+values are   <code>"solnp"</code> or <code>"alabama"</code>, with the former employing  the <code>solnp</code> function from
+package <code>Rsolnp</code> and the latter the <code>constrOptim.nl</code> from the package <code>alabama</code>. Defauls is 
+<code>"solnp"</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes the r* statistic proposed by Skovgaard (1996) for accurate 
+computation of the asymptotic distribution of the signed likelihood ratio test for
+a scalar function of interest. 
+</p>
+<p>The function requires the user to provide three functions defining the log likelihood function,
+the scalar parametric function of interest, and a function for generating
+a data set from the assumed statistical model. A further function returning the gradient of the 
+log likelihood is not required, but if provided it will speed up the computation. 
+</p>
+<p>When <code>ronly = TRUE</code> the function returns the value of the signed likelihood ratio test
+statistic r only. 
+</p>
+<p>The function handles also one-parameter models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned value is an object of class <code>"rstar"</code>, containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+
+<p>The observed value the signed likelihodo ratio test statistic r for testing <code>fpsi(theta)=psival</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NP, INF</code></td>
+<td>
+
+<p>The Nuisance Parameter adjustment (NP) and the Information adjustment (INF) from the decomposition of the r*-r adjustment. The former is not computed for one-parameter models. Neither one is computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rs</code></td>
+<td>
+
+<p>The observed value of the r* statistic.  Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.hat</code></td>
+<td>
+
+<p>The maximum likelihood estimate of the parameter theta, the argument of the <code>floglik</code>, <code>fscore</code>, <code>datagen</code> and 
+<code>fpsi</code> functions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info.hat</code></td>
+<td>
+
+<p>The observed information matrix evaluated at <code>theta.hat</code>. Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.theta.hat</code></td>
+<td>
+
+<p>The estimated standard error of <code>theta.hat</code>. Not computed when <code>ronly = TRUE</code>.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.hat</code></td>
+<td>
+
+<p>The parameter of interest evaluated at <code>theta.hat</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.psi.hat</code></td>
+<td>
+
+<p>The estimated standard error for the parameter of interest. Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.hyp</code></td>
+<td>
+
+<p>The constrained estimate of the parameter, under the null hypothesis <code>fpsi(theta)=psival</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.hyp</code></td>
+<td>
+
+<p>The value under testing, equal to <code>psival</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>Random seed used for Monte Carlo trials. Not returned when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psidesc</code></td>
+<td>
+
+<p>A character string describing the nature of the parameter of interest. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>Number of Monte Carlo replicates used for computing the r* statistic. Not returned when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<p>There are <code>print</code> and <code>summary</code> methods for this class. 
+</p>
+
+
+<h3>References</h3>
+
+<p>The method implemented in this function was proposed in
+</p>
+<p>Skovgaard, I.M. (1996) An explicit large-deviation approximation to one-parameter tests. 
+<em>Bernoulli</em>, <b>2</b>, 145–165.
+</p>
+<p>For a general review
+</p>
+<p>Severini, T.A. (2000). Likelihood Methods in Statistics. Oxford University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rstar.ci</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Autoregressive model of order 1
+# We use the lh data from MASS
+library(MASS)
+data(lh)
+dat.y &lt;- list(y=as.numeric(lh))
+# First let us define the function returning the log likelihood function
+# We employ careful parameterizations for the correlation and variance to
+# avoid numerical problems
+likAR1 &lt;- function(theta, data)
+{ 
+  y &lt;- data$y
+  mu &lt;- theta[1]
+  phi &lt;- theta[2] ### phi is log(sigma) 
+  sigma2 &lt;- exp(phi*2)
+  z &lt;- theta[3]   ### z is Fisher'z transform for rho
+  rho &lt;- (exp(2*z)-1) / (1 + exp(2*z))
+  n &lt;- length(y)
+  Gamma1 &lt;- diag(1+c(0,rep(rho^2,n-2),0))
+  for(i in 2:n)
+    Gamma1[i,i-1]&lt;- Gamma1[i-1,i] &lt;- -rho 
+  lik &lt;- -n/2 * log(sigma2) + 0.5 * log(1-rho^2) -1/(2*sigma2) * 
+        mahalanobis(y, rep(mu,n), Gamma1, inverted = TRUE)
+  return(lik)
+}
+# We need a function for simulating a data set
+genDataAR1 &lt;- function(theta, data)  
+{
+  out &lt;- data
+  mu &lt;- theta[1]
+  sigma &lt;- exp(theta[2])
+  z &lt;- theta[3]
+  rho &lt;- (exp(2*z)-1) / (1 + exp(2*z))
+  n &lt;- length(data$y)
+  y &lt;- rep(0,n)
+  y[1] &lt;- rnorm(1,mu,s=sigma*sqrt(1/(1-rho^2)))
+  for(i in 2:n)
+    y[i] &lt;- mu + rho * (y[i-1]-mu) + rnorm(1) * sigma 
+  out$y &lt;- y 
+  return(out)
+}
+# For inference on the mean parameter we need a function returning the first component of theta
+psifcn.mu &lt;- function(theta) theta[1]
+# Now we can call the function
+rs.mu &lt;- rstar(dat.y, c(0,0,0), likAR1, fpsi=psifcn.mu, psival=2, datagen=genDataAR1, R=1000, 
+               trace=TRUE, psidesc="mean parameter")
+summary(rs.mu)
+</code></pre>
+
+
+</div>

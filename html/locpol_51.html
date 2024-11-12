@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regCVBwSelC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Cross Validation Bandwidth selector. </h2>
+
+<h3>Description</h3>
+
+<p>Implements Cross validation bandwidth selector for the regression function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regCVBwSelC(x, y, deg, kernel=gaussK,weig=rep(1,length(y)),
+interval=.lokestOptInt)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p> degree of the local polynomial. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation, see <code>Kernels</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> Vector of weights for observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p> An interval where to look for the bandwidth. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computes the weighted ASE for every bandwidth returning the minimum.
+The function is implemented by means of a C function that computes for a
+single bandwidth the ASE, and a call to <code>optimise</code> on a given interval.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric value.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Jorge Luis Ojeda Cabrera.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fan, J. and Gijbels, I.
+<em> Local polynomial modelling and its applications\/</em>.
+Chapman &amp; Hall, London (1996).
+</p>
+<p>H\"ardle W.(1990)
+<em> Smoothing techniques</em>.
+Springer Series in Statistics, New York (1991).
+</p>
+<p>Wand, M.~P. and Jones, M.~C.
+<em> Kernel smoothing\/</em>.
+Chapman and Hall Ltd., London (1995).
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>thumbBw</code>, <code>pluginBw</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	size &lt;- 200
+	sigma &lt;- 0.25
+	deg &lt;- 1
+	kernel &lt;- EpaK
+	xeval &lt;- 0:100/100
+	regFun &lt;- function(x) x^3
+	x &lt;- runif(size)
+	y &lt;- regFun(x) + rnorm(x, sd = sigma)
+	d &lt;- data.frame(x, y)
+	cvBwSel &lt;- regCVBwSelC(d$x,d$y, deg, kernel, interval = c(0, 0.25))
+	thBwSel &lt;- thumbBw(d$x, d$y, deg, kernel)
+	piBwSel &lt;- pluginBw(d$x, d$y, deg, kernel)
+	est &lt;- function(bw, dat, x) return(locPolSmootherC(dat$x,dat$y, x, bw, deg,
+					kernel)$beta0)
+	ise &lt;- function(val, est) return(sum((val - est)^2 * xeval[[2]]))
+	plot(d$x, d$y)
+	trueVal &lt;- regFun(xeval)
+	lines(xeval, trueVal, col = "red")
+	xevalRes &lt;- est(cvBwSel, d, xeval)
+	cvIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue")
+	xevalRes &lt;- est(thBwSel, d, xeval)
+	thIse &lt;- ise(trueVal, xevalRes)
+	xevalRes &lt;- est(piBwSel, d, xeval)
+	piIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue", lty = "dashed")
+	res &lt;- rbind(	bw = c(cvBwSel, thBwSel, piBwSel),
+					ise = c(cvIse, thIse, piIse) )
+	colnames(res) &lt;- c("CV", "th", "PI")
+	res
+</code></pre>
+
+
+</div>

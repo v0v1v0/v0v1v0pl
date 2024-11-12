@@ -1,0 +1,277 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ltre3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct a Life Table Response Experiment</h2>
+
+<h3>Description</h3>
+
+<p><code>ltre3()</code> returns a set of matrices of one-way LTRE (life table response
+experiment), stochastic LTRE (sLTRE) matrices, or small noise approximation
+LTRE (sna-LTRE) contributions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ltre3(
+  mats,
+  refmats = NA,
+  ref = NA,
+  stochastic = FALSE,
+  times = 10000,
+  burnin = 3000,
+  tweights = NA,
+  sparse = "auto",
+  seed = NA,
+  append_mats = FALSE,
+  sna_ltre = FALSE,
+  tol = 1e-30,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mats</code></td>
+<td>
+<p>An object of class <code>lefkoMat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refmats</code></td>
+<td>
+<p>A reference lefkoMat object, or matrix, for use as the
+control. Default is <code>NA</code>, which sets to the same object as <code>mats</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref</code></td>
+<td>
+<p>A numeric value indicating which matrix or matrices in
+<code>refmats</code> to use as the control. The numbers used must correspond to the
+number of the matrices in the <code>labels</code> element of the associated
+<code>lefkoMat</code> object. The default setting, <code>NA</code>, uses all entries in
+<code>refmats</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stochastic</code></td>
+<td>
+<p>A logical value determining whether to conduct a
+deterministic (<code>FALSE</code>) or stochastic (<code>TRUE</code>) elasticity analysis.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>The number of occasions to project forward in stochastic
+simulation. Defaults to <code>10000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>The number of initial steps to ignore in stochastic projection
+when calculating stochastic elasticities. Must be smaller than <code>steps</code>.
+Defaults to <code>3000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tweights</code></td>
+<td>
+<p>An optional numeric vector or matrix denoting the
+probabilities of choosing each matrix in a stochastic projection. If a matrix
+is input, then a first-order Markovian environment is assumed, in which the
+probability of choosing a specific annual matrix depends on which annual
+matrix is currently chosen. If a vector is input, then the choice of annual
+matrix is assumed to be independent of the current matrix. Defaults to equal
+weighting among matrices. Note that SNA-LTRE analysis cannot take matrix
+input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>A text string indicating whether to use sparse matrix encoding
+(<code>"yes"</code>) or dense matrix encoding (<code>"no"</code>). Defaults to
+<code>"auto"</code>, in which case sparse matrix encoding is used with square
+matrices with at least 50 rows and no more than 50% of elements with values
+greater than zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Optional numeric value corresponding to the random seed for
+stochastic simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append_mats</code></td>
+<td>
+<p>A logical value denoting whether to include the original
+<code>A</code>, <code>U</code>, and <code>F</code> matrices in the returned <code>lefkoLTRE</code>
+object. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sna_ltre</code></td>
+<td>
+<p>A logical value indicating whether to treat stochastic LTRE
+via the sna-LTRE approach from Davison et al. (2019) (<code>TRUE</code>), or the
+stochastic LTRE approximation from Davison et al. (2010) (<code>FALSE</code>).
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A numeric value indicating a lower positive limit to matrix
+element values when applied to stochastic and small noise approximation LTRE
+estimation protocols. Matrix element values lower than this will be treated
+as <code>0.0</code> values. Defaults to <code>1e-30</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns an object of class <code>lefkoLTRE</code>. This
+includes a list of LTRE matrices as object <code>cont_mean</code> if a
+deterministic LTRE is called for, or a list of mean-value LTRE matrices as
+object <code>cont_mean</code> and a list of SD-value LTRE matrices as object
+<code>cont_sd</code> if a stochastic LTRE is called for. If a small-noise
+approximation LTRE (SNA-LTRE) is performed, then the output includes six
+objects: <code>cont_mean</code>, which provides the contributions of shifts in mean
+matrix elements; <code>cont_elas</code>, which provides the contributions of shifts
+in the elasticities of matrix elements; <code>cont_cv</code>, which provides the
+contributions of temporal variation in matrix elements; <code>cont_corr</code>,
+which provides the contributions of temporal correlations in matrix elements;
+<code>r_values_m</code>, which provides a vector of log deterministic lambda values
+for treatment populations; and <code>r_values_ref</code>, which provides the log
+deterministic lambda of the mean reference matrix.This is followed by the
+stageframe as object <code>ahstages</code>, the order of historical stages as
+object <code>hstages</code>, the age-by-stage order as object <code>agestages</code>, the
+order of matrices as object <code>labels</code>, and, if requested, the original A,
+U, and F matrices.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>Deterministic LTRE is one-way, fixed, and based on the sensitivities of the
+matrix midway between each input matrix and the reference matrix, per Caswell
+(2001, Matrix Population Models, Sinauer Associates, MA, USA). Stochastic
+LTRE is performed via two methods. The stochastic LTRE approximation is
+simulated per Davison et al. (2010) Journal of Ecology 98:255-267
+(doi: 10.1111/j.1365-2745.2009.01611.x). The small noise approximation
+(sna-LTRE) is analyzed per Davison et al. (2019) Ecological Modelling 408:
+108760 (doi: 10.1016/j.ecolmodel.2019.108760).
+</p>
+<p>All stochastic and small noise approximation LTREs conducted without
+reference matrices are performed as spatial tests of the population dynamics
+among patches.
+</p>
+<p>Default behavior for stochastic LTRE uses the full population provided in
+<code>mats</code> as the reference if no <code>refmats</code> and <code>ref</code> is provided.
+If no <code>refmats</code> is provided but <code>ref</code> is, then the matrices noted
+in <code>ref</code> are used as the reference matrix set. Year and patch order is
+utilized from object <code>mats</code>, but not from object <code>refmats</code>, in
+which each matrix is assumed to represent a different year from one
+population. This function cannot currently handle multiple populations within
+the same <code>mats</code> object (although such analysis is possible if these
+populations are designated as patches instead).
+</p>
+<p>If <code>sparse = "auto"</code>, the default, then sparse matrix encoding
+will be used if the size of the input matrices is at least 50 columns by 50
+rows for deterministic and stochastic LTREs and 10 columns by 10 rows for
+small noise approximation LTREs, in all cases as long as 50% of the elements
+in the first matrix are non-zero.
+</p>
+<p>Stochastic LTREs do not test for the impact of temporal change in vital
+rates. An MPM with a single population, a single patch, and only annual
+matrices will produce contributions of 0 to stochastic <code class="reqn">\lambda</code>.
+</p>
+<p>Speed can sometimes be increased by shifting from automatic sparse matrix
+determination to forced dense or sparse matrix projection. This will most
+likely occur when matrices have between 10 and 300 rows and columns.
+Defaults work best when matrices are very small and dense, or very large and
+sparse.
+</p>
+<p>SNA-LTRE analysis cannot test the impact of first-order Markovian
+environments. However, different random weightings of annual matrices are
+allowed if given in vector format.
+</p>
+<p>The <code>time_weights</code>, <code>steps</code>, <code>force_sparse</code>, and <code>rseed</code>
+arguments are now deprecated. Instead, please use the <code>tweights</code>,
+<code>times</code>, <code>sparse</code>, and <code>seed</code> arguments.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.lefkoLTRE()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(cypdata)
+
+sizevector &lt;- c(0, 0, 0, 0, 0, 0, 1, 2.5, 4.5, 8, 17.5)
+stagevector &lt;- c("SD", "P1", "P2", "P3", "SL", "D", "XSm", "Sm", "Md", "Lg",
+  "XLg")
+repvector &lt;- c(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+obsvector &lt;- c(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+matvector &lt;- c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+immvector &lt;- c(0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+indataset &lt;- c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 0, 0, 0, 0, 0.5, 0.5, 1, 1, 2.5, 7)
+
+cypframe_raw &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  propstatus = propvector, immstatus = immvector, indataset = indataset,
+  binhalfwidth = binvec)
+
+cypraw_v1 &lt;- verticalize3(data = cypdata, noyears = 6, firstyear = 2004,
+  patchidcol = "patch", individcol = "plantid", blocksize = 4,
+  sizeacol = "Inf2.04", sizebcol = "Inf.04", sizeccol = "Veg.04",
+  repstracol = "Inf.04", repstrbcol = "Inf2.04", fecacol = "Pod.04",
+  stageassign = cypframe_raw, stagesize = "sizeadded", NAas0 = TRUE,
+  NRasRep = TRUE)
+
+cypsupp2r &lt;- supplemental(stage3 = c("SD", "P1", "P2", "P3", "SL", "D", 
+    "XSm", "Sm", "SD", "P1"),
+  stage2 = c("SD", "SD", "P1", "P2", "P3", "SL", "SL", "SL", "rep",
+    "rep"),
+  eststage3 = c(NA, NA, NA, NA, NA, "D", "XSm", "Sm", NA, NA),
+  eststage2 = c(NA, NA, NA, NA, NA, "XSm", "XSm", "XSm", NA, NA),
+  givenrate = c(0.10, 0.20, 0.20, 0.20, 0.25, NA, NA, NA, NA, NA),
+  multiplier = c(NA, NA, NA, NA, NA, NA, NA, NA, 0.5, 0.5),
+  type =c(1, 1, 1, 1, 1, 1, 1, 1, 3, 3),
+  stageframe = cypframe_raw, historical = FALSE)
+
+cypmatrix2r &lt;- rlefko2(data = cypraw_v1, stageframe = cypframe_raw, 
+  year = "all", patch = "all", stages = c("stage3", "stage2", "stage1"),
+  size = c("size3added", "size2added"), supplement = cypsupp2r,
+  yearcol = "year2", patchcol = "patchid", indivcol = "individ")
+
+ltre3(cypmatrix2r, sna_ltre = TRUE)
+
+</code></pre>
+
+
+</div>

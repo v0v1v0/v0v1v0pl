@@ -1,0 +1,248 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitLMER.fnc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Back-fit fixed effects and forward-fit random effects of an LMER model.</h2>
+
+<h3>Description</h3>
+
+<p>The function follows these steps: (1) If <code>llrt</code> is set to <code>TRUE</code>, set <code>REML</code> to <code>FALSE</code> (unless specified otherwise); (2) back-fit initial model either on <em>F</em>- (by default) or on <em>t</em>/<em>z</em>-values; (3) forward-fit random effects; (4) re-back-fit fixed effects; (5) if <code>llrt</code> is set to <code>TRUE</code>, set <code>REML</code> to <code>TRUE</code> (unless specified otherwise). Note that, this function CAN be used with generalized linear mixed-effects models (<code>glmer</code>s).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitLMER.fnc(model, item = FALSE, backfit.on = c("F",
+"t"), method = c("F", "t", "z", "llrt", "AIC", "BIC", "relLik.AIC", 
+"relLik.BIC"), threshold = NULL, t.threshold = NULL, 
+ran.effects = list(ran.intercepts = as.character(), 
+slopes = as.character(), corr = as.character(), 
+by.vars = as.character()), alpha = NULL, alphaitem = NULL, 
+if.warn.not.add = TRUE, prune.ranefs = TRUE, p.value = "upper", 
+set.REML.FALSE = TRUE, keep.single.factors = FALSE, 
+reset.REML.TRUE = TRUE, log.file.name = NULL)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A <code>mer</code> object (fitted by function <code>lmer</code>). This function can be used with generalized linear mixed-effects models (<code>glmer</code>s) if argument <code>backfit.on</code> is set to "t", but not if it is set to "F".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>item</code></td>
+<td>
+<p>Whether or not to evaluate the addition of by-item random intercepts to the model, evaluated by way of log-likelihood ratio test. Either <code>FALSE</code> (the default, does not evaluate this addition) or the column name (quoted) of the item identifier (e.g., <code>"Item"</code>, <code>"Word"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backfit.on</code></td>
+<td>
+<p>Either "F" (default) or "t". Refers to the statistic which will be used to determine which term to test and potentially remove from the model. If you are backfitting a generalized linear mixed-effects model (<code>glmer</code>), make sure to set <code>backfit.on</code> to "t"; the algorithm efectively backfits on "z".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Backfitting method. One of "F" (<em>p</em>-value), "t" (<em>t</em> statistic), "z" (<em>z</em> statistic), "llrt", "AIC", "BIC", "relLik.AIC", or "relLik.BIC" (the latter two are based on relative likelihood, see function <code>relLik</code>). Defaults to "t". You can find information regarding differences between AIC and BIC from <code>http://methodology.psu.edu/eresources/ask/sp07</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Method-specific threshold for parameter selection. It refers to alpha in the case of "F" and "llrt", to the <em>t</em>/<em>z</em>-value in case of "t" or "z", to the minimum reduction in likelihood in the case of "AIC" and "BIC", or to the minimum difference in probability in the case of "relLik.AIC" and "relLik.BIC". Defaults <code>NULL</code>, which means <code>0.05</code> for "F" and "llrt", 2 for "t", 5 for "AIC" and "BIC", and 4 for "relLik.AIC" and "relLik.BIC".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.threshold</code></td>
+<td>
+<p>Defaults to <code>NULL</code>. If the <code>method = "t"</code> or <code>method = "z"</code>, it is the <em>t</em>/<em>z</em>-value below which a model term is dropped (if <code>t.threshold = NULL</code>, it will be set to 2). Otherwise it is the threshold for <em>t</em>/<em>z</em>-value below which a test (see <code>method</code>) is performed between a model with the term under consideration and a simpler model without it (if <code>t.threshold = NULL</code>, it is set to <code>Inf</code>, which means that all terms are tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ran.effects</code></td>
+<td>
+<p>Can be either a vector or a list. In the former case, the random effects to be evaluated are provided. For example <code>c("(1 + Frequency | Subject)", "(0 + Length | Subject)", "(1 + NSynSet | Subject)")</code>. In the latter case, the list can be composed of (i) a vector of random intercepts to be evaluated (<code>ran.intercepts</code>), (ii) a vector of random slopes to be evaluated (<code>slopes</code>), (iii) a vector specifying, for each element of <code>slopes</code>, whether the correlation between the slope and by-variables specified in <code>by.vars</code> should be added (<code>corr</code>), and (iv) a vector of “by” variables for the random slopes (<code>by.vars</code>). Values that can be supplied to the <code>corr</code> argument are <code>1</code> (add correlation), <code>0</code> (do not add correlation), and <code>NA</code> (for when the "slope" is a factor variable). Note that if a term in <code>slopes</code> is a factor variable, the <code>corr</code> value tied to it will be automatically set to <code>NA</code>. Also note that if no values are supplied to <code>corr</code>, a vector of 0 as long as the <code>slopes</code> vector will be automatically supplied. For example <code>list(ran.intercepts = "Word", slopes = c("Frequency", "Length", "NSynSet","Class"), corr = c(0, 0, 1, NA), by.vars = "Subject")</code>. Another example is <code>list(slopes = c("Trial", "Class"), by.vars = "Subject")</code>, where the <code>corr</code> argument will be equal to <code>c(0, NA)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>If the method is <code>F</code>, it is the <em>p</em>-value (from <code>pamer.fnc</code>) above which a model term is dropped. In this case, it defaults to the value passed to argument <code>threshold</code>, i.e., 0.05. Otherwise it is the <em>p</em>-value threshold above which a test (see <code>method</code>) is performed between a model with the term under consideration and a simpler model without it (in this case, defaults to <code>0</code>, i.e. all terms will be tested).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphaitem</code></td>
+<td>
+<p>Alpha value for the evaluation of by-item random intercepts. Defaults to <code>0.05</code> or to the specified threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>if.warn.not.add</code></td>
+<td>
+<p>Logical. If a warning is issued after fitting a model with a new random effect (e.g., <code>false convergence</code> or the like), should the random effect nevertheless be evaluated? Defaults to <code>TRUE</code>, meaning that if such a warning is issued, the random effect will not be added to the random effects structure of the model. If set to <code>FALSE</code>, the random effect will be evaluated for inclusion as any other random effects would be via log likelihood ratio testing even if a warning is issued.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prune.ranefs</code></td>
+<td>
+<p>Logical. Whether to remove any random effect for which its variable is not also present in the fixed effects structure (with the exception of the grouping variables such as <code>"Subjects"</code> and <code>"Items"</code>). Defaults to <code>TRUE</code>. For example, if the random effects structure contains the terms <code>Condition + ROI + Group</code>, and the random effects structure contains the terms <code>(1 | Subject) + (0 + TrialNum | Subject)</code>, the ranedom effect <code>(0 + TrialNum | Subject)</code> will be pruned from the model given that it is not in the model's fixed effects structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>Whether to use upper-bound (“upper”; the default) or lower-bound (“lower”) <em>p</em>-values when back-fitting with method "F".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set.REML.FALSE</code></td>
+<td>
+<p>Logical. Whether or not to set <code>REML</code> to <code>FALSE</code>. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reset.REML.TRUE</code></td>
+<td>
+<p>Logical. Whether or not to re-set the back-fitted model to <code>REML = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.single.factors</code></td>
+<td>
+<p>Logical. Whether or not main effects are kept (not subjected to testing and reduction). Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.file.name</code></td>
+<td>
+<p>Should the back-fitting log be saved? Defaults to <code>NULL</code>, which means that a log file is saved in a temporary folder (platform dependent) as <code>file.path(tempdir(), paste("fitLMER_log_", gsub(":", "-", gsub(" ", "_", date())), ".txt", sep = ""))</code>. The path and file name of the log can be changed to whatever the use wishes. Set to <code>FALSE</code> to disable.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The process has three stages. In the first stage, either <code>bfFixefLMER_F.fnc</code> or <code>bfFixefLMER_t.fnc</code> is called (depending on the user's choice) and the fixed effects are back-fitted accordingly. In the second stage, <code>ffRanefLMER.fnc</code> is called and random effects are forward-fitted. In the third stage, the fixed effects are back-fitted again. This is done because the inclusion of certain random effects sometimes renders certain fixed effects non-significant. This process was used in Tremblay and Tucker (2011) and in Newman, Tremblay, Nichols, Neville, and Ullman (2012).
+</p>
+<p>If, for example, you have many analyses to run and a cluster is available, write a bash script that will create (1) <code>.R</code> files that will relevel the conditions and update the model, and (2) an associated <code>.sh</code> job submission script to submit the <code>.R</code> files. For example, let's consider two ERP analyses all in a time window ranging from 100 to 250 ms. Two three-way interactions were considered: Position (factor; 1 to 6) X  Length of the second word of a four-word sequence (e.g., <em>in the middle of</em>) X Working Memory Capacity score (continuous, from 0 to 100) and Trial (continuous; 1 to 432) X Length X Working Memory Capacity. Analyses were performed at electrodes Fp1 Fp2 AF3 AF4 F7 F3 Fz F4 F8 FC5 FC1 FC2 FC6 T7 C3 Cz C4 T8 CP5 CP1 CP2 CP6. See Tremblay and Newman (In preparation) for more details. The analysis script named <code>Fp1-CP6_100250.sh</code> we used on the ACEnet cluster is as follows: 
+</p>
+<pre>
+      electrodes=(Fp1 Fp2 AF3 AF4 F7 F3 Fz F4 F8 FC5 FC1 FC2 FC6 T7 C3 Cz C4 T8 CP5 CP1 CP2 CP6)
+      for e in ${electrodes[*]}; do 
+            export E=$e;
+            # create .R script to load data, perform necessary manipulations
+            # and perform the analysis using fitLMER.fnc
+            echo 'e&lt;-Sys.getenv("E")' &gt; $e".R"
+            echo 'load("../data/eeg600_trim_v2.rda")' &gt;&gt; $e".R"
+            echo 'dat0&lt;-dat' &gt;&gt; $e".R"
+            echo 'rm(dat);gc(T,T)' &gt;&gt; $e".R"
+            echo 'dat &lt;- dat0[dat0$Time &gt;= 100 &amp; dat0$Time &lt;= 250, , drop = TRUE]' &gt;&gt; $e".R"
+            echo 'dat &lt;- dat[dat$Electrode == e, , drop = TRUE]' &gt;&gt; $e".R"
+            echo 'subj&lt;-sort(unique(dat$Subject))' &gt;&gt; $e".R"
+            echo 'for(i in subj){' &gt;&gt; $e".R"
+            echo 'tmp&lt;-dat[dat$Subject==i,,drop=TRUE]' &gt;&gt; $e".R"
+            echo 'tmp$newfact&lt;-paste(tmp$Block,tmp$Position,sep="_")' &gt;&gt; $e".R"
+            echo 'newvec&lt;-vector("numeric")' &gt;&gt; $e".R"
+            echo 'for(j in 1:length(unique(tmp$newfact))){' &gt;&gt; $e".R"
+            echo 'newvec&lt;-c(newvec,rep(j,nrow(tmp[tmp$newfact==unique(tmp$newfact)[j],])))' &gt;&gt; $e".R"
+            echo '}' &gt;&gt; $e".R"
+            echo 'tmp$Trial&lt;-newvec' &gt;&gt; $e".R"
+            echo 'if(grep(i,subj)[1]==1){' &gt;&gt; $e".R"
+            echo 'newdat&lt;-tmp' &gt;&gt; $e".R"
+            echo '}else{' &gt;&gt; $e".R"
+            echo 'newdat&lt;-rbind(newdat,tmp)' &gt;&gt; $e".R"
+            echo '}' &gt;&gt; $e".R"
+            echo '}' &gt;&gt; $e".R"
+            echo 'dat&lt;-newdat' &gt;&gt; $e".R"
+            echo 'dat$Position&lt;-as.factor(dat$Position)' &gt;&gt; $e".R"
+            echo 'm7 &lt;- lmer(Amplitude ~ (Position + Trial)*(LengthBc * WMCc) + ' &gt;&gt; $e".R"
+            echo '(1 | Subject), data = dat)' &gt;&gt; $e".R"
+            echo 'm7b&lt;-fitLMER.fnc(m7,item="Item",ran.effects=c("(0+Trial|Subject)",' &gt;&gt; $e".R"
+            echo '"(0+LengthBc|Subject)","(0+Trial|Item)","(0+WMCc|Item)",' &gt;&gt; $e".R"
+            echo '"(Position|Subject)"))' &gt;&gt; $e".R"
+            echo 'smry&lt;-pamer.fnc(m7b)' &gt;&gt; $e".R"
+            echo 'save(m7b,file=file.path("..","models",paste("m7b_",e,"_100250.rda",sep="")))' &gt;&gt; $e".R"
+            echo 'save(smry,file=file.path("..","summaries",paste("smry_m7b_",e,"_100250.rda",sep="")))' &gt;&gt; $e".R"
+  
+            ### create the job submission script for the .R file created above
+            echo '#$ -S /bin/bash' &gt; "job."$e".sh"
+            echo '#$ -cwd' &gt;&gt; "job."$e".sh"
+            echo '#$ -j y' &gt;&gt; "job."$e".sh"
+            echo '#$ -l h_rt=48:00:00' &gt;&gt; "job."$e".sh"
+            echo '#$ -l h_vmem=8G' &gt;&gt; "job."$e".sh"
+            echo '#$ -R y' &gt;&gt; "job."$e".sh"
+            echo '#$ -N '$e &gt;&gt; "job."$e".sh"
+            echo 'R -q -f '$e'.R' &gt;&gt; "job."$e".sh"
+            
+            ### submit the job
+            qsub  "job."$e".sh"
+      done;
+
+</pre>
+<p>and then type in the console
+</p>
+<pre>
+      . Fp1-CP6_100250.sh
+
+</pre>
+<p>On the ACEnet cluster, this results in 22 independent analyses, simultaneously using a total of 22 cores and 176 GB of RAM. This analysis completes in about 30 minutes to 1 hour.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>mer</code> object with back-fitted fixed effects and forward-fitted random effects, as well as a log of the process, which is printed on screen and, optionally, printed in a log file.</p>
+
+
+<h3>Warnings</h3>
+
+<p>Upper-bound <em>p</em>-values can be anti-conservative, while lower-bound <em>p</em>-values can be conservative. See function <code>pamer.fnc</code>.</p>
+
+
+<h3>Note</h3>
+
+<p>The removal of a random effect from the random effects structure if the variables that compose it are not also in the fixed effects structure has been turned off in this version.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Antoine Tremblay, Statistics Canada, <a href="mailto:trea26@gmail.com">trea26@gmail.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Baayen, R.H., Davidson, D.J. and Bates, D.M. (2008). Mixed-effects modeling with crossed random effects for subjects and items. Journal of Memory and Language, 59, 390–412.
+</p>
+<p>Newman, A.J., Tremblay, A., Nichols, E.S., Neville, H.J., and Ullman, M.T. (2012). The Influence of Language Proficiency on Lexical Semantic Processing in Native and Late Learners of English. <em>Journal of Cognitive Neuroscience</em>, <em>25</em>, 1205–1223.
+</p>
+<p>Pinheiro, J.C. and Bates, D.M. (2000). <em>Mixed Effects Models in S and S-Plus</em>. New York: Springer.
+</p>
+<p>Tremblay, A. and Tucker B. V. (2011). The Effects of N-gram Probabilistic Measures on the Processing and Production of Four-word Sequences. <em>The Mental Lexicon</em>, <em>6(2)</em>, 302–324.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>bfFixefLMER_F.fnc; </code>
+<code>bfFixefLMER_t.fnc; </code>
+<code>ffRanefLMER.fnc; </code>
+<code>mcposthoc.fnc; </code>
+<code>pamer.fnc; </code>
+<code>mcp.fnc; </code>
+<code>relLik; </code>
+<code>romr.fnc; </code>
+<code>perSubjectTrim.fnc. </code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># see example LMERConvenienceFunctions help page.
+</code></pre>
+
+
+</div>

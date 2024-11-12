@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_copula_interactions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fit_copula_interactions</h2>
+
+<h3>Description</h3>
+
+<p>This is the main function of the package, which
+starting from an initial logistic regression model with only main effects
+of each covariate, selects and fits interaction terms in the form of two
+R-vine models with identical graphical structure, one for each class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_copula_interactions(
+  y,
+  x,
+  xtype,
+  family_set = c("gaussian", "clayton", "gumbel"),
+  oos_validation = FALSE,
+  tau = 2,
+  which_include = NULL,
+  reg.method = "glm",
+  maxit_final = 1000,
+  maxit_intermediate = 50,
+  verbose = FALSE,
+  adjust_intercept = TRUE,
+  max_t = Inf,
+  test_x = NULL,
+  test_y = NULL,
+  set_nonsig_zero = FALSE,
+  reltol = sqrt(.Machine$double.eps)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of n observations of the (univariate) binary outcome
+variable y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A (n x p) matrix of n observations of p covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xtype</code></td>
+<td>
+<p>A vector of p characters that have to take the value
+"c_a", "c_p", "d_b" or "d_b", to indicate whether each margin of the
+is continuous with full support, continuous with support on the positive
+real line, discrete (binary) or a counting variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family_set</code></td>
+<td>
+<p>A vector of strings that specifies the set of
+pair-copula families that the fitting algorithm chooses from. For an
+overview of which values that can be specified, see the documentation for
+bicop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oos_validation</code></td>
+<td>
+<p>Whether to use an external sample for validation
+instead of an in-sample likelihood based criteria. Would require that
+both test_x and test_y are provided if set to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Parameter used when selecting the structure, where the 
+the criteria is (new_likelihood - previous_likelihood - tau), 
+so that an additional edge in the copulas is only accepted if it leads to
+an increase in the likelihood that exceeds tau. Setting tau to NULL, has 
+the same effect as -Inf.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_include</code></td>
+<td>
+<p>The column indices of the covariates that could be
+included in the copula effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reg.method</code></td>
+<td>
+<p>The method by which the initial regression coefficients
+are fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit_final</code></td>
+<td>
+<p>The maximum number of gradient optimisation iterations
+to use when the full structure has been selected to refit all the
+parameters. Defaults to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit_intermediate</code></td>
+<td>
+<p>The maximum number of gradient optimisation
+iterations to use when adding a newly selected component to refit the
+parameters. Defaults to 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether information about the progress should be printed 
+to the console.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust_intercept</code></td>
+<td>
+<p>Whether to intermediately refit the intercept
+during the model/structure selection procedure. Defaults to true.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_t</code></td>
+<td>
+<p>The maximum number of trees in the copula models. Defaults
+to Inf, i.e., no maximum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_x</code></td>
+<td>
+<p>Part of the optional validation set,
+see @oos_validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_y</code></td>
+<td>
+<p>Part of the optional validation set,
+see @oos_validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set_nonsig_zero</code></td>
+<td>
+<p>If true, non-significant regression coefficients 
+(in the initial glm model) will be set to zero</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>Relative convergence tolerance, see the documentation for 
+optim.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A logistic_copula object, which contains the regression 
+coefficients of the model, the parameters of the chosen conditional
+covariate distribution that corresponds to the regression coefficients,
+and the pair of vine-models that extend the logistic regression model.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("Ionosphere")
+
+dset &lt;- Ionosphere[, -(1:2)] 
+
+set.seed(20)
+rowss &lt;- sample(nrow(dset), round(nrow(dset) * 0.75))
+colss &lt;- sample(ncol(dset) - 1, 5)
+x &lt;- as.matrix(dset[rowss, colss])
+xte &lt;- as.matrix(dset[-rowss, colss])
+y &lt;- dset[rowss, ncol(dset)] == "bad"
+yte &lt;- dset[-rowss, ncol(dset)] == "bad"
+
+xtype &lt;- apply(x, 2, function(x) if(length(unique(x)) &gt; 2) "c_a" else "d")
+
+# Model with selection penalty tau=log(n)
+md &lt;- LogisticCopula::fit_copula_interactions(
+  y, as.matrix(x), xtype, tau = log(nrow(x))
+)
+# Model with selection penalty tau=Inf, returns just the logistic
+# regression model
+mdglm &lt;- LogisticCopula::fit_copula_interactions(
+  y, as.matrix(x), xtype, tau = Inf
+)
+
+plot(predict(mdglm, xte), predict(md, xte), col = 3 + yte)
+</code></pre>
+
+
+</div>

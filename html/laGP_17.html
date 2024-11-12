@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>darg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Generate Priors for GP correlation
+</h2>
+
+<h3>Description</h3>
+
+<p>Generate empirical Bayes regularization (priors) and choose initial values
+and ranges for (isotropic) lengthscale and nugget parameters to a Gaussian
+correlation function for a GP regression model </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">darg(d, X, samp.size = 1000)
+garg(g, y)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>can be <code>NULL</code>, or a scalar indicating an initial value
+or a partial <code>list</code> whose format matches the one described
+in the Value section below
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>can be <code>NULL</code>, or a scalar indicating an initial value
+or a partial <code>list</code> whose format matches the one described
+in the Value section below
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>a vector of responses/dependent values
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samp.size</code></td>
+<td>
+
+<p>a scalar integer indicating a subset size of <code>X</code> to use
+for calculations; this is important for very large <code>X</code> matrices
+since the calculations are quadratic in <code>nrow(X)</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions use aspects of the data, either <code>X</code> or <code>y</code>,
+to form weakly informative default priors and choose initial values
+for a lengthscale and nugget parameter.  This is useful since the
+likelihood can sometimes be very flat, and even with proper priors
+inference can be sensitive to the specification of those priors
+and any initial search values.  The focus here is on avoiding pathologies
+while otherwise remaining true to the spirit of MLE calculation.  
+</p>
+<p><code>darg</code> output specifies MLE inference (<code>out$mle = TRUE</code>)
+by default, whereas <code>garg</code> instead fixes the nugget at the starting value,
+which may be sensible for emulating deterministic computer simulation data; 
+when <code>out$mle =  FALSE</code> the calculated range outputs <code>c(out$min, out$max)</code> 
+are set to dummy values that are ignored in other parts of the <span class="pkg">laGP</span> package.
+</p>
+<p><code>darg</code> calculates a Gaussian distance matrix between all pairs of
+<code>X</code> rows, or a subsample of rows of size <code>samp.size</code>.  From
+those distances it chooses the range and start values from the range
+of (non-zero) distances and the <code>0.1</code> quantile, respectively.
+The Gamma prior values have a shape of <code>out$a = 3/2</code> and a rate
+<code>out$b</code> chosen by the incomplete Gamma inverse function to put
+<code>0.95</code> probability below <code>out$max</code>. 
+</p>
+<p><code>garg</code> is similar except that it works with <code>(y- mean(y))^2</code>
+instead of the pairwise distances of <code>darg</code>.  The only difference
+is that the starting value is chosen as the 2.5% quantile.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Both functions return a list containing the following entries.  If the
+input object (<code>d</code> or <code>g</code>) specifies one of the values then
+that value is copied to the same list entry on output.  See the
+Details section for how these values are calculated
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mle </code></td>
+<td>
+<p> by default, <code>TRUE</code> for <code>darg</code> and <code>FALSE</code>
+for <code>garg</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start </code></td>
+<td>
+<p> starting value chosen from the quantiles of
+<code>distance(X)</code> or <code>(y - mean(y))^2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min </code></td>
+<td>
+<p> minimum value in allowable range for the parameter - for
+future inference purposes </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max </code></td>
+<td>
+<p> maximum value in allowable range for the parameter - for
+future inference purposes </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ab </code></td>
+<td>
+<p> shape and rate parameters specifying a Gamma prior for the parameter</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>laGP</code>, <code>aGP</code>,
+<code>mleGP</code>, <code>distance</code>, <code>llikGP</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## motorcycle data
+if(require("MASS")) {
+  X &lt;- matrix(mcycle[,1], ncol=1)
+  Z &lt;- mcycle[,2]
+
+  ## get darg and garg
+  darg(NULL, X)
+  garg(list(mle=TRUE), Z)
+}
+</code></pre>
+
+
+</div>

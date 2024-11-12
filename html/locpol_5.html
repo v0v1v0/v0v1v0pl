@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>thumbBw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Rule of thumb for bandwidth selection.</h2>
+
+<h3>Description</h3>
+
+<p>Implements Fan and Gijbels(1996)'s Rule of thumb for bandwidth selection
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">thumbBw(x, y, deg, kernel, weig = rep(1, length(y)))
+compDerEst(x, y, p, weig = rep(1, length(y)))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p> order of local polynomial estimator. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p> Local polynomial estimation degree($p$). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> weights if they are required. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Fan and Gijbels(1996) book, Section 4.2. This implementation is
+also considering weights. <code>compDerEst</code> computes the <code class="reqn">p+1</code>
+derivative of the regression function in a simple manner, assuming it
+is a polynomial in <code class="reqn">x</code>. <code>thumbBw</code> gives a bandwidth selector
+by means of pilot estimator given by <code>compDerEst</code> and the mean of
+residuals.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>thumbBw</code> returns a single numeric value, while <code>compDerEst</code> returns a data frame whose components are:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>x values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>y values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>residuals for the parametric estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>der</code></td>
+<td>
+<p>derivative estimation at x values.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jorge Luis Ojeda Cabrera.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fan, J. and Gijbels, I.
+<em> Local polynomial modelling and its applications\/</em>.
+Chapman &amp; Hall, London (1996).
+</p>
+<p>Wand, M.~P. and Jones, M.~C.
+<em> Kernel smoothing\/</em>.
+Chapman and Hall Ltd., London (1995).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>regCVBwSelC</code>, <code>pluginBw</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	size &lt;- 200
+	sigma &lt;- 0.25
+	deg &lt;- 1
+	kernel &lt;- EpaK
+	xeval &lt;- 0:100/100
+	regFun &lt;- function(x) x^3
+	x &lt;- runif(size)
+	y &lt;- regFun(x) + rnorm(x, sd = sigma)
+	d &lt;- data.frame(x, y)
+	cvBwSel &lt;- regCVBwSelC(d$x,d$y, deg, kernel, interval = c(0, 0.25))
+	thBwSel &lt;- thumbBw(d$x, d$y, deg, kernel)
+	piBwSel &lt;- pluginBw(d$x, d$y, deg, kernel)
+	est &lt;- function(bw, dat, x) return(locPolSmootherC(dat$x,dat$y, x, bw, deg,
+					kernel)$beta0)
+	ise &lt;- function(val, est) return(sum((val - est)^2 * xeval[[2]]))
+	plot(d$x, d$y)
+	trueVal &lt;- regFun(xeval)
+	lines(xeval, trueVal, col = "red")
+	xevalRes &lt;- est(cvBwSel, d, xeval)
+	cvIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue")
+	xevalRes &lt;- est(thBwSel, d, xeval)
+	thIse &lt;- ise(trueVal, xevalRes)
+	xevalRes &lt;- est(piBwSel, d, xeval)
+	piIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue", lty = "dashed")
+	res &lt;- rbind(	bw = c(cvBwSel, thBwSel, piBwSel),
+					ise = c(cvIse, thIse, piIse) )
+	colnames(res) &lt;- c("CV", "th", "PI")
+	res
+</code></pre>
+
+
+</div>

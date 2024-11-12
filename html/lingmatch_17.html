@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>report_term_matches</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a Report of Term Matches</h2>
+
+<h3>Description</h3>
+
+<p>Extract matches to fuzzy terms (globs/wildcards or regular expressions) from provided text, in order
+to assess their appropriateness for inclusion in a dictionary.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">report_term_matches(dict, text = NULL, space = NULL, glob = TRUE,
+  parse_phrases = TRUE, tolower = TRUE, punct = TRUE, special = TRUE,
+  as_terms = FALSE, bysentence = FALSE, as_string = TRUE,
+  term_map_freq = 1, term_map_spaces = 1, outFile = NULL,
+  space_dir = getOption("lingmatch.lspace.dir"), verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dict</code></td>
+<td>
+<p>A vector of terms, list of such vectors, or a matrix-like object to be
+categorized by <code>read.dic</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>A vector of text to extract matches from. If not specified, will use the terms
+in the <code>term_map</code> retrieved from <code>select.lspace</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>space</code></td>
+<td>
+<p>A vector space used to calculate similarities between term matches.
+Name of a the space (see <code>select.lspace</code>), a matrix with terms as row names, or
+<code>TRUE</code> to auto-select a space based on matched terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>glob</code></td>
+<td>
+<p>Logical; if <code>TRUE</code>, converts globs (asterisk wildcards) to regular expressions.
+If not specified, this will be set automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parse_phrases</code></td>
+<td>
+<p>Logical; if <code>TRUE</code> (default) and <code>space</code> is specified, will
+break unmatched phrases into single terms, and average across and matched vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolower</code></td>
+<td>
+<p>Logical; if <code>FALSE</code>, will retain <code>text</code>'s case.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>punct</code></td>
+<td>
+<p>Logical; if <code>FALSE</code>, will remove punctuation markings in <code>text</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>special</code></td>
+<td>
+<p>Logical; if <code>FALSE</code>, will attempt to replace special characters in <code>text</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as_terms</code></td>
+<td>
+<p>Logical; if <code>TRUE</code>, will treat <code>text</code> as terms, meaning <code>dict</code>
+terms will only count as matches when matching the complete text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bysentence</code></td>
+<td>
+<p>Logical; if <code>TRUE</code>, will split <code>text</code> into sentences, and only
+consider unique sentences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as_string</code></td>
+<td>
+<p>Logical; if <code>FALSE</code>, returns matches as tables rather than a string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term_map_freq</code></td>
+<td>
+<p>Proportion of terms to include when using the term map as a source
+of terms. Applies when <code>text</code> is not specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term_map_spaces</code></td>
+<td>
+<p>Number of spaces in which a term has to appear to be included.
+Applies when <code>text</code> is not specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outFile</code></td>
+<td>
+<p>File path to write results to, always ending in <code>.csv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>space_dir</code></td>
+<td>
+<p>Directory from which <code>space</code> should be loaded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical; if <code>FALSE</code>, will not display status messages.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> of results, with a row for each unique term, and the following columns:
+</p>
+
+<ul>
+<li> <p><strong><code>term</code></strong>: The originally entered term.
+</p>
+</li>
+<li> <p><strong><code>regex</code></strong>: The converted and applied regular expression form of the term.
+</p>
+</li>
+<li> <p><strong><code>categories</code></strong>: Comma-separated category names,
+if <code>dict</code> is a list with named entries.
+</p>
+</li>
+<li> <p><strong><code>count</code></strong>: Total number of matches to the term.
+</p>
+</li>
+<li> <p><strong><code>max_count</code></strong>: Number of matches to the most representative
+(that with the highest average similarity) variant of the term.
+</p>
+</li>
+<li> <p><strong><code>variants</code></strong>: Number of variants of the term.
+</p>
+</li>
+<li> <p><strong><code>space</code></strong>: Name of the latent semantic space, if one was used.
+</p>
+</li>
+<li> <p><strong><code>mean_sim</code></strong>: Average similarity to the most representative variant among terms
+found in the space, if one was used.
+</p>
+</li>
+<li> <p><strong><code>min_sim</code></strong>: Minimal similarity to the most representative variant.
+</p>
+</li>
+<li> <p><strong><code>matches</code></strong>: Variants, with counts and similarity (Pearson's r) to the
+most representative term (if a space was specified). Either in the form of a comma-separated
+string or a <code>data.frame</code> (if <code>as_string</code> is <code>FALSE</code>).
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>Matches are extracted for each term independently, so they may not align with some implementations
+of dictionaries. For instance, by default <code>lma_patcat</code> matches destructively, and sorts
+terms by length such that shorter terms will not match the same text and longer terms that overlap.
+Here, the match would show up for both terms.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For a more complete assessment of dictionaries, see <code>dictionary_meta()</code>.
+</p>
+<p>Similar information is provided in the <a href="https://miserman.github.io/dictionary_builder/">dictionary builder</a> web tool.
+</p>
+<p>Other Dictionary functions: 
+<code>dictionary_meta()</code>,
+<code>download.dict()</code>,
+<code>lma_patcat()</code>,
+<code>lma_termcat()</code>,
+<code>read.dic()</code>,
+<code>select.dict()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">text &lt;- c(
+  "I am sadly homeless, and suffering from depression :(",
+  "This wholesome happiness brings joy to my heart! :D:D:D",
+  "They are joyous in these fearsome happenings D:",
+  "I feel weightless now that my sadness has been depressed! :()"
+)
+dict &lt;- list(
+  sad = c("*less", "sad*", "depres*", ":("),
+  happy = c("*some", "happ*", "joy*", "d:"),
+  self = c("i *", "my *")
+)
+
+report_term_matches(dict, text)
+</code></pre>
+
+
+</div>

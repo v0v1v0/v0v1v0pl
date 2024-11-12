@@ -1,0 +1,71 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>db_try_consume</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Try to consume a message from the queue</h2>
+
+<h3>Description</h3>
+
+<p>If there is a message that it <code>READY</code>, it returns that. Otherwise it
+checks for crashed workers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">db_try_consume(db, queue, crashed = TRUE, con = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>db</code></td>
+<td>
+<p>DB file name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>queue</code></td>
+<td>
+<p>Name of the queue.</p>
+</td>
+</tr>
+</table>
+<h3>Details of the implementation</h3>
+
+<p>The database must be locked for the whole operation, including
+checking on or creating the lock databases.
+</p>
+
+<ol>
+<li>
+<p> If there is a <code>READY</code> message, that one is taken.
+</p>
+</li>
+<li>
+<p> Otherwise if there are <code>WORKING</code> messages, then
+we check them one by one. This might take a lot of
+time, and the DB must be locked for the whole search,
+so it is not ideal. But I don't have a better solution
+right now.
+</p>
+</li>
+</ol>
+<p>Taking a message means
+</p>
+
+<ol>
+<li>
+<p> Updating its row.status to <code>WORKING</code>.
+</p>
+</li>
+<li>
+<p> Creating another database that serves as the lock for this message.
+</p>
+</li>
+</ol>
+</div>

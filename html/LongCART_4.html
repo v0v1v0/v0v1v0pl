@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LongCART</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Longitudinal CART with continuous response via binary partitioning</h2>
+
+<h3>Description</h3>
+
+<p>Recursive partitioning for linear mixed effects model with continuous
+univariate response variables per LonCART algorithm based on baseline partitioning
+variables (Kundu and Harezlak, 2019).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LongCART(data, patid, fixed, gvars, tgvars, minsplit=40,
+         minbucket=20, alpha=0.05, coef.digits=2, print.lme=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>name of the dataset. It must contain variable specified for <code>patid</code> (indicating subject id), all the variables specified in the formula and the baseline partitioning variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patid</code></td>
+<td>
+<p>name of the subject id variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>a two-sided linear formula object describing the fixed-effects part of the model, with the response on the left of a <code>~ </code>operator and the terms, separated by <code>+</code> operators, on the right. Model with <code>-1</code> to the end of right side indicates no intercept. For model with no fixed effect beyond intercept, please specify only <code>1</code> right to the <code>~</code> operator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gvars</code></td>
+<td>
+<p>list of partitioning variables of interest. Value of these variables should not change over time. Regarding categorical variables, only numerically coded categorical variables should be specified. For nominal categorical variables or factors, please first create corresponding dummy variable(s) and then pass through <code>gvars</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tgvars</code></td>
+<td>
+<p>types (categorical or continuous) of partitioning variables specified in <code>gvar</code>. For each of continuous partitioning variables, specify <code>1</code> and for each of the categorical partitioning variables, specify <code>0</code>. Length of <code>tgvars</code> should match to the length of <code>gvars</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minsplit</code></td>
+<td>
+<p>the minimum number of observations that must exist in a node in order for a split to be attempted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minbucket</code></td>
+<td>
+<p>he minimum number of observations in any terminal node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>alpha (i.e., nominal type I error) level for parameter instability test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.digits</code></td>
+<td>
+<p>decimal points for displaying coefficients in the tree  structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print.lme</code></td>
+<td>
+<p>if <code>TRUE</code>, then summary of fitte model from <code>lme()</code> will be printed for each node.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Construct regression tree based on heterogeneity in linear mixed effects models of following type:
+<code>Y_i(t)= W_i(t)theta + b_i + epsilon_{it}</code>
+where <code>W_i(t)</code> is the design matrix, <code>theta</code> is the parameter associated with <code>W_i(t)</code> and <code>b_i</code> is the random intercept.
+Also, <code>epsilon_{it} ~  N(0,sigma ^2)</code> and <code>b_i ~ N(0, sigma_u^2)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Treeout</code></td>
+<td>
+<p>contains summary information of tree fitting for each terminal nodes and non-terminal nodes. Columns of <code>Treeout</code> include "ID", the (unique) node numbers that follow a binary ordering indexed by node depth, <code>n</code>, the number of observations reaching the node, <code>yval</code>, the fitted model of the response at the node, var, a factor giving the names of the variables used in the split at each, <code>index</code>, the cut-off value of splitting variable for binary partitioning, <code>p (Instability)</code>, the p-value for parameter instability test for the splitting variable, <code>loglik</code>, the log-likelihood of the node, <code>improve</code>,  the improvement in deviance given by this split, and <code>Terminal</code>,  indicator (True or False) of terminal node.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>number of fixed parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC.tree</code></td>
+<td>
+<p>AIC of the tree-structured model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC.root</code></td>
+<td>
+<p>AIC at the root node (i.e., without tree structure)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>improve.AIC</code></td>
+<td>
+<p>improvement in AIC due to tree structure (AIC.tree - AIC.root)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik.tree</code></td>
+<td>
+<p>log-likelihood of the tree-structured model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik.root</code></td>
+<td>
+<p>log-likelihood at the root node (i.e., without tree structure) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Deviance</code></td>
+<td>
+<p>2*(logLik.tree-logLik.root)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LRT.df</code></td>
+<td>
+<p>degrees of freedom for likelihood ratio test comparing tree-structured model with the model at root node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LRT.p</code></td>
+<td>
+<p>p-value for likelihood ratio test comparing tree-structured model with the model at root node.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodelab</code></td>
+<td>
+<p>List of subgroups or terminal nodes with their description</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varnam</code></td>
+<td>
+<p>List of splitting variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the dataset originally supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patid</code></td>
+<td>
+<p>the patid variable originally supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the fixed part of the model originally supplied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frame</code></td>
+<td>
+<p>rpart compatible object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splits</code></td>
+<td>
+<p>rpart compatible object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cptable</code></td>
+<td>
+<p>rpart compatible object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>functions</code></td>
+<td>
+<p>rpart compatible object</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Madan Gopal Kundu <a href="mailto:madan_g.kundu@yahoo.com">madan_g.kundu@yahoo.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Kundu, M. G., and Harezlak, J. (2019). Regression trees for longitudinal data with baseline covariates. Biostatistics &amp; Epidemiology, 3(1):1-22.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot</code>, <code>text</code>, <code>ProfilePlot</code>, <code>StabCat</code>, <code>StabCont</code>, <code>predict</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#--- Get the data
+data(ACTG175)
+
+#-----------------------------------------------#
+#   model: cd4~ time + subject(random)          #
+#-----------------------------------------------#
+
+#--- Run LongCART()  
+gvars=c("gender", "wtkg", "hemo", "homo", "drugs",
+        "karnof", "oprior", "z30", "zprior", "race",
+        "str2", "symptom", "treat", "offtrt")
+tgvars=c(0, 1, 0, 0, 0,
+         1, 0, 0, 0, 0,
+         0, 0, 0, 0)
+
+
+out1&lt;- LongCART(data=ACTG175, patid="pidnum", fixed=cd4~time,
+                gvars=gvars, tgvars=tgvars, alpha=0.05,
+                minsplit=100, minbucket=50, coef.digits=2)
+
+#--- Plot tree
+par(mfrow=c(1,1))
+par(xpd = TRUE)
+plot(out1, compress = TRUE)
+text(out1, use.n = TRUE)
+
+#--- Plot longitudinal profiles of subgroups
+ProfilePlot(x=out1, timevar="time")
+
+#-----------------------------------------------#
+#   model: cd4~ time+ time^2 + subject(random)  #
+#-----------------------------------------------#
+
+ACTG175$time2&lt;- ACTG175$time^2
+
+out2&lt;- LongCART(data=ACTG175, patid="pidnum", fixed=cd4~time + time2,
+                gvars=gvars, tgvars=tgvars, alpha=0.05,
+                minsplit=100, minbucket=50, coef.digits=2)
+
+
+par(mfrow=c(1,1))
+par(xpd = TRUE)
+plot(out2, compress = TRUE)
+text(out2, use.n = TRUE)
+
+ProfilePlot(x=out2, timevar="time", timevar.power=c(1,2))
+
+
+#--------------------------------------------------------#
+#   model: cd4~ time+ time^2 + subject(random) + karnof  #
+#--------------------------------------------------------#
+
+out3&lt;- LongCART(data=ACTG175, patid="pidnum", fixed=cd4~time + time2 + karnof,
+                gvars=gvars, tgvars=tgvars, alpha=0.05,
+                minsplit=100, minbucket=50, coef.digits=2)
+
+
+par(mfrow=c(1,1))
+par(xpd = TRUE)
+plot(out3, compress = TRUE)
+text(out3, use.n = TRUE)
+
+#the value of the covariate karnof is set at median by default
+ProfilePlot(x=out3, timevar="time", timevar.power=c(1,2, NA)) 
+
+#the value of the covariate karnof is set at 120
+ProfilePlot(x=out3, timevar="time", timevar.power=c(1,2, NA), 
+                     covariate.val=c(NA, NA, 120)) 
+
+
+</code></pre>
+
+
+</div>

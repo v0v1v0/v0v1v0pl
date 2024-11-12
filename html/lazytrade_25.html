@@ -1,0 +1,246 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mt_make_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to train Deep Learning Classification model for Market Type recognition</h2>
+
+<h3>Description</h3>
+
+<p>Function is training h2o deep learning model to match
+classified patterns of the financial indicator.
+Main idea is to be able to detect Market Type by solely relying on the
+current indicator pattern.
+This is in the attempt to evaluate current market type for trading purposes.
+</p>
+<p>Selected Market Periods could be manually classified
+according to the theory from Van K. Tharp:
+</p>
+
+<ol>
+<li>
+<p> Bull normal, BUN
+</p>
+</li>
+<li>
+<p> Bull volatile, BUV
+</p>
+</li>
+<li>
+<p> Bear normal, BEN
+</p>
+</li>
+<li>
+<p> Bear volatile, BEV
+</p>
+</li>
+<li>
+<p> Sideways quiet, RAN
+</p>
+</li>
+<li>
+<p> Sideways volatile, RAV
+</p>
+</li>
+</ol>
+<p>For automatic classification, could only be used: BUN, BEN, RAN market types
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mt_make_model(
+  indicator_dataset,
+  num_bars = 64,
+  timeframe = 60,
+  path_model,
+  path_data,
+  activate_balance = TRUE,
+  num_nn_options = 24,
+  fixed_nn_struct = c(100, 100),
+  num_epoch = 100,
+  is_cluster = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indicator_dataset</code></td>
+<td>
+<p>Data frame, Data set containing indicator patterns to train the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_bars</code></td>
+<td>
+<p>Integer, Number of bars used to detect pattern</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, Data time frame in minutes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_model</code></td>
+<td>
+<p>String, Path where the models are be stored</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_data</code></td>
+<td>
+<p>String, Path where the aggregated historical data is stored,
+if exists, in rds format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>activate_balance</code></td>
+<td>
+<p>Boolean, option to choose to balance market type classes or not,
+default TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_nn_options</code></td>
+<td>
+<p>Integer, value from 0 to 24 or more as multiple of 3.
+Used to change number of variants for 3 hidden layer structure.
+Random neural network structures will be generated.
+When value 0 is set then a fixed structure will be used as
+defined by parameter fixed_nn_struct.
+To avoid warnings make sure to set this value as
+multiple of 3. Higher values will increase computation time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_nn_struct</code></td>
+<td>
+<p>Integer vector with numeric elements, see par hidden in ?h2o.deeplearning,
+default value is c(100,100).
+Note this will only work if num_nn_options is 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_epoch</code></td>
+<td>
+<p>Integer, see parameter epochs in ?h2o.deeplearning, default value is 100
+Higher number may lead to long code execution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_cluster</code></td>
+<td>
+<p>Boolean, set TRUE to use automatically clustered data</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function is using labeled dataset and tries several different random
+neural network structures. Once the best neural network is found then the
+better model is selected and stored. Dataset can be either manually labelled
+or generated using function mt_stat_transf.R. In the latter case parameter
+is_cluster shall be set to TRUE.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function is writing file object with the model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2020, 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+library(dplyr)
+library(magrittr)
+library(readr)
+library(h2o)
+library(lazytrade)
+library(stats)
+
+path_model &lt;- normalizePath(tempdir(),winslash = "/")
+path_data &lt;- normalizePath(tempdir(),winslash = "/")
+
+data(macd_ML60M)
+
+Sys.sleep(5)
+
+# start h2o engine
+h2o.init(nthreads = 2)
+
+
+# performing Deep Learning Classification using manually labelled data
+mt_make_model(indicator_dataset = macd_ML60M,
+              num_bars = 64,
+              timeframe = 60,
+              path_model = path_model,
+              path_data = path_data,
+              activate_balance = TRUE,
+              num_nn_options = 3,
+              num_epoch = 10)
+
+data(price_dataset_big)
+data &lt;- head(price_dataset_big, 5000) #reduce computational time
+
+ai_class &lt;- mt_stat_transf(indicator_dataset = data,
+                      num_bars = 64,
+                      timeframe = 60,
+                      path_data = path_data,
+                      mt_classes = c('BUN', 'BEN', 'RAN'))
+
+# performing Deep Learning Classification using the custom function auto clustered data
+mt_make_model(indicator_dataset = ai_class,
+              num_bars = 64,
+              timeframe = 60,
+              path_model = path_model,
+              path_data = path_data,
+              activate_balance = TRUE,
+              num_nn_options = 6,
+              num_epoch = 10,
+              is_cluster = TRUE)
+
+# performing Deep Learning Classification using the custom function auto clustered data
+# and fixed nn structure
+mt_make_model(indicator_dataset = ai_class,
+              num_bars = 64,
+              timeframe = 60,
+              path_model = path_model,
+              path_data = path_data,
+              activate_balance = TRUE,
+              num_nn_options = 0,
+              fixed_nn_struct = c(10, 10),
+              num_epoch = 10,
+              is_cluster = TRUE)
+              
+# stop h2o engine
+h2o.shutdown(prompt = FALSE)
+
+#set delay to insure h2o unit closes properly before the next test
+Sys.sleep(5)
+
+
+
+
+
+</code></pre>
+
+
+</div>

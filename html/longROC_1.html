@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>AUC</h2>
+
+<h3>Description</h3>
+
+<p>Compute area under the ROC curve</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auc(ss) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>ss</code></td>
+<td>
+<p>Matrix with two columns (1-specificities,
+sensitivities). It can be simply the output of <code>roc</code> function</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Area under the ROC curve.  
+</p>
+
+
+<h3>Value</h3>
+
+<p>A scalar with the AUC. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Alessio Farcomeni <a href="mailto:alessio.farcomeni@uniroma1.it">alessio.farcomeni@uniroma1.it</a></p>
+
+
+<h3>References</h3>
+
+<p>Barbati, G. and Farcomeni, A. (2017) Prognostic assessment of
+repeatedly measured time-dependent biomarkers, with application to
+dilated cardiomuopathy, <em>Statistical Methods &amp; Applications</em>, in
+press 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><cite>roc</cite>, <cite>butstrap</cite>, <cite>maxauc</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># parameters
+n=100
+tt=3
+Tmax=10
+u=1.5
+s=2
+vtimes=c(0,1,2,5)
+
+# generate data 
+
+ngrid=5000
+ts=seq(0,Tmax,length=ngrid)
+X2=matrix(rnorm(n*ngrid,0,0.1),n,ngrid)
+for(i in 1:n) {
+sa=sample(ngrid/6,1)
+vals=sample(3,1)-1
+X2[i,1:sa[1]]=vals[1]+X2[i,1:sa[1]]
+X2[i,(sa[1]+1):ngrid]=vals[1]+sample(c(-2,2),1)+X2[i,(sa[1]+1):ngrid]
+}
+
+S1=matrix(sample(4,n,replace=TRUE),n,length(vtimes))
+S2=matrix(NA,n,length(vtimes))
+
+S2[,1]=X2[,1]
+
+for(j in 2:length(vtimes)) {
+tm=which.min(abs(ts-vtimes[j]))
+S2[,j]=X2[,tm]}
+
+cens=runif(n)
+ripart=1-exp(-0.01*apply(exp(X2),1,cumsum)*ts/1:ngrid)
+
+Ti=rep(NA,n)
+for(i in 1:n) {
+Ti[i]=ts[which.min(abs(ripart[,i]-cens[i]))]
+}
+
+cens=runif(n,0,Tmax*2)
+delta=ifelse(cens&gt;Ti,1,0)
+Ti[cens&lt;Ti]=cens[cens&lt;Ti]
+
+## 
+
+## an important marker 
+
+ro=roc(S2,Ti,delta,u,tt,s,vtimes) 
+auc(ro)
+
+## an unrelated marker 
+
+ro=roc(S1,Ti,delta,u,tt,s,vtimes) 
+auc(ro)
+
+</code></pre>
+
+
+</div>

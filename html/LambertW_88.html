@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>p_m1</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Non-principal branch probability</h2>
+
+<h3>Description</h3>
+
+<p>Computes the probability that (at least) one (out of n)
+observation(s) of the latent variable <code class="reqn">U</code> lies in the non-principal
+branch region. The '<code>m1</code>' in <code>p_m1</code> stands for 'minus 1', i.e,
+the non-principal branch.
+</p>
+<p>See Goerg (2011) and Details for mathematical derivations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">p_m1(gamma, beta, distname, n = 1, use.mean.variance = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>scalar; skewness parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric vector (deprecated); parameter <code class="reqn">\boldsymbol \beta</code> of
+the input distribution.  See <code>check_beta</code> on how to specify
+<code>beta</code> for each distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>character; name of input distribution; see
+<code>get_distnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>number of RVs/observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.mean.variance</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it uses mean and variance
+implied by <code class="reqn">\boldsymbol \beta</code> to do the transformation (Goerg 2011).
+If <code>FALSE</code>, it uses the alternative definition from Goerg (2016)
+with location and scale parameter.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The probability that one observation of the latent RV U lies in the
+non-principal region equals at most </p>
+<p style="text-align: center;"><code class="reqn"> p_{-1}(\gamma, n=1)
+= P\left(U &lt; -\frac{1}{|\gamma|}\right), </code>
+</p>
+<p> where <code class="reqn">U</code> is the zero-mean,
+unit variance version of the input <code class="reqn">X \sim F_X(x \mid \boldsymbol
+\beta)</code> – see References.
+</p>
+<p>For <code class="reqn">N</code> independent RVs <code class="reqn">U_1, \ldots, U_N</code>, the probability that at
+least one data point came from the non-principal region equals
+</p>
+<p style="text-align: center;"><code class="reqn">
+p_{-1}(\gamma, n=N) = P\left(U_i &lt; -\frac{1}{|\gamma|} \; for \; at \;
+least \; one \; i \right) </code>
+</p>
+ 
+<p>This equals (assuming independence) 
+</p>
+<p style="text-align: center;"><code class="reqn"> P\left(U_i &lt; -\frac{1}{|\gamma|} \; for \; at
+\; least \; one \; i \right) = 1 - P\left(U_i \geq -\frac{1}{|\gamma|},
+\forall i \right) = 1 - \prod_{i=1}^{N} P\left(U_i \geq -\frac{1}{|\gamma|}
+\right) </code>
+</p>
+ <p style="text-align: center;"><code class="reqn"> = 1 - \prod_{i=1}^{N} \left(1 - p_{-1}(\gamma, n=1) \right)
+= 1 - (1-p_{-1}(\gamma, n=1))^N. </code>
+</p>
+
+<p>For improved numerical stability the cdf of a geometric RV
+(<code>pgeom</code>) is used to evaluate the last
+expression. Nevertheless, numerical problems can occur for <code class="reqn">|\gamma| &lt;
+0.03</code> (returns <code>0</code> due to rounding errors).
+</p>
+<p>Note that <code class="reqn">1 - (1-p_{-1}(\gamma, n=1))^N</code> reduces to <code class="reqn">p_{-1}(\gamma)</code>
+for <code class="reqn">N=1</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>non-negative float; the probability <code class="reqn">p_{-1}</code> for <code>n</code> observations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+beta.01 &lt;- c(mu = 0, sigma = 1)
+# for n=1 observation
+p_m1(0, beta = beta.01, distname = "normal") # identical to 0
+# in theory != 0; but machine precision too low
+p_m1(0.01, beta = beta.01, distname = "normal") 
+p_m1(0.05, beta = beta.01, distname = "normal") # extremely small
+p_m1(0.1, beta = beta.01, distname = "normal") # != 0, but very small
+# 1 out of 4 samples is a non-principal input;
+p_m1(1.5, beta = beta.01, distname = "normal") 
+# however, gamma=1.5 is not common in practice
+
+# for n=100 observations
+p_m1(0, n=100, beta = beta.01, distname = "normal") # == 0
+p_m1(0.1, n=100, beta = beta.01, distname = "normal") # still small
+p_m1(0.3, n=100, beta = beta.01, distname = "normal") # a bit more likely
+p_m1(1.5, n=100, beta = beta.01, distname = "normal") 
+# Here we can be almost 100% sure (rounding errors) that at least one
+# y_i was caused by an input in the non-principal branch.
+
+</code></pre>
+
+
+</div>

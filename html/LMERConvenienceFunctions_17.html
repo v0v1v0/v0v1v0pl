@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotLMER.fnc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>plot a mer object</h2>
+
+<h3>Description</h3>
+
+<p>Plot partial effects of a (generalized) linear mixed-effects model fit with
+<code>lmer</code> (compatible with package <code>lme4</code> version &gt; 1.0).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotLMER.fnc(model, xlabel = NA, xlabs = NA, ylabel = NA, 
+ylimit = NA, ilabel = NA, fun = NA, pred = NA, control = NA, 
+ranefs = NA, n = 100, intr = NA,lockYlim = TRUE, addlines = FALSE, 
+withList = FALSE, cexsize = 0.5, linecolor = 1, 
+addToExistingPlot = FALSE, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> a <code>mer</code> model object </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlabel</code></td>
+<td>
+<p> label for X-axis (if other than the variable name in the
+original model formula)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlabs</code></td>
+<td>
+<p> character vector with labels for X-axes in multipanel plot (if 
+other than the variable names in the original model formula); if used, 
+<code>xlabel</code> should not be specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylabel</code></td>
+<td>
+<p> label for Y-axis (if other than the variable name of 
+the dependent variable in the original model formula) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylimit</code></td>
+<td>
+<p> range for vertical axis; if not specified, this range will 
+be chosen such that all data points across all subplots, including HPD intervals, will be accommodated </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ilabel</code></td>
+<td>
+<p> label for the interaction shown in the lower right-hand margin of the plot, overriding the original variable name in the model formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p> a function to be applied for transforming the dependent variable, 
+if <code>NA</code>, no transformation is applied; for models with <code>family = "binomial"</code>, 
+fun is set to <code>plogis</code> by default; this can be disabled by setting
+<code>fun=function(x)return(x)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p> character string with name of predictor; 
+if specified, a single plot will produced for the partial effect of this
+specific predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p> a two-element list <code>list(predictor, val)</code> specifying a <code>predictor</code> the value of which has to be set to <code>val</code> in the partial effect plot(s); the predictor name should be exactly as specified in <code>names(model@fixef)</code>.  It is up to the user to make sure that name and value make sense, the code here hands full 'control' to the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ranefs</code></td>
+<td>
+<p>a four-element list <code>Group, Level, Predictor</code>, specifying a random-effect Group (e.g. <code>Subject</code>), a level (e.g., <code>S10</code>) and a value (e.g., <code>LogFrequency</code>) for which partial effects have to be calibrated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p> integer denoting number of points for the plot, chosen at equally
+spaced intervals across the empirical range of the predictor variable </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intr</code></td>
+<td>
+<p> a list specifying an interaction to be graphed; obligatory
+arguments are (1) the name of the interaction variable, followed by (2) 
+a vector of values for that variable, followed by (3) the position for 
+interaction labels ('"beg"', '"mid"', or '"end"', or 'NA' if no labels are 
+desired), optionally followed by (4) a list with as first element
+a vector of colors and as second element a vector of line types. The number
+of elements in both vectors should match the number of values specified 
+under (2) for the interaction predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lockYlim</code></td>
+<td>
+<p> logical specifying whether all subplots should have the same
+range of values for the vertical axis; if <code>TRUE</code>, this range will be
+chosen to accomodate all fitted values including HDP intervals for all
+predictors across all plots</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addlines</code></td>
+<td>
+<p> if TRUE, adds line(s) between levels of same factor(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>withList</code></td>
+<td>
+<p> logical, if <code>TRUE</code>, a list will be output with all data 
+frames for the subplots</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cexsize</code></td>
+<td>
+<p> character expansion size (cex) for additional information in
+the plot for interactions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linecolor</code></td>
+<td>
+<p> color of lines in the plot, by default set to 1 (black) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addToExistingPlot</code></td>
+<td>
+<p> default FALSE, if set to TRUE, plot will be added to previous plot, but only if pred is specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> if TRUE (default), effect sizes and default transformations are reported</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> further graphical parameters to be passed down; warning: <code>col</code>, 
+<code>pch</code>, <code>lty</code> and <code>cex</code> will often generate an error as they are 
+internally already fully specified for specialized subplots</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When no predictor is specified, a series of plots is produced for the partial
+effects of each predictor.  The graphs are shown for the reference level for
+factors and are adjusted for the median value for the other numerical
+predicors in the model.  Interactions are not shown.  The user should set up the
+appropriate number of subplots on the graphics device before running plotLMER.fnc().
+</p>
+<p>Instead of showing all predictors jointly, plotLMER.fnc() can also be used to
+plot the partial effect of a specific predictor.  When a specific predictor
+is specified (with <code>pred = ...</code>), a single plot is produced for that
+predictor.  In this case, the <code>intr</code> argument can be used to specify a
+single second predictor that enters into an interaction with the selected
+main predictor.  
+</p>
+<p>Polynomials have to be fitted with <code>poly(..., degree, raw=TRUE)</code> and
+restricted cubic splines with <code>rcs()</code> from the <code>rms</code> package.
+</p>
+<p>Note that any MCMC capabilities available in the <code>languageR</code> version of this function are not available in this version. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A plot is produced on the graphical device.
+</p>
+
+
+<h3>Note</h3>
+
+<p> This code needs much more work, including (i) extension to <code>poly</code> with <code>raw=FALSE</code>, and (ii) general clean-up of the code.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>R. H. Baayen, tweaked by Antoine Tremblay</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plotLMER3d.fnc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># see example in LMERConvenienceFunctions help page.
+</code></pre>
+
+
+</div>

@@ -1,0 +1,288 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LKrig Internal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Internal functions for LatticeKrig package. 
+</h2>
+
+<h3>Description</h3>
+
+<p>Some internal functions for <code>LKrig</code> that estimate  the 
+coefficients of the basis functions and compute the likelihood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LKrigMakewU(object, verbose = FALSE)
+LKrigMakewX(object, verbose = FALSE)
+LKrig.coef( GCholesky, wX, wU, wy, lambda,
+collapseFixedEffect = FALSE,  verbose = FALSE)
+LKrig.lnPlike( GCholesky, Q, quad.form, nObs, nReps, weights, LKinfo)
+LKrig.traceA(GCholesky, wX, wU, lambda, weights, NtrA, iseed = NA)
+LKrigUnrollZGrid( grid.list, ZGrid=NULL)
+LKDefaultVarNames(A, tag)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>A matrix to add column names if not present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapseFixedEffect</code></td>
+<td>
+<p>If FALSE estimate fixed effects
+separately for each replicated data set. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid.list</code></td>
+<td>
+<p>The grid for evaluating surface</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GCholesky</code></td>
+<td>
+<p>SPAM cholesky decomposition of the "G" matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iseed</code></td>
+<td>
+<p>Random seed used to generate the Monte Carlo
+samples. Keep the same to compare results with mKrig and also for
+multiple values of lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The ratio of the nugget variance (tau squared) to the
+parameter controlling the marginal variance of the process (called
+sigma2 in fields).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LKinfo</code></td>
+<td>
+<p>The LKinfo object. See help(LKinfo)</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>NtrA</code></td>
+<td>
+<p>Number of Monte Carlo samples to estimate trace. Default
+is 20 in LKrig.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nObs</code></td>
+<td>
+<p>Number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nReps</code></td>
+<td>
+<p>Number of replicate fields. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The LKrig object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p>Precision matrix for coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quad.form</code></td>
+<td>
+<p>The part of the log likelihood that is a quadratic form.
+(This is typically found in <code>LKrig.coef</code>.)</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>tag</code></td>
+<td>
+<p>Text string to use as the column name. This will be followed  1, 2, ... for the names. E.g. X1 X2 X3. Default value will be the 
+name of A. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If TRUE intermediate debugging information is printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>A vector that is proportional to the reciprocal
+variances of the errors. I.e. errors are assumed to be uncorrelated
+with variances tau^2/weights. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wU</code></td>
+<td>
+<p>Weighted U matrix the fixed part of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wX</code></td>
+<td>
+<p>Weighted X matrix (in spam format) related to nonparametric (stochastic) part of 
+model. Here weights refer to the sqrt(weights).
+</p>
+<p>NOTE: predicted values are  U%*%d.coef + X%*%c.coef
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wy</code></td>
+<td>
+<p>Weighted observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ZGrid</code></td>
+<td>
+<p>A list or array with the covariates on the same grid as that specified by 
+the  grid.list argument. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The LatticeKrig article can be used as a reference for the matrix computations
+and the G matrix from those formulas figures prominently. The GCholesky object
+in these functions is the cholesky decomposition of this matrix. For
+compatibility with older version of this package this object may also be named
+as <code>Mc</code> ( Cholesky of the M  matrix) but the user should not identify this M with that in the article. Ideally all coding using Mc should be changed to GCholesky.
+</p>
+<p><code>createLKrigObject</code> Based on the arguments passed into LKrig forms the prototype LKrig object. This object is added to as one computes additional steps in the LKrig function. The Names argument in the call is awkward device to pass the names of the original x, Z and U objects when substitued these names are used as the default prefixs for column names of these matrices. 
+</p>
+<p><code>LKrigMakewU</code> and <code>LKrigMakewX</code>  construct the weighted U and X matrices from what is passed. In the case of observations that are point locations wU is found the weights and using the fixedFunction and wX is found from the weights and the multi-resolution basis functions. Note that X and wX are assumed to be in spam 
+sparse matrix format. 
+</p>
+<p><code>LKrig.coef</code> and <code>LKrig.lnPlike</code> are two low level functions
+to find the basis function coefficients and to evaluate the
+likelihood. The coefficients (<code>c.mKrig</code>) are also found because
+they provide for shortcut formulas for the standard errors and MLE
+estimates.  These coefficients are identical to the basis coefficients
+(<code>c.coef</code>) found for usual Kriging in the mKrig
+function. <code>LKrig.lnPlike</code> also finds the profile MLE of tau and
+sigma2 given a fixed value for lambda (and <code>alpha</code> and
+<code>a.wght</code>).  See the source for LKrig and also MLE.LKrig to see
+how these functions are used.
+</p>
+<p><code>LKrig.traceA</code> finds an estimate of the effective degrees of
+freedom of the smoothing matrix based a simple Monte Carlo scheme. The
+smoothing matrix A is the matrix for fixed covariance parameters so
+that y.hat = A y, where y.hat are the predicted values at the data
+locations.  trace(A) is the effective degrees of freedom.  If e are
+iid N(0,1) then the expected value of t(e)% * % A % * % e is equal
+to the trace of A. This is the basis for estimating the trace and the
+standard error for this estimate is based on <code>NtrA</code> independent
+samples.
+</p>
+<p><code>dfind2d</code> is a fast FORTRAN subroutine to find nearest neighbors
+within a fixed distance and is called by <code>Wendland.basis</code>. The
+function <code>dfind3d</code> is currently not used but is intended for
+future use to determine chordal distance between points on a sphere or
+cylinder.
+</p>
+<p><code>LKrigDefaultFixedFunction</code> Is called to construct the fixed part of the 
+spatial model. The default is a polynomial of degree (m-1).
+</p>
+<p><code>LKDefaultVarNames</code> A handyfunction to create  some simple column names to a matrix if they are missing. This is used so that the tables of parameter estimates will have labels. 
+</p>
+
+
+<h3>Value</h3>
+
+
+<dl>
+<dt>LKrig.coef</dt>
+<dd>
+<p>a list with components d.coef the coefficients of
+the spatial drift and for covariates (Z) and c.coef the basis function
+coefficients. The logical vector ind.drift from the LKrig object
+indicates with components of d.coef are associated with the polynomial
+spatial drift and which are other fixed spatial covariates.</p>
+</dd>
+<dt>LKrig.lnPlike</dt>
+<dd>
+<p>has the components:</p>
+</dd>
+<dt>lnProfileLike</dt>
+<dd>
+<p>the log likelihood profiled for lambda, alpha
+and a.wght</p>
+</dd>
+<dt>sigma2.MLE</dt>
+<dd>
+<p>the MLE of sigma2 given lambda, alpha and a.wght</p>
+</dd>
+<dt>shat.MLE</dt>
+<dd>
+<p> the MLE of tau given lambda, alpha and a.wght</p>
+</dd>
+<dt>quad.form</dt>
+<dd>
+<p>the quadratic form in the exponent of the
+multivariate normal likelihood</p>
+</dd>
+<dt>lnDetCov</dt>
+<dd>
+<p>the log determinant of the covariance matrix in the
+likelihood</p>
+</dd>
+<dt>LKrigDefaultFixedFunction</dt>
+<dd>
+<p>A matrix with dimension nrow(x) and columns
+of the number of polynomial terms  and the number of columns of Z if given.</p>
+</dd>
+<dt>LKDefaultVarNames</dt>
+<dd>
+<p>The original column names ( e.g. the result of <code>colnames(A)</code> ) or some simple choices filled in. </p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+</p>
+
+
+<h3>References</h3>
+
+<p>Nychka, D., Bandyopadhyay, S., Hammerling, D., Lindgren, F., &amp; Sain, S. (2015). A multi-resolution Gaussian process model for the analysis of large spatial datasets.Journal of Computational and Graphical Statistics, 24(2), 579-599.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>LKrig, LKrig.basis
+</p>
+
+
+</div>

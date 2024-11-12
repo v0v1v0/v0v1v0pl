@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>make_frequencies</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Make the frequencies file for new classifier construction</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to calculate the frequencies of lncRNAs, CDs, and
+secondary structure sequences. The frequencies file can be used to build the classifier
+using function <code>extract_features</code>. Functions <code>make_frequencies</code> and
+<code>extract_features</code> are useful when users are trying
+to build their own model.
+</p>
+<p>NOTE: Function <code>make_frequencies</code> makes the frequencies file
+for building the classifiers of LncFinder method. If users need to calculate Logarithm-Distance,
+Euclidean-Distance, and hexamer score, the frequencies file need to be computed using function
+<code>make_referFreq</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">make_frequencies(
+  cds.seq,
+  mRNA.seq,
+  lncRNA.seq,
+  SS.features = FALSE,
+  cds.format = "DNA",
+  lnc.format = "DNA",
+  check.cds = TRUE,
+  ignore.illegal = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cds.seq</code></td>
+<td>
+<p>Coding sequences (mRNA without UTRs). Can be a FASTA file loaded
+by <code>seqinr-package</code> or secondary structure
+sequences (Dot-Bracket Notation) obtained form function <code>run_RNAfold</code>.
+CDs are used to calculate hexamer frequencies of nucleotide sequences,thus
+secondary structure is not needed. Parameter <code>cds.format</code> should be
+<code>"SS"</code> when input is secondary structure sequences. (See details for
+more information.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mRNA.seq</code></td>
+<td>
+<p>mRNA sequences with Dot-Bracket Notation. The secondary
+structure sequences can be obtained from function <code>run_RNAfold</code>.
+mRNA sequences are used to calculate the frequencies of acgu-ACGU and a acguD
+(see details), thus, mRNA sequences are required only when <code>SS.features = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lncRNA.seq</code></td>
+<td>
+<p>Long non-coding RNA sequences. Can be a FASTA file loaded by
+<code>seqinr-package</code> or secondary structure
+sequences (Dot-Bracket Notation) obtained from function <code>run_RNAfold</code>.
+If <code>SS.features = TRUE</code>, <code>lncRNA.seq</code> must be RNA sequences with
+secondary structure sequences and parameter <code>lnc.format</code> should be defined
+as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SS.features</code></td>
+<td>
+<p>Logical. If <code>SS.features = TRUE</code>, frequencies of secondary
+structure will also be calculated and the model can be built with secondary
+structure features. In this case, <code>mRNA.seq</code> and <code>lncRNA.seq</code> should
+be secondary structure sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cds.format</code></td>
+<td>
+<p>String. Define the format of the sequences of <code>cds.seq</code>.
+Can be <code>"DNA"</code> or <code>"SS"</code>. <code>"DNA"</code> for DNA sequences and <code>"SS"</code>
+for secondary structure sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lnc.format</code></td>
+<td>
+<p>String. Define the format of lncRNAs (<code>lncRNA.seq</code>).
+Can be <code>"DNA"</code> or <code>"SS"</code>. <code>"DNA"</code> for DNA sequences and <code>"SS"</code>
+for secondary structure sequences. This parameter must be defined as <code>"SS"</code>
+when <code>SS.features = TURE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.cds</code></td>
+<td>
+<p>Logical. Incomplete CDs can lead to a false shift and a
+inaccurate hexamer frequencies. When <code>check.cds = TRUE</code>, hexamer frequencies
+will be calculated on the longest ORF. This parameter is strongly recommended to
+set as <code>TRUE</code> when mRNA is used as CDs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore.illegal</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, the sequences with non-nucleotide
+characters (nucleotide characters: "a", "c", "g", "t") will be ignored when
+calculating hexamer frequencies.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is used to make frequencies file for LncFinder method. This file is needed
+when users are trying to build their own model.
+</p>
+<p>In order to achieve high accuracy, mRNA should not be regarded as CDs and assigned
+to parameter <code>cds.seq</code>. However, CDs of some species may be insufficient
+for calculating frequencies, and mRNAs can be regarded as CDs with parameter
+<code>check.cds = TRUE</code>. In this case, hexamer frequencies will be calculated
+on ORF region.
+</p>
+<p>Considering that it is time consuming to obtain secondary structure sequences,
+users can only provide nucleotide sequences and build a model without secondary
+structure features (<code>SS.features = </code> <code>FALSE</code>). If users want to build a model
+with secondary structure features, parameter <code>SS.features</code> should be set
+as <code>TRUE</code>. At the same time, the format of the sequences of <code>mRNA.seq</code>
+and <code>lnc.seq</code> should be secondary structure sequences (Dot-Bracket Notation).
+Secondary structure sequences can be obtained by function <code>run_RNAfold</code>.
+</p>
+<p>Please note that:
+</p>
+<p>SS.features can improve the performance when the species of unevaluated sequences
+is identical to the species of the sequences that used to build the model.
+</p>
+<p>However, if users are trying to predict sequences with the model trained on
+other species, SS.features may lead to low accuracy.
+</p>
+<p>The frequencies file consists three groups: Hexamer Frequencies; acgu-ACGU
+Frequencies and acguD Frequencies.
+</p>
+<p>Hexamer Frequencies are calculated on the original nucleotide sequences by
+employing <em>k</em>-mer scheme (<em>k</em> = 6), and the sliding window will slide
+3 nt each step.
+</p>
+<p>For any secondary structure sequences (Dot-Bracket Notation), if one position
+is a dot, the corresponding nucleotide of the RNA sequence will be replaced
+with character "D". acguD Frequencies are the <em>k</em>-mer frequencies
+(<em>k</em> = 4) calculated on this new sequences.
+</p>
+<p>Similarly, for any secondary structure sequences (Dot-Bracket Notation), if
+one position is "(" or ")", the corresponding nucleotide of the RNA sequence
+will be replaced with upper case ("A", "C", "G", "U").
+</p>
+<p>A brief example,
+</p>
+<p>DNA Sequence:<code>          5'-   t  a  c  a  g  t  t  a  t  g   -3'</code>
+</p>
+<p>RNA Sequence:<code>          5'-   u  a  c  a  g  u  u  a  u  g   -3'</code>
+</p>
+<p>Dot-Bracket Sequence:<code>     5'-   .  .  .  .  (  (  (  (  (  (   -3'</code>
+</p>
+<p>acguD Sequence:<code>         {     D, D, D, D, g, u, u, a, u, g   }</code>
+</p>
+<p>acgu-ACGU Sequence:<code>    {     u, a, c, a, G, U, U, A, U, G   }</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a list which consists the frequencies of protein-coding sequences
+and non-coding sequences.
+</p>
+
+
+<h3>References</h3>
+
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>run_RNAfold</code>, <code>read_SS</code>,
+<code>build_model</code>, <code>extract_features</code>,
+<code>make_referFreq</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Only for examples:
+data(demo_DNA.seq)
+Seqs &lt;- demo_DNA.seq
+
+## Not run: 
+### Obtain the secondary structure sequences (Windows OS):
+RNAfold.path &lt;- '"E:/Program Files/ViennaRNA/RNAfold.exe"'
+SS.seq &lt;- run_RNAfold(Seqs, RNAfold.path = RNAfold.path, parallel.cores = 2)
+
+### Make frequencies file with secondary strucutre features,
+my_file_1 &lt;- make_frequencies(cds.seq = SS.seq, mRNA.seq = SS.seq,
+                              lncRNA.seq = SS.seq, SS.features = TRUE,
+                              cds.format = "SS", lnc.format = "SS",
+                              check.cds = TRUE, ignore.illegal = FALSE)
+
+## End(Not run)
+
+### Make frequencies file without secondary strucutre features,
+my_file_2 &lt;- make_frequencies(cds.seq = Seqs, lncRNA.seq = Seqs,
+                              SS.features = FALSE, cds.format = "DNA",
+                              lnc.format = "DNA", check.cds = TRUE,
+                              ignore.illegal = FALSE)
+
+### The input of cds.seq and lncRNA.seq can also be secondary structure
+### sequences when SS.features = FALSE, such as,
+data(demp_SS.seq)
+SS.seq &lt;- demo_SS.seq
+my_file_3 &lt;- make_frequencies(cds.seq = SS.seq, lncRNA.seq = Seqs,
+                              SS.features = FALSE, cds.format = "SS",
+                              lnc.format = "DNA", check.cds = TRUE,
+                              ignore.illegal = FALSE)
+</code></pre>
+
+
+</div>

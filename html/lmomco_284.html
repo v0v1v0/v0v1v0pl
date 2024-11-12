@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfrice</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Rice Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density
+of the Rice distribution given parameters  (<code class="reqn">\nu</code> and <code class="reqn">\mathrm{SNR}</code>)  computed by <code>parrice</code>. The probability density function is
+</p>
+<p style="text-align: center;"><code class="reqn">
+f(x) = \frac{x}{\alpha^2}\,\exp\!\left(\frac{-(x^2+\nu^2)}{2\alpha^2}\right)\,I_0(x\nu/\alpha^2)\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">f(x)</code> is the nonexceedance probability for quantile <code class="reqn">x</code>,
+<code class="reqn">\nu</code> is a parameter, and <code class="reqn">\nu/\alpha</code> is a form of signal-to-noise ratio <code class="reqn">\mathrm{SNR}</code>, and <code class="reqn">I_k(x)</code> is the modified Bessel function of the first kind, which for integer <code class="reqn">k=0</code> is seen under <code>LaguerreHalf</code>. If <code class="reqn">\nu=0</code>, then the Rayleigh distribution results and <code>pdfray</code> is used. If <code class="reqn">24 &lt; \mathrm{SNR} &lt; 52</code> is used, then the Normal distribution functions are used with appropriate parameter estimation for <code class="reqn">\mu</code> and <code class="reqn">\sigma</code> that include the Laguerre polynomial <code>LaguerreHalf</code>. If <code class="reqn">\mathrm{SNR} &gt; 52</code>, then the Normal distribution functions continue to be used with <code class="reqn">\mu=\alpha\times\mathrm{SNR}</code> and <code class="reqn">\sigma = A</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfrice(x, para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parrice</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The <span class="pkg">VGAM</span> package provides a pdf of the Rice for reference:
+</p>
+<pre>
+"drice" &lt;- function(x, vee, sigma, log = FALSE) { # From the VGAM package
+    if(!is.logical(log.arg &lt;- log)) stop("bad input for argument 'log'")
+    rm(log)
+    N = max(length(x), length(vee), length(sigma))
+    x = rep(x, len=N); vee = rep(vee, len=N); sigma = rep(sigma, len=N)
+    logdensity = rep(log(0), len=N)
+    xok = (x &gt; 0)
+    x.abs = abs(x[xok]*vee[xok]/sigma[xok]^2)
+    logdensity[xok] = log(x[xok]) - 2 * log(sigma[xok]) +
+                      (-(x[xok]^2+vee[xok]^2)/(2*sigma[xok]^2)) +
+                      log(besselI(x.abs, nu=0, expon.scaled = TRUE)) + x.abs
+    logdensity[sigma &lt;= 0] &lt;- NaN; logdensity[vee &lt; 0] &lt;- NaN
+    if(log.arg) logdensity else exp(logdensity)
+}
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfrice</code>, <code>quarice</code>, <code>lmomrice</code>, <code>parrice</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(c(10, 43, 27, 26, 49, 26, 62, 39, 51, 14))
+rice &lt;- parrice(lmr)
+x &lt;- quarice(nonexceeds(),rice)
+plot(x,pdfrice(x,rice), type="b")
+
+
+# For SNR=v/a &gt; 24 or 240.001/10 &gt; 24, the Normal distribution is
+# used by the Rice as implemented here.
+rice1 &lt;- vec2par(c(239.9999,10), type="rice")
+rice2 &lt;- vec2par(c(240.0001,10), type="rice")
+x &lt;- 200:280
+plot( x, pdfrice(x, rice1), type="l", lwd=5, lty=3) # still RICIAN code
+lines(x, dnorm(  x, mean=240.0001, sd=10), lwd=3, col=2) # NORMAL obviously
+lines(x, pdfrice(x, rice2), lwd=1, col=3) # NORMAL distribution code is triggered
+
+# For SNR=v/a &gt; 52 or 521/10 &gt; 52, the Normal distribution
+# used by the Rice as implemented here with simple parameter estimation
+# because this high of SNR is beyond limits of Bessel function in Laguerre
+# polynomial
+rice1 &lt;- vec2par(c(520,10), type="rice")
+rice2 &lt;- vec2par(c(521,10), type="rice")
+x &lt;- 10^(log10(520) - 0.05):10^(log10(520) + 0.05)
+plot( x, pdfrice(x, rice1), type="l", lwd=5, lty=3)
+lines(x, pdfrice(x, rice2), lwd=1, col=3) # NORMAL code triggered
+</code></pre>
+
+
+</div>

@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>semilatent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate Graphical Models with Latent Variables and Replicates
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimate graphical models with latent variables and replicates using the method in Tan et al. (2016).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">semilatent(data, n, R, p, lambda, distribution = "Gaussian", rule = "AND")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data set. Can be a matrix, list, array, or data frame. If the data set is a matrix, it should have <code class="reqn">nR</code> rows and <code class="reqn">p</code> columns. This matrix is formed by stacking <code class="reqn">n</code> matrices, and each matrix has <code class="reqn">R</code> rows and <code class="reqn">p</code> columns. If the data set is a data frame, the dimention and structure are the same as the matrix. If the data set is an array, its dimention is (R, p, n). If the data set is a list, it should have <code class="reqn">n</code> elements and each element is a matrix with <code class="reqn">R</code> rows and <code class="reqn">p</code> columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>the number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the number of replicates for each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the number of observed variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>tuning parameter that encourages estimated graph to be sparse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distribution</code></td>
+<td>
+<p>For a data set with Gaussian distribution, use "Gaussian"; For a data set with Ising distribution, use "Ising". Default is "Gaussian".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule</code></td>
+<td>
+<p>rules to combine matrices that encode the conditional dependence relationships between sets of two observed variables. Options are "AND" and "OR". Default is "AND".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The semilatent method has two assumptions. The first one states that the latent variables are constant across replicates.
+Assumption 2 states that given the latent variables, the replicates are mutually independent.
+With these two assumptions, the method seeks to solve the following problem for <code class="reqn">1 \le j \le p</code>.
+</p>
+<p style="text-align: center;"><code class="reqn">
+\min_{\beta_{j,O / j}} \{l_j (\beta_{j,O / j}) + \lambda\|\beta_{j,O / j}\|_1 \},
+</code>
+</p>
+
+<p>where <code class="reqn">l_j (\beta_{j,O / j}) </code> is a nuisance-free loss function, <code class="reqn">\beta_{j,O / j}</code> is a parameter that represents the conditional dependence relationships between <code class="reqn">j</code>th observed variable and the other observed variables, and <code class="reqn">\lambda</code> is a tuning parameter.
+This method aims at modeling semiparametric exponential family graphical model with latent variables and replicates.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>omega</code></td>
+<td>
+<p>a matrix that encodes the conditional dependence relationships between sets of two observed variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>the adjacency matrix with 0 and 1 encoding conditional independence and dependence between sets of two observed variables, respectively</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>the penalty value</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Tan, K. M., Ning, Y., Witten, D. M. &amp; Liu, H. (2016), ‘Replicates in high dimensions, with applications to latent variable graphical models’, Biometrika 103(4), 761–777.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#semilatent Gaussian with "AND" rule
+n &lt;- 50
+R &lt;- 20
+p &lt;- 30
+seed &lt;- 1
+l &lt;- 2
+s &lt;- 2
+data &lt;- generate_Gaussian(n, R, p, l, s, sparsityA = 0.95, sparsityobserved = 0.9,
+sparsitylatent = 0.2, lwb = 0.3, upb = 0.3, seed)$X
+
+result &lt;- semilatent(data, n, R, p, lambda = 0.1,distribution = "Gaussian", 
+rule = "AND")
+</code></pre>
+
+
+</div>

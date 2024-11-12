@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logConDiscrCI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute pointwise confidence bands for the log-concave MLE of a PMF</h2>
+
+<h3>Description</h3>
+
+<p>Compute pointwise confidence bands for the log-concave maximum likelihood estimate of a log-concave probability mass function based on the limiting
+theory developed in Balabdaoui et al (2012).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logConDiscrCI(dat, conf.level = 0.95, type = c("MLE", "all")[1], 
+    B = 1000, output = TRUE, seed = 2011)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Data to compute MLE and confidence band for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>The confidence level to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>To compute confidence bands one theoretically needs to know the knots of the true PMF. For type <code>MLE</code> the knots of the MLE will be used instead
+and for type <code>all</code> all observations will be considered knots. The latter is conservative and gives pointwise confidence intervals that are based on standard 
+errors from a Normal approximation (the latter comes from the asymptotic theory in Balabdaoui et al, 2011).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of samples to be drawn to compute resampling quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>If <code>TRUE</code>, progress of computations is output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Optional seed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The pointwise confidence bands are based on the limiting theory in Balabdaoui et al (2011).</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>MLE</code></td>
+<td>
+<p>The estimated MLE (simply the output list of the function <code>logConDiscrMLE</code> applied to <code>dat</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emp</code></td>
+<td>
+<p>A dataframe containing two columns: the unique sorted observations and the empirical PMF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIs</code></td>
+<td>
+<p>The computed confidence intervals for each <code class="reqn">x \in \{</code><code>min(dat), ..., max(dat)</code><code class="reqn">\}</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Values outside <code class="reqn">[0, 1]</code> will be clipped. As a consequence, coverage may be higher than <code class="reqn">1 - \alpha</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach (maintainer) <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a> <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a> <br>
+Fadoua Balabdaoui <a href="mailto:fadoua@ceremade.dauphine.fr">fadoua@ceremade.dauphine.fr</a> <br><a href="http://www.ceremade.dauphine.fr/~fadoua">http://www.ceremade.dauphine.fr/~fadoua</a>  <br>
+Hanna Jankowski <a href="mailto:hkj@mathstat.yorku.ca">hkj@mathstat.yorku.ca</a> <br><a href="http://www.math.yorku.ca/~hkj">http://www.math.yorku.ca/~hkj</a> <br>
+Kathrin Weyermann 
+</p>
+
+
+<h3>References</h3>
+
+<p>Balabdaoui, F., Jankowski, H., Rufibach, K., and Pavlides, M. (2013).
+Maximum likelihood estimation and confidence bands for a discrete log-concave distribution.
+<em>J. R. Stat. Soc. Ser. B Stat. Methodol.</em>, <b>75</b>(4), 769–790. 
+</p>
+<p>Weyermann, K. (2007).
+An Active Set Algorithm for Log-Concave Discrete Distributions.
+<em>MSc thesis, University of Bern</em> (Supervisor: Lutz Duembgen).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># -------------------------------------------------------------
+# compute MLE and confidence bands for a random sample from a 
+# Poisson distribution
+# -------------------------------------------------------------
+set.seed(2011)
+x &lt;- sort(rpois(n = 100, lambda = 2))
+mle &lt;- logConDiscrMLE(x)
+psi &lt;- mle$psi
+
+# compute confidence bands
+CIs &lt;- logConDiscrCI(x, type = "MLE", output = TRUE, seed = 20062011)$CIs
+
+# plot estimated PMF and log of estimate
+par(mfrow = c(1, 2), las = 1)
+true &lt;- dpois(0:20, lambda = 2)
+plot(mle$x, exp(psi), type = "b", col = 2, xlim = c(min(x), max(x) + 1), 
+    xlab = "x", ylim = c(0, max(exp(psi), true, CIs[, 3])), ylab = "PMF", 
+    main = "Estimate MLE from a Poisson", pch = 19)
+legend("topright", c("truth", "MLE", "confidence bands"), col = c(4, 2, 2), 
+    lty = c(1, 1, 2), pch = c(0, 19, NA), bty = "n")
+
+# add true PMF
+lines(0:20, true, type = "l", col = 4)
+
+# add confidence bands
+matlines(CIs[, 1], CIs[, 2:3], type = "l", lty = 2, col = 2)
+
+# log-density
+plot(mle$x, psi, type = "p", col = 2, xlim = c(min(x), max(x) + 1), 
+    xlab = "x", ylab = "PMF", main = "Estimate MLE from a Poisson", 
+    pch = 19, ylim = c(-6, log(max(exp(psi), true, CIs[, 3]))))
+lines(0:20, log(true), type = "l", col = 4)
+
+# add confidence bands
+matlines(CIs[, 1], log(CIs[, 2:3]), type = "l", lty = 2, col = 2)
+
+
+# -------------------------------------------------------------
+# compute confidence bands when only estimate (not original data)
+# are available (as a an example we simply use the estimator from
+# above)
+# -------------------------------------------------------------
+x.est &lt;- 0:6
+est &lt;- c(0.09, 0.30, 0.30, 0.19, 0.09, 0.02, 0.01)
+
+# generate original data (up to given precision)
+x &lt;- rep(0:6, times = 100 * est)
+</code></pre>
+
+
+</div>

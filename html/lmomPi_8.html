@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cdf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generic function for <code>cdf...</code>: probability distribution fitting with L-Moments.</h2>
+
+<h3>Description</h3>
+
+<p>These functions compute value(s) of cumulated probability or SPI-like (normal standardize) index from a sample or time series of <code>x</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cdf(
+  para,
+  x,
+  probability_distribution_attrname = "probability_distrib",
+  indices = NULL,
+  return.as.spi = FALSE,
+  spi.scale = NA,
+  distrib = NA,
+  ...
+)
+
+spi.cdf(x, para, ...)
+
+cdf.spi(x, para, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, para, ...</code></td>
+<td>
+<p>L-moments and further parameters for <code>cdf...</code> and <code>cdf</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probability_distribution_attrname</code></td>
+<td>
+<p>attribute name for probability distribution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indices</code></td>
+<td>
+<p>vector of string working as factors or indices, e g. the month names or similar. It must be of the same length of <code>x</code> or the length equal to 1 other <code>NULL</code>, if not used. If used, it computes <code>cdf</code> for each factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.as.spi</code></td>
+<td>
+<p>logical parameter. Default is <code>FALSE</code>. If it is <code>TRUE</code> probability value is transformed to a normalized random variable through standard <code>qnorm</code>, as for Standard Precipitation Index (SPI) (<a href="https://climatedataguide.ucar.edu/climate-data/standardized-precipitation-index-spi">https://climatedataguide.ucar.edu/climate-data/standardized-precipitation-index-spi</a>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spi.scale</code></td>
+<td>
+<p>integer value or <code>NA</code>. If it greater than 1 <code>x</code> is filtered with the sum of a generic element of <code>x</code> and the previous <code>spi.scale-1</code> ones (e.g. SPI-3,SPI-6, etc. ). Default is <code>NA</code> (no filtering) which is equivalent to <code>spi.scale=1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distrib</code></td>
+<td>
+<p>character string indicating the probability distribution, it can be used in case <code>para</code> has no attributes. Default is <code>NA</code> and distribution info are all passed through <code>para</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of cumulated probability value(s) or SPI-like Gaussianized values. It is a list of vectors in case of several probability parametric distribution functions (i.e. <code>para</code> is a list and <code>length(para)&gt;1</code>).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pel</code>,<code>cdfexp</code>,<code>cdfgam</code>,<code>cdfgev</code>,<code>cdfglo</code>,
+</p>
+<p><code>cdfgpa</code>,<code>cdfgno</code>,<code>cdfgum</code>,<code>cdfkap</code>,<code>cdfln3</code>,<code>cdfnor</code>,<code>cdfpe3</code>,<code>cdfwak</code>,<code>cdfwei</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Sample L-moments of Ozone from the airquality data
+data(airquality)
+lmom &lt;- samlmu(airquality$Ozone,nmom=6)
+
+distrib &lt;- c("exp","gam","gev","glo","gpa","gno","gum","kap",
+"ln3","nor","pe3","wak","wei")
+
+para_list &lt;- pel(distrib=distrib,lmom=lmom)
+cdf_list &lt;- cdf(para=para_list,x=airquality$Ozone)
+
+cdf_gam &lt;- cdf(para=para_list$gam,x=airquality$Ozone)
+cdf_gam2 &lt;- cdf(para=para_list$gam,x=airquality$Ozone,distrib="gam")
+
+if (any(cdf_gam!=cdf_gam2,na.rm=TRUE)) stop("Any possible errors after  0.6.3 package updates!") 
+
+
+
+## Comparison with the SPI/SPEI algorithms:  'SPEI::spi' ('SPEI' package)
+
+if (requireNamespace("SPEI",quietly = TRUE)) {
+ library(SPEI)
+ data(wichita)
+
+ distrib_wichita &lt;- 'pe3'
+ spi.scale &lt;- 1
+
+ month_wichita &lt;- sprintf("M%02d",wichita$MONTH)
+ para_whichita  &lt;- pel(x=wichita$PRCP,indices=month_wichita,distrib=distrib_wichita,
+						spi.scale=spi.scale)
+ spi_wichita   &lt;- spi.cdf(x=wichita$PRCP,indices=month_wichita,para=para_whichita,
+						spi.scale=spi.scale)
+ spi_wichita_speipkg   &lt;- spi(data=wichita$PRCP,distrib='PearsonIII',scale=spi.scale)
+ difference &lt;- spi_wichita-spi_wichita_speipkg$fitted
+}
+
+
+
+</code></pre>
+
+
+</div>

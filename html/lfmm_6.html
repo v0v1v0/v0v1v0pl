@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lfmm_ridge</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LFMM least-squares estimates with ridge penalty</h2>
+
+<h3>Description</h3>
+
+<p>This function computes regularized least squares estimates
+for latent factor mixed models using a ridge penalty.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lfmm_ridge(
+  Y,
+  X,
+  K,
+  lambda = 1e-05,
+  algorithm = "analytical",
+  it.max = 100,
+  relative.err.min = 1e-06
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a response variable matrix with n rows and p columns.
+Each column corresponds to a distinct response variable (e.g., SNP genotype,
+gene expression level, beta-normalized methylation profile, etc).
+Response variables must be encoded as numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an explanatory variable matrix with n rows and d columns.
+Each column corresponds to a distinct explanatory variable (eg. phenotype, exposure, outcome).
+Explanatory variables must be encoded as numeric variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>an integer for the number of latent factors in the regression model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>a numeric value for the regularization parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>exact (analytical) algorithm or numerical algorithm.
+The exact algorithm is based on the global minimum of the loss function and
+computation is very fast. The numerical algorithm converges toward a local
+minimum of the loss function. The exact method should preferred. The numerical method is
+for very large n.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>it.max</code></td>
+<td>
+<p>an integer value for the number of iterations for the
+numerical algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relative.err.min</code></td>
+<td>
+<p>a numeric value for a relative convergence error. Test
+whether the numerical algorithm converges or not (numerical algorithm only).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm minimizes the following penalized least-squares criterion
+</p>
+<p style="text-align: center;"><code class="reqn"> L(U, V, B) = \frac{1}{2} ||Y - U V^{T} - X B^T||_{F}^2 
++ \frac{\lambda}{2} ||B||^{2}_{2} ,</code>
+</p>
+
+<p>where Y is a response data matrix, X contains all explanatory variables,
+U denotes the score matrix, V is the loading matrix, B is the (direct) effect
+size matrix, and lambda is a regularization parameter.
+</p>
+<p>The response variable matrix Y and the explanatory variable are centered.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>lfmm</code> with the following attributes:
+</p>
+
+<ul>
+<li>
+<p> U the latent variable score matrix with dimensions n x K,
+</p>
+</li>
+<li>
+<p> V the latent variable axis matrix with dimensions p x K,
+</p>
+</li>
+<li>
+<p> B the effect size matrix with dimensions p x d.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kevin Caye, Basile Jumentier, Olivier Francois
+</p>
+
+
+<h3>References</h3>
+
+<p>Caye, K., B. Jumentier, J. Lepeule, and O. François, 2019  LFMM 2: fast and accurate inference of gene-environment associations in genome-widestudies. Mol. Biol. Evol. 36: 852–860.https://doi.org/10.1093/molbev/msz008
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(lfmm)
+
+## a GWAS example with Y = SNPs and X = phenotype
+data(example.data)
+Y &lt;- example.data$genotype[, 1:10000]
+X &lt;- example.data$phenotype
+
+## Fit an LFMM with K = 6 factors
+mod.lfmm &lt;- lfmm_ridge(Y = Y, 
+                       X = X, 
+                       K = 6)
+
+## Perform association testing using the fitted model:
+pv &lt;- lfmm_test(Y = Y, 
+                X = X, 
+                lfmm = mod.lfmm, 
+                calibrate = "gif")
+
+## Manhattan plot with causal loci shown
+
+pvalues &lt;- pv$calibrated.pvalue
+plot(-log10(pvalues), pch = 19, 
+     cex = .2, col = "grey", xlab = "SNP")
+points(example.data$causal.set[1:5], 
+      -log10(pvalues)[example.data$causal.set[1:5]], 
+       type = "h", col = "blue")
+
+
+## An EWAS example with Y = methylation data and X = exposure
+Y &lt;- skin.exposure$beta.value
+X &lt;- as.numeric(skin.exposure$exposure)
+
+## Fit an LFMM with 2 latent factors
+mod.lfmm &lt;- lfmm_ridge(Y = Y,
+                       X = X, 
+                       K = 2)
+                       
+## Perform association testing using the fitted model:
+pv &lt;- lfmm_test(Y = Y, 
+                X = X,
+                lfmm = mod.lfmm, 
+                calibrate = "gif")
+                
+## Manhattan plot with true associations shown
+pvalues &lt;- pv$calibrated.pvalue
+plot(-log10(pvalues), 
+     pch = 19, 
+     cex = .3,
+     xlab = "Probe",
+     col = "grey")
+     
+causal.set &lt;- seq(11, 1496, by = 80)
+points(causal.set, 
+      -log10(pvalues)[causal.set], 
+       col = "blue")
+</code></pre>
+
+
+</div>

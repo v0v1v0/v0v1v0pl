@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>textmatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Textmatrix (Matrices)</h2>
+
+<h3>Description</h3>
+
+<p>Creates a document-term matrix from all textfiles in a given directory.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">textmatrix( mydir, stemming=FALSE, language="english",
+   minWordLength=2, maxWordLength=FALSE, minDocFreq=1, 
+   maxDocFreq=FALSE, minGlobFreq=FALSE, maxGlobFreq=FALSE, 
+   stopwords=NULL, vocabulary=NULL, phrases=NULL, 
+   removeXML=FALSE, removeNumbers=FALSE)
+textvector( file, stemming=FALSE, language="english", 
+   minWordLength=2, maxWordLength=FALSE, minDocFreq=1, 
+   maxDocFreq=FALSE, stopwords=NULL, vocabulary=NULL, 
+   phrases=NULL, removeXML=FALSE, removeNumbers=FALSE )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>filename (may include path).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mydir</code></td>
+<td>
+<p>the directory path (e.g., <code>"corpus/texts/"</code>); may be single files/directories or a vector of files/directories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stemming</code></td>
+<td>
+<p>boolean indicating whether to reduce all terms to their wordstem.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>language</code></td>
+<td>
+<p>specifies language for the stemming / stop-word-removal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minWordLength</code></td>
+<td>
+<p>words with less than minWordLength characters will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxWordLength</code></td>
+<td>
+<p>words with more than maxWordLength characters will be ignored; per default set to <code>FALSE</code> to use no upper boundary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minDocFreq</code></td>
+<td>
+<p>words of a document appearing less than minDocFreq within that document will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxDocFreq</code></td>
+<td>
+<p>words of a document appearing more often than maxDocFreq within that document will be ignored; per default set to <code>FALSE</code> to use no upper boundary for document frequencies.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minGlobFreq</code></td>
+<td>
+<p>words which appear in less than minGlobFreq documents will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxGlobFreq</code></td>
+<td>
+<p>words which appear in more than maxGlobFreq documents will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stopwords</code></td>
+<td>
+<p>a stopword list that contains terms the will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vocabulary</code></td>
+<td>
+<p>a character vector containing the words: only words in this term list will be used for building the matrix (‘controlled vocabulary’).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>removeXML</code></td>
+<td>
+<p>if set to <code>TRUE</code>, XML tags (elements, attributes, some special characters) will be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>removeNumbers</code></td>
+<td>
+<p>if set to <code>TRUE</code>, terms that consist only out of numbers will be removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phrases</code></td>
+<td>
+<p>not implemented, yet.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All documents in the specified directory are read and a matrix is composed.
+The matrix contains in every cell the exact number of appearances (i.e., the term frequency) 
+of every word for all documents. If specified, simple text preprocessing mechanisms
+are applied (stemming, stopword filtering, wordlength cutoffs).
+</p>
+<p>Stemming thereby uses Porter's snowball stemmer (from package <code>SnowballC</code>).
+</p>
+<p>There are two stopword lists included (for english and for german), which
+are loaded on demand into the variables <code>stopwords_de</code> and 
+<code>stopwords_en</code>. They can be activated by calling <code>data(stopwords_de)</code>
+or <code>data(stopwords_en)</code>. Attention: the stopword lists have
+to be already loaded when <code>textmatrix()</code> is called.
+</p>
+<p><code>textvector()</code> is a support function that creates a list of
+term-in-document occurrences.
+</p>
+<p>For every generated matrix, an own environment is added as an attribute which
+holds the triples that are stored by <code>setTriple()</code> and can be
+retrieved with <code>getTriple()</code>.
+</p>
+<p>If the language is set to "arabic", special characters for the Buckwalter 
+transliteration will be kept.
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>textmatrix</code></td>
+<td>
+<p>the document-term matrix (incl. row and column names).</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p> Fridolin Wild <a href="mailto:f.wild@open.ac.uk">f.wild@open.ac.uk</a> </p>
+
+
+<h3>See Also</h3>
+
+ <p><code>wordStem</code>, <code>stopwords_de</code>, <code>stopwords_en</code>, <code>setTriple</code>, <code>getTriple</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create some files
+td = tempfile()
+dir.create(td)
+write( c("dog", "cat", "mouse"), file=paste(td, "D1", sep="/") )
+write( c("hamster", "mouse", "sushi"), file=paste(td, "D2", sep="/") )
+write( c("dog", "monster", "monster"), file=paste(td, "D3", sep="/") )
+
+# read them, create a document-term matrix
+textmatrix(td)
+
+# read them, drop german stopwords
+data(stopwords_de)
+textmatrix(td, stopwords=stopwords_de)
+
+# read them based on a controlled vocabulary
+voc = c("dog", "mouse")
+textmatrix(td, vocabulary=voc, minWordLength=1)
+
+# clean up
+unlink(td, recursive=TRUE)
+
+</code></pre>
+
+
+</div>

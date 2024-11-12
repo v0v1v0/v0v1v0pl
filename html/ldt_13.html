@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estim.bin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a Binary Choice Model</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to estimate a binary choice model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estim.bin(
+  data,
+  linkFunc = c("logit", "probit"),
+  pcaOptionsX = NULL,
+  costMatrices = NULL,
+  optimOptions = get.options.newton(),
+  aucOptions = get.options.roc(),
+  simFixSize = 0,
+  simTrainFixSize = 0,
+  simTrainRatio = 0.75,
+  simSeed = 0,
+  weightedEval = FALSE,
+  simMaxConditionNumber = Inf
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A list that determines data and other required information for the model search process.
+Use <code>get.data()</code> function to generate it from a <code>matrix</code> or a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linkFunc</code></td>
+<td>
+<p>A character string that shows the probability assumption. It can be <code>logit</code> or <code>probit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcaOptionsX</code></td>
+<td>
+<p>A list of options to use principal components of the <code>x</code>, instead of the actual values. Set <code>NULL</code> to disable. Use <code>get.options.pca()</code> for initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>costMatrices</code></td>
+<td>
+<p>A list of numeric matrices where each one determines how to score the calculated probabilities. See and use search.bin for more information and initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimOptions</code></td>
+<td>
+<p>A list for Newton optimization options. Use get.options.newton function to get the options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aucOptions</code></td>
+<td>
+<p>A list of options for AUC calculation. See and use <code>[get.options.roc()]</code> for more information and initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simFixSize</code></td>
+<td>
+<p>An integer that determines the number of out-of-sample simulations. Use zero to disable the simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simTrainFixSize</code></td>
+<td>
+<p>An integer representing the number of data points in the training sample in the out-of-sample simulation. If zero, <code>trainRatio</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simTrainRatio</code></td>
+<td>
+<p>A number representing the size of the training sample relative to the available size, in the out-of-sample simulation. It is effective if <code>trainFixSize</code> is zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simSeed</code></td>
+<td>
+<p>A seed for the random number generator. Use zero for a random value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightedEval</code></td>
+<td>
+<p>If <code>TRUE</code>, weights will be used in evaluations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simMaxConditionNumber</code></td>
+<td>
+<p>A number for the maximum value for the condition number in the simulation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As documented in chapter 12 in Greene and Hensher (2010), binary regression is a statistical technique used to estimate the probability of one of two possible outcomes for a variable such as <code class="reqn">y</code>, i.e., <code class="reqn">p=P(y=1)</code> and <code class="reqn">q=P(y=0)</code>. The most commonly used binary regression models are the logit and probit models. In general, a binary regression model can be written as <code class="reqn">f(p) = z'\gamma+v</code>, where the first element in <code class="reqn">\gamma</code> is the intercept and <code class="reqn">f(p)</code> is a link function. For logit and probit models we have <code class="reqn">f(p) = \ln{\frac{p}{1-p}}</code> and <code class="reqn">f(p) = \Phi^{-1}(p)</code> respectively, where <code class="reqn">\Phi^{-1}</code> is the inverse cumulative distribution function of the standard normal distribution.
+</p>
+<p>Given an independent sample of length <code class="reqn">N</code>, the parameters of the binary regression model are estimated using maximum likelihood estimation. Assuming that some observations are more reliable or informative than others and <code class="reqn">w_i</code> for <code class="reqn">i=1,\ldots,N</code> reflects this fact, the likelihood function is given by:
+</p>
+<p style="text-align: center;"><code class="reqn">
+L(\gamma) = \prod_{i=1}^N (p_i)^{w_i y_i} (1-p_i)^{w_i (1-y_i)},
+</code>
+</p>
+
+<p>where <code class="reqn">p_i=\frac{\exp{\gamma z_i}}{1+\exp{\gamma z_i}}</code> for logit model and <code class="reqn">p_i=\Phi(\gamma z_i)</code> for probit model. <code>ldt</code> uses feasible GLS to calculate the initial value of the coefficients and a weighted least squares estimator to calculate the initial variance matrix of the error terms (see page 781 in Greene (2020)). The condition number of the estimation is calculated by multiplying 1-norm of the observed information matrix at the maximum likelihood estimator and its inverse (e.g., see page 94 in Trefethen and Bau (1997)). Furthermore, if <code class="reqn">x</code> is a new observations for the explanatory variables, the predicted probability of the positive class is estimated by <code class="reqn">p_i=\frac{\exp{\gamma x}}{1+\exp{\gamma x}}</code> for logit model and <code class="reqn">p_i=\Phi(\gamma x)</code> for probit model.
+</p>
+<p>Note that the focus in <code>ldt</code> is model uncertainty and the main purpose of exporting this method is to show the inner calculations of the search process in search.bin function.
+</p>
+
+
+<h3>References</h3>
+
+<p>Greene WH (2020).
+<em>Econometric analysis</em>, 8th edition.
+Pearson Education Limited, New York.
+ISBN 9781292231136.<br><br> Greene WH, Hensher DA (2010).
+<em>Modeling ordered choices: A primer</em>.
+Cambridge University Press.
+ISBN 9780511845062, <a href="https://doi.org/10.1017/cbo9780511845062">doi:10.1017/cbo9780511845062</a>.<br><br> Trefethen LN, Bau D (1997).
+<em>Numerical linear algebra</em>.
+Society for Industrial and Applied Mathematics.
+ISBN 9780898714876.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>search.bin
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1 (simulation, small model):
+set.seed(123)
+sample &lt;- sim.bin(3L, 100)
+print(sample$coef)
+
+data &lt;- data.frame(sample$y, sample$x)
+
+#   Estimate using glm
+fit &lt;- glm(Y ~ X1 + X2, data = data, family = binomial())
+print(fit)
+
+#   Estimate using 'ldt::estim.bin'
+fit &lt;- estim.bin(data = get.data(data = data,
+                                 equations = list(Y ~ X1 + X2)),
+                  linkFunc = "logit")
+print(fit)
+plot_data &lt;- plot(fit, type = 1)
+#   See 'plot.ldt.estim()' function documentation
+
+
+# Example 2 (simulation, large model with PCA analysis):
+sample &lt;- sim.bin(30L, 100, probit = TRUE)
+data &lt;- data.frame(sample$y, sample$x)
+colnames(data) &lt;- c(colnames(sample$y),colnames(sample$x))
+pca_options &lt;- get.options.pca(ignoreFirst = 1, exactCount = 3)
+fit &lt;- estim.bin(data = get.data(cbind(sample$y, sample$x),
+                                  endogenous = ncol(sample$y),
+                                  addIntercept = FALSE),
+                  linkFunc = "probit",
+                  pcaOptionsX = pca_options)
+print(fit)
+plot_data &lt;- plot(fit, type = 2)
+</code></pre>
+
+
+</div>

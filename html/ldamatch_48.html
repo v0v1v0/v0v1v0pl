@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>match_groups</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates a matched group via backward selection.</h2>
+
+<h3>Description</h3>
+
+<p>Creates a matched group via backward selection.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">match_groups(
+  condition,
+  covariates,
+  halting_test,
+  thresh = 0.2,
+  method = ldamatch::matching_methods,
+  props = prop.table(table(condition)),
+  replicates = get("RND_DEFAULT_REPLICATES", .ldamatch_globals),
+  min_preserved = length(levels(condition)),
+  print_info = get("PRINT_INFO", .ldamatch_globals),
+  max_removed_per_cond = NULL,
+  tiebreaker = NULL,
+  lookahead = 2,
+  all_results = FALSE,
+  prefer_test = TRUE,
+  max_removed_per_step = 1,
+  max_removed_percent_per_step = 0.5,
+  ratio_for_slowdown = 0.5
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>A factor vector containing condition labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>A columnwise matrix containing
+covariates to match the conditions on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>halting_test</code></td>
+<td>
+<p>A function to apply to 'covariates' (in matrix form)
+which is TRUE iff the conditions are matched.
+Signature: halting_test(condition, covariates, thresh).
+The following halting tests are part of this package:
+<code>t_halt</code>, <code>U_halt</code>,
+<code>l_halt</code>, <code>ad_halt</code>,
+<code>ks_halt</code>, <code>wilks_halt</code>,
+<code>f_halt</code>.
+You can create the intersection of two or more halting
+tests using <code>create_halting_test</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The return value of halting_test has to be greater than
+or equal to thresh for the matched groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The choice of search method, one of "random",
+You can get more information about each method on the
+help page for "search_&lt;method_name&gt;"
+(e.g. "<code>search_exhaustive</code>").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>props</code></td>
+<td>
+<p>Either the desired proportions (percentage) of the
+sample for each condition as a named vector,
+or the names of the conditions
+for which we prefer to preserve the subjects,
+in decreasing order of preference. If not specified, the
+(full) sample proportions are used.
+This is preferred among configurations with the same
+taken into account by the other methods to some extent.
+For example, c(A = 0.4, B = 0.4, C = 0.2) means that
+we would like the number of subjects in groups A, B, and
+C to be around 40%, 40%, and 20% of the total number of
+subjects, respectively. Whereas c("A", "B", "C") means
+that if possible, we would like to keep all subjects
+in group A, and prefer keeping subjects in B, even if
+it results in losing more subjects from C.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replicates</code></td>
+<td>
+<p>The maximum number of random replications to be
+performed. This is only used for the "random"
+method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_preserved</code></td>
+<td>
+<p>The minimum number of preserved subjects.
+It can be used to ensure that the search will not take
+forever to run, but instead fail when a solution is not
+found when preserving this number of subjects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_info</code></td>
+<td>
+<p>If TRUE, prints summary information on the input and the
+results, as well as progress information for the
+exhaustive search and random algorithms. Default: TRUE;
+can be changed using
+<code>set_param("PRINT_INFO", FALSE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_per_cond</code></td>
+<td>
+<p>A named integer vector, containing the maximum number
+of subjects that can be removed from each group.
+Specify 0 for groups if you want to preserve
+all of their subjects. If you do not specify a value
+for a group, it defaults to 2 less than the group size.
+Values outside the valid range of 0..(N-1)
+(where N is the number of subjects in the group)
+are corrected without a warning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tiebreaker</code></td>
+<td>
+<p>NULL, or a function similar to halting_test, used to
+decide between cases for which halting_test yields
+equal values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookahead</code></td>
+<td>
+<p>The lookahead to use: a positive integer.
+It is used by the heuristic3 and heuristic4 algorithms,
+with a default of 2.
+The running time is O(N ^ lookahead), wheren N is the
+number of subjects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_results</code></td>
+<td>
+<p>If TRUE, returns all results found by method in a list.
+(A list is returned even if there is only one result.)
+If FALSE (the default), it returns the first result
+(a logical vector).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefer_test</code></td>
+<td>
+<p>If TRUE, prefers higher test statistic more than
+the expected group size proportion; default is TRUE.
+Used by all algorithms except exhaustive, which always</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_per_step</code></td>
+<td>
+<p>The number of equivalent subjects
+that can be removed in each step. (The actual allowed
+number may be less depending on the p-value / theshold ratio.)
+This parameters is used by the heuristic3 and heuristic4
+algorithms, with a default value of 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_percent_per_step</code></td>
+<td>
+<p>The percentage of remaining subjects
+that can be removed in each step.
+Used when max_removed_per_step &gt; 1,
+with a default value of 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio_for_slowdown</code></td>
+<td>
+<p>The p-value / threshold ratio at which
+it starts removing subjects one by one.
+Used when max_removed_per_step &gt; 1,
+with a default value of 0.5.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The exhaustive, heuristic3, and heuristic4 search methods use the foreach
+package to parallelize computation.
+To take advantage of this, you must register a cluster.
+For example, to use all but one of the CPU cores, run:
+<code>doParallel::registerDoParallel(cores = max(1, parallel::detectCores() - 1))</code>
+To use sequential processing without getting a warning, run:
+<code>foreach::registerDoSEQ()</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A logical vector that contains TRUE for the conditions
+that are in the matched groups;
+or if all_results = TRUE, a list of such vectors.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>calc_p_value</code> for calculating the test statistic for
+a group setup.
+</p>
+<p><code>calc_metrics</code> for calculating multiple metrics about
+the goodness of the result.
+</p>
+<p><code>compare_ldamatch_outputs</code> for comparing multiple
+different results from this function.
+</p>
+<p><code>search_heuristic2, search_heuristic3, search_heuristic4, search_random, search_exhaustive</code> for
+</p>
+
+
+</div>

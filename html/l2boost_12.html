@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.l2boost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plotting for <code>l2boost</code> objects.</h2>
+
+<h3>Description</h3>
+
+<p>plotting methods for <code>l2boost</code> objects (<code>l2boost</code> and <code>cv.l2boost</code>). 
+</p>
+<p>By default, plotting an <code>l2boost</code> object produces a gradient-correlation vs iteration steps (m) plot.
+Plotting a <code>cv.l2boost</code> object produces a cross-validation error plot, and prints the minimal CV MSE value
+and optimal step opt.step to the R console.
+</p>
+<p>Many generic arguments to <code>plot</code> are passed through the <code>plot.l2boost</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'l2boost'
+plot(
+  x,
+  type = c("rho", "coef"),
+  standardize = TRUE,
+  active.set = NULL,
+  xvar = c("step", "norm"),
+  xlab = NULL,
+  ylab = NULL,
+  trim = TRUE,
+  clip = NULL,
+  col = NULL,
+  ylim = NULL,
+  xlim = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>l2boost or cv.l2boost object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>which type of plot. <em>rho</em> plots gradient-correlation, <em>coef</em> regression (beta) 
+coefficients vs the step number m along the x-axis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Should we plot standardized gradient-correlation (default: TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active.set</code></td>
+<td>
+<p>Vector of indices of the coordinates for highlighting with 
+color=col (default: NULL shows all active coordinates)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xvar</code></td>
+<td>
+<p>what measure do we plot on the x-axis? <em>step</em> plots the step m, <em>norm</em> plots the 
+normalized distance (1-nu)^(m-1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p>specific x-axis label (NULL results in default value depending on xvar)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>specific y-axis label (NULL results in default value depending on type)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>(default: TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clip</code></td>
+<td>
+<p>Do we want to c</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col</code></td>
+<td>
+<p>Color to highlight active.set coordinates (NULL indicates default all active set at 
+step M in blue, changes to red after selection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Control plotted y-values (default: NULL for auto range)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim</code></td>
+<td>
+<p>Control plotted x-values (default: NULL for auto domain )</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments passed to plot functions</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Gradient-correlation plots are created by tracing out the boosting coefficient (rho) for each candidate
+direction. The coefficient and gradient-correlation are equivalent under standard scaling (zero intercept with 
+design matrix columns scaled to have mean=0 and variance=1).  
+</p>
+<p>Unless explicitly set using <em>col</em> argument, the plot function colors the gradient-correlation paths along each
+direction by the following criteria: 
+</p>
+
+<ul>
+<li>
+<p> Red: indicates the coordinate direction has been selected in the boosting path at some step &lt;= m. 
+</p>
+</li>
+<li>
+<p> Blue: indicates the coordinate will be selected within the specified number of steps M (and switch to 
+red upon selection).
+</p>
+</li>
+<li>
+<p> Grey: indicates coordinates have not and will not be selected by the algorithm over all iterations. 
+</p>
+</li>
+</ul>
+<p>The colors are set using the <em>l.crit</em> return value from the <code>l2boost</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>NULL</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>l2boost</code>, <code>print.l2boost</code>, <code>predict.l2boost</code> methods of l2boost 
+and <code>cv.l2boost</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#--------------------------------------------------------------------------
+# Example: Diabetes 
+#  
+# See Efron B., Hastie T., Johnstone I., and Tibshirani R. 
+# Least angle regression. Ann. Statist., 32:407-499, 2004.
+data(diabetes, package = "l2boost")
+
+l2.object &lt;- l2boost(diabetes$x,diabetes$y, M=1000, nu=.01)
+
+# Plot the gradient-correlation, and regression beta coefficients as a function of
+# boosting steps m
+par(mfrow=c(2,2))
+plot(l2.object)
+abline(v=500, lty=2, col="grey")
+plot(l2.object, type="coef")
+abline(v=500, lty=2, col="grey")
+
+# limit the plot to only the first 500 steps of the algorithm 
+# (grey vertical line in previous plots).
+plot(l2.object, xlim=c(0,500))
+plot(l2.object, type="coef", xlim=c(0,500))
+
+## Not run: 
+#--------------------------------------------------------------------------
+# Example: Plotting cross-validation objects
+dta &lt;- elasticNetSim(n=100)
+# Set the boosting parameters
+Mtarget = 1000
+nuTarget = 1.e-2
+
+cv.l2 &lt;- cv.l2boost(dta$x,dta$y,M=Mtarget, nu=nuTarget, lambda=NULL)
+
+# Show the CV MSE plot, with a marker at the "optimal iteration"
+plot(cv.l2)
+abline(v=cv.l2$opt.step, lty=2, col="grey")
+
+# Show the l2boost object plots.
+plot(cv.l2$fit)
+abline(v=cv.l2$opt.step, lty=2, col="grey")
+ 
+plot(cv.l2$fit, type="coef")
+abline(v=cv.l2$opt.step, lty=2, col="grey")
+
+# Create a color vector of length p=40 (from elasticNetSim defaults)
+clr &lt;- rep("black", 40)
+# Set coordinates in the boosting path to color red.
+clr[unique(cv.l2$fit$l.crit)] = "red"
+
+# Show the "optimal" coefficient values, 
+# red points are selected in boosting algorithm.
+plot(coef(cv.l2$fit, m=cv.l2$opt.step), col=clr, ylab=expression(beta))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

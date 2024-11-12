@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>correct_positive_definite</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Positive definite matrices</h2>
+
+<h3>Description</h3>
+
+<p><code>correct_positive_definite</code> verifies that a given covariance matrix
+is indeed positive definite by checking that all eigenvalues are positive.
+If the given covariance matrix is not positive definite,
+<code>correct_positive_definite</code> tries to modify the underlying correlation matrices
+genetic_corrmat and full_corrmat in order to obtain a positive definite
+covariance matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">correct_positive_definite(
+  covmat,
+  correction_val = 0.99,
+  correction_limit = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>covmat</code></td>
+<td>
+<p>A symmetric and numeric matrix. If the covariance matrix
+should be corrected, it must have a number of attributes, such as
+<code>attr(covmat,"fam_vec")</code>, <code>attr(covmat,"n_fam")</code>,
+<code>attr(covmat,"add_ind")</code>, <code>attr(covmat,"h2")</code>,
+<code>attr(covmat,"genetic_corrmat")</code>, <code>attr(covmat,"full_corrmat")</code>
+and <code>attr(covmat,"phenotype_names")</code>. Any covariance matrix
+obtained by <code>construct_covmat</code>, <code>construct_covmat_single</code>
+or <code>construct_covmat_multi</code> will have these attributes by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction_val</code></td>
+<td>
+<p>A positive number representing the amount by which
+<code>genetic_corrmat</code> and <code>full_corrmat</code> will be changed, if some
+eigenvalues are non-positive. That is, correction_val is the number that will be
+multiplied to all off_diagonal entries in <code>genetic_corrmat</code> and <code>full_corrmat</code>.
+Defaults to 0.99.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction_limit</code></td>
+<td>
+<p>A positive integer representing the upper limit for the correction
+procedure. Defaults to 100.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used to verify that a given covariance matrix
+is positive definite. It calculates all eigenvalues in order to
+investigate whether they are all positive. This property is necessary
+for the covariance matrix to be used as a Gaussian covariance matrix.
+It is especially useful to check whether any covariance matrix obtained
+by <code>construct_covmat_multi</code> is positive definite.
+If the given covariance matrix is not positive definite, <code>correct_positive_definite</code>
+tries to modify the underlying correlation matrices (called <code>genetic_corrmat</code> and
+<code>full_corrmat</code> in <code>construct_covmat</code> or <code>construct_covmat_multi</code>) by
+multiplying all off-diagonal entries in the correlation matrices by a given number.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>covmat</code> is a symmetric and numeric matrix and all eigenvalues are
+positive, <code>correct_positive_definite</code> simply returns <code>covmat</code>. If some
+eigenvalues are not positive and <code>correction_val</code> is a positive number,
+<code>correct_positive_definite</code> tries to convert <code>covmat</code> into a positive definite
+matrix. If <code>covmat</code> has attributes <code>add_ind</code>, <code>h2</code>,
+<code>genetic_corrmat</code>, <code>full_corrmat</code> and <code>phenotype_names</code>,
+<code>correct_positive_definite</code> computes a new covariance matrix using slightly
+modified correlation matrices <code>genetic_corrmat</code> and <code>full_corrmat</code>.
+If the correction is performed successfully, i.e. if the new covariance matrix
+is positive definite,the new covariance matrix is returned.
+Otherwise, <code>correct_positive_definite</code> returns the original covariance matrix.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>construct_covmat</code>, <code>construct_covmat_single</code> and
+<code>construct_covmat_multi</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">ntrait &lt;- 2
+genetic_corrmat &lt;- matrix(0.6, ncol = ntrait, nrow = ntrait)
+diag(genetic_corrmat) &lt;- 1
+full_corrmat &lt;- matrix(-0.25, ncol = ntrait, nrow = ntrait)
+diag(full_corrmat) &lt;- 1
+h2_vec &lt;- rep(0.6, ntrait)
+cov &lt;- construct_covmat(fam_vec = c("m", "f"),
+  genetic_corrmat = genetic_corrmat,
+  h2 = h2_vec,
+  full_corrmat = full_corrmat)
+cov
+correct_positive_definite(cov)
+
+</code></pre>
+
+
+</div>

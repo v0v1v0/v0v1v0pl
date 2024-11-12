@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clip</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Clip points in regions of interest</h2>
+
+<h3>Description</h3>
+
+<p>Clip points within a given region of interest (ROI) from a point cloud (LAS object) or a collection
+of files (LAScatalog object).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clip_roi(las, geometry, ...)
+
+clip_rectangle(las, xleft, ybottom, xright, ytop, ...)
+
+clip_polygon(las, xpoly, ypoly, ...)
+
+clip_circle(las, xcenter, ycenter, radius, ...)
+
+clip_transect(las, p1, p2, width, xz = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geometry</code></td>
+<td>
+<p>a geometric object. spatial points, spatial polygons in sp or sf/sfc format, Extent,
+bbox, 2x2 matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>in <code>clip_roi</code>: optional supplementary options (see supported geometries). Unused in
+other functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xleft, ybottom, xright, ytop</code></td>
+<td>
+<p>numeric. coordinates of one or several rectangles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xpoly, ypoly</code></td>
+<td>
+<p>numeric. x coordinates of a polygon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xcenter, ycenter</code></td>
+<td>
+<p>numeric. x coordinates of on or several disc centres.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>numeric. disc radius or radii.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1, p2</code></td>
+<td>
+<p>numeric vectors of length 2 that gives the coordinates of two points that define a
+transect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>numeric. width of the transect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xz</code></td>
+<td>
+<p>bool. If <code>TRUE</code> the point cloud is reoriented to fit on XZ coordinates</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If the input is a LAS object: an object of class LAS, or a <code>list</code> of LAS objects if the
+query implies several regions of interest.<br><br>
+If the input is a LAScatalog object: an object of class LAS, or a <code>list</code> of LAS
+objects if the query implies several regions of interest, or a LAScatalog if the
+queries are immediately written into files without loading anything in R.
+</p>
+
+
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option <code style="white-space: pre;">⁠chunk size⁠</code>, <code>buffer</code>, <code style="white-space: pre;">⁠chunk alignment⁠</code> and <code>select</code> are not supported by <code style="white-space: pre;">⁠clip_*⁠</code>
+because they are meaningless in this context.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+
+# Load the file and clip the region of interest
+las = readLAS(LASfile, select = "xyz", filter = "-keep_first")
+subset1 = clip_rectangle(las, 684850, 5017850, 684900, 5017900)
+
+# Do not load the file(s), extract only the region of interest
+# from a bigger dataset
+ctg = readLAScatalog(LASfile, progress = FALSE, filter = "-keep_first")
+subset2 = clip_rectangle(ctg, 684850, 5017850, 684900, 5017900)
+
+# Extract all the polygons from a shapefile
+f &lt;- system.file("extdata", "lake_polygons_UTM17.shp", package = "lidR")
+lakes &lt;- sf::st_read(f, quiet = TRUE)
+subset3 &lt;- clip_roi(las, lakes)
+
+# Extract the polygons for a catalog, write them in files named
+# after the lake names, do not load anything in R
+opt_output_files(ctg) &lt;- paste0(tempfile(), "_{LAKENAME_1}")
+new_ctg = clip_roi(ctg, lakes)
+plot(new_ctg)
+
+# Extract a transect
+p1 &lt;- c(684800, y = 5017800)
+p2 &lt;- c(684900, y = 5017900)
+tr1 &lt;- clip_transect(las, p1, p2, width = 4)
+
+## Not run: 
+plot(subset1)
+plot(subset2)
+plot(subset3)
+
+plot(tr1, axis = TRUE, clear_artifacts = FALSE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

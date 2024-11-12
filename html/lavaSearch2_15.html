@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addLink</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a New Link Between Two Variables in a LVM</h2>
+
+<h3>Description</h3>
+
+<p>Generic interface to add links to <code>lvm</code> objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addLink(object, ...)
+
+## S3 method for class 'lvm'
+addLink(
+  object,
+  var1,
+  var2,
+  covariance,
+  all.vars = lava::vars(object),
+  warnings = FALSE,
+  ...
+)
+
+## S3 method for class 'lvm.reduced'
+addLink(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>[internal] only used by the generic method and from <code>addLink.lvm.reduced</code> to <code>addLink.lvm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var1</code></td>
+<td>
+<p>[character or formula] the exogenous variable of the new link or a formula describing the link to be added to the lvm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var2</code></td>
+<td>
+<p>[character] the endogenous variable of the new link. Disregarded if the argument <code>var1</code> is a formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariance</code></td>
+<td>
+<p>[logical] is the link is bidirectional? Ignored if one of the variables non-stochastic (e.g. exogenous variables).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all.vars</code></td>
+<td>
+<p>[internal] a character vector containing all the variables of the <code>lvm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warnings</code></td>
+<td>
+<p>[logical] Should a warning be displayed when no link is added?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The argument <code>all.vars</code> is useful for <code>lvm.reduce</code> object where the command <code>vars(object)</code> does not return all variables. The command <code>vars(object, xlp = TRUE)</code> must be used instead.
+</p>
+<p>Arguments <code>var1</code> and <code>var2</code> are passed to <code>initVarlink</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lava)
+set.seed(10)
+
+m &lt;- lvm()
+regression(m) &lt;- c(y1,y2,y3)~u
+regression(m) &lt;- u~x1+x2
+latent(m) &lt;- ~u
+m2 &lt;- m
+
+addLink(m, x1 ~ y1, covariance = FALSE)
+addLink(m, y1 ~ x1, covariance = FALSE)
+coef(addLink(m, y1 ~ y2, covariance = TRUE))
+
+addLink(m2, "x1", "y1", covariance = FALSE)
+addLink(m2, "y1", "x1", covariance = FALSE)
+newM &lt;- addLink(m, "y1", "y2", covariance = TRUE)
+coef(newM)
+
+</code></pre>
+
+
+</div>

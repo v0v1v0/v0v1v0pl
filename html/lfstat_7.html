@@ -1,0 +1,77 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>baseflow</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the base flow of a river</h2>
+
+<h3>Description</h3>
+
+<p>Given a stream flow hydrograph of flows (regular time series), the base flow is separated. The minima of a period (default <code>block.len = 5)</code> is calculated and turning points are identified. At turning points the base flow equals the actual flow, in between, linear interpolation is carried out. </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">baseflow(x, tp.factor = 0.9, block.len = 5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector containing flows</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tp.factor</code></td>
+<td>
+<p>numeric vector of length one. Towards high flows, allow the
+central value of three consecutive minima only to be of a factor
+<code>(1 - tp.factor)</code> higher than the surrounding values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block.len</code></td>
+<td>
+<p>numeric vector of length one. </p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric vector of <code>length(x)</code>. It contains <code>NA</code>s as until the
+first turning point, the base flow cannot be determined.</p>
+
+
+<h3>References</h3>
+
+<p>Tallaksen, L. M. and  Van Lanen, H. A. J. 2004 Hydrological Drought: Processes and Estimation Methods for Streamflow and Groundwater. <em>Developments in Water Science</em> <b>48</b>, Amsterdam: Elsevier.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## reproducing Tallaksen and van Lanen (2004)
+## Example 5.3 Base Flow Index"
+
+data(ray)
+ray &lt;- as.xts(ray)
+
+# calculate base flow and plot it
+ray$baseflow &lt;- baseflow(ray$discharge)
+ray96 &lt;- ray[format(time(ray), "%Y") == "1996", ]
+plot(ray96$discharge, type = "l")
+lines(ray96$baseflow, col = 2)
+
+# aggregated base flows for river Ray
+# these are mean flow totals per day, not per year as written
+# in Tallaksen and van Lanen (2004)
+round(colSums(ray96[, c("discharge", "baseflow")]), 2)
+</code></pre>
+
+
+</div>

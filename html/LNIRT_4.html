@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LNIRT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log-normal response time IRT modelling</h2>
+
+<h3>Description</h3>
+
+<p>Log-normal response time IRT modelling
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LNIRT(
+  RT,
+  Y,
+  data,
+  XG = 1000,
+  burnin = 10,
+  XGresid = 1000,
+  guess = FALSE,
+  par1 = FALSE,
+  residual = FALSE,
+  td = TRUE,
+  WL = FALSE,
+  ident = 2,
+  alpha,
+  beta,
+  phi,
+  lambda,
+  XPA = NULL,
+  XPT = NULL,
+  XIA = NULL,
+  XIT = NULL,
+  MBDY = NULL,
+  MBDT = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>RT</code></td>
+<td>
+<p>a Person-x-Item matrix of log-response times (time spent on solving an item).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a Person-x-Item matrix of responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>either a list or a simLNIRT object containing the response time and response matrices
+and optionally the predictors for the item and person parameters.
+If a simLNIRT object is provided, in the summary the simulated item and time parameters are shown alongside of the estimates.
+If the required variables cannot be found in the list, or if no data object is given, then the variables are taken
+from the environment from which LNIRT is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XG</code></td>
+<td>
+<p>the number of MCMC iterations to perform (default: 1000).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>the percentage of MCMC iterations to discard as burn-in period (default: 10).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XGresid</code></td>
+<td>
+<p>the number of MCMC iterations to perform before residuals are computed (default: 1000).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>guess</code></td>
+<td>
+<p>include guessing parameters in the IRT model (default: false).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par1</code></td>
+<td>
+<p>use alternative parameterization (default: false).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residual</code></td>
+<td>
+<p>compute residuals, &gt;1000 iterations are recommended (default: false).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>td</code></td>
+<td>
+<p>estimate the time-discrimination parameter(default: true).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WL</code></td>
+<td>
+<p>define the time-discrimination parameter as measurement error variance parameter (default: false).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ident</code></td>
+<td>
+<p>set identification rule (default: 2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>an optional vector of pre-defined item-discrimination parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>an optional vector of pre-defined item-difficulty parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>an optional vector of predefined time discrimination parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>an optional vector of predefined time intensity parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XPA</code></td>
+<td>
+<p>an optional matrix of predictors for the person ability parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XPT</code></td>
+<td>
+<p>an optional matrix of predictors for the person speed parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XIA</code></td>
+<td>
+<p>an optional matrix of predictors for the item-difficulty parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XIT</code></td>
+<td>
+<p>an optional matrix of predictors for the item-intensity parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MBDY</code></td>
+<td>
+<p>an optional indicator matrix for response missings due to the test design (0: missing by design, 1: not missing by design).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MBDT</code></td>
+<td>
+<p>an optional indicator matrix for response time missings due to the test design (0: missing by design, 1: not missing by design).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>an object of class LNIRT.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Log-normal response time IRT modelling
+data &lt;- simLNIRT(N = 500, K = 20, rho = 0.8, WL = FALSE)
+out &lt;- LNIRT(RT = RT, Y = Y, data = data, XG = 1500, residual = TRUE, WL = FALSE)
+summary(out) # Print results
+out$Post.Means$Item.Difficulty # Extract posterior mean estimates
+
+library(coda)
+mcmc.object &lt;- as.mcmc(out$MCMC.Samples$Item.Difficulty) # Extract MCMC samples for coda
+summary(mcmc.object)
+plot(mcmc.object)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitLinearLogicModel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear models based on logic terms</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a linear or logistic regression model (based on the
+type of outcome) using the supplied logic terms, e.g., <code>$disj</code> from
+a fitted <code>logicDT</code> model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitLinearLogicModel(
+  X,
+  y,
+  Z = NULL,
+  disj,
+  Z.interactions = TRUE,
+  type = "standard",
+  s = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Matrix or data frame of binary input data.
+This object should correspond to the binary matrix for fitting the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector. 0-1 coding for binary outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>Optional quantitative covariables supplied as a matrix or
+data frame. Only used (and required) if the model was fitted using them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disj</code></td>
+<td>
+<p>Integer matrix of logic terms. As in <code>logicDT</code>,
+each row corresponds to a term/conjunction. Negative values indicate
+negations. The absolute values of an entry correspond to the predictor
+index in <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z.interactions</code></td>
+<td>
+<p>Shall interactions with the continuous covariable
+<code>Z</code> be taken into account by including products of the terms with
+<code>Z</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of linear model to be fitted. Either <code>"standard"</code>
+(without regularization), <code>"lasso"</code> (LASSO) or <code>"cv.lasso"</code>
+(LASSO with cross-validation for automatically configuring the complexity
+penalty).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>Regularization parameter. Only used if <code>type = "lasso"</code> is
+set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to <code>glmnet</code> or <code>cv.glmnet</code>
+if the corresponding model type was chosen.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For creating sparse final models, the LASSO can be used for shrinking
+unnecessary term coefficients down to zero (<code>type = "lasso"</code>).
+If the complexity penalty <code>s</code> shall be automatically tuned,
+cross-validation can be employed (<code>type = "cv.lasso"</code>).
+However, since other hyperparameters also have to be tuned when fitting
+a linear boosting model such as the complexity penalty for restricting
+the number of variables in the terms, manually tuning the LASSO penalty
+together with the other hyperparameters is recommended.
+For every hyperparameter setting of the boosting itself, the best
+corresponding LASSO penalty <code>s</code> can be identified by, e.g., choosing
+the <code>s</code> that minimizes the validation data error.
+Thus, this hyperparameter does not have to be explicitly tuned via a grid
+search but is induced by the setting of the other hyperparameters.
+For finding the ideal value of <code>s</code> using independent validation data,
+the function <code>get.ideal.penalty</code> can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>linear.logic</code> model. This is a list containing
+the logic terms used as predictors in the model and the fitted <code>glm</code>
+model.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Tibshirani, R. (1996).
+Regression Shrinkage and Selection via the Lasso. Journal of the Royal
+Statistical Society. Series B (Methodological), 58(1), 267–288.
+doi: <a href="https://doi.org/10.1111/j.2517-6161.1996.tb02080.x">10.1111/j.2517-6161.1996.tb02080.x</a>
+</p>
+</li>
+<li>
+<p> Friedman, J., Hastie, T., &amp; Tibshirani, R. (2010).
+Regularization Paths for Generalized Linear Models via Coordinate Descent.
+Journal of statistical software, 33(1), 1–22.
+doi: <a href="https://doi.org/10.18637/jss.v033.i01">10.18637/jss.v033.i01</a>
+</p>
+</li>
+</ul>
+</div>

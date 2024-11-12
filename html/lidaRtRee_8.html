@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aba_predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mapping of ABA prediction models</h2>
+
+<h3>Description</h3>
+
+<p>Applies calibrated area-based prediction models output of
+<code>aba_build_model</code> to a raster of metrics to obtain a raster of
+predictions
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aba_predict(
+  model_aba,
+  metrics_map,
+  stratum = NULL,
+  add_error = FALSE,
+  pkg = "terra"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model_aba</code></td>
+<td>
+<p>model returned by <code>aba_build_model</code> or
+<code>aba_combine_strata</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics_map</code></td>
+<td>
+<p>raster. metrics returned e.g by
+<code>pixel_metrics</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratum</code></td>
+<td>
+<p>string. indicates which layer of metrics.map contains the
+<code>stratum</code> in case of a stratified <code>aba.model</code>. The layer should have a RAT
+including a column with the same name (see <code>is.factor</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_error</code></td>
+<td>
+<p>boolean. indicates whether errors sampled from a normal distribution
+N(0, sigma(residuals)) should be added to fitted values; implemented only for
+<code>log</code> transformation case</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pkg</code></td>
+<td>
+<p>raster output format. Use pkg = "terra|raster|stars" to get an output in SpatRaster, RasterLayer
+or stars format.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a raster of predictions obtained by applying the model <code>aba_build_model</code>
+to the observations in <code>metrics_map</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>aba_build_model for model fitting and aba_combine_strata
+for combining stratified models, clean_raster for applying spatial mask
+and value thresholds to a raster.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load data
+data(quatre_montagnes)
+# build model
+model_aba &lt;- aba_build_model(quatre_montagnes$G_m2_ha, quatre_montagnes[, 9:76],
+  transform = "boxcox"
+)
+# build example raster to apply model
+quatre_montagnes$X &lt;- rep(1:8, 12)
+quatre_montagnes$Y &lt;- rep(1:12, each = 8)
+metrics_map &lt;- terra::rast(quatre_montagnes[, c(2, 3, 9:76)], type = "xyz")
+predict_map &lt;- aba_predict(model_aba, metrics_map)
+
+# plot map
+terra::plot(predict_map, main = "predictions")
+</code></pre>
+
+
+</div>

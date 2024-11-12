@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>limorhyde</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert a periodic time variable into components usable in linear models</h2>
+
+<h3>Description</h3>
+
+<p>Decompose a periodic time variable into multiple components based on either
+the first harmonic of a Fourier series or on a periodic smoothing spline.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">limorhyde(
+  time,
+  colnamePrefix = NULL,
+  period = 24,
+  sinusoid = TRUE,
+  nKnots = 3,
+  intercept = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Numeric vector of times, e.g., at which samples were acquired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnamePrefix</code></td>
+<td>
+<p>Character string with which to prefix the column names
+of the basis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>Number corresponding to the period to use for the
+decomposition (in the same units as <code>time</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sinusoid</code></td>
+<td>
+<p>If <code>TRUE</code>, the decomposition is based on cosinor, i.e.,
+cosine and sine. If <code>FALSE</code>, the decomposition is based on a periodic
+smoothing spline from the <code>pbs</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nKnots</code></td>
+<td>
+<p>Number of internal knots for the periodic spline. Only used if
+<code>sinusoid</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>If <code>TRUE</code>, a column of ones will be included in the basis.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix with a row for each sample and a column for each
+component of the time decomposition.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># create an example data frame
+nSamples = 12
+d = data.frame(
+  sample = paste0('sample_', 1:nSamples),
+  genotype = factor(rep(c('WT', 'KO'), each = nSamples / 2),
+                    levels = c('WT', 'KO')),
+  zt = rep(seq(0, 24 - 24 / nSamples * 2, 24 / nSamples * 2), times = 2),
+  stringsAsFactors = FALSE)
+
+# call limorhyde
+limo = limorhyde(d$zt, 'zt_')
+d = cbind(d, limo)
+
+# create a design matrix that could be used with methods such as limma
+design = model.matrix(~ genotype * (zt_cos + zt_sin), data = d)
+
+</code></pre>
+
+
+</div>

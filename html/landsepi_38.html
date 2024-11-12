@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>inoculumToMatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inoculum To Matrix</h2>
+
+<h3>Description</h3>
+
+<p>Transform the inoculum pI0 (1D vector of length Nhost<em>Npatho</em>Npoly) into
+a 3D array (for visualization purpose)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">inoculumToMatrix(params)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a LandsepiParams object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>After defining the inoculum with <code>setInoculum()</code>, this function returns
+the inoculum as a 3D array.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a 3D array of structure (1:Nhost,1:Npatho,1:Npoly)
+</p>
+
+
+<h3>See Also</h3>
+
+<p>setInoculum
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+simul_params &lt;- createSimulParams()
+simul_params &lt;- setTime(simul_params, Nyears = 1, nTSpY = 80)
+simul_params &lt;- setPathogen(simul_params, loadPathogen(disease = "rust"))
+simul_params &lt;- setLandscape(simul_params, loadLandscape(id = 1))
+simul_params &lt;- setDispersalPathogen(simul_params, loadDispersalPathogen(id = 1)[[1]])
+gene1 &lt;- loadGene(name = "MG 1", type = "majorGene")
+gene2 &lt;- loadGene(name = "MG 2", type = "majorGene")
+genes &lt;- data.frame(rbind(gene1, gene2), stringsAsFactors = FALSE)
+simul_params &lt;- setGenes(simul_params, genes)
+cultivar1 &lt;- loadCultivar(name = "Susceptible", type = "wheat")
+cultivar2 &lt;- loadCultivar(name = "Resistant", type = "wheat")
+cultivars &lt;- data.frame(rbind(cultivar1, cultivar2), stringsAsFactors = FALSE)
+simul_params &lt;- setCultivars(simul_params, cultivars)
+simul_params &lt;- allocateCultivarGenes(simul_params, "Resistant", c("MG 1", "MG 2"))
+croptypes &lt;- loadCroptypes(simul_params, names = c("Susceptible crop", "Resistant crop"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Susceptible crop", "Susceptible")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop", c("Resistant"))
+simul_params &lt;- setCroptypes(simul_params, croptypes)
+simul_params@Croptypes
+simul_params &lt;- allocateLandscapeCroptypes(simul_params, rotation_period = 0
+, rotation_sequence = croptypes$croptypeID
+, prop = c(1/2,1/2), aggreg = 1, graphic = FALSE)
+pI0 &lt;- loadInoculum(simul_params, pI0_patho=c(1E-3,1E-4,1E-4,1E-5), pI0_host=c(1,1))
+simul_params &lt;- setInoculum(simul_params, pI0)
+inoculumToMatrix(simul_params)[,,1:5]
+
+## End(Not run)
+</code></pre>
+
+
+</div>

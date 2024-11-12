@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fExtremes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Loglikelihood adjustment for fExtremes fits</h2>
+
+<h3>Description</h3>
+
+<p>S3 <code>alogLik</code> method to perform loglikelihood adjustment for fitted
+extreme value model objects returned from the functions
+<code>gevFit</code>,
+<code>gumbelFit</code> and
+<code>gpdFit</code>
+in the <code>fExtremes</code> package.
+The model must have been fitted using maximum likelihood estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'fGEVFIT'
+alogLik(x, cluster = NULL, use_vcov = TRUE, ...)
+
+## S3 method for class 'fGPDFIT'
+alogLik(x, cluster = NULL, use_vcov = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A fitted model object with certain associated S3 methods.
+See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A vector or factor indicating from which cluster the
+respective log-likelihood contributions from <code>loglik</code> originate.
+The length of <code>cluster</code> must be consistent with the <code>estfun</code>
+method to be used in the estimation of the 'meat' <code>V</code> of the sandwich
+estimator of the covariance matrix of the parameters to be passed to
+<code>adjust_loglik</code>.  In most cases, <code>cluster</code>
+must have length equal to the number of observations in data.  The
+exception is the GP (only) model (<code>binom = FALSE</code>), where the
+<code>cluster</code> may either contain a value for each observation in the raw
+data, or for each threshold exceedance in the data.
+</p>
+<p>If <code>cluster</code> is not supplied (is <code>NULL</code>) then it is
+assumed that each observation forms its own cluster.
+See <strong>Details</strong> for further details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_vcov</code></td>
+<td>
+<p>A logical scalar.  Should we use the <code>vcov</code> S3 method
+for <code>x</code> (if this exists) to estimate the Hessian of the independence
+loglikelihood to be passed as the argument <code>H</code> to
+<code>adjust_loglik</code>?
+Otherwise, <code>H</code> is estimated inside
+<code>adjust_loglik</code> using
+<code>optimHess</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to the functions in the
+sandwich package <code>meat</code> (if <code>cluster = NULL</code>),
+or <code>meatCL</code> (if <code>cluster</code> is not
+<code>NULL</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>alogLik</code> for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object inheriting from class <code>"chandwich"</code>.  See
+<code>adjust_loglik</code>.
+<code>class(x)</code> is a vector of length 5. The first 3 components are
+<code>c("lax", "chandwich", "fExtremes")</code>.
+The remaining 2 components depend on the model that was fitted.
+If <code>gevFit</code> or
+<code>gumbelFit</code> was used then these
+components are <code>c("gev", "stat")</code>.
+If <code>gpdFit</code> was used then these
+components are <code>c("gpd", "stat")</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chandler, R. E. and Bate, S. (2007). Inference for clustered
+data using the independence loglikelihood. <em>Biometrika</em>,
+<strong>94</strong>(1), 167-183. <a href="https://doi.org/10.1093/biomet/asm015">doi:10.1093/biomet/asm015</a>
+</p>
+<p>Suveges, M. and Davison, A. C. (2010) Model
+misspecification in peaks over threshold analysis, <em>The Annals of
+Applied Statistics</em>, <strong>4</strong>(1), 203-221.
+<a href="https://doi.org/10.1214/09-AOAS292">doi:10.1214/09-AOAS292</a>
+</p>
+<p>Zeileis (2006) Object-Oriented Computation and Sandwich
+Estimators.  <em>Journal of Statistical Software</em>, <strong>16</strong>, 1-16.
+<a href="https://doi.org/10.18637/jss.v016.i09">doi:10.18637/jss.v016.i09</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>alogLik</code>: loglikelihood adjustment for model fits.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># We need the fExtremes package
+got_fExtremes &lt;- requireNamespace("fExtremes", quietly = TRUE)
+if (got_fExtremes) {
+  library(fExtremes)
+
+  # GEV
+  # An example from the fExtremes::gevFit documentation
+  set.seed(4082019)
+  x &lt;- fExtremes::gevSim(model = list(xi=0.25, mu=0, beta=1), n = 1000)
+  # Fit GEV distribution by maximum likelihood estimation
+  fit &lt;- fExtremes::gevFit(x)
+  adj_fit &lt;- alogLik(fit)
+  summary(adj_fit)
+
+  # GP
+  # An example from the fExtremes::gpdFit documentation
+  # Simulate GP data
+  x &lt;- fExtremes::gpdSim(model = list(xi = 0.25, mu = 0, beta = 1), n = 1000)
+  # Fit GP distribution by maximum likelihood estimation
+  fit &lt;- fExtremes::gpdFit(x, u = min(x))
+  adj_fit &lt;- alogLik(fit)
+  summary(adj_fit)
+}
+</code></pre>
+
+
+</div>

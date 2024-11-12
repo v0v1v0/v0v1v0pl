@@ -1,0 +1,66 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LCF_solve_QP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear combination fitting solve function</h2>
+
+<h3>Description</h3>
+
+<p>Quadratic programming solution function for linear combination fitting (LCF)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LCF_solve_QP(LCF.stds, LCF.samp)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LCF.stds</code></td>
+<td>
+<p>Standards for LCF</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LCF.samp</code></td>
+<td>
+<p>Sample for LCF</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(stdmix)
+corr.spec.standards  &lt;- initial_load(specdat[1:4], 
+  corr.norm = c(-36, -15, 37, 58))
+corr.spec.samples    &lt;- initial_load(specdat[5:8], 
+  corr.norm = c(-36, -15, 37, 58))
+fit.standards &lt;- std_df(sample = corr.spec.samples[[1]], 
+  all.standards = corr.spec.standards)
+corr.spec &lt;- bkg_corr(raw.spec = corr.spec.samples[[1]], 
+  corr.norm = c(-36, -15, 37, 58))
+## set fitting range parameters relative to E zero
+E.zero &lt;- corr.spec.samples[[1]]$data$E0
+LC.pre &lt;- -14
+LC.post &lt;- 46
+## find ranges that have to be fitted
+abs.pre &lt;- abs(corr.spec[["energy"]]-(E.zero+LC.pre))
+abs.post &lt;- abs(corr.spec[["energy"]]-(E.zero+LC.post))
+range.pre &lt;- which(abs.pre == min(abs.pre))
+range.post &lt;- which(abs.post == min(abs.post))
+## extract standards and sample in given range
+LC.sample &lt;- corr.spec["cor.absorption"][range.pre:range.post,]
+LC.standards &lt;- fit.standards[range.pre:range.post,]
+## actual fitting
+fit.result &lt;- LCF_solve_QP(LCF.stds = LC.standards, LCF.samp = LC.sample)
+print(fit.result)
+</code></pre>
+
+
+</div>

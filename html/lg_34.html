@@ -1,0 +1,222 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lg_main</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an <code>lg</code> object</h2>
+
+<h3>Description</h3>
+
+<p>Create an <code>lg</code>-object, that can be used to estimate local Gaussian
+correlations, unconditional and conditional densities, local partial
+correlation and for testing purposes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lg_main(x, bw_method = "plugin", est_method = "1par",
+  transform_to_marginal_normality = TRUE, bw = NULL,
+  plugin_constant_marginal = 1.75, plugin_constant_joint = 1.75,
+  plugin_exponent_marginal = -1/5, plugin_exponent_joint = -1/6,
+  tol_marginal = 10^(-3), tol_joint = 10^(-3))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix or data frame with data, on column per variable, one row per
+observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw_method</code></td>
+<td>
+<p>The method used for bandwidth selection. Must be either
+<code>"cv"</code> (cross-validation, slow, but accurate) or <code>"plugin"</code> (fast,
+but crude).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est_method</code></td>
+<td>
+<p>The estimation method, must be either "1par", "5par",
+"5par_marginals_fixed" or "trivariate". (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform_to_marginal_normality</code></td>
+<td>
+<p>Logical, <code>TRUE</code> if we want to
+transform our data to marginal standard normality. This is assumed by method
+"1par", but can of course be skipped using this argument if it has been done
+already.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Bandwidth object if it has already been calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plugin_constant_marginal</code></td>
+<td>
+<p>The constant <code>c</code> in <code>cn^a</code> used for
+finding the plugin bandwidth for locally Gaussian marginal density
+estimates, which we need if estimation method is "5par_marginals_fixed".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plugin_constant_joint</code></td>
+<td>
+<p>The constant <code>c</code> in <code>cn^a</code> used for
+finding the plugin bandwidth for estimating the pairwise local Gaussian
+correlation between two variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plugin_exponent_marginal</code></td>
+<td>
+<p>The constant <code>a</code> in <code>cn^a</code> used for
+finding the plugin bandwidth for locally Gaussian marginal density
+estimates, which we need if estimation method is "5par_marginals_fixed".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plugin_exponent_joint</code></td>
+<td>
+<p>The constant <code>a</code> in <code>cn^a</code> used for
+finding the plugin bandwidth for estimating the pairwise local Gaussian
+correlation between two variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_marginal</code></td>
+<td>
+<p>The absolute tolerance in the optimization for finding the
+marginal bandwidths, passed on to the <code>optim</code>-function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol_joint</code></td>
+<td>
+<p>The absolute tolerance in the optimization for finding the
+joint bandwidths. Passed on to the <code>optim</code>-function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the main function in the package. It lets the user supply a data set
+and set a number of options, which is then used to prepare an <code>lg</code> object
+that can be supplied to other functions in the package, such as <code>dlg</code>
+(density estimation), <code>clg</code> (conditional density estimation). The details
+has been laid out in Otneim &amp; Tjøstheim (2017) and Otneim &amp; Tjøstheim (2018).
+</p>
+<p>The papers mentioned above deal with the estimation of multivariate density
+functions and conditional density functions. The idea is to fit a multivariate
+Normal locally to the unknown density function by first transforming the data
+to marginal standard normality, and then estimate the local correlations
+<strong>pairwise</strong>. The local means and local standard deviations are held
+fixed and constantly equal to 0 and 1 respectively to reflect the knowledge
+that the marginals are approximately standard normal. Use <code>est_method =
+"1par"</code> for this strategy, which means that we only estimate one local
+parameter (the correlation) for each pair, and note that this method requires
+marginally standard normal data. If <code>est_method = "1par"</code> and
+<code>transform_to_marginal_normality = FALSE</code> the function will throw a
+warning. It might be okay though, if you know that the data are marginally
+standard normal already.
+</p>
+<p>The second option is <code>est_method = "5par_marginals_fixed"</code> which is more
+flexible than <code>"1par"</code>. This method will estimate univariate local
+Gaussian fits to each marginal, thus producing local estimates of the local
+means: <code class="reqn">\mu_i(x_i)</code> and <code class="reqn">\sigma_i(x_i)</code> that will be held fixed in the
+next step when the <strong>pairwise</strong> local correlations are estimated. This
+method can in many situations provide a better fit, even if the marginals are
+standard normal. It also opens up for creating a multivariate locally Gaussian
+fit to any density without having to transform the marginals if you for some
+reason want to avoid that.
+</p>
+<p>The third option is <code>est_method = "5par"</code>, which is a full nonparametric
+locally Gaussian fit of a bivariate density as laid out and used by Tjøstheim
+&amp; Hufthammer (2013) and others. This is simply a wrapper for the
+<code>localgauss</code>-package by Berentsen et.al. (2014).
+</p>
+<p>A recent option is described by Otneim and Tjøstheim (2019), who allow a full
+trivariate fit to a three dimensional data set that is transformed to marginal
+standard normality in the context of their test for conditional independence
+(see <code>?ci_test</code> for details), but this can of course be used as an option
+to estimate three-variate density functions as well.
+</p>
+
+
+<h3>References</h3>
+
+<p>Berentsen, Geir Drage, Tore Selland Kleppe, and Dag Tjøstheim. "Introducing
+localgauss, an R package for estimating and visualizing local Gaussian
+correlation." Journal of Statistical Software 56.1 (2014): 1-18.
+</p>
+<p>Hufthammer, Karl Ove, and Dag Tjøstheim. "Local Gaussian Likelihood and Local
+Gaussian Correlation" PhD Thesis of Karl Ove Hufthammer, University of Bergen,
+2009.
+</p>
+<p>Otneim, Håkon, and Dag Tjøstheim. "The locally gaussian density estimator for
+multivariate data." Statistics and Computing 27, no. 6 (2017): 1595-1616.
+</p>
+<p>Otneim, Håkon, and Dag Tjøstheim. "Conditional density estimation using
+the local Gaussian correlation" Statistics and Computing 28, no. 2 (2018):
+303-321.
+</p>
+<p>Otneim, Håkon, and Dag Tjøstheim. "The local Gaussian partial correlation"
+Working paper (2019).
+</p>
+<p>Tjøstheim, D., &amp; Hufthammer, K. O. (2013). Local Gaussian correlation: a new
+measure of dependence. Journal of Econometrics, 172(1), 33-48.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  x &lt;- cbind(rnorm(100), rnorm(100), rnorm(100))
+
+  # Quick example
+  lg_object1 &lt;- lg_main(x, bw_method = "plugin", est_method = "1par")
+
+  # In the simulation experiments in Otneim &amp; Tjøstheim (2017a),
+  # the cross-validation bandwidth selection is used:
+  ## Not run: 
+  lg_object2 &lt;- lg_main(x, bw_method = "cv", est_method = "1par")
+  
+## End(Not run)
+
+  # If you do not wish to transform the data to standard normality,
+  # use the five parameter fit:
+  lg_object3 &lt;- lg_main(x, est_method = "5par_marginals_fixed",
+                  transform_to_marginal_normality = FALSE)
+
+  # In the bivariate case, you can use the full nonparametric fit:
+  x_biv &lt;- cbind(rnorm(100), rnorm(100))
+  lg_object4 &lt;- lg_main(x_biv, est_method = "5par",
+                  transform_to_marginal_normality = FALSE)
+
+  # Whichever method you choose, the lg-object can now be passed on
+  # to the dlg- or clg-functions for evaluation of the density or
+  # conditional density estimate. Control the grid with the grid
+  # argument.
+  grid1 &lt;- x[1:10,]
+  dens_est &lt;- dlg(lg_object1, grid = grid1)
+
+  # The conditional density of X1 given X2 = 1 and X2 = 0:
+  grid2 &lt;- matrix(-3:3, ncol = 1)
+  c_dens_est &lt;- clg(lg_object1, grid = grid2, condition = c(1, 0))
+
+</code></pre>
+
+
+</div>

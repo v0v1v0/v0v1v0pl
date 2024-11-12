@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>coefType</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the Type of Each Coefficient</h2>
+
+<h3>Description</h3>
+
+<p>Extract the type of each coefficient of a <code>lvm</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">coefType(object, as.lava, ...)
+
+## S3 method for class 'lvm'
+coefType(object, as.lava = TRUE, data = NULL, ...)
+
+## S3 method for class 'lvmfit'
+coefType(object, as.lava = TRUE, ...)
+
+## S3 method for class 'multigroup'
+coefType(object, as.lava = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvm</code> or <code>lvmfit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.lava</code></td>
+<td>
+<p>[logical] export the type of coefficients mimicking <code>lava:::coef</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to be passed to <code>lava::coef</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[data.frame, optional] the dataset. Help to identify the categorical variables.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A lvm can be written as a measurement model:
+</p>
+<p style="text-align: center;"><code class="reqn">Y_i = \nu + \Lambda \eta_i + K X_i + \epsilon_i</code>
+</p>
+
+<p>and a structural model:
+</p>
+<p style="text-align: center;"><code class="reqn">\eta_i = \alpha + B \eta_i + \Gamma X_i + \zeta_i</code>
+</p>
+
+<p>where <code class="reqn">\Psi</code>   is the variance covariance matrix of the residuals <code class="reqn">\zeta</code> <br>
+and   <code class="reqn">\Sigma</code> is the variance covariance matrix of the residuals <code class="reqn">\epsilon</code>. <br><br></p>
+<p><code>coefType</code> either returns the Latin/Greek letter corresponding to the coefficients
+or it groups them:
+</p>
+
+<ul>
+<li>
+<p> intercept: <code class="reqn">\nu</code> and <code class="reqn">\alpha</code>.
+</p>
+</li>
+<li>
+<p> regression: <code class="reqn">\Lambda</code>, <code class="reqn">K</code>, <code class="reqn">B</code>, and <code class="reqn">\Gamma</code>.
+</p>
+</li>
+<li>
+<p> covariance: extra-diagonal terms of <code class="reqn">\Sigma</code> and <code class="reqn">\Psi</code>.
+</p>
+</li>
+<li>
+<p> variance: diagonal of <code class="reqn">\Sigma</code> and <code class="reqn">\Psi</code>.
+</p>
+</li>
+</ul>
+<p>A link denotes a relationship between two variables.
+The coefficient are used to represent the strength of the association between two variable, i.e. the strength of a link.
+A coefficient may corresponds to the strength of one or several link.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>coefType</code> returns a <code>data.frame</code> when <code>as.lava=FALSE</code>:
+</p>
+
+<ul>
+<li>
+<p> name: name of the link
+</p>
+</li>
+<li>
+<p> Y: outcome variable
+</p>
+</li>
+<li>
+<p> X: regression variable in the design matrix (could be a transformation of the original variables, e.g. dichotomization).
+</p>
+</li>
+<li>
+<p> data: original variable
+</p>
+</li>
+<li>
+<p> type: type of link
+</p>
+</li>
+<li>
+<p> value: if TRUE, the value of the link is set and not estimated.
+</p>
+</li>
+<li>
+<p> marginal: if TRUE, the value of the link does not impact the estimation.
+</p>
+</li>
+<li>
+<p> detail: a more detailed description of the type of link (see the details section)
+</p>
+</li>
+<li>
+<p> lava: name of the coefficient in lava
+</p>
+</li>
+</ul>
+<p>When <code>as.lava=TRUE</code>, <code>coefType</code> returns a named vector containing the type of each coefficient.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### regression ####
+m &lt;- lvm(Y~X1+X2)
+e &lt;- estimate(m, lava::sim(m, 1e2))
+
+coefType(m)
+coefType(e)
+
+#### LVM ####
+m &lt;- lvm()
+regression(m) &lt;- c(y1,y2,y3)~u
+regression(m) &lt;- u~x1+x2
+latent(m) &lt;- ~u
+covariance(m) &lt;- y1~y2
+
+m.Sim &lt;- m
+categorical(m.Sim, labels = c("a","b","c")) &lt;- ~x2
+e &lt;- estimate(m, lava::sim(m.Sim, 1e2))
+
+coefType(m)
+coefType(e)
+
+## additional categorical variables 
+categorical(m, labels = as.character(1:3)) &lt;- "X1"
+
+coefType(m, as.lava = FALSE)
+
+#### LVM with constrains ####
+m &lt;- lvm(c(Y1~0+1*eta1,Y2~0+1*eta1,Y3~0+1*eta1,
+          Z1~0+1*eta2,Z2~0+1*eta2,Z3~0+1*eta2))
+latent(m) &lt;- ~eta1 + eta2
+e &lt;- estimate(m, lava::sim(m,1e2))
+
+coefType(m)
+coefType(e)
+
+#### multigroup ####
+m &lt;- lvm(Y~X1+X2)
+eG &lt;- estimate(list(m,m), list(lava::sim(m, 1e2), lava::sim(m, 1e2)))
+coefType(eG)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,66 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_r_string</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract text from <code>STR_CONST</code> nodes</h2>
+
+<h3>Description</h3>
+
+<p>Convert <code>STR_CONST</code> <code>text()</code> values into R strings. This is useful to account for arbitrary
+character literals valid since R 4.0, e.g. <code>R"------[hello]------"</code>, which is parsed in
+R as <code>"hello"</code>. It is quite cumbersome to write XPaths allowing for strings like this,
+so whenever your linter logic requires testing a <code>STR_CONST</code> node's value, use this
+function.
+NB: this is also properly vectorized on <code>s</code>, and accepts a variety of inputs. Empty inputs
+will become <code>NA</code> outputs, which helps ensure that <code>length(get_r_string(s)) == length(s)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_r_string(s, xpath = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>An input string or strings. If <code>s</code> is an <code>xml_node</code> or <code>xml_nodeset</code> and <code>xpath</code> is <code>NULL</code>,
+extract its string value with <code>xml2::xml_text()</code>. If <code>s</code> is an <code>xml_node</code> or <code>xml_nodeset</code>
+and <code>xpath</code> is specified, it is extracted with <code>xml2::xml_find_chr()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xpath</code></td>
+<td>
+<p>An XPath, passed on to <code>xml2::xml_find_chr()</code> after wrapping with <code>string()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+tmp &lt;- withr::local_tempfile(lines = "c('a', 'b')")
+expr_as_xml &lt;- get_source_expressions(tmp)$expressions[[1L]]$xml_parsed_content
+writeLines(as.character(expr_as_xml))
+get_r_string(expr_as_xml, "expr[2]") # "a"
+get_r_string(expr_as_xml, "expr[3]") # "b"
+
+# more importantly, extract strings under R&gt;=4 raw strings
+
+
+tmp4.0 &lt;- withr::local_tempfile(lines = "c(R'(a\\b)', R'--[a\\\"\'\"\\b]--')")
+expr_as_xml4.0 &lt;- get_source_expressions(tmp4.0)$expressions[[1L]]$xml_parsed_content
+writeLines(as.character(expr_as_xml4.0))
+get_r_string(expr_as_xml4.0, "expr[2]") # "a\b"
+get_r_string(expr_as_xml4.0, "expr[3]") # "a\\"'\"\b"
+
+</code></pre>
+
+
+</div>

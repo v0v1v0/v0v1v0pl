@@ -1,0 +1,978 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mlnormal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+(Restricted) Maximum Likelihood Estimation with Prior Distributions
+and Penalty Functions under Multivariate Normality
+</h2>
+
+<h3>Description</h3>
+
+<p>The <code>mlnormal</code> estimates statistical model for multivariate normally
+distributed outcomes with specified mean structure and
+covariance structure (see Details and Examples). Model classes include
+multilevel models, factor analysis, structural equation models,
+multilevel structural equation models, social relations model and
+perhaps more.
+</p>
+<p>The estimation can be conducted under maximum likelihood,
+restricted maximum likelihood and
+maximum posterior estimation with prior distribution.
+Regularization (i.e. LASSO penalties) is also accomodated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mlnormal(y, X, id, Z_list, Z_index, beta=NULL, theta, method="ML", prior=NULL,
+    lambda_beta=NULL, weights_beta=NULL, lambda_theta=NULL, weights_theta=NULL,
+    beta_lower=NULL, beta_upper=NULL,    theta_lower=NULL, theta_upper=NULL,
+    maxit=800, globconv=1e-05, conv=1e-06, verbose=TRUE, REML_shortcut=NULL,
+    use_ginverse=FALSE, vcov=TRUE, variance_shortcut=TRUE, use_Rcpp=TRUE,
+    level=0.95, numdiff.parm=1e-04, control_beta=NULL, control_theta=NULL)
+
+## S3 method for class 'mlnormal'
+summary(object, digits=4, file=NULL, ...)
+
+## S3 method for class 'mlnormal'
+print(x, digits=4, ...)
+
+## S3 method for class 'mlnormal'
+coef(object, ...)
+
+## S3 method for class 'mlnormal'
+logLik(object, ...)
+
+## S3 method for class 'mlnormal'
+vcov(object, ...)
+
+## S3 method for class 'mlnormal'
+confint(object, parm, level=.95, ... )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>Vector of outcomes
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>Matrix of covariates
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+
+<p>Vector of identifiers (subjects or clusters, see Details)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z_list</code></td>
+<td>
+
+<p>List of design matrices for covariance matrix (see Details)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z_index</code></td>
+<td>
+
+<p>Array containing loadings of design matrices (see Details).
+The dimensions are units <code class="reqn">\times</code> matrices <code class="reqn">\times</code> parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>Initial vector for <code class="reqn">\bold{\beta}</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+
+<p>Initial vector for <code class="reqn">\bold{\theta}</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Estimation method. Can be either <code>"ML"</code> or <code>"REML"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+
+<p>Prior distributions. Can be conveniently specified in a string
+which is processed by the function <code>prior_model_parse</code>. Only
+univariate prior distributions can be specified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_beta</code></td>
+<td>
+
+<p>Parameter <code class="reqn">\lambda_{\bold{\beta}}</code> for penalty function
+<code class="reqn">P( \bold{\beta} )=\lambda_{\bold{\beta}} \sum_h w_{\bold{\beta}h} | \beta _h |</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights_beta</code></td>
+<td>
+
+<p>Parameter vector <code class="reqn">\bold{w}_{\bold{\beta}}</code> for penalty function
+<code class="reqn">P( \bold{\beta} )=\lambda_{\bold{\beta}} \sum_h w_{\bold{\beta}h} | \beta _h |</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_theta</code></td>
+<td>
+
+<p>Parameter <code class="reqn">\lambda_{\bold{\theta}}</code> for penalty function
+<code class="reqn">P( \bold{\theta} )=\lambda_{\bold{\theta}}
+            \sum_h w_{\bold{\theta}h} | \theta _h | </code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights_theta</code></td>
+<td>
+
+<p>Parameter vector <code class="reqn">\bold{w}_{\bold{\theta}}</code> for penalty function
+<code class="reqn">P( \bold{\theta} )=\lambda_{\bold{\theta}}
+          \sum_h w_{\bold{\theta}h} | \theta _h | </code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_lower</code></td>
+<td>
+<p>Vector containing lower bounds for <code class="reqn">\bold{\beta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_upper</code></td>
+<td>
+<p>Vector containing upper bounds for <code class="reqn">\bold{\beta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_lower</code></td>
+<td>
+<p>Vector containing lower bounds for <code class="reqn">\bold{\theta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_upper</code></td>
+<td>
+<p>Vector containing upper bounds for <code class="reqn">\bold{\theta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>Maximum number of iterations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>globconv</code></td>
+<td>
+
+<p>Convergence criterion deviance
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+
+<p>Maximum parameter change
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>Print progress?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REML_shortcut</code></td>
+<td>
+
+<p>Logical indicating whether computational shortcuts should be used for
+REML estimation
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_ginverse</code></td>
+<td>
+
+<p>Logical indicating whether a generalized inverse should be used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+
+<p>Logical indicating whether a covariance matrix of
+<code class="reqn">\bold{\theta}</code> parameter estimates should be computed in
+case of REML (which is computationally demanding)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance_shortcut</code></td>
+<td>
+
+<p>Logical indicating whether computational shortcuts for calculating
+covariance matrices should be used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_Rcpp</code></td>
+<td>
+
+<p>Logical indicating whether the <span class="pkg">Rcpp</span> package should be used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+
+<p>Confidence level
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numdiff.parm</code></td>
+<td>
+
+<p>Numerical differentiation parameter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control_beta</code></td>
+<td>
+
+<p>List with control arguments for <code class="reqn">\bold{\beta}</code> estimation. The default
+is <br><code>list( maxiter=10, conv=1E-4, ridge=1E-6)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control_theta</code></td>
+<td>
+
+<p>List with control arguments for <code class="reqn">\bold{\theta}</code> estimation. The default
+is <br><code>list( maxiter=10, conv=1E-4, ridge=1E-6)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class <code>mlnormal</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Number of digits used for rounding</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>File name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parm</code></td>
+<td>
+<p>Parameter to be selected for <code>confint</code> method</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object of class <code>mlnormal</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data consists of outcomes <code class="reqn">\bold{y}_i</code> and covariates <code class="reqn">\bold{X}_i</code>
+for unit <code class="reqn">i</code>. The unit can be subjects, clusters (like schools)
+or the full outcome vector. It is assumed that <code class="reqn">\bold{y}_i</code> is normally
+distributed as <code class="reqn">N( \bold{\mu}_i, \bold{V}_i )</code> where the mean structure is
+modelled as </p>
+<p style="text-align: center;"><code class="reqn"> \bold{\mu}_i=\bold{X}_i \bold{\beta} </code>
+</p>
+<p> and the covariance
+structure <code class="reqn"> \bold{V}_i</code> depends on a parameter vector <code class="reqn">\bold{\theta}</code>.
+More specifically, the covariance matrix <code class="reqn"> \bold{V}_i</code>  is modelled as
+a sum of functions of the parameter <code class="reqn">\bold{\theta}</code> and known design matrices
+<code class="reqn">\bold{Z}_{im}</code> for unit <code class="reqn">i</code> (<code class="reqn">m=1,\ldots,M</code>). The model is
+</p>
+<p style="text-align: center;"><code class="reqn">\bold{V}_i=\sum_{m=1}^M \bold{Z}_{im} \gamma_{im}  \qquad \mathrm{with}
+\qquad \gamma_{im}=\prod_{h=1}^H \theta_h^{q_{imh}} </code>
+</p>
+
+<p>where <code class="reqn">q_{imh}</code> are non-negative known integers specified in
+<code>Z_index</code> and <code class="reqn">\bold{Z}_{im}</code> are design matrices specified
+in <code>Z_list</code>.
+</p>
+<p>The estimation follows Fisher scoring (Jiang, 2007; for applications see also
+Longford, 1987; Lee, 1990; Gill &amp; Swartz, 2001) and the
+regularization approach is as described in Lin, Pang and Jiang (2013)
+(see also Krishnapuram, Carin, Figueiredo, &amp; Hartemink, 2005).
+</p>
+
+
+<h3>Value</h3>
+
+<p>List with entries
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>Estimated <code class="reqn">\bold{\theta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Estimated <code class="reqn">\bold{\beta}</code> parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_summary</code></td>
+<td>
+<p>Summary of <code class="reqn">\bold{\theta}</code> parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta_summary</code></td>
+<td>
+<p>Summary of <code class="reqn">\bold{\beta}</code> parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>Estimated parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>Covariance matrix of estimated parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>Information criteria</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V_list</code></td>
+<td>
+<p>List with fitted covariance matrices <code class="reqn">\bold{V}_i</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V1_list</code></td>
+<td>
+<p>List with inverses of fitted covariance matrices <code class="reqn">\bold{V}_i</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior_args</code></td>
+<td>
+<p>Some arguments in case of prior distributions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>More values</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gill, P. S., &amp; Swartz, T. B. (2001). Statistical analyses for round
+robin interaction data.
+<em>Canadian Journal of Statistics, 29</em>, 321-331.
+<a href="https://doi.org/10.2307/3316080">doi:10.2307/3316080</a>
+</p>
+<p>Jiang, J. (2007). <em>Linear and generalized linear mixed models and their
+applications</em>. New York: Springer.
+</p>
+<p>Krishnapuram, B., Carin, L., Figueiredo, M. A., &amp; Hartemink, A. J. (2005).
+Sparse multinomial logistic regression: Fast algorithms and generalization
+bounds. <em>IEEE Transactions on Pattern Analysis and Machine Intelligence, 27</em>, 957-968.
+<a href="https://doi.org/10.1109/TPAMI.2005.127">doi:10.1109/TPAMI.2005.127</a>
+</p>
+<p>Lee, S. Y. (1990). Multilevel analysis of structural equation models.
+<em>Biometrika, 77</em>, 763-772.
+<a href="https://doi.org/10.1093/biomet/77.4.763">doi:10.1093/biomet/77.4.763</a>
+</p>
+<p>Lin, B., Pang, Z., &amp; Jiang, J. (2013). Fixed and random effects selection
+by REML and pathwise coordinate optimization.
+<em>Journal of Computational and Graphical Statistics, 22</em>, 341-355.
+<a href="https://doi.org/10.1080/10618600.2012.681219">doi:10.1080/10618600.2012.681219</a>
+</p>
+<p>Longford, N. T. (1987). A fast scoring algorithm for maximum likelihood
+estimation in unbalanced mixed models with nested random effects.
+<em>Biometrika, 74</em>, 817-827.
+<a href="https://doi.org/10.1093/biomet/74.4.817">doi:10.1093/biomet/74.4.817</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <span class="pkg">lavaan</span>, <span class="pkg">sem</span>, <span class="pkg">lava</span>, <span class="pkg">OpenMx</span> or <span class="pkg">nlsem</span>
+packages for estimation of
+(single level) structural equation models.
+</p>
+<p>See the <span class="pkg">regsem</span>
+and <span class="pkg">lsl</span> packages for regularized structural equation models.
+</p>
+<p>See <span class="pkg">lme4</span> or <span class="pkg">nlme</span> package for estimation of multilevel
+models.
+</p>
+<p>See the <span class="pkg">lmmlasso</span> and <span class="pkg">glmmLasso</span> packages for regularized
+mixed effects models.
+</p>
+<p>See <span class="pkg">OpenMx</span> and <span class="pkg">xxM</span> packages (<em>http://xxm.times.uh.edu/</em>) for
+estimation of multilevel structural equation models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#############################################################################
+# EXAMPLE 1: Two-level random intercept model
+#############################################################################
+
+#--------------------------------------------------------------
+# Simulate data
+#--------------------------------------------------------------
+
+set.seed(976)
+G &lt;- 150 ; rg &lt;- c(10,20)   # 150 groups with group sizes ranging from 10 to 20
+#* simulate group sizes
+ng &lt;- round( stats::runif( G, min=rg[1], max=rg[2] ) )
+idcluster &lt;- rep(1:G, ng )
+#* simulate covariate
+iccx &lt;- .3
+x &lt;- rep( stats::rnorm( G, sd=sqrt( iccx) ), ng ) +
+            stats::rnorm( sum(ng), sd=sqrt( 1 - iccx) )
+#* simulate outcome
+b0 &lt;- 1.5 ; b1 &lt;- .4 ; iccy &lt;- .2
+y &lt;- b0 + b1*x + rep( stats::rnorm( G, sd=sqrt( iccy) ), ng ) +
+         stats::rnorm( sum(ng), sd=sqrt( 1 - iccy) )
+
+#-----------------------
+#--- arrange input for mlnormal function
+
+id &lt;- idcluster          # cluster is identifier
+X &lt;- cbind( 1, x )      # matrix of covariates
+N &lt;- length(id)          # number of units (clusters), which is G
+
+MD &lt;- max(ng)   # maximum number of persons in a group
+NP &lt;- 2         # number of covariance parameters theta
+
+#* list of design matrix for covariance matrix
+#  In the case of the random intercept model, the covariance structure is
+#  tau^2 * J + sigma^2 * I, where J is a matrix of ones and I is the
+#  identity matrix
+Z &lt;- as.list(1:G)
+for (gg in 1:G){
+    Ngg &lt;- ng[gg]
+    Z[[gg]] &lt;- as.list( 1:2 )
+    Z[[gg]][[1]] &lt;- matrix( 1, nrow=Ngg, ncol=Ngg )  # level 2 variance
+    Z[[gg]][[2]] &lt;- diag(1,Ngg)            # level 1 variance
+}
+Z_list &lt;- Z
+#* parameter list containing the powers of parameters
+Z_index &lt;- array( 0, dim=c(G,2,2) )
+Z_index[ 1:G, 1, 1] &lt;- Z_index[ 1:G, 2, 2] &lt;- 1
+
+#** starting values and parameter names
+beta &lt;- c( 1, 0 )
+names(beta) &lt;- c("int", "x")
+theta &lt;- c( .05, 1 )
+names(theta) &lt;- c("tau2", "sig2" )
+
+#** create dataset for lme4 for comparison
+dat &lt;- data.frame(y=y, x=x, id=id )
+
+#--------------------------------------------------------------
+# Model 1: Maximum likelihood estimation
+#--------------------------------------------------------------
+
+#** mlnormal function
+mod1a &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+summary(mod1a)
+
+# lme4::lmer function
+library(lme4)
+mod1b &lt;- lme4::lmer( y ~ x + (1 | id ), data=dat, REML=FALSE )
+summary(mod1b)
+
+#--------------------------------------------------------------
+# Model 2: Restricted maximum likelihood estimation
+#--------------------------------------------------------------
+
+#** mlnormal function
+mod2a &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="REML" )
+summary(mod2a)
+
+# lme4::lmer function
+mod2b &lt;- lme4::lmer( y ~ x + (1 | id ), data=dat, REML=TRUE )
+summary(mod2b)
+
+#--------------------------------------------------------------
+# Model 3: Estimation of standard deviation instead of variances
+#--------------------------------------------------------------
+
+# The model is now parametrized in standard deviations
+# Variances are then modeled as tau^2 and sigma^2, respectively.
+Z_index2 &lt;- 2*Z_index       # change loading matrix
+
+# estimate model
+mod3 &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z_list, Z_index=Z_index2,
+            beta=beta, theta=theta )
+summary(mod3)
+
+#--------------------------------------------------------------
+# Model 4: Maximum posterior estimation
+#--------------------------------------------------------------
+
+# specify prior distributions for parameters
+prior &lt;- "
+    tau2 ~ dgamma(NA, 2, .5 )
+    sig2 ~ dinvgamma(NA, .1, .1 )
+    x ~ dnorm( NA, .2, 1000 )
+    "
+
+# estimate model in mlnormal
+mod4 &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="REML", prior=prior, vcov=FALSE )
+summary(mod4)
+
+#--------------------------------------------------------------
+# Model 5: Estimation with regularization on beta and theta parameters
+#--------------------------------------------------------------
+
+#*** penalty on theta parameter
+lambda_theta &lt;- 10
+weights_theta &lt;- 1 + 0 * theta
+#*** penalty on beta parameter
+lambda_beta &lt;- 3
+weights_beta &lt;- c( 0, 1.8 )
+
+# estimate model
+mod5 &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML", maxit=maxit,
+            lambda_theta=lambda_theta, weights_theta=weights_theta,
+            lambda_beta=lambda_beta, weights_beta=weights_beta  )
+summary(mod5)
+
+#############################################################################
+# EXAMPLE 2: Latent covariate model, two-level regression
+#############################################################################
+
+# Yb=beta_0 + beta_b*Xb + eb (between level) and
+# Yw=beta_w*Xw + ew (within level)
+
+#--------------------------------------------------------------
+# Simulate data from latent covariate model
+#--------------------------------------------------------------
+
+set.seed(865)
+# regression parameters
+beta_0 &lt;- 1 ; beta_b &lt;- .7 ; beta_w &lt;- .3
+G &lt;- 200      # number of groups
+n &lt;- 15      # group size
+iccx &lt;- .2   # intra class correlation x
+iccy &lt;- .35  # (conditional) intra class correlation y
+# simulate latent variables
+xb &lt;- stats::rnorm(G, sd=sqrt( iccx ) )
+yb &lt;- beta_0 + beta_b * xb + stats::rnorm(G, sd=sqrt( iccy ) )
+xw &lt;- stats::rnorm(G*n, sd=sqrt( 1-iccx ) )
+yw &lt;- beta_w * xw + stats::rnorm(G*n, sd=sqrt( 1-iccy ) )
+group &lt;- rep( 1:G, each=n )
+x &lt;- xw + xb[ group ]
+y &lt;- yw + yb[ group ]
+# test results on true data
+lm( yb ~ xb )
+lm( yw ~ xw )
+
+# create vector of outcomes in the form
+# ( y_11, x_11, y_21, x_21, ... )
+dat &lt;- cbind( y, x )
+dat
+Y &lt;- as.vector( t(dat) )    # outcome vector
+ny &lt;- length(Y)
+X &lt;- matrix( 0, nrow=ny, ncol=2 )
+X[ seq(1,ny,2), 1 ] &lt;- 1   # design vector for mean y
+X[ seq(2,ny,2), 2 ] &lt;- 1   # design vector for mean x
+id &lt;- rep( group, each=2 )
+
+#--------------------------------------------------------------
+# Model 1: Linear regression ignoring multilevel structure
+#--------------------------------------------------------------
+
+# y=beta_0 + beta_t *x + e
+# Var(y)=beta_t^2 * var_x + var_e
+# Cov(y,x)=beta_t * var_x
+# Var(x)=var_x
+
+#** initial parameter values
+theta &lt;- c( 0, 1, .5 )
+names(theta) &lt;- c( "beta_t", "var_x", "var_e")
+beta &lt;- c(0,0)
+names(beta) &lt;- c("mu_y","mu_x")
+
+# The unit i is a cluster in this example.
+
+#--- define design matrices | list Z_list
+Hlist &lt;- list(  matrix( c(1,0,0,0), 2, 2 ), # var(y)
+                matrix( c(1,0,0,0), 2, 2 ), # var(y) (two terms)
+                matrix( c(0,1,1,0), 2, 2 ), # cov(x,y)
+                matrix( c(0,0,0,1), 2, 2 ) ) # var(x)
+
+U0 &lt;- matrix( 0, nrow=2*n,ncol=2*n )
+Ulist &lt;- list( U0, U0, U0, U0 )
+M &lt;- length(Hlist)
+for (mm in 1:M){    # mm &lt;- 1
+    for (nn in 1:n){     # nn &lt;- 0
+        Ulist[[ mm ]][ 2*(nn-1) + 1:2, 2*(nn-1) + 1:2 ] &lt;- Hlist[[ mm ]]
+    }
+}
+Z_list &lt;- as.list(1:G)
+for (gg in 1:G){
+    Z_list[[gg]] &lt;- Ulist
+}
+
+#--- define index vectors
+Z_index &lt;- array( 0, dim=c(G, 4, 3 ) )
+K0 &lt;- matrix( 0, nrow=4, ncol=3 )
+colnames(K0) &lt;- names(theta)
+# Var(y)=beta_t^2 * var_x + var_e  (matrices withn indices 1 and 2)
+K0[ 1, c("beta_t","var_x") ] &lt;- c(2,1)  # beta_t^2 * var_x
+K0[ 2, c("var_e") ] &lt;- c(1)  # var_e
+# Cov(y,x)=beta_t * var_x
+K0[ 3, c("beta_t","var_x")] &lt;- c(1,1)
+# Var(x)=var_x
+K0[ 4, c("var_x") ] &lt;- c(1)
+for (gg in 1:G){
+    Z_index[gg,,] &lt;- K0
+}
+
+#*** estimate model with mlnormal
+mod1a &lt;- LAM::mlnormal( y=Y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="REML", vcov=FALSE )
+summary(mod1a)
+
+#*** estimate linear regression with stats::lm
+mod1b &lt;- stats::lm( y ~ x )
+summary(mod1b)
+
+#--------------------------------------------------------------
+# Model 2: Latent covariate model
+#--------------------------------------------------------------
+
+#** initial parameters
+theta &lt;- c( 0.12, .6, .5, 0, .2, .2 )
+names(theta) &lt;- c( "beta_w", "var_xw", "var_ew",
+                "beta_b", "var_xb", "var_eb")
+
+#--- define design matrices | list Z_list
+Hlist &lt;- list(  matrix( c(1,0,0,0), 2, 2 ), # var(y)
+                matrix( c(1,0,0,0), 2, 2 ), # var(y) (two terms)
+                matrix( c(0,1,1,0), 2, 2 ), # cov(x,y)
+                matrix( c(0,0,0,1), 2, 2 ) ) # var(x)
+U0 &lt;- matrix( 0, nrow=2*n,ncol=2*n )
+Ulist &lt;- list( U0, U0, U0, U0,  # within structure
+               U0, U0, U0, U0  )  # between structure
+M &lt;- length(Hlist)
+#*** within structure
+design_within &lt;- diag(n)  # design matrix within structure
+for (mm in 1:M){    # mm &lt;- 1
+    Ulist[[ mm ]] &lt;- base::kronecker( design_within, Hlist[[mm]] )
+}
+#*** between structure
+design_between &lt;- matrix(1, nrow=n, ncol=n)
+      # matrix of ones corresponding to group size
+for (mm in 1:M){    # mm &lt;- 1
+    Ulist[[ mm + M ]] &lt;-  base::kronecker( design_between, Hlist[[ mm ]] )
+}
+Z_list &lt;- as.list(1:G)
+for (gg in 1:G){
+    Z_list[[gg]] &lt;- Ulist
+}
+
+#--- define index vectors Z_index
+Z_index &lt;- array( 0, dim=c(G, 8, 6 ) )
+K0 &lt;- matrix( 0, nrow=8, ncol=6 )
+colnames(K0) &lt;- names(theta)
+# Var(y)=beta^2 * var_x + var_e  (matrices withn indices 1 and 2)
+K0[ 1, c("beta_w","var_xw") ] &lt;- c(2,1)  # beta_t^2 * var_x
+K0[ 2, c("var_ew") ] &lt;- c(1)  # var_e
+K0[ 5, c("beta_b","var_xb") ] &lt;- c(2,1)  # beta_t^2 * var_x
+K0[ 6, c("var_eb") ] &lt;- c(1)  # var_e
+# Cov(y,x)=beta * var_x
+K0[ 3, c("beta_w","var_xw")] &lt;- c(1,1)
+K0[ 7, c("beta_b","var_xb")] &lt;- c(1,1)
+# Var(x)=var_x
+K0[ 4, c("var_xw") ] &lt;- c(1)
+K0[ 8, c("var_xb") ] &lt;- c(1)
+for (gg in 1:G){
+    Z_index[gg,,] &lt;- K0
+}
+
+#--- estimate model with mlnormal
+mod2a &lt;- LAM::mlnormal( y=Y, X=X, id=id, Z_list=Z_list, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+summary(mod2a)
+
+#############################################################################
+# EXAMPLE 3: Simple linear regression, single level
+#############################################################################
+
+#--------------------------------------------------------------
+# Simulate data
+#--------------------------------------------------------------
+
+set.seed(875)
+N &lt;- 300
+x &lt;- stats::rnorm( N, sd=1.3 )
+y &lt;- .4 + .7 * x + stats::rnorm( N, sd=.5 )
+dat &lt;- data.frame( x, y )
+
+#--------------------------------------------------------------
+# Model 1: Linear regression modelled with residual covariance structure
+#--------------------------------------------------------------
+
+# matrix of predictros
+X &lt;- cbind( 1, x )
+# list with design matrices
+Z &lt;- as.list(1:N)
+for (nn in 1:N){
+    Z[[nn]] &lt;- as.list( 1 )
+    Z[[nn]][[1]] &lt;- matrix( 1, nrow=1, ncol=1 )  # residual variance
+}
+#* loading matrix
+Z_index &lt;- array( 0, dim=c(N,1,1) )
+Z_index[ 1:N, 1, 1] &lt;- 2  # parametrize residual standard deviation
+#** starting values and parameter names
+beta &lt;- c( 0, 0 )
+names(beta) &lt;- c("int", "x")
+theta &lt;- c(1)
+names(theta) &lt;- c("sig2" )
+# id vector
+id &lt;- 1:N
+
+#** mlnormal function
+mod1a &lt;- LAM::mlnormal( y=y, X=X, id=id, Z_list=Z, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+summary(mod1a)
+
+# estimate linear regression with stats::lm
+mod1b &lt;- stats::lm( y ~ x )
+summary(mod1b)
+
+#--------------------------------------------------------------
+# Model 2: Linear regression modelled with bivariate covariance structure
+#--------------------------------------------------------------
+
+#** define design matrix referring to mean structure
+X &lt;- matrix( 0, nrow=2*N, ncol=2 )
+X[ seq(1,2*N,2), 1 ] &lt;- X[ seq(2,2*N,2), 2 ] &lt;- 1
+
+#** create outcome vector
+y1 &lt;- dat[ cbind( rep(1:N, each=2), rep(1:2, N ) ) ]
+#** list with design matrices
+Z &lt;- as.list(1:N)
+Z0 &lt;- 0*matrix( 0, nrow=2,ncol=2)
+ZXY &lt;- ZY &lt;- ZX &lt;- Z0
+# design matrix Var(X)
+ZX[1,1] &lt;- 1
+# design matrix Var(Y)
+ZY[2,2] &lt;- 1
+# design matrix covariance
+ZXY[1,2] &lt;- ZXY[2,1] &lt;- 1
+# Var(X)=sigx^2
+# Cov(X,Y)=beta * sigx^2
+# Var(Y)=beta^2 * sigx^2 + sige^2
+Z_list0 &lt;- list( ZY, ZY, ZXY, ZX )
+for (nn in 1:N){
+    Z[[nn]] &lt;- Z_list0
+}
+#* parameter list containing the powers of parameters
+theta &lt;- c(1,0.3,1)
+names(theta) &lt;- c("sigx", "beta", "sige" )
+Z_index &lt;- array( 0, dim=c(N,4,3) )
+for (nn in 1:N){
+    # Var(X)
+    Z_index[nn, 4, ] &lt;- c(2,0,0)
+    # Cov(X,Y)
+    Z_index[nn, 3, ] &lt;- c(2,1,0)
+    # Var(Y)
+    Z_index[nn,1,] &lt;- c(2,2,0)
+    Z_index[nn,2,] &lt;- c(0,0,2)
+}
+#** starting values and parameter names
+beta &lt;- c( 0, 0 )
+names(beta) &lt;- c("Mx", "My")
+# id vector
+id &lt;- rep( 1:N, each=2 )
+
+#** mlnormal function
+mod2a &lt;- LAM::mlnormal( y=y1, X=X, id=id, Z_list=Z, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+summary(mod2a)
+
+#--------------------------------------------------------------
+# Model 3: Bivariate normal distribution in (sigma_X, sigma_Y, sigma_XY) parameters
+#--------------------------------------------------------------
+
+# list with design matrices
+Z &lt;- as.list(1:N)
+Z0 &lt;- 0*matrix( 0, nrow=2,ncol=2)
+ZXY &lt;- ZY &lt;- ZX &lt;- Z0
+# design matrix Var(X)
+ZX[1,1] &lt;- 1
+# design matrix Var(Y)
+ZY[2,2] &lt;- 1
+# design matrix covariance
+ZXY[1,2] &lt;- ZXY[2,1] &lt;- 1
+Z_list0 &lt;- list( ZX, ZY, ZXY  )
+for (nn in 1:N){
+    Z[[nn]] &lt;- Z_list0
+}
+
+#* parameter list
+theta &lt;- c(1,1,.3)
+names(theta) &lt;- c("sigx", "sigy", "sigxy" )
+Z_index &lt;- array( 0, dim=c(N,3,3) )
+for (nn in 1:N){
+    # Var(X)
+    Z_index[nn, 1, ] &lt;- c(2,0,0)
+    # Var(Y)
+    Z_index[nn, 2, ] &lt;- c(0,2,0)
+    # Cov(X,Y)
+    Z_index[nn, 3, ] &lt;- c(0,0,1)
+}
+
+#** starting values and parameter names
+beta &lt;- c( 0, 0 )
+names(beta) &lt;- c("Mx", "My")
+
+#** mlnormal function
+mod3a &lt;- LAM::mlnormal( y=y1, X=X, id=id, Z_list=Z, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+summary(mod3a)
+
+#--------------------------------------------------------------
+# Model 4: Bivariate normal distribution in parameters of Cholesky decomposition
+#--------------------------------------------------------------
+
+# list with design matrices
+Z &lt;- as.list(1:N)
+Z0 &lt;- 0*matrix( 0, nrow=2,ncol=2)
+ZXY &lt;- ZY &lt;- ZX &lt;- Z0
+# design matrix Var(X)
+ZX[1,1] &lt;- 1
+# design matrix Var(Y)
+ZY[2,2] &lt;- 1
+# design matrix covariance
+ZXY[1,2] &lt;- ZXY[2,1] &lt;- 1
+Z_list0 &lt;- list( ZX, ZXY, ZY, ZY  )
+for (nn in 1:N){
+    Z[[nn]] &lt;- Z_list0
+}
+
+#* parameter list containing the powers of parameters
+theta &lt;- c(1,0.3,1)
+names(theta) &lt;- c("L11", "L21", "L22" )
+Z_index &lt;- array( 0, dim=c(N,4,3) )
+for (nn in 1:N){
+    Z_index[nn,1,] &lt;- c(2,0,0)
+    Z_index[nn,2,] &lt;- c(1,1,0)
+    Z_index[nn,3,] &lt;- c(0,2,0)
+    Z_index[nn,4,] &lt;- c(0,0,2)
+}
+#** starting values and parameter names
+beta &lt;- c( 0, 0 )
+names(beta) &lt;- c("Mx", "My")
+# id vector
+id &lt;- rep( 1:N, each=2 )
+#** mlnormal function
+mod4a &lt;- LAM::mlnormal( y=y1, X=X, id=id, Z_list=Z, Z_index=Z_index,
+            beta=beta, theta=theta, method="ML" )
+# parameter with lower diagonal entries of Cholesky matrix
+mod4a$theta
+# fill-in parameters for Cholesky matrix
+L &lt;- matrix(0,2,2)
+L[ ! upper.tri(L) ] &lt;- mod4a$theta
+#** reconstruct covariance matrix
+L 
+stats::cov.wt(dat, method="ML")$cov
+
+## End(Not run)
+</code></pre>
+
+
+</div>

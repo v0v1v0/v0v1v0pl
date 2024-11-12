@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DLResiduals</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Prediction residuals </h2>
+
+<h3>Description</h3>
+
+<p>The Durbin-Levison algorithm is used to compute the one-step
+prediction residuals.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DLResiduals(r, z, useC = TRUE, StandardizedQ=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p> vector of length n containing the autocovariances or autocorrelations at lags 0,...,n-1 </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p> vector of length n, mean-corrected time series data </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useC</code></td>
+<td>
+<p> if TRUE, the compiled C code is used, otherwise
+the computations are done entirely in R and much slower</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>StandardizedQ</code></td>
+<td>
+<p>TRUE, the residuals are divided by their standard deviation or FALSE, the
+raw prediction residuals are computed</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the model is correct the standardized prediction residuals are approximately NID(0,1) and 
+are asymptotically
+equivalent to the usual innovation residuals divided by the residual sd. This means that
+the usual diagnotic checks, such as the Ljung-Box test may be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Vector of length n containing the residuals
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> A.I. McLeod </p>
+
+
+<h3>References</h3>
+
+ 
+<p>W.K. Li (1981). 
+Topics in Time Series Analysis. 
+Ph.D. Thesis, 
+University of Western Ontario.
+</p>
+<p>McLeod, A.I., Yu, Hao, Krougly, Zinovi L.  (2007).
+Algorithms for Linear Time Series Analysis,
+Journal of Statistical Software.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>DLLoglikelihood</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># For the AR(1) the prediction residuals and innovation residuals are the same (except for
+# t=1).  In this example we demonstrate the equality of these two types of residuals.
+#
+phi&lt;-0.8
+sde&lt;-30
+n&lt;-30
+z&lt;-arima.sim(n=30,list(ar=phi),sd=sde)
+r&lt;-phi^(0:(n-1))/(1-phi^2)*sde^2
+e&lt;-DLResiduals(r,z)
+a&lt;-numeric(n)
+for (i in 2:n)
+    a[i]=z[i]-phi*z[i-1]
+a&lt;-a/sde
+ERR&lt;-sum(abs(e[-1]-a[-1]))
+ERR
+#
+#Simulate AR(1) and compute the MLE for the innovation variance
+phi &lt;- 0.5
+n &lt;- 2000
+sigsq &lt;- 9
+z&lt;-arima.sim(model=list(ar=phi), n=n, sd=sqrt(sigsq))
+g0 &lt;- sigsq/(1-phi^2)
+r &lt;- g0*phi^(0:(n-1))
+#comparison of estimate with actual
+e&lt;-DLResiduals(r,z,useC=FALSE, StandardizedQ=FALSE)
+sigsqHat &lt;- var(e)
+ans&lt;-c(sigsqHat,sigsq)
+names(ans)&lt;-c("estimate","theoretical")
+ans
+</code></pre>
+
+
+</div>

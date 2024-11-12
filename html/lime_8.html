@@ -1,0 +1,300 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>explain</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Explain model predictions</h2>
+
+<h3>Description</h3>
+
+<p>Once an explainer has been created using the <code>lime()</code> function it can be used
+to explain the result of the model on new observations. The <code>explain()</code>
+function takes new observation along with the explainer and returns a
+data.frame with prediction explanations, one observation per row. The
+returned explanations can then be visualised in a number of ways, e.g. with
+<code>plot_features()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'data.frame'
+explain(
+  x,
+  explainer,
+  labels = NULL,
+  n_labels = NULL,
+  n_features,
+  n_permutations = 5000,
+  feature_select = "auto",
+  dist_fun = "gower",
+  kernel_width = NULL,
+  gower_pow = 1,
+  ...
+)
+
+## S3 method for class 'character'
+explain(
+  x,
+  explainer,
+  labels = NULL,
+  n_labels = NULL,
+  n_features,
+  n_permutations = 5000,
+  feature_select = "auto",
+  single_explanation = FALSE,
+  ...
+)
+
+explain(
+  x,
+  explainer,
+  labels,
+  n_labels = NULL,
+  n_features,
+  n_permutations = 5000,
+  feature_select = "auto",
+  ...
+)
+
+## S3 method for class 'imagefile'
+explain(
+  x,
+  explainer,
+  labels = NULL,
+  n_labels = NULL,
+  n_features,
+  n_permutations = 1000,
+  feature_select = "auto",
+  n_superpixels = 50,
+  weight = 20,
+  n_iter = 10,
+  p_remove = 0.5,
+  batch_size = 10,
+  background = "grey",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>New observations to explain, of the same format as used when
+creating the explainer</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explainer</code></td>
+<td>
+<p>An <code>explainer</code> object to use for explaining the observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>The specific labels (classes) to explain in case the model is
+a classifier. For classifiers either this or <code>n_labels</code> must be given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_labels</code></td>
+<td>
+<p>The number of labels to explain. If this is given for
+classifiers the top <code>n_label</code> classes will be explained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_features</code></td>
+<td>
+<p>The number of features to use for each explanation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_permutations</code></td>
+<td>
+<p>The number of permutations to use for each explanation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_select</code></td>
+<td>
+<p>The algorithm to use for selecting features. One of:
+</p>
+
+<ul>
+<li> <p><code>"auto"</code>: If <code>n_features &lt;= 6</code> use <code>"forward_selection"</code> else use <code>"highest_weights"</code>.
+</p>
+</li>
+<li> <p><code>"none"</code>: Ignore <code>n_features</code> and use all features.
+</p>
+</li>
+<li> <p><code>"forward_selection"</code>: Add one feature at a time until <code>n_features</code> is
+reached, based on quality of a ridge regression model.
+</p>
+</li>
+<li> <p><code>"highest_weights"</code>: Fit a ridge regression and select the <code>n_features</code> with
+the highest absolute weight.
+</p>
+</li>
+<li> <p><code>"lasso_path"</code>: Fit a lasso model and choose the <code>n_features</code> whose lars
+path converge to zero the latest.
+</p>
+</li>
+<li> <p><code>"tree"</code> : Fit a tree to select <code>n_features</code> (which needs to be a power of
+2). It requires last version of <code>XGBoost</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist_fun</code></td>
+<td>
+<p>The distance function to use for calculating the distance
+from the observation to the permutations. If <code>dist_fun = 'gower'</code> (default)
+it will use <code>gower::gower_dist()</code>. Otherwise it will be forwarded to
+<code>stats::dist()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel_width</code></td>
+<td>
+<p>The width of the exponential kernel that will be used to
+convert the distance to a similarity in case <code>dist_fun != 'gower'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gower_pow</code></td>
+<td>
+<p>A modifier for gower distance. The calculated distance will
+be raised to the power of this value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters passed on to the <code>predict_model()</code> method</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>single_explanation</code></td>
+<td>
+<p>A boolean indicating whether to pool all text in
+<code>x</code> into a single explanation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_superpixels</code></td>
+<td>
+<p>The number of segments an image should be split into</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>How high should locality be weighted compared to colour. High
+values leads to more compact superpixels, while low values follow the image
+structure more</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_iter</code></td>
+<td>
+<p>How many iterations should the segmentation run for</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_remove</code></td>
+<td>
+<p>The probability that a superpixel will be removed in each
+permutation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_size</code></td>
+<td>
+<p>The number of explanations to handle at a time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>background</code></td>
+<td>
+<p>The colour to use for blocked out superpixels</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.frame encoding the explanations one row per explained
+observation. The columns are:
+</p>
+
+<ul>
+<li> <p><code>model_type</code>: The type of the model used for prediction.
+</p>
+</li>
+<li> <p><code>case</code>: The case being explained (the rowname in <code>cases</code>).
+</p>
+</li>
+<li> <p><code>model_r2</code>: The quality of the model used for the explanation
+</p>
+</li>
+<li> <p><code>model_intercept</code>: The intercept of the model used for the explanation
+</p>
+</li>
+<li> <p><code>model_prediction</code>: The prediction of the observation based on the model
+used for the explanation.
+</p>
+</li>
+<li> <p><code>feature</code>: The feature used for the explanation
+</p>
+</li>
+<li> <p><code>feature_value</code>: The value of the feature used
+</p>
+</li>
+<li> <p><code>feature_weight</code>: The weight of the feature in the explanation
+</p>
+</li>
+<li> <p><code>feature_desc</code>: A human readable description of the feature importance.
+</p>
+</li>
+<li> <p><code>data</code>: Original data being explained
+</p>
+</li>
+<li> <p><code>prediction</code>: The original prediction from the model
+</p>
+</li>
+</ul>
+<p>Furthermore classification explanations will also contain:
+</p>
+
+<ul>
+<li> <p><code>label</code>: The label being explained
+</p>
+</li>
+<li> <p><code>label_prob</code>: The probability of <code>label</code> as predicted by <code>model</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Explaining a model and an explainer for it
+library(MASS)
+iris_test &lt;- iris[1, 1:4]
+iris_train &lt;- iris[-1, 1:4]
+iris_lab &lt;- iris[[5]][-1]
+model &lt;- lda(iris_train, iris_lab)
+explanation &lt;- lime(iris_train, model)
+
+# This can now be used together with the explain method
+explain(iris_test, explanation, n_labels = 1, n_features = 2)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Juxtapose</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Juxtapose MCMC Algorithm Inefficiency</h2>
+
+<h3>Description</h3>
+
+<p>This function gives a side-by-side comparison of (or juxtaposes) the
+inefficiency of MCMC algorithms in <code>LaplacesDemon</code> for
+applied use, and is a valuable tool for selecting what is likely to be
+the least inefficient algorithm for the user's current model, prior to
+updating the final, intended model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Juxtapose(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This is a list of multiple components. Each component must
+be an object of class <code>demonoid</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Laplace's Demon recommends using the <code>Juxtapose</code> function on the
+user's model (or most likely a simplified version of it) with a
+smaller, simulated data set to select the least inefficient MCMC
+algorithm before using real data and updating the model for numerous
+iterations. The least inefficient MCMC algorithm differs for different
+models and data sets. Using <code>Juxtapose</code> in this way does not
+guarantee that the selected algorithm will remain the best choice with
+real data, but it should be better than otherwise selecting an
+algorithm.
+</p>
+<p>The user must make a decision regarding their model and data. The more
+similar the model and data is to the final, intended model and data,
+the more appropriate will be the results of the <code>Juxtapose</code>
+function. However, if the full model and data are used, then the user
+may as well instead skip using <code>Juxtapose</code> and proceed directly
+to <code>LaplacesDemon</code>. Replacing the actual data set with a
+smaller, simulated set is fairly straightforward, but the
+decision-making will most likely focus on what is the best way to
+reduce the full model specification. A simple approach may be to
+merely reduce the number of predictors. However, complicated models
+may have several components that slow down estimation time, and extend
+the amount of time until global stationarity is estimated. Laplace's
+Demon offers no guidance here, and leaves it in the realm of user
+discretion.
+</p>
+<p>First, the user should simulate a smaller data set, and if best,
+reduce the model specification. Next, the user must select candidate
+algorithms. Then, the user must update each algorithm with
+<code>LaplacesDemon</code> for numerous iterations, with the goal of
+achieving stationarity for all parameters early in the
+iterations. Each update should begin with the same model specification
+function, vector of initial values, and data. Each output object of
+class <code>demonoid</code> should be renamed. An example follows.
+</p>
+<p>Suppose a user considers three candidate algorithms for their model:
+AMWG, NUTS, and twalk. The user updates each model, saving the model
+that used the AMWG algorithm as, say, <code>Fit1</code>, the NUTS model as
+<code>Fit2</code>, and the twalk model as <code>Fit3</code>.
+</p>
+<p>Next, the output model objects are put in a list and passed to the
+<code>Juxtapose</code> function. See the example below.
+</p>
+<p>The <code>Juxtapose</code> function uses an internal version of the
+<code>IAT</code>, which is a slightly modified version of that found
+in the <code>SamplerCompare</code> package. The <code>Juxtapose</code> function
+returns an object of class <code>juxtapose</code>. It is a matrix in which
+each row is a result and each column is an algorithm.
+</p>
+<p>The rows are:
+</p>
+
+<ul>
+<li> <p><code>iter.min</code>: This is the iterations per minute.
+</p>
+</li>
+<li> <p><code>t.iter.min</code>: This is the thinned iterations per minute.
+</p>
+</li>
+<li> <p><code>prop.stat</code>: This is the proportion of iterations that
+were stationary.
+</p>
+</li>
+<li> <p><code>IAT.025</code>: This is the 2.5% quantile of the integrated
+autocorrelation time of the worst parameter, estimated only on
+samples when all parameters are estimated to be globally stationary.
+</p>
+</li>
+<li> <p><code>IAT.500</code>: This is the median integrated autocorrelation
+time of the worst parameter, estimated only on samples when all
+parameters are estimated to be globally stationary.
+</p>
+</li>
+<li> <p><code>IAT.975</code>: This is the 97.5% quantile of the integrated
+autocorrelation time of the worst parameter, estimated only on
+samples when all parameters are estimated to be globally stationary.
+</p>
+</li>
+<li> <p><code>ISM.025</code>: This is the 2.5% quantile of the number of
+independent samples per minute.
+</p>
+</li>
+<li> <p><code>ISM.500</code>: This is the median of the number of the
+independent samples per minute. The least inefficient MCMC algorithm
+has the highest <code>ISM.500</code>.
+</p>
+</li>
+<li> <p><code>ISM.975</code>: This is the 97.5% quantile of the number of
+the independent samples per minute.
+</p>
+</li>
+</ul>
+<p>As for calculating <code class="reqn">ISM</code>, let <code class="reqn">TIM</code> be the observed number of
+thinned iterations per minute, <code class="reqn">PS</code> be the percent of iterations
+in which all parameters were estimated to be globally stationary, and
+<code class="reqn">IAT_q</code> be a quantile from a simulated distribution of the
+integrated autocorrelation time among the parameters.
+</p>
+<p style="text-align: center;"><code class="reqn">ISM = \frac{PS \times TIM}{IAT_q}</code>
+</p>
+
+<p>There are various ways to measure the inefficiency of MCMC
+samplers. <code>IAT</code> is used perhaps most often. As with the
+<code>SamplerCompare</code> package, Laplace's Demon uses the worst
+parameter, in terms of <code>IAT</code>. Often, the number of
+evaluations or number of parameters is considered. The
+<code>Juxtapose</code> function, instead considers the final criterion of
+MCMC efficiency, in an applied context, to be <code>ISM</code>, or the
+number of Independent (thinned) Samples per Minute. The algorithm with
+the highest <code>ISM.500</code> is the best, or least inefficient,
+algorithm with respect to its worst <code>IAT</code>, the proportion
+of iterations required to seem to have global stationarity, and the
+number of (thinned) iterations per minute.
+</p>
+<p>A disadvantage of using time is that it will differ by computer, and
+is less likely to be reported in a journal. The advantage, though, is
+that it is more meaningful to a user. Increases in the number of
+evaluations, parameters, and time should all correlate well, but time
+may enlighten a user as to expected run-time given the model just
+studied, even though the real data set will most likely be larger than
+the simulated data used initially. NUTS is an example of a sampler in
+which the number of evaluations varies per iteration. For an
+alternative approach, see Thompson (2010).
+</p>
+<p>The <code>Juxtapose</code> function also adjusts <code>ISM</code> by
+<code>prop.stat</code>, the proportion of the iterations in which all chains
+were estimated to be stationary. This adjustment is weighted by
+burn-in iterations, penalizing an algorithm that took longer to
+achieve global stationarity. The goal, again, is to assist the user in
+selecting the least inefficient MCMC algorithm in an applied setting.
+</p>
+<p>The <code>Juxtapose</code> function has many other potential uses than those
+described above. One additional use of the <code>Juxtapose</code> function is
+to compare inefficiencies within a single algorithm in which
+algorithmic specifications varied with different model
+updates. Another use is to investigate parallel chains in an object of
+class <code>demonoid.hpc</code>, as returned from the
+<code>LaplacesDemon.hpc</code> function. Yet another use is to
+compare the effects of small changes to a model specification
+function, such as with priors, or due to an increase in the amount of
+simulated data.
+</p>
+<p>An object of class <code>juxtapose</code> may be plotted with the
+<code>plot.juxtapose</code> function, which displays <code>ISM</code> by
+default, or optionally <code>IAT</code>. For more information, see the
+<code>plot.juxtapose</code> function.
+</p>
+<p>Independent samples per minute, calculated as <code>ESS</code>
+divided by minutes of run-time, are also available by parameter in the
+<code>PosteriorChecks</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns an object of class <code>juxtapose</code>. It is a
+<code class="reqn">9 \times J</code> matrix with nine results for <code class="reqn">J</code> MCMC
+algorithms.
+</p>
+
+
+<h3>References</h3>
+
+<p>Thompson, M. (2010). "Graphical Comparison of MCMC Performance". ArXiv
+e-prints, eprint 1011.4458.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>IAT</code>,
+<code>is.juxtapose</code>,
+<code>LaplacesDemon</code>,
+<code>LaplacesDemon.hpc</code>,
+<code>plot.juxtapose</code>, and
+<code>PosteriorChecks</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Update three demonoid objects, each from different MCMC algorithms.
+### Suppose Fit1 was updated with AFSS, Fit2 with AMWG, and
+### Fit3 with NUTS. Then, compare the inefficiencies:
+#Juxt &lt;- Juxtapose(list(Fit1=Fit1, Fit2=Fit2, Fit3=Fit3)); Juxt
+#plot(Juxt, Style="ISM")
+</code></pre>
+
+
+</div>

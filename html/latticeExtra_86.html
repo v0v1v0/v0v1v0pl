@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tileplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Plot a spatial mosaic from irregular 2D points </h2>
+
+<h3>Description</h3>
+
+<p>Represents an irregular set of (x, y) points with a color covariate.
+Polygons are drawn enclosing the area closest to each point.
+This is known variously as a Voronoi mosaic, a Dirichlet tesselation,
+or Thiessen polygons.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tileplot(x, data = NULL, aspect = "iso",
+         prepanel = "prepanel.default.xyplot",
+         panel = "panel.voronoi", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, data</code></td>
+<td>
+<p> formula and data as in
+<code>levelplot</code>, except that it expects irregularly
+spaced points rather than a regular grid. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aspect</code></td>
+<td>
+<p> aspect ratio: "iso" is recommended as it reproduces the
+distances used in the triangulation calculations. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>panel, prepanel</code></td>
+<td>
+<p> see <code>xyplot</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> further arguments to the panel function, which defaults to
+<code>panel.voronoi</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>panel.voronoi</code> for further options and details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Felix Andrews <a href="mailto:felix@nfrac.org">felix@nfrac.org</a> </p>
+
+
+<h3>See Also</h3>
+
+ <p><code>panel.voronoi</code>, <code>levelplot</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xyz &lt;- data.frame(x = rnorm(100), y = rnorm(100), z = rnorm(100))
+tileplot(z ~ x * y, xyz)
+
+## Alternative backend using 'deldir' package
+## Not run: 
+tileplot(z ~ x * y, xyz, backend = "deldir")
+
+## End(Not run)
+
+## showing rectangular window boundary
+tileplot(z ~ x * y, xyz, xlim = c(-2, 4), ylim = c(-2, 4))
+
+## insert some missing values
+xyz$z[1:10] &lt;- NA
+## the default na.rm = FALSE shows missing polygons
+tileplot(z ~ x * y, xyz, border = "black",
+  col.regions = grey.colors(100),
+  pch = ifelse(is.na(xyz$z), 4, 21),
+  panel = function(...) {
+    panel.fill("hotpink")
+    panel.voronoi(...)
+  })
+## use na.rm = TRUE to ignore points with missing values
+update(trellis.last.object(), na.rm = TRUE)
+
+## a quick and dirty approximation to US state boundaries
+tmp &lt;- state.center
+tmp$Income &lt;- state.x77[,"Income"]
+tileplot(Income ~ x * y, tmp, border = "black",
+  panel = function(x, y, ...) {
+    panel.voronoi(x, y, ..., points = FALSE)
+    panel.text(x, y, state.abb, cex = 0.6)
+  })
+</code></pre>
+
+
+</div>

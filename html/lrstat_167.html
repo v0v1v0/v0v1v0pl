@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>phregr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Proportional hazards regression model</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the hazard ratio estimates from the proportional
+hazards regression model with right censored or counting process data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">phregr(
+  data,
+  rep = "rep",
+  stratum = "stratum",
+  time = "time",
+  time2 = "time2",
+  event = "event",
+  covariates = "treat",
+  weight = "weight",
+  id = "id",
+  ties = "efron",
+  robust = 0L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The input data frame that contains the following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication for by-group processing.
+</p>
+</li>
+<li> <p><code>stratum</code>: The stratum.
+</p>
+</li>
+<li> <p><code>time</code>: The follow-up time for right censored data, or
+the left end of each interval for counting process data.
+</p>
+</li>
+<li> <p><code>time2</code>: The right end of each interval for counting process
+data only. Intervals are assumed to be open on the left
+and closed on the right, and event indicates whether an event
+occurred at the right end of each interval.
+</p>
+</li>
+<li> <p><code>event</code>: The event indicator, normally 1=event, 0=no event.
+</p>
+</li>
+<li> <p><code>covariates</code>: The values of baseline covariates (and
+time-dependent covariates in each interval for counting
+process data). This is the full-rank design matrix for the Cox
+model, assuming that factor variables have already been
+expanded into dummy variables.
+</p>
+</li>
+<li> <p><code>weight</code>: The weight for each observation.
+</p>
+</li>
+<li> <p><code>id</code>: The optional subject ID for counting process data
+with time-dependent covariates.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>The name of the replication variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratum</code></td>
+<td>
+<p>The name of the stratum variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable or the left end of each
+interval for counting process data in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>The name of the right end of each interval for counting
+process data in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>The name of the event variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>The vector of names of baseline and time-dependent
+covariates in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>The name of the weighting variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the id variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>The method for handling ties with options including
+"breslow" and "efron" (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Whether a robust sandwich variance estimate should be
+computed. The default is TRUE if there are fractional weights or
+there is at least 1 id with &gt;1 event. In the presence of the id
+variable, the score residual will be aggregated for each id when
+computing the robust sandwich variance estimate.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+
+<ul>
+<li> <p><code>sumstat</code>: The data frame of summary statistics of model fit
+with the following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication.
+</p>
+</li>
+<li> <p><code>n</code>: The number of observations.
+</p>
+</li>
+<li> <p><code>nevents</code>: The number of events.
+</p>
+</li>
+<li> <p><code>loglik0</code>: The log-likelihood under null.
+</p>
+</li>
+<li> <p><code>loglik1</code>: The maximum log-likelihood.
+</p>
+</li>
+<li> <p><code>scoretest</code>: The score test statistic.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>parest</code>: The data frame of parameter estimates with the
+following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication.
+</p>
+</li>
+<li> <p><code>param</code>: The name of the covariate for the parameter estimate.
+</p>
+</li>
+<li> <p><code>beta</code>: The log hazard ratio estimate.
+</p>
+</li>
+<li> <p><code>sebeta</code>: The standard error of log hazard ratio estimate.
+</p>
+</li>
+<li> <p><code>rsebeta</code>: The robust standard error of log hazard ratio
+estimate if robust variance is requested.
+</p>
+</li>
+<li> <p><code>z</code>: The Wald test statistic for log hazard ratio. The
+<code>rsebeta</code> will be used if robust variance is requested.
+</p>
+</li>
+<li> <p><code>hazardRatio</code>: The hazard ratio estimate.
+</p>
+</li>
+<li> <p><code>vbeta</code>: The covariance matrix for parameter estimates.
+</p>
+</li>
+<li> <p><code>rvbeta</code>: The robust covariance matrix for parameter
+estimates if robust variance is requested.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+# Example 1 with right-censored data
+phregr(data = rawdata %&gt;% mutate(treat = 1*(treatmentGroup == 1)),
+       rep = "iterationNumber", stratum = "stratum",
+       time = "timeUnderObservation", event = "event",
+       covariates = "treat")
+
+# Example 2 with counting process data and robust variance estimate
+phregr(data = heart %&gt;% mutate(rx = as.numeric(transplant) - 1),
+       time = "start", time2 = "stop", event = "event",
+       covariates = c("rx", "age"), id = "id", robust = 1)
+
+</code></pre>
+
+
+</div>

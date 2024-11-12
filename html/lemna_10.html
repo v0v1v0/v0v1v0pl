@@ -1,0 +1,387 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lemna</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate a Lemna scenario</h2>
+
+<h3>Description</h3>
+
+<p>The function numerically integrates the Lemna model using the supplied
+parameters, environmental factor time series, output time points, and other
+settings. Numerical integration is handled by <code>deSolve::lsoda()</code> by default
+which is well suited to handle stiff and non-stiff numerical problems.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lemna(...)
+
+## Default S3 method:
+lemna(
+  init = c(BM = 0, M_int = 0),
+  times,
+  param,
+  envir,
+  ode_mode = c("r", "c"),
+  nout = 2,
+  ...
+)
+
+## S3 method for class 'lemna_scenario'
+lemna(x, init, times, param, envir, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters passed on to <code>deSolve::ode()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>initial state of the model variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>numeric vector, output times for which model results are returned</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>named list, Lemna model parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>named list, contains time series data for each of the five
+environmental variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ode_mode</code></td>
+<td>
+<p>character, switch controls if ODE functions implemented in R or
+C are used, defaults to R</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nout</code></td>
+<td>
+<p>numeric, controls the number of additional output variables of the
+model, such as <code>C_int</code> (internal concentration) or <code>FrondNo</code> (the number
+of fronds), see e.g. <code>deSolve::lsoda()</code> for details. Defaults to <code>2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>lemna_scenario</code> object</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>data.frame</code> with simulation results
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>lemna(default)</code>: All scenario parameters supplied as arguments
+</p>
+</li>
+<li> <p><code>lemna(lemna_scenario)</code>: Scenario parameters supplied as a <code>lemna_scenario</code> object
+</p>
+</li>
+</ul>
+<h3>State variables</h3>
+
+<p>The model has two state variables:
+</p>
+
+<ul>
+<li> <p><code>BM</code>, Biomass  (g dw m-2)
+</p>
+</li>
+<li> <p><code>M_int</code>, Mass of toxicant in plant population  (mass per m2, e.g. ug m-2)
+</p>
+</li>
+</ul>
+<h3>Output times</h3>
+
+<p>The function will only return results for the requested time points. The solver
+may make additional time steps which are not returned, depending on the
+solver settings such as numerical tolerance. The number of output times and
+the distance between them can have influence on the numerical precision of
+results. Please refer to the manual of the deSolve package for more
+information on that topic.
+</p>
+
+
+<h3>Parameters</h3>
+
+<p>The list of available model parameters, their units, and suggested default
+values is documented in <code>param_defaults()</code>.
+</p>
+
+
+<h3>Environmental variables</h3>
+
+<p>The model requires a time series for each of the five environmental variables
+For ease of use, a time series can be represented by either a constant
+numeric value, a <code>data.frame</code> containing a time series, a character
+string with a path to a CSV file containing a time series, or a function
+returning a value for a certain time point.
+</p>
+<p>The five environmental variables are as follows:
+</p>
+
+<ul>
+<li> <p><code>conc</code>, Exposure concentration (mass per volume, e.g ug L-1)
+</p>
+</li>
+<li> <p><code>tmp</code>, Temperature (deg C)
+</p>
+</li>
+<li> <p><code>irr</code>, Irradiance (kJ m-2 d-1)
+</p>
+</li>
+<li> <p><code>P</code>, Phosphorus concentration  (mg P L-1)
+</p>
+</li>
+<li> <p><code>N</code>, Nitrogen concentration  (mg N L-1)
+</p>
+</li>
+</ul>
+<p>A <code>data.frame</code> containing a time series must consist of exactly two columns:
+The first column contains the time in days, the second column the environmental
+factor in question. The <code>data.frame</code> must contain at least one row. Time
+points are not required to coincide with the solver's output times but
+the user should take care that the solver's time step length is sufficiently
+small so that it can consider the relevant dynamics of the time series.
+This problem can be avoided by calling the model ODEs implemented in C, see
+argument <code>ode_mode</code>.
+</p>
+<p>If a string is passed as an environmental factor, the function will interpret
+the string as a file path and will try to load the contents of a CSV file.
+The same requirements as for a <code>data.frame</code> apply to a time series loaded
+from a file.
+</p>
+<p>When using the pure R code ODE, it is also possible to pass a function as
+an environmental factor. The function must accept exactly one argument which
+represents time and must return a single scalar value. Using a function
+in combination with the compiled code solver will raise an error.
+</p>
+
+
+<h3>R vs. compiled code</h3>
+
+<p>The model can be simulated using pure <em>R</em> code (the default) or an implementation
+that uses the compiled code feature of deSolve. Compiled code is almost
+always significantly faster than pure <em>R</em>. The solver for compiled ODEs also
+handles environmental variables better than the pure <em>R</em> version. For optimal
+performance, the time series of environmental variables should always be as
+short as possible and as long as needed.
+</p>
+<p>To use the compiled code feature, set the argument <code>ode_mode = "c"</code>.
+</p>
+
+
+<h3>Simulation output</h3>
+
+<p>For reasons of convenience, the return value contains by default two additional
+variables derived from simulation results: the internal concentration <code>C_int</code>
+as well as the number of fronds <code>FrondNo</code>. These can be disabled by setting
+the argument <code>nout = 0</code>.
+</p>
+<p>The compiled code model can return up to 18 additional variables which
+represent intermediary variables, environmental variables, and derivatives
+calculated within the model equations. Please refer to the model description
+of <em>Klein et al.</em> for more information on these variables and how they
+influence model behavior.
+</p>
+<p>The available output levels are as follows:
+</p>
+
+<ul>
+<li> <p><code>nout &gt;= 1</code>
+</p>
+
+<ul><li> <p><code>C_int</code>, internal concentration (mass per volume)
+</p>
+</li></ul>
+</li>
+<li> <p><code>nout &gt;= 2</code>
+</p>
+
+<ul><li> <p><code>FrondNo</code>, frond number (-)
+</p>
+</li></ul>
+</li>
+<li> <p><code>nout &gt;= 4</code>
+</p>
+
+<ul>
+<li> <p><code>f_loss</code>, respiration dependency function (-)
+</p>
+</li>
+<li> <p><code>f_photo</code>, photosynthesis dependency function (-)
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>nout &gt;= 10</code>
+</p>
+
+<ul>
+<li> <p><code>fT_photo</code>, temperature response of photosynthesis (-)
+</p>
+</li>
+<li> <p><code>fI_photo</code>, irradiance response of photosynthesis (-)
+</p>
+</li>
+<li> <p><code>fP_photo</code>, phosphorus response of photosynthesis (-)
+</p>
+</li>
+<li> <p><code>fN_photo</code>, nitrogen response of photosynthesis (-)
+</p>
+</li>
+<li> <p><code>fBM_photo</code>, density response of photosynthesis (-)
+</p>
+</li>
+<li> <p><code>fCint_photo</code>, concentration response of photosynthesis (-)
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>nout &gt;= 16</code>
+</p>
+
+<ul>
+<li> <p><code>C_int_unb</code>, unbound internal concentration (mass per volume)
+</p>
+</li>
+<li> <p><code>C_ext</code>, external concentration (mass per volume)
+</p>
+</li>
+<li> <p><code>Tmp</code>, temperature (deg C)
+</p>
+</li>
+<li> <p><code>Irr</code>, irradiance (kJ m-2 d-1)
+</p>
+</li>
+<li> <p><code>Phs</code>, Phosphorus concentration (mg P L-1)
+</p>
+</li>
+<li> <p><code>Ntr</code>, Nitrogen concentration (mg N L-1)
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>nout &gt;= 18</code>
+</p>
+
+<ul>
+<li> <p><code>dBM</code>, biomass derivative (g dw m-2 d-1)
+</p>
+</li>
+<li> <p><code>dM_int</code>, mass of toxicant in plants derivative (mass per m2 d-1)
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Klein J., Cedergreen N., Heine S., Kehrein N., Reichenberger S., Rendal C.,
+Schmitt W., Hommen U., 2022: Refined description of the <em>Lemna</em> TKTD growth model
+based on <em>Schmitt et al.</em> (2013) – equation system and default parameters,
+implementation in R.
+Report of the working group <em>Lemna</em> of the SETAC Europe Interest Group Effect
+Modeling. Version 1.1, uploaded on 09 May 2022.
+<a href="https://www.setac.org/group/SEIGEffectModeling">https://www.setac.org/group/SEIGEffectModeling</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simulate the metsulfuron example scenario
+lemna(metsulfuron)
+
+# Create a simple plot of the number of fronds
+lemna(metsulfuron) -&gt; result
+plot(result$time, result$FrondNo)
+
+# Create a nicer plot using a dedicated plotting routine
+plot(result)
+
+# Simulate the example scenario for a period of 30 days
+lemna(metsulfuron, times=0:30) -&gt; result30
+plot(result30)
+
+##
+## Create a custom Lemna scenario from scratch
+##
+
+# Initial state: 12 fronds, no toxicant mass
+myinit &lt;- c(BM=0.0012, M_int=0)
+
+# Output times: simulate 7 days with a ~2 hour time step
+mytime &lt;- seq(0, 7, 0.1)
+
+# Default model parameters + TKTD parameters of a hypothetical substance
+myparam &lt;- param_defaults(list(
+  EC50_int = 0.1, # 50% effect level (ug L-1)
+  b = 0.7,        # slope parameter (-)
+  P = 0.01        # permeability (cm d-1)
+))
+
+# Custom environmental variables
+myenvir &lt;- list(
+  # exposure step function:
+  # 3 days no exposure, followed by 4 days of 10 ug L-1
+  conc = data.frame(t=c(0,3,4,7), conc=c(0,0,10,10)),
+  tmp = 18,    # constant temperature of 18 °C
+  irr = 15000, # constant irradiance of 15,000 kJ m-2 d-1
+  N = 0.6,     # constant Nitrogen concentration of 0.6 mg L-1
+  P = 0.3      # constant Phosphorus concentration of 0.3 mg L-1
+)
+
+# Simulate the custom scenario and plot results
+lemna(init=myinit, times=mytime, param=myparam, envir=myenvir) -&gt; result_custom
+plot(result_custom)
+
+# Simulate again, forcing the solver to use smaller time steps of hmax=0.001.
+# The resulting curves are almost identical for this example.
+lemna(init=myinit, times=mytime, param=myparam, envir=myenvir, hmax=0.001) -&gt; result_custom2
+library(ggplot2)
+ggplot(result_custom, aes(time, FrondNo)) +
+  geom_line() +
+  geom_line(data=result_custom2, color="red", style="dashed")
+
+# Combine all settings into a scenario object and simulate it
+scenario &lt;- new_lemna_scenario(
+ init = myinit,
+ param = myparam,
+ times = mytime,
+ envir = myenvir
+)
+lemna(scenario)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,537 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>externVar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of secondary regression models after the estimation of a primary latent class model</h2>
+
+<h3>Description</h3>
+
+<p>This function fits regression models to relate a latent class structure (stemmed 
+from a latent class model estimated within <code>lcmm</code> package) with either an external
+outcome or external class predictors. 
+Two inference techniques are implemented to account for the classification error: 
+</p>
+<p>- a 2-stage estimation of the joint likelihood of the primary latent class model 
+and the secondary/ external regression;
+</p>
+<p>- a regression between the posterior latent class assignment and the external variable 
+which internally corrects for the assignment misclassification. 
+</p>
+<p>It returns an object from one of the <code>lcmm</code> package classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">externVar(
+  model,
+  fixed,
+  mixture,
+  random,
+  subject,
+  classmb,
+  survival,
+  hazard = "Weibull",
+  hazardtype = "Specific",
+  hazardnodes = NULL,
+  TimeDepVar = NULL,
+  logscale = FALSE,
+  idiag = FALSE,
+  nwg = FALSE,
+  randomY = NULL,
+  link = NULL,
+  intnodes = NULL,
+  epsY = NULL,
+  cor = NULL,
+  nsim = NULL,
+  range = NULL,
+  data,
+  longitudinal,
+  method,
+  varest,
+  M = 200,
+  B,
+  convB = 1e-04,
+  convL = 1e-04,
+  convG = 1e-04,
+  maxiter = 100,
+  posfix,
+  partialH = FALSE,
+  verbose = FALSE,
+  nproc = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>an object inheriting from class <code>hlme</code>, <code>lcmm</code>, 
+<code>Jointlcmm</code>, <code>multlcmm</code> or <code>mpjlcmm</code> giving the primary latent
+class model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>optional two sided linear formula object for specifying the
+fixed-effects in the secondary model with an external outcome variable.
+The response outcome is on the left of <code>~</code> and the covariates are separated
+by <code>+</code> on the right of the <code>~</code>. By default, an intercept is included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture</code></td>
+<td>
+<p>optional one-sided formula object for the class-specific fixed effects
+in the model for the external outcome. Among the list of covariates included in fixed,
+the covariates with class-specific regression parameters are entered in
+mixture separated by <code>+</code>. By default, an intercept is included.
+If no intercept, <code>-1</code> should be the first term included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>optional one-sided linear formula object for specifying the
+random-effects on external outcome in the secondary model, if appropriate. 
+By default, no random effect is included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>name of the covariate representing the grouping structure.
+Even in the absence of a hierarchical structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmb</code></td>
+<td>
+<p>optional one-sided formula specifying the external predictors of 
+latent class membership to be modelled in the secondary class-membership multinomial 
+logistic model. Covariates are separated by <code>+</code> on the right of the <code>~</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival</code></td>
+<td>
+<p>optional two-sided formula specifying the external survival part
+of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard</code></td>
+<td>
+<p>optional family of hazard function assumed for the survival model
+(Weibull, piecewise or splines)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardtype</code></td>
+<td>
+<p>optional indicator for the type of baseline risk function
+(Specific, PH or Common)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardnodes</code></td>
+<td>
+<p>optional vector containing interior nodes if <code>splines</code> or
+<code>piecewise</code> is specified for the baseline hazard function in <code>hazard</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeDepVar</code></td>
+<td>
+<p>optional vector specifying the name of the time-depending covariate
+in the survival model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logscale</code></td>
+<td>
+<p>optional boolean indicating whether an exponential (logscale=TRUE) or
+a square (logscale=FALSE -by default) transformation is used to
+ensure positivity of parameters in the baseline risk functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idiag</code></td>
+<td>
+<p>if appropriate, optional logical for the structure of the variance-covariance
+matrix of the random-effects in the secondary model. 
+If <code>FALSE</code>, a non structured matrix of
+variance-covariance is considered (by default). If <code>TRUE</code> a diagonal
+matrix of variance-covariance is considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nwg</code></td>
+<td>
+<p>if appropriate, optional logical indicating if the variance-covariance of the
+random-effects in the secondary model is class-specific. If <code>FALSE</code> the
+variance-covariance matrix is common over latent classes (by default). If <code>TRUE</code> a
+class-specific proportional parameter multiplies the variance-covariance
+matrix in each class (the proportional parameter in the last latent class
+equals 1 to ensure identifiability).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomY</code></td>
+<td>
+<p>optional logical for including an outcome-specific random intercept.
+If FALSE no outcome-specific random intercept is added (default). If TRUE independent
+outcome-specific random intercept with parameterized variance are included</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>optional family of parameterized link functions for the external outcome
+if appropriate. Defaults to NULL, corresponding to continuous Gaussian distribution
+(hlme function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intnodes</code></td>
+<td>
+<p>optional vector of interior nodes. This argument is only
+required for a I-splines link function with nodes entered manually.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsY</code></td>
+<td>
+<p>optional definite positive real used to rescale the marker in (0,1)
+when the beta link function is used. By default, epsY=0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>optional indicator for inclusion of an auto correlated Gaussian process
+in the latent process linear (latent process) mixed model. Option "BM" indicates
+a brownian motion with parameterized variance. Option "AR" specifies an
+autoregressive process of order 1 with parameterized variance and correlation
+intensity. Each option should be followed by the time variable in brackets as
+codecor=BM(time). By default, no autocorrelated Gaussian process is added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>number of points to be used in the estimated link function. By default,
+nsom=100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+<p>optional vector indicating the range of the outcomes (that is the
+minimum and maximum). By default, the range is defined according to the minimum
+and maximum observed values of the outcome. The option should be used
+only for Beta and Splines transformations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame containing the variables named in
+<code>fixed</code>, <code>mixture</code>, <code>random</code>, <code>classmb</code> and <code>subject</code>,
+for both the current function arguments and the primary model arguments
+Check <code>details</code> to get information on the data structure, especially with
+external outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>longitudinal</code></td>
+<td>
+<p>only with <code>mpjlcmm</code> primary models and "twoStageJoint"
+method: mandatory list containing the longitudinal submodels used in the primary
+latent class model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character indicating the inference technique to be used:
+<code>"twoStageJoint"</code> corresponds to 2-stage estimation. <code>"conditional"</code>
+corresponds to the method based on the distribution of Y conditionally to the
+true latent class membership.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varest</code></td>
+<td>
+<p>optional character indicating the method to be used to compute the
+variance of the regression estimates. <code>"none"</code> does not account for the
+uncertainty in the primary latent class model, <code>"paramBoot"</code> computes the
+total variance using a parametric bootstrap technique, <code>"Hessian"</code> computes
+the total Hessian of the joint likelihood (implemented for <code>"twoStageJoint"</code>
+method only). Default to <code>"Hessian"</code> for <code>"twoStageJoint"</code> method and
+<code>"paramBoot"</code> for <code>"conditional"</code> method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>option integer indicating the number of draws for the parametric boostrap
+when <code>varest="paramBoot"</code>. Default to 200.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>optional vector of initial parameter values for the secondary model. 
+If external outcome, the vector has the same structure as a latent class model
+estimated in the other functions of <code>lcmm</code> package for the same type of 
+outcome. If external class predictors (of size p), the vector is of length 
+(ng-1)*(1+p). If <code>B=NULL</code> (by default), internal initial values are selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convB</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+parameter stability. By default, convB=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convL</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+log-likelihood stability. By default, convL=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convG</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+derivatives. By default, convG=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>optional maximum number of iterations for the secondary model
+estimation using Marquardt iterative algorithm. Defaults to 100</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posfix</code></td>
+<td>
+<p>optional vector specifying indices in parameter vector B the 
+secondary model that should not be estimated. Default to NULL, all the 
+parameters of the secondary regression are estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partialH</code></td>
+<td>
+<p>optional logical for Piecewise and Splines baseline risk functions and
+Splines link functions only. Indicates whether the parameters of the baseline risk or
+link functions can be dropped from the Hessian matrix to define convergence criteria
+(can solve non convergence due to estimates at the boundary of the parameter space - usually 0).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating whether information about computation should be
+reported. Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproc</code></td>
+<td>
+<p>the number cores for parallel computation. Default to 1 (sequential mode).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A. DATA STRUCTURE
+</p>
+<p>The <code>data</code> argument must follow specific structure for individual variables,
+i.e. variables with a unique constant value for each subject. For an individual variable
+given as external outcome, data value must be present only once per subject,
+independently of any time variable used in the primary latent class.
+For an individual variable given as external class predictor,
+data values must be given for every row of every individual (as usual)
+</p>
+<p>B. VARIANCE ESTIMATION
+</p>
+<p>Not taking into account first stage variance with specifing <code>"none"</code> may lead to
+underestimation of the final variance. When possible, Method <code>"Hessian"</code> 
+which relies on the combination of Hessians from the primary and secondary
+model is recommended. However, it may become numerically intensive in the event 
+of very high number of parameters in the primary latent class model. As an 
+alternative, especially in situations with a complex primary model but rather 
+parcimonious secondary model, method <code>"paramBoot"</code> which implements a 
+parametric bootstrap can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>externVar</code> and  
+<code>externSurv</code> for external survival outcomes,
+<code>externX</code> for external class predictors, and
+<code>hlme</code>, <code>lcmm</code>, or <code>multlcmm</code> for external longitudinal or cross-sectional outcomes.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+
+###### Estimation of the primary latent class model                   ######
+
+set.seed(1234)
+PrimMod &lt;- hlme(Ydep1~Time,random=~Time,subject='ID',ng=1,data=data_lcmm)
+PrimMod2 &lt;- hlme(Ydep1~Time,mixture=~Time,random=~Time,subject='ID',
+                 ng=2,data=data_lcmm,B=random(PrimMod))
+
+###### Example 1: Relationship between a latent class structure and         #
+#                   external class predictors                          ######
+                  
+# estimation of the secondary multinomial logistic model with total variance
+# computed with the Hessian
+
+XextHess &lt;- externVar(PrimMod2,
+                      classmb = ~X1 + X2 + X3 + X4, 
+                      subject = "ID",
+                      data = data_lcmm,
+                      method = "twoStageJoint") 
+summary(XextHess)
+
+# estimation of a secondary multinomial logistic model with total variance
+# computed with parametric Bootstrap (much longer). When using the bootstrap 
+# estimator, we recommend running first the analysis with option varest = "none" 
+# which is faster but which underestimates the variance. And then use these values
+# as initial values when running the model with varest = "paramBoot" to obtain 
+# a valid variance of the parameters. 
+
+XextNone &lt;- externVar(PrimMod2,
+                      classmb = ~X1 + X2 + X3 + X4, 
+                      subject = "ID",
+                      data = data_lcmm,
+                      varest = "none",
+                      method = "twoStageJoint") 
+
+XextBoot &lt;- externVar(PrimMod2,
+                      classmb = ~X1 + X2 + X3 + X4, 
+                      subject = "ID",
+                      data = data_lcmm,
+                      varest = "paramBoot",
+                      method = "twoStageJoint",
+                      B = XextNone$best) 
+summary(XextBoot)
+
+ 
+###### Example 2: Relationship between a latent class structure and         #
+#                external outcome (repeatedly measured over time)     ######
+                  
+# estimation of the secondary linear mixed model with total variance
+# computed with the Hessian
+
+YextHess = externVar(PrimMod2,   #primary model
+                     fixed = Ydep2 ~ Time*X1,  #secondary model
+                     random = ~Time, #secondary model
+                     mixture = ~Time,  #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     method = "twoStageJoint")
+                     
+
+# estimation of a secondary linear mixed model with total variance
+# computed with parametric Bootstrap (much longer). When using the bootstrap 
+# estimator, we recommend running first the analysis with option varest = "none" 
+# which is faster but which underestimates the variance. And then use these values
+# as initial values when running the model with varest = "paramBoot" to obtain 
+# a valid variance of the parameters. 
+
+YextNone = externVar(PrimMod2,   #primary model
+                     fixed = Ydep2 ~ Time*X1,  #secondary model
+                     random = ~Time, #secondary model
+                     mixture = ~Time,  #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     varest = "none",
+                     method = "twoStageJoint")
+
+YextBoot = externVar(PrimMod2,   #primary model
+                     fixed = Ydep2 ~ Time*X1,  #secondary model
+                     random = ~Time, #secondary model
+                     mixture = ~Time,  #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     method = "twoStageJoint",
+                     B = YextNone$best,
+                     varest= "paramBoot")
+
+summary(YextBoot) 
+
+
+###### Example 3: Relationship between a latent class structure and         #
+#                      external outcome (survival)                     ######
+
+# estimation of the secondary survival model with total variance
+# computed with the Hessian
+
+YextHess = externVar(PrimMod2,   #primary model
+                     survival = Surv(Tevent,Event)~ X1+mixture(X2), #secondary model
+                     hazard="3-quant-splines", #secondary model
+                     hazardtype="PH", #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     method = "twoStageJoint")
+summary(YextHess)
+
+
+# estimation of a secondary survival model with total variance
+# computed with parametric Bootstrap (much longer). When using the bootstrap
+# estimator, we recommend running first the analysis with option varest = "none"
+# which is faster but which underestimates the variance. And then use these values
+# as initial values when running the model with varest = "paramBoot" to obtain
+# a valid variance of the parameters.
+
+YextNone = externVar(PrimMod2,   #primary model
+                     survival = Surv(Tevent,Event)~ X1+mixture(X2), #secondary model
+                     hazard="3-quant-splines", #secondary model
+                     hazardtype="PH", #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     varest = "none",
+                     method = "twoStageJoint")
+
+YextBoot = externVar(PrimMod2,   #primary model
+                     survival = Surv(Tevent,Event)~ X1+mixture(X2), #secondary model
+                     hazard="3-quant-splines", #secondary model
+                     hazardtype="PH", #secondary model
+                     subject="ID",
+                     data=data_lcmm,
+                     method = "twoStageJoint",
+                     B = YextNone$best,
+                     varest= "paramBoot")
+
+summary(YextBoot)
+
+
+## End(Not run)
+
+
+
+
+</code></pre>
+
+
+</div>

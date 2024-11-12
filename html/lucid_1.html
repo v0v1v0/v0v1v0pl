@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>antibiotic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Effectiveness of 3 antibiotics against 16 bacterial species.</h2>
+
+<h3>Description</h3>
+
+<p>Effectiveness of 3 antibiotics against 16 bacterial species.
+</p>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 16 observations on the following 5 variables.
+</p>
+ 
+<dl>
+<dt><code>bacteria</code></dt>
+<dd>
+<p>bacterial species, 16 levels</p>
+</dd>
+<dt><code>penicillin</code></dt>
+<dd>
+<p>MIC for penicillin</p>
+</dd>
+<dt><code>streptomycin</code></dt>
+<dd>
+<p>MIC for streptomycin</p>
+</dd>
+<dt><code>neomycin</code></dt>
+<dd>
+<p>MIC for neomycin</p>
+</dd> 
+<dt><code>gramstain</code></dt>
+<dd>
+<p>Gram staining (positive or negative)</p>
+</dd> 
+</dl>
+<h3>Details</h3>
+
+<p>The values reported are the minimum inhibitory concentration (MIC) in
+micrograms/milliliter, which represents the concentration of antibiotic
+required to prevent growth in vitro.
+</p>
+
+
+<h3>Source</h3>
+
+<p>Will Burtin (1951). <em>Scope</em>.  Fall, 1951.
+</p>
+
+
+<h3>References</h3>
+
+<p>Wainer, H. (2009). A Centenary Celebration for Will Burtin: A Pioneer of
+Scientific Visualization.  <em>Chance</em>, 22(1), 51-55.
+https://chance.amstat.org/2009/02/visrev221/
+</p>
+<p>Wainer, H. (2009). Visual Revelations: Pictures at an Exhibition.
+<em>Chance</em>, 22(2), 46–54.
+https://chance.amstat.org/2009/04/visrev222/
+</p>
+<p>Wainer, H. (2014). Medical Illuminations: Using Evidence, Visualization and
+Statistical Thinking to Improve Healthcare.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(antibiotic)
+lucid(antibiotic)
+
+## Not run: 
+# Plot the data similar to Fig 2.14 of Wainer's book, "Medical Illuminations"
+
+require(lattice)
+require(reshape2)
+
+# Use log10 transform
+dat &lt;- transform(antibiotic,
+                 penicillin=log10(penicillin),
+                 streptomycin=log10(streptomycin),
+                 neomycin=log10(neomycin))
+dat &lt;- transform(dat, sgn = ifelse(dat$gramstain=="neg", "-", "+"))
+dat &lt;- transform(dat,
+                 bacteria = paste(bacteria, sgn))
+dat &lt;- transform(dat, bacteria=reorder(bacteria, -penicillin))
+
+dat &lt;- melt(dat)
+
+op &lt;- tpg &lt;- trellis.par.get()
+tpg$superpose.symbol$pch &lt;- toupper(substring(levels(dat$variable),1,1))
+tpg$superpose.symbol$col &lt;- c("darkgreen","purple","orange")
+trellis.par.set(tpg)
+dotplot(bacteria ~ value, data=dat, group=variable,
+        cex=2,
+        scales=list(x=list(at= -3:3,
+                      labels=c('.001', '.01', '.1', '1', '10', '100', '1000'))),
+        main="Bacterial response to Neomycin, Streptomycin, and Penicillin",
+        xlab="Minimum Inhibitory Concentration (mg/L)")
+
+trellis.par.set(op)
+
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ssubset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Safely Subset a Labeled Data Frame</h2>
+
+<h3>Description</h3>
+
+<p><code>ssubset</code> allows one to simultaneously filter-select rows that
+satisfy conditions AND return only selected columns as a data.frame that
+preserves the labelr attributes
+attached to the inputted data.frame.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ssubset(data, condition, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data.frame from which columns rows will be filtered (and,
+possibly, columns selected).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>row-filtering conditions along the lines of base::subset()
+and/or dplyr::select(). Note: Row-filtering conditions (to include
+condition==NULL) must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optionally supply one or more unquoted, comma-separated
+column names that identify columns to be retained (Note: If no columns are
+listed, all columns will be retained). Note: While row-filtering conditions
+may leverage standard operators (e.g., &amp;, |, ==, !=), the column-selection
+portion of call may not incorporate special characters or symbols, such as
+quotes, parentheses, colons, minus signs, exclamation points, or other
+operators.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Combining <code>sfilter</code> and <code>sselect</code> functionality (along the lines of
+base::subset(), this function accepts a data.frame, followed by conditional
+filtering instructions (required) and (optional) comma-separated unquoted
+column names to be selected (see examples), returning  the selected rows and
+columns as a data.frame that preserves the labelr  attribute information of
+the originally supplied data.frame. See <code>ssubset</code> for a variant that combines
+<code>sfilter</code> row-filtering and <code>sselect</code> column selection in a single function.
+See also <code>sdrop</code>, <code>sbrac</code>, <code>ssort</code>, <code>srename</code>, <code>slab</code> and <code>flab</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a labelr label attribute-preserving data.frame consisting of the
+selected rows that meet the filtering condition(s).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># make toy demographic (gender, raceth, etc.) data set
+set.seed(555)
+df &lt;- make_demo_data(n = 1000) # another labelr:: function
+# let's add variable VALUE labels for variable "raceth"
+df &lt;- add_val_labs(df,
+  vars = "raceth", vals = c(1:7),
+  labs = c("White", "Black", "Hispanic", "Asian", "AIAN", "Multi", "Other"),
+  max.unique.vals = 50
+)
+
+head(df, 3)
+check_labs_att(df, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+dfsub1 &lt;- ssubset(df, raceth == 2 &amp; age &gt; 70, id, raceth, gender)
+head(dfsub1, 3)
+check_labs_att(dfsub1, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+dfsub2 &lt;- ssubset(df, raceth %in% c(2:4), age, raceth)
+head(dfsub2, 3)
+check_labs_att(dfsub2, "val.labs.raceth") # "raceth" lab specifically TRUE
+# even if NULL, must supply explicit condition argument
+head(ssubset(df, condition = NULL, age, raceth), 3) # better to just use sselect()
+head(ssubset(df, age == 60), 3) # skip column selection (will return all cols)
+</code></pre>
+
+
+</div>

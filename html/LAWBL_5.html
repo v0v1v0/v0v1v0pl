@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pefa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partially Exploratory Factor Analysis</h2>
+
+<h3>Description</h3>
+
+<p><code>PEFA</code> is a partially exploratory approach to factor analysis, which can incorporate
+partial knowledge together with unknown number of factors, using bi-level Bayesian regularization.
+When partial knowledge is not needed, it reduces to the fully exploratory factor analysis (<code>FEFA</code>; Chen, 2021).
+A large number of factors can be imposed for selection where true factors will be identified against spurious factors.
+The loading vector is reparameterized to tackle model sparsity at the factor and loading levels
+with the multivariate spike and slab priors. Parameters are obtained by sampling from the posterior
+distributions with the Markov chain Monte Carlo (MCMC) techniques. The estimation results can be summarized
+with <code>summary.lawbl</code> and the trace or density of the posterior can be plotted with <code>plot_lawbl</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pefa(
+  dat,
+  Q = NULL,
+  K = 8,
+  mjf = 3,
+  PPMC = FALSE,
+  burn = 5000,
+  iter = 5000,
+  missing = NA,
+  eig_eps = 1,
+  sign_eps = 0,
+  rfit = TRUE,
+  rs = FALSE,
+  update = 1000,
+  rseed = 12345,
+  verbose = FALSE,
+  auto_stop = FALSE,
+  max_conv = 10,
+  digits = 4
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A <code class="reqn">N \times J</code> data <em>matrix</em> or <em>data.frame</em> consisting of the
+responses of <code class="reqn">N</code> individuals to <code class="reqn">J</code> items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p>A <code class="reqn">J \times K</code> design matrix for the loading pattern with <code class="reqn">K</code> factors and <code class="reqn">J</code> items for <code>PEFA</code>.
+Elements are 1, -1, and 0 for specified, unspecified, and zero-fixed loadings, respectively. It's not needed
+for <code>FEFA</code>, which is the default. See <code>Examples</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Maximum number of factors for selection under <code>FEFA</code>. Not used for <code>PEFA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mjf</code></td>
+<td>
+<p>Minimum number of items per factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PPMC</code></td>
+<td>
+<p>logical; <code>TRUE</code> for conducting posterior predictive model checking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burn</code></td>
+<td>
+<p>Number of burn-in iterations before posterior sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of formal iterations for posterior sampling (&gt; 0).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing</code></td>
+<td>
+<p>Value for missing data (default is <code>NA</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eig_eps</code></td>
+<td>
+<p>minimum eigenvalue for factor extraction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sign_eps</code></td>
+<td>
+<p>minimum value for switch sign of loading vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rfit</code></td>
+<td>
+<p>logical; <code>TRUE</code> for providing relative fit (DIC, BIC, AIC).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rs</code></td>
+<td>
+<p>logical; <code>TRUE</code> for enabling recommendation system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>Number of iterations to update the sampling information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rseed</code></td>
+<td>
+<p>An integer for the random seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical; to display the sampling information every <code>update</code> or not.
+</p>
+
+<ul>
+<li> <p><code>Feigen</code>: Eigenvalue for each factor.
+</p>
+</li>
+<li> <p><code>NLA_lg0</code>: Number of Loading magnitudes &gt; 0 for each factor.
+</p>
+</li>
+<li> <p><code>iShrink</code>: Inverted shrinkage parameter for each factor.
+</p>
+</li>
+<li> <p><code>True Fa</code>: Is the factor identified as true or not.
+</p>
+</li>
+<li> <p><code>EPSR &amp; NCOV</code>: EPSR for each factor &amp; # of convergence.
+</p>
+</li>
+<li> <p><code>ROW: LA overflow,sign switch,bk=0, &lt;eig_eps</code>: Loading overflow, sign switch,
+vector bk=0 and eigenvalue&lt;eig_eps.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_stop</code></td>
+<td>
+<p>logical; <code>TRUE</code> for enabling auto stop based on EPSR.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_conv</code></td>
+<td>
+<p>maximum consecutive number of convergence for auto stop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Number of significant digits to print when printing numeric values.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>pcfa</code> returns an object of class <code>lawbl</code> without item intercepts. It contains a lot of information about
+the posteriors that can be summarized using <code>summary.lawbl</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chen, J. (2021). A Bayesian regularized approach to exploratory factor analysis in one step.
+<em>Structural Equation Modeling: A Multidisciplinary Journal</em>,
+28(4), 518-528. DOI: 10.1080/10705511.2020.1854763.
+</p>
+<p>Chen, J. (In Press). Fully and partially exploratory factor analysis with bi-level Bayesian regularization.
+<em>Behavior Research Methods</em>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#####################################################
+#  Example 1: Fully EFA                             #
+#####################################################
+
+dat &lt;- sim18cfa0$dat
+
+m0 &lt;- pefa(dat = dat, K=5, burn = 2000, iter = 2000,verbose = TRUE)
+summary(m0) # summarize basic information
+summary(m0, what = 'qlambda') #summarize significant loadings in pattern/Q-matrix format
+summary(m0, what = 'phi') #summarize factorial correlations
+summary(m0, what = 'eigen') #summarize factorial eigenvalue
+
+##########################################################
+#  Example 2: PEFA with two factors partially specified  #
+##########################################################
+
+J &lt;- ncol(dat)
+K &lt;- 5
+Q&lt;-matrix(-1,J,K);
+Q[1:2,1]&lt;-Q[7:8,2]&lt;-1
+Q
+
+m1 &lt;- pefa(dat = dat, Q = Q,burn = 2000, iter = 2000,verbose = TRUE)
+summary(m1)
+summary(m1, what = 'qlambda')
+summary(m1, what = 'phi')
+summary(m1,what='eigen')
+
+</code></pre>
+
+
+</div>

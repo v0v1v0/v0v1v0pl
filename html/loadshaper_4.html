@@ -1,0 +1,308 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lslog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Logistic Method for Matching Peak and Load Factor</h2>
+
+<h3>Description</h3>
+
+<p>Logistic Method for Matching Peak and Load Factor
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lslog(
+  x,
+  target_max = 10000,
+  target_lf = 0.7,
+  k = 1,
+  inf_pos = 0.5,
+  iter = 500,
+  def_l = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric array, representing reference load shape.
+All values must be strictly positive containing no <code>NA</code>(s).
+The length of <code>x</code>
+must be &gt; 167.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_max</code></td>
+<td>
+<p>Target peak value of resultant load shape, must
+be &gt; 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_lf</code></td>
+<td>
+<p>Target load factor of resultant load shape, must be
+numeric in between 0 and 1 (exclusive).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Steepness parameter, must be a  positive number.
+See "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inf_pos</code></td>
+<td>
+<p>Inflection point parameter.
+See "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of iterations for solving certain parameter.
+Must be  &gt;= 30.
+See "Details".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>def_l</code></td>
+<td>
+<p>Start parameter for solving <code>l</code>, must be
+a positive numeric.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm first evaluates the load factor of the
+reference load shape <code>x</code>, which is
+defined by the ratio of average to peak value. If the target load
+factor is greater than reference level, then all base
+values are multiplied by a number <code> &gt; 1</code>. If the target
+load factor is less than reference level, then all base values are
+multiplied by a number <code> &lt; 1</code>. The multipliers
+increase or decrease with a sigmoid pattern.
+</p>
+<p>The sigmoid function is a transformed version of
+</p>
+<p style="text-align: center;"><code class="reqn">
+f(x)=\frac{L}{1 - exp(-k(x-x_0))}
+</code>
+</p>
+
+<p>Parameter <code class="reqn">k</code> is shape parameter, shaping the
+"sigmoidness" of the function. Larger value of <code>k</code>
+indicates  more steepness in the function and lower value
+results in changes in multipliers in more linear fashion.
+</p>
+<p>Location parameter <code class="reqn">x_0</code> controls the inflection point
+of the function and derived from <code>inf_pos</code>.
+<code>inf_pos = 0.5</code> indicates the inflection point of
+the sigmoid multipliers is halfway.
+</p>
+<p>The <code class="reqn">L</code> parameter in the sigmoid is numerically solved.
+The number of iterations is equal to the <code>iter</code> argument,
+optimized based on the minimum difference between the derived
+and target load factor.
+</p>
+<p>The return object contains a data frame <code>df</code>, having the
+following columns:
+</p>
+
+<ul>
+<li>
+<p><code>x_index</code>: An index given to the original load
+shape <code>x</code>, starting from 1 to <code>length(x)</code>.
+</p>
+</li>
+<li>
+<p><code>x</code>: The original array <code>x</code>, unaltered.
+</p>
+</li>
+<li>
+<p><code>x_rank</code>: The rank of the data points of the
+given array <code>x</code>, from 1 for the peak to
+<code>length(x)</code> for the lowest value.
+</p>
+</li>
+<li>
+<p><code>x_ordered</code>: Sorted <code>x</code> (largest to smallest).
+</p>
+</li>
+<li>
+<p><code>x_pu</code>: Per unit <code>x</code>, derived by diving <code>x</code>
+by <code>max(x)</code>.
+</p>
+</li>
+<li>
+<p><code>x_ordered_pu</code>: Per unit <code>x</code>, sorted from largest
+to smallest.
+</p>
+</li>
+<li>
+<p><code>mult</code>: Derived multipliers, would be applied to
+sorted per unit <code>x</code>.
+</p>
+</li>
+<li>
+<p><code>y_ordered_pu</code>: Product of per unit sorted <code>x</code>
+and <code>mult</code>.
+</p>
+</li>
+<li>
+<p><code>y_ordered_pu2</code>: <code>y_ordered_pu</code>, sorted again,
+in case <code>y_ordered_pu</code> does not become decreasing.
+</p>
+</li>
+<li>
+<p><code>y_pu</code>: Resultant load shape in per unit. This is
+derived by re-ordering <code>y_ordered_pu2</code> with respect to their
+original rank.
+</p>
+</li>
+<li>
+<p><code>y</code>: Resultant load shape. This is derived by
+multiplying <code>y_pu</code> by <code>taget_max</code> / <code>base_max</code>
+
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of class <code>"lslog"</code>, having following elements:
+</p>
+
+<ul>
+<li>
+<p><code>df</code>: A data frame. See "Details".
+</p>
+</li>
+<li>
+<p><code>k</code>: Steepness parameter. See "Details".
+</p>
+</li>
+<li>
+<p><code>inf_pos</code>: Inflection point parameter.
+See "Details".
+</p>
+</li>
+<li>
+<p><code>L</code>: Numerically solved optimized L parameter.
+See "Details".
+</p>
+</li>
+<li>
+<p><code>max_mult</code>: Maximum of the multipliers.
+</p>
+</li>
+<li>
+<p><code>min_mult</code>: Minimum of the multipliers.
+</p>
+</li>
+<li>
+<p><code>base_load_factor</code>: Load factor of the reference load
+shape <code>x</code>.
+</p>
+</li>
+<li>
+<p><code>target_load_factor</code>: Target load factor.
+</p>
+</li>
+<li>
+<p><code>derived_load_factor</code>: Load factor of the derived load shape
+(<code>object$df$y</code>).
+</p>
+</li>
+<li>
+<p><code>base_max</code>: Peak value of the base load shape, <code>x</code>
+</p>
+</li>
+<li>
+<p><code>target_max</code>: Target peak value of the new load shape.
+</p>
+</li>
+<li>
+<p><code>derived_max</code>: Peak value of the derived load shape
+(<code>object$df$y</code>) 
+</p>
+</li>
+<li>
+<p><code>base_min</code>: Minimum value of the base load shape, <code>x</code>
+</p>
+</li>
+<li>
+<p><code>derived_min</code>: Minimum value of the derived load shape
+(<code>object$df$y</code>) 
+</p>
+</li>
+<li>
+<p><code>dec_flag</code>: A logical flag  stating
+whether the multipliers resulted in strictly decreasing values.
+<code>TRUE</code> indicates the order was not preserved.
+Only applicable for <code>target_max</code> &gt; <code>base_max</code>.
+See "Details".
+</p>
+</li>
+<li>
+<p><code>lf_flag</code>: A logical flag indicating if the
+load factor of the derived shape differs from the target
+by more than 1%.
+
+</p>
+</li>
+<li>
+<p><code>min_pu_flag</code>: A logical flag indicating existence of
+negative values in the derived load shape. <code>TRUE</code> indicates
+the existence of negative values.
+Only applicable for <code>target_max</code> &lt; <code>base_max</code>.
+See "Details".
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>lslin</code>,
+<code>print.lslog</code>,
+<code>summary.lslog</code>,
+<code>plot.lslog</code>,
+<code>lscore</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">loads &lt;- ercot[ercot$Year == 2019, ]$COAST
+plot(loads, type = "l")
+logistic_loadshape &lt;- lslog(loads, target_lf = 0.50, k = 0.5)
+summary(logistic_loadshape)
+#---------------------------------------------------
+loads2 &lt;- ercot[ercot$Year == 2020, ]$ERCOT
+plot(loads2, type = "l")
+logistic_loadshape2 &lt;- lslog(loads2, target_lf = 0.6,
+                            k = 0.5, inf_pos = 0.4)
+summary(logistic_loadshape2)
+#---------------------------------------------------
+loads3 &lt;- ercot[ercot$Year == 2020, ]$ERCOT
+plot(loads3, type = "l")
+logistic_loadshape3 &lt;- lslog(loads3, target_lf = 0.9)
+summary(logistic_loadshape3)
+
+
+
+
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ROCplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>plot ROC curve </h2>
+
+<h3>Description</h3>
+
+<p>Input an p by d matrix, each column of which contains false positive rates(FPR) computed from each of the d methods and p significance levels and a matrix of corresponding true positive rates(TPR) at the same significance levels.   Plot ROC curve for each of the d methods.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R"> ROCplot(fpr,tpr,main, name.method, 
+         xlim = c(0,0.2),ylim = c(0.4,1), save = TRUE, name.file = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fpr</code></td>
+<td>
+<p>A matrix of false positive rates for increasing sizes of retrieved significant genes </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tpr</code></td>
+<td>
+<p>A vector of corresponding true positive rates at the same significance levels  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>a string, title of the figure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.method</code></td>
+<td>
+<p>a string vector of length d containing names of the d methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlim</code></td>
+<td>
+<p>the range of the x axis(FPR), default to c(0,0.2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>the range of the y axis (TPR), default to c(0.4,1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save</code></td>
+<td>
+<p>a logical value, if <code>TRUE</code>, will save the plot to an png file, default to <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.file</code></td>
+<td>
+<p>a string giving the name of the png file to save the plot</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The order of the name.method should be the same as that in the fpr and tpr.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Yunting Sun <a href="mailto:yunting.sun@gmail.com">yunting.sun@gmail.com</a>, Nancy R.Zhang <a href="mailto:nzhang@stanford.edu">nzhang@stanford.edu</a>, Art B.Owen <a href="mailto:owen@stanford.edu">owen@stanford.edu</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+   library(sva)
+   library(MASS)
+   library(leapp)
+   data(simdat)
+   model &lt;- cbind(rep(1,60),simdat$g)
+   model0 &lt;- cbind(rep(1,60))
+   p.raw &lt;- f.pvalue(simdat$data,model,model0)
+   p.oracle &lt;-f.pvalue(simdat$data - simdat$u
+    
+   p.leapp &lt;- leapp(simdat$data,pred.prim = simdat$g, method = "hard")$p
+   p = cbind(p.raw,p.oracle, p.leapp)
+   topk = seq(0,0.5,length.out = 50)*1000
+   null.set = which(simdat$gamma !=0)
+   fpr= apply(p,2,FindFpr,null.set,topk)
+   tpr= apply(p,2,FindTpr,null.set,topk)
+   ROCplot(fpr,tpr, main = "ROC Comparison",
+           name.method = c("raw","oracle","leapp"), save = FALSE )
+ 
+## End(Not run)
+</code></pre>
+
+
+</div>

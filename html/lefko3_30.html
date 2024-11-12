@@ -1,0 +1,415 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hfv_qc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Assess Quality of hfv Datasets</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>hfv_qc()</code> tests the overall quality of hfv datasets, and also
+runs a series of tests to assess which statistical distributions match the
+variables within these datasets. The input format is equivalent to the input
+format of function <code>modelsearch()</code>, allowing users to assess
+vital rate variable distributions assuming the same internal dataset
+subsetting used by the latter function and simply copy and pasting the
+parameter options from one function to the other.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hfv_qc(
+  data,
+  stageframe = NULL,
+  historical = TRUE,
+  suite = "size",
+  vitalrates = c("surv", "size", "fec"),
+  surv = c("alive3", "alive2", "alive1"),
+  obs = c("obsstatus3", "obsstatus2", "obsstatus1"),
+  size = c("sizea3", "sizea2", "sizea1"),
+  sizeb = c(NA, NA, NA),
+  sizec = c(NA, NA, NA),
+  repst = c("repstatus3", "repstatus2", "repstatus1"),
+  fec = c("feca3", "feca2", "feca1"),
+  stage = c("stage3", "stage2", "stage1"),
+  matstat = c("matstatus3", "matstatus2", "matstatus1"),
+  indiv = "individ",
+  patch = NA,
+  year = "year2",
+  density = NA,
+  patch.as.random = TRUE,
+  year.as.random = TRUE,
+  juvestimate = NA,
+  juvsize = FALSE,
+  fectime = 2,
+  censor = NA,
+  age = NA,
+  indcova = NA,
+  indcovb = NA,
+  indcovc = NA,
+  random.indcova = FALSE,
+  random.indcovb = FALSE,
+  random.indcovc = FALSE,
+  test.group = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The vertical dataset to be used for analysis. This dataset should 
+be of class <code>hfvdata</code>, but can also be a data frame formatted similarly
+to the output format provided by functions <code>verticalize3()</code> or
+<code>historicalize3()</code>, as long as all needed variables are properly
+designated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stageframe</code></td>
+<td>
+<p>The stageframe characterizing the life history model used.
+Optional unless <code>test.group = TRUE</code>, in which case it is required.
+Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>historical</code></td>
+<td>
+<p>A logical variable denoting whether to assess the effects
+of state in occasion <em>t</em>-1, in addition to state in occasion <em>t</em>.
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suite</code></td>
+<td>
+<p>This describes the global model for each vital rate estimation,
+and has the following possible values: <code>full</code>, includes main effects and
+all two-way interactions of size and reproductive status; <code>main</code>,
+includes main effects only of size and reproductive status; <code>size</code>,
+includes only size (also interactions between size in historical model);
+<code>rep</code>, includes only reproductive status (also interactions between
+status in historical model); <code>age</code>, all vital rates estimated with age
+and y-intercepts only; <code>cons</code>, all vital rates estimated only as
+y-intercepts. Defaults to <code>size</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vitalrates</code></td>
+<td>
+<p>A vector describing which vital rates will be estimated via
+linear modeling, with the following options: <code>surv</code>, survival
+probability; <code>obs</code>, observation probability; <code>size</code>, overall size;
+<code>repst</code>, probability of reproducing; and <code>fec</code>, amount of
+reproduction (overall fecundity). May also be set to
+<code>vitalrates = "leslie"</code>, which is equivalent to setting
+<code>c("surv", "fec")</code> for a Leslie MPM. This choice also determines how
+internal data subsetting for vital rate model estimation will work. Defaults
+to <code>c("surv", "size", "fec")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>A vector indicating the variable names coding for status as alive
+or dead in occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1, respectively.
+Defaults to <code>c("alive3", "alive2", "alive1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A vector indicating the variable names coding for observation
+status in occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1, respectively.
+Defaults to <code>c("obsstatus3", "obsstatus2", "obsstatus1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>A vector indicating the variable names coding for the primary
+size variable on occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1,
+respectively. Defaults to <code>c("sizea3", "sizea2", "sizea1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeb</code></td>
+<td>
+<p>A vector indicating the variable names coding for the secondary
+size variable on occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1,
+respectively. Defaults to <code>c(NA, NA, NA)</code>, in which case <code>sizeb</code> is
+not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizec</code></td>
+<td>
+<p>A vector indicating the variable names coding for the tertiary
+size variable on occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1,
+respectively. Defaults to <code>c(NA, NA, NA)</code>, in which case <code>sizec</code> is
+not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repst</code></td>
+<td>
+<p>A vector indicating the variable names coding for reproductive
+status in occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1, respectively.
+Defaults to <code>c("repstatus3", "repstatus2", "repstatus1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fec</code></td>
+<td>
+<p>A vector indicating the variable names coding for fecundity in
+occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1, respectively. Defaults to
+<code>c("feca3", "feca2", "feca1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stage</code></td>
+<td>
+<p>A vector indicating the variable names coding for stage in
+occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1. Defaults to
+<code>c("stage3", "stage2", "stage1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matstat</code></td>
+<td>
+<p>A vector indicating the variable names coding for maturity
+status in occasions <em>t</em>+1, <em>t</em>, and <em>t</em>-1. Defaults to
+<code>c("matstatus3", "matstatus2", "matstatus1")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indiv</code></td>
+<td>
+<p>A text value indicating the variable name coding individual
+identity. Defaults to <code>"individ"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch</code></td>
+<td>
+<p>A text value indicating the variable name coding for patch,
+where patches are defined as permanent subgroups within the study population.
+Defaults to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>A text value indicating the variable coding for observation
+occasion <em>t</em>. Defaults to <code>"year2"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density</code></td>
+<td>
+<p>A text value indicating the name of the variable coding for
+spatial density, should the user wish to test spatial density as a fixed
+factor affecting vital rates. Defaults to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch.as.random</code></td>
+<td>
+<p>If set to <code>TRUE</code> and <code>approach = "mixed"</code>,
+then <code>patch</code> is included as a random factor. If set to <code>FALSE</code> and
+<code>approach = "glm"</code>, then <code>patch</code> is included as a fixed factor. All
+other combinations of logical value and <code>approach</code> lead to <code>patch</code>
+not being included in modeling. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year.as.random</code></td>
+<td>
+<p>If set to <code>TRUE</code> and <code>approach = "mixed"</code>,
+then <code>year</code> is included as a random factor. If set to <code>FALSE</code>, then
+<code>year</code> is included as a fixed factor. All other combinations of logical
+value and <code>approach</code> lead to <code>year</code> not being included in modeling.
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>juvestimate</code></td>
+<td>
+<p>An optional variable denoting the stage name of the
+juvenile stage in the vertical dataset. If not <code>NA</code>, and <code>stage</code> is
+also given (see below), then vital rates listed in <code>vitalrates</code> other
+than <code>fec</code> will also be estimated from the juvenile stage to all adult
+stages. Defaults to <code>NA</code>, in which case juvenile vital rates are not
+estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>juvsize</code></td>
+<td>
+<p>A logical variable denoting whether size should be used as a
+term in models involving transition from the juvenile stage. Defaults to
+<code>FALSE</code>, and is only used if <code>juvestimate</code> does not equal
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fectime</code></td>
+<td>
+<p>A variable indicating which year of fecundity to use as the
+response term in fecundity models. Options include <code>2</code>, which refers to
+occasion <em>t</em>, and <code>3</code>, which refers to occasion <em>t</em>+1.
+Defaults to <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor</code></td>
+<td>
+<p>A vector denoting the names of censoring variables in the
+dataset, in order from occasion <em>t</em>+1, followed by occasion <em>t</em>,
+and lastly followed by occasion <em>t</em>-1. Defaults to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Designates the name of the variable corresponding to age in time
+<em>t</em> in the vertical dataset. Defaults to <code>NA</code>, in which case age
+is not included in linear models. Should only be used if building Leslie or
+age x stage matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indcova</code></td>
+<td>
+<p>Vector designating the names in occasions <em>t</em>+1,
+<em>t</em>, and <em>t</em>-1 of an individual covariate. Defaults to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indcovb</code></td>
+<td>
+<p>Vector designating the names in occasions <em>t</em>+1,
+<em>t</em>, and <em>t</em>-1 of a second individual covariate. Defaults to
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indcovc</code></td>
+<td>
+<p>Vector designating the names in occasions <em>t</em>+1,
+<em>t</em>, and <em>t</em>-1 of a third individual covariate. Defaults to
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.indcova</code></td>
+<td>
+<p>A logical value indicating whether <code>indcova</code>
+should be treated as a random categorical factor, rather than as a fixed
+factor. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.indcovb</code></td>
+<td>
+<p>A logical value indicating whether <code>indcovb</code>
+should be treated as a random categorical factor, rather than as a fixed
+factor. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.indcovc</code></td>
+<td>
+<p>A logical value indicating whether <code>indcovc</code>
+should be treated as a random categorical factor, rather than as a fixed
+factor. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.group</code></td>
+<td>
+<p>A logical value indicating whether to include the
+<code>group</code> variable from the input <code>stageframe</code> as a fixed categorical
+variable in linear models. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function yields text output describing the subsets to be used in
+linear vital rate modeling. No value or object is returned.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>This function is meant to handle input as would be supplied to function
+<code>modelsearch()</code>. To use most easily, users may copy all input parameters
+from a call to function <code>modelsearch()</code>, and paste directly within this
+function. The exact subsets used in the <code>modelsearch()</code> run will also be
+created here.
+</p>
+<p>Tests of Gaussian normality are conducted as Shapiro-Wilk tests via base R's
+<code>shapiro.test()</code> function. If datasets with more than 5000 rows are
+supplied, function <code>hfv_qc()</code> will sample 5000 rows from the dataset and
+conduct the Shapiro-Wilk test on the data sample.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(lathyrus)
+
+sizevector &lt;- c(0, 4.6, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8,
+  9)
+stagevector &lt;- c("Sd", "Sdl", "Dorm", "Sz1nr", "Sz2nr", "Sz3nr", "Sz4nr",
+  "Sz5nr", "Sz6nr", "Sz7nr", "Sz8nr", "Sz9nr", "Sz1r", "Sz2r", "Sz3r", 
+  "Sz4r", "Sz5r", "Sz6r", "Sz7r", "Sz8r", "Sz9r")
+repvector &lt;- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+obsvector &lt;- c(0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+matvector &lt;- c(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+immvector &lt;- c(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+  0)
+indataset &lt;- c(0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 4.6, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 
+  0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+
+lathframeln &lt;- sf_create(sizes = sizevector, stagenames = stagevector, 
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector, 
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec, 
+  propstatus = propvector)
+
+lathvertln &lt;- verticalize3(lathyrus, noyears = 4, firstyear = 1988,
+  patchidcol = "SUBPLOT", individcol = "GENET", blocksize = 9, 
+  juvcol = "Seedling1988", sizeacol = "lnVol88", repstracol = "Intactseed88",
+  fecacol = "Intactseed88", deadacol = "Dead1988", 
+  nonobsacol = "Dormant1988", stageassign = lathframeln, stagesize = "sizea",
+  censorcol = "Missing1988", censorkeep = NA, NAas0 = TRUE, censor = TRUE)
+
+lathvertln$feca2 &lt;- round(lathvertln$feca2)
+lathvertln$feca1 &lt;- round(lathvertln$feca1)
+lathvertln$feca3 &lt;- round(lathvertln$feca3)
+
+hfv_qc(lathvertln, historical = TRUE, suite = "main", 
+  vitalrates = c("surv", "obs", "size", "repst", "fec"), juvestimate = "Sdl",
+  indiv = "individ", patch = "patchid", year = "year2",year.as.random = TRUE,
+  patch.as.random = TRUE)
+
+</code></pre>
+
+
+</div>

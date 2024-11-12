@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lod_QC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Checking the coding of phenotype and outsideLOD values</h2>
+
+<h3>Description</h3>
+
+<p>It is important that the phenotype and outsideLOD values in
+the phenotype file are coded correctly. The function <code>lod_QC</code>
+checks the quality of the phenotype file, and provides a
+number of descriptive statistics about the phenotype, as well
+as warnings about suspected problems. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lod_QC(phenofile,
+      pheno_name,
+      filedirectory = getwd(),
+      outputfile = "lodQC",
+      lower_limit = NA, upper_limit = NA,
+      stop_if_error = FALSE,
+      reprint_warnings = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>phenofile</code></td>
+<td>
+
+<p>either a data frame containing the phenotype (and covariate)
+values, or the filename (including the extension) of a data
+file containing the same. For details on the required format
+of the phenotype file, see the section on File Format in the
+description of <code>lod_GWAS</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pheno_name</code></td>
+<td>
+
+<p>the name of the column in phenofile contain the phenotype
+values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filedirectory</code></td>
+<td>
+
+<p>the directory that contains the phenotype file
+and where the output file will be saved. Please note that R
+uses <em>forward</em> slash (/) where Windows uses backslash
+(\). The default setting is current R working directory.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputfile</code></td>
+<td>
+
+<p>the name for the output file.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_limit, upper_limit</code></td>
+<td>
+
+<p>two numeric values specifying the lower and upper LOD of the
+assay. Defaults are <code>NA</code>, in which case <code>lod_QC</code> only
+checks for gaps between measured and censored values. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stop_if_error</code></td>
+<td>
+
+<p>logical; determines whether the function aborts or continues
+when it encounters errors in the dataset. Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reprint_warnings</code></td>
+<td>
+
+<p>logical; this argument is used by <code>lod_GWAS</code>
+and isn't relevant for users. Setting it to <code>TRUE</code> will
+cause certain errors to be reported via <code>warning</code>
+(in addition to the console and the log file). Default is
+<code>FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The user can specify values for the lower and upper LOD. The
+function will then compare the values in the column outsideLOD
+with the phenotype values, conditional on the user-specified
+LOD. For details on the required format of the phenotype file,
+see the section on File Format in the description of
+<code>lod_GWAS</code>.
+</p>
+<p>Also, <code>lod_QC</code> will check if there is a gap between the
+smallest/largest values within the LOD (i.e. truly measured
+values, where outsideLOD is <code>1</code>), and the censored values.
+If the censored values are far smaller/larger than
+smallest/largest measured value, <code>lod_QC</code> will print a
+warning. An example
+of such an erroneous coding of censored values is
+when the phenotype values below the lower LOD have been set
+to -9, while the measured values are &gt;0.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>lod_QC</code> returns an invisible <code>NULL</code>.
+The real output is a log file containing information on the
+distribution of the phenotype, and any problems it
+encountered. These warnings are also displayed in the R console.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The function <code>lod_QC</code> only checks and reports. It does
+<em>not</em> correct the phenotype or outsideLOD values.
+</p>
+<p>Also, the function assumes that there is a single lower and/or
+upper LOD. If multiple LODs are used in the file, the function
+may produce warnings when both censored and real values
+do not match the specified limits.  In that case it is up to
+the user to ensure the quality of the phenotype file.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lod_GWAS</code> for the complete GWAS function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">phenos &lt;- data.frame(FID = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+                     IID = c("female1", "male2", "male3", "female4", "female5",
+                             "male6", "female7", "male8", "male9", "male10"),
+                     sex = c(0, 1, 1, 0, 0, 1, 0, 1, 1, 1),
+                     outcome1 = c(0.3, 0.5, 0.9, 0.7, 2, 2, 0.1, 1.1, 2, 0.7),
+                     outsideLOD = as.integer(c(1, 1, 1, 1, 1, 0, 2, 1, 0, 1)),
+                     stringsAsFactors = FALSE)
+
+lod_QC(phenofile = phenos, pheno_name = "outcome1",
+       outputfile = "Sample_QC", lower_limit = 0.1, upper_limit = 2)
+</code></pre>
+
+
+</div>

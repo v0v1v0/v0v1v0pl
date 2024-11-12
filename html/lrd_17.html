@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prop_correct_multiple</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Proportion Correct Free Recall for Multiple Lists</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the proportion of correct responses
+per participant. Proportions can either be separated by
+condition or collapsed across conditions. This function
+extends prop_correct_free() to include multiple or randomized
+lists for participants.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prop_correct_multiple(
+  data,
+  responses,
+  key,
+  key.trial,
+  id,
+  id.trial,
+  cutoff = 0,
+  flag = FALSE,
+  group.by = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a dataframe of the variables you would like to return.
+Other variables will be included in the scored output and
+in the participant output if they are a one to one match with
+the participant id.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>responses</code></td>
+<td>
+<p>a column name in the dataframe that contains
+the participant answers for each item in quotes (i.e., "column")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>a vector containing the scoring key or data column name.
+This column does not have to be included in the original dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key.trial</code></td>
+<td>
+<p>a vector containing the trial numbers for each answer.
+Note: If you input long data (i.e., repeating trial-answer responses),
+we will take the unique combination of the responses. If a trial number
+is repeated, you will receive an error. Key and key.trial can also be
+a separate dataframe, depending on how your output data is formatted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a column name containing participant ID numbers from
+the original dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id.trial</code></td>
+<td>
+<p>a column name containing the trial numbers
+for the participant data from the original dataframe. Note that
+the free response "key" trial and this trial number should match.
+The trial key will be repeated for each answer a participant gave.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>a numeric value that determines the criteria for
+scoring (i.e., 0 = strictest, 5 = is most lenient). The scoring
+criteria uses a Levenshtein distance measure to match participant
+responses to the answer key.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag</code></td>
+<td>
+<p>a logical argument if you want to flag participant scores
+that are outliers using z-scores away from the mean score for group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.by</code></td>
+<td>
+<p>an optional argument that can be used to group the
+output by condition columns. These columns should be in the original
+dataframe and concatenated c() if there are multiple columns</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: other columns included in the dataframe will be found
+in the final scored dataset. If these other columns are
+between subjects data, they will also be included in the
+participant dataset (i.e., there's a one to one match of
+participant ID and column information).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>DF_Scored</code></td>
+<td>
+<p>The dataframe of the original response, answer,
+scoring, and any other or grouping variables. This dataframe can
+be used to determine if the cutoff score and scoring matched your
+answer key as intended. Distance measures are not perfect! Issues
+and suggestions for improvement are welcome.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DF_Participant</code></td>
+<td>
+<p>A dataframe of the proportion correct by
+participant, which also includes optional z-scoring, grouping, and
+other variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DF_Group</code></td>
+<td>
+<p>A dataframe of the summary scores by any optional
+grouping variables, along with overall total proportion correct
+scoring.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("multi_data")
+data("multi_answers")
+
+DF_long &lt;- arrange_data(data = multi_data,
+                       responses = "Response",
+                       sep = " ",
+                       id = "Sub.ID",
+                       repeated = "List.Number")
+
+library(reshape)
+multi_answers$position &lt;- 1:nrow(multi_answers)
+answer_long &lt;- melt(multi_answers,
+                    measured = colnames(multi_answers),
+                    id = "position")
+colnames(answer_long) &lt;- c("position", "List.ID", "Answer")
+
+answer_long$List.ID &lt;- gsub(pattern = "List",
+                            replacement = "",
+                            x = answer_long$List.ID)
+
+DF_long$response &lt;- tolower(DF_long$response)
+answer_long$Answer &lt;- tolower(answer_long$Answer)
+answer_long$Answer &lt;- gsub(" ", "", answer_long$Answer)
+
+scored_output &lt;- prop_correct_multiple(data = DF_long,
+                                    responses = "response",
+                                    key = answer_long$Answer,
+                                    key.trial = answer_long$List.ID,
+                                    id = "Sub.ID",
+                                    id.trial = "List.Number",
+                                    cutoff = 1,
+                                    flag = TRUE)
+
+head(scored_output$DF_Scored)
+
+head(scored_output$DF_Participant)
+
+
+</code></pre>
+
+
+</div>

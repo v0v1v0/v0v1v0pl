@@ -1,0 +1,287 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getLinkCommunities</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Extract Link Communities from a Network
+</h2>
+
+<h3>Description</h3>
+
+<p>This function extracts link communities from networks of arbitrary size and type.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getLinkCommunities(network, hcmethod = "average", use.all.edges = FALSE,
+                   edglim = 10^4, directed = FALSE, dirweight = 0.5,
+                   bipartite = FALSE, dist = NULL, plot = TRUE, 
+                   check.duplicates = TRUE, removetrivial = TRUE, 
+                   verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>network</code></td>
+<td>
+
+<p>An edge list, which is a matrix or data frame with 2 or 3 columns. The first 2 columns contain the nodes that interact with each other, which can be character strings or integer values. The optional third column is a numerical vector of weights for each edge. Can also be a character string naming a file containing an edge list.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hcmethod</code></td>
+<td>
+
+<p>A character string naming the hierarchical clustering method to use. Can be one of <code>"ward"</code>, <code>"single"</code>, <code>"complete"</code>, <code>"average"</code>, <code>"mcquitty"</code>, <code>"median"</code>, or <code>"centroid"</code>. Defaults to <code>"average"</code> (if the number of edges is greater than <code>edglim</code> then <code>"single"</code> is used).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.all.edges</code></td>
+<td>
+
+<p>Logical, indicating whether edge similarities should be calculated for all pairs of edges (TRUE), or only for edge pairs that share a node (FALSE) as in the original Ahn et al. (2010) algorithm. Defaults to FALSE. If TRUE, networks are treated as undirected.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edglim</code></td>
+<td>
+
+<p>An integer value indicating the largest number of edges permissible for the hierarchical clustering to be handled in memory. Above this value the upper triangular dissimilarity matrix will be written to disk and read and written as clustering proceeds until the file size is 0 bytes (see Details below). Defaults to <code class="reqn">10^{4}</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directed</code></td>
+<td>
+
+<p>Logical, whether the network is directed. Defaults to FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dirweight</code></td>
+<td>
+
+<p>A numerical value between 1 and 0 inclusive indicating the weight that will be attached to edges that share a node but are in the opposite orientation. Defaults to 0.5. Will be ignored if <code>directed</code> = FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bipartite</code></td>
+<td>
+
+<p>Logical, whether the input network is bi-partite. See Details for an explanation of how bi-partite networks are handled. Defaults to FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+
+<p>An object of class <code>"dist"</code> representing a user-defined distance matrix for the network. Note, this must be the lower triangular matrix of an n*n distance matrix, where n is the number of edges in the network (make sure duplicated edges are removed). If NULL, then the distance matrix is calculated by the algorithm. Defaults to NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>Logical, whether to plot summary output from the algorithm (dendrogram and partition density plot). Defaults to TRUE. Note, if there are more than 1500 but less than edglim edges then the dendrogram will be plotted without colour and in a separate panel from the partition density to avoid lengthy rendering times; when there are more than edglim edges then only the partition density will be plotted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.duplicates</code></td>
+<td>
+
+<p>Logical, whether to check for and remove loops, duplicate edges, and bi-directional edges. Defaults to TRUE. Note, if you wish to avoid this step by setting this parameter to FALSE then you must be certain that there are no duplicate edges in the network.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>removetrivial</code></td>
+<td>
+
+<p>Logical, whether to remove trivial community clusters that contain 2 edges. Defaults to TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>Logical, whether to display the progress of the algorithm on the screen. Defaults to TRUE.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is the main algorithm used for extracting link communities from networks of arbitrary size and type. Input networks may be directed, weighted, both directed and weighted, or neither. The algorithm used is the one outlined by Ahn et al. (2010). The similarity between links, <code class="reqn">e_{ik}</code> and <code class="reqn">e_{jk}</code>, that share a node, <code class="reqn">k</code>, is calculated using the Jaccard coefficient
+</p>
+<p style="text-align: center;"><code class="reqn">S(e_{ik},e_{jk})=\frac{|n_{+}(i)\cap n_{+}(j)|}{|n_{+}(i)\cup n_{+}(j)|}</code>
+</p>
+
+<p>where <code class="reqn">n_{+}(i)</code> refers to the first-order node neighbourhood of node <code class="reqn">i</code>, which includes node <code class="reqn">i</code> itself (inclusive neighbour set). After assigning pairwise similarities to all of the links in the network, the links are hierarchically clustered using single-linkage clustering, and the resulting dendrogram is cut at a point that maximises the density of links within the clusters normalising against the maximum and minimum numbers of links possible in each cluster, known as the partition density.
+For directed and weighted networks, the Tanimoto coefficient is used for assigning similarity between links
+</p>
+<p style="text-align: center;"><code class="reqn">S(e_{ik},e_{jk})=\frac{\mathbf{a}_{i}.\mathbf{a}_{j}}{|\mathbf{a}_{i}|^{2}+|\mathbf{a}_{j}|^{2}-\mathbf{a}_{i}.\mathbf{a}_{j}}</code>
+</p>
+
+<p>where <code class="reqn">\mathbf{a}_{i}</code> refers to a vector describing the weights of links between node <code class="reqn">i</code> and the nodes in the first-order neighbourhoods of both nodes <code class="reqn">i</code> and <code class="reqn">j</code> (equal to 0 in the event of an absent link). For directed networks, links to nodes shared by both node <code class="reqn">i</code> and <code class="reqn">j</code> are given a user-defined weight below 1 if they are in the opposite orientation.<br><br><br>
+For bi-partite networks, the set of neighbours (instead of the inclusive neighbour set) is used to count nodes for the edge similarity metric because node <code class="reqn">i</code> and node <code class="reqn">j</code> cannot share an edge in a bi-partite network. The partition density for bi-partite networks is calculated as:
+</p>
+<p style="text-align: center;"><code class="reqn">D_{c} = \frac{2}{M}\sum_{c}m_{c}\frac{m_{c}+1-n_{c}}{2n_{c0}n_{c1}-2(n_{c}-1)}</code>
+</p>
+
+<p>where <code class="reqn">M</code> is the total number of edges, <code class="reqn">m_c</code> is the number of edges in subset <code class="reqn">c</code>, <code class="reqn">n_c</code> is the number of nodes in subset <code class="reqn">c</code>, <code class="reqn">n_{c0}</code> is the number of nodes in partition 0, and <code class="reqn">n_{c1}</code> is the number of nodes in partition 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>linkcomm</code>, which is a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>numbers </code></td>
+<td>
+<p>An integer vector with the number of edges, nodes, and communities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hclust </code></td>
+<td>
+<p>An object of class <code>hclust</code>, which contains information about the hierarchical clustering of links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdmax </code></td>
+<td>
+<p>A numerical value indicating the height of the dendrogram at which the partition density is maximised.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdens </code></td>
+<td>
+<p>A numerical matrix with 2 columns; the first is the heights at which clusters appear and the second is the partition density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodeclusters </code></td>
+<td>
+<p>A data frame consisting of 2 columns; the first contains node names, and the second contains single community IDs for each node. All communities and their nodes are represented, but not necessarily all nodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusters </code></td>
+<td>
+<p>A list of integer vectors containing the link IDs that belong to each community. Community IDs are the numerical position of the communities in the list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edges </code></td>
+<td>
+<p>A data frame with 3 columns; the first two contain nodes that interact with each other, and the third is an integer vector of community IDs indicating community membership for each link.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numclusters </code></td>
+<td>
+<p>A named integer vector. Names are node names and integer values are the number of communities to which each node belongs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustsizes </code></td>
+<td>
+<p>A named integer vector. Names are community IDs and integer values indicate the number of nodes that belong in each community.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>igraph </code></td>
+<td>
+<p>An object of class <code>igraph</code>. The network is represented here as an <code>igraph</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edgelist </code></td>
+<td>
+<p>A character matrix with 2 columns containing the nodes that interact with each other.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directed </code></td>
+<td>
+<p>Logical indicating whether the network is directed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bipartite </code></td>
+<td>
+<p>Logical indicating whether the network is bi-partite.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>When the number of links is less than <code>edglim</code> the hierarchical clustering will be handled in memory. Above this value the upper triangular dissimilarity matrix will be compressed and written to disk and read and written as clustering proceeds until the file size is 0 bytes using a compiled C++ function. In this case the hierarchical clustering method will always be <code>"single"</code> to enhance performance for large networks. The size of <code>edglim</code> can be modified to suit the computer resources available to the user. As a guide, a network with <code class="reqn">10^{4}</code> links will require <code class="reqn">((10^{4})^{2})*8 = 800</code> MB to be handled in an uncompressed format in the memory.<br><br><br>
+For directed networks, a pair of bidirectional interactions between two nodes cannot be assigned similarities and the edge that appears lower in the edge list for the network will be discarded.<br><br><br>
+When <code>use.all.edges</code> is TRUE, the algorithm may be slow as all pairs of edges will be compared (<code class="reqn">n^2</code> comparisons, where <code class="reqn">n</code> is the number of edges).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Alex T. Kalinka <a href="mailto:alex.t.kalinka@gmail.com">alex.t.kalinka@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Ahn, Y.Y., Bagrow, J.P., and Lehmann, S. (2010). Link communities reveal multiscale complexity in networks. <em>Nature</em> <b>466</b>, 761-764.
+</p>
+<p>Kalinka, A.T. and Tomancak, P. (2011). linkcomm: an R package for the generation, visualization, and analysis of link communities in networks of arbitrary size and type. <em>Bioinformatics</em> <b>27</b>, 2011-2012.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.linkcomm</code>, <code>newLinkCommsAt</code>, <code>meta.communities</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generate graph and extract link communities.
+g &lt;- swiss[,3:4]
+lc &lt;- getLinkCommunities(g)
+
+## Extract communities by writing a temporary file to disk.
+lc &lt;- getLinkCommunities(g, edglim = 10)
+
+## Use similarities between all pairs of edges.
+lc &lt;- getLinkCommunities(g, use.all.edges = TRUE)
+
+## Directed network.
+lc &lt;- getLinkCommunities(g, directed = TRUE, dirweight = 0.8)
+
+## Weighted network.
+g &lt;- cbind(swiss[,3:4], runif(nrow(swiss[,3:4])))
+lc &lt;- getLinkCommunities(g)
+
+## Directed and weighted network.
+lc &lt;- getLinkCommunities(g, directed = TRUE, dirweight = 0.8)
+
+</code></pre>
+
+
+</div>

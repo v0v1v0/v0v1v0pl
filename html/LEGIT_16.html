@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GxE_interaction_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Testing of the GxE interaction</h2>
+
+<h3>Description</h3>
+
+<p>Testing of the GxE interaction using the competitive-confirmatory approach adapted from Belsky, Pluess et Widaman (2013). Reports the different hypotheses (diathesis-stress, vantage-sensitivity, or differential susceptibility), assuming or not assuming a main effect for <em>E</em> (WEAK vs STRONG) using the LEGIT model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GxE_interaction_test(
+  data,
+  genes,
+  env,
+  formula_noGxE,
+  crossover = c("min", "max"),
+  include_noGxE_models = TRUE,
+  reverse_code = FALSE,
+  rescale = FALSE,
+  boot = NULL,
+  criterion = "BIC",
+  start_genes = NULL,
+  start_env = NULL,
+  eps = 0.001,
+  maxiter = 100,
+  family = gaussian,
+  ylim = NULL,
+  cv_iter = 5,
+  cv_folds = 10,
+  folds = NULL,
+  Huber_p = 1.345,
+  id = NULL,
+  classification = FALSE,
+  seed = NULL,
+  test_only = FALSE,
+  lme4 = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genes</code></td>
+<td>
+<p>data.frame of the variables inside the genetic score <em>G</em> (can be any sort of variable, doesn't even have to be genetic).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>data.frame of the variables inside the environmental score <em>E</em> (can be any sort of variable, doesn't even have to be environmental).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula_noGxE</code></td>
+<td>
+<p>formula WITHOUT <em>G</em> or <em>E</em> (y ~ covariates). <em>G</em> and <em>E</em> will automatically be added properly based on the hypotheses tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crossover</code></td>
+<td>
+<p>A tuple containting the minimum and maximum of the environment used as crossover point of <em>E</em> used in the vantage sensitivity and diathesis-stress models. Instead of providing two number, you can also write c("min","max") to automatically choose the expected minimum or maximum of the environmental score which is calculated based on the min/max of the environments and the current weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_noGxE_models</code></td>
+<td>
+<p>If True, we test for models with only G, only E, both G and E, neither G and E (four models without a GxE). This is to verify for false positives, if one of those models has the best fit, then it is possible that there is no GxE, thus no type of GxE. With a single gene and environment, simply looking at the p-value of the GxE is good enough to get around 5-10 percent false positive rate, but with multiple genes and environments, we need to compare model fits to get a low false positive rate. Use your own judgment when using this because if you have multiple genes and environments and small/moderate N, a model without GxE could have a lower BIC but still not be the actual best model. However, if you see little difference in BIC between all 4 GxE models and the non-GxE models have much lower BIC, than it is likely that there is no GxE. Note that this is only implemented for AIC, AICc and BIC. (Default = True)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reverse_code</code></td>
+<td>
+<p>If TRUE, after fitting the model, the genes with negative weights are reverse coded (ex: <code class="reqn">g_{rev}</code> = 1 - <code class="reqn">g</code>). It assumes that the original coding is in [0,1]. The purpose of this option is to prevent genes with negative weights which cause interpretation problems (ex: depression normally decreases attention but with a negative genetic score, it increases attention). Warning, using this option with GxG interactions could cause nonsensical results since GxG could be inverted. Also note that this may fail with certain models (Default=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>If TRUE, the environmental variables are automatically rescaled to the range [-1,1]. This improves interpretability (Default=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot</code></td>
+<td>
+<p>Optional number of bootstrap samples. If not NULL, we use bootstrap to find the confidence interval of the crossover point. This provides more realistic confidence intervals. Make sure to use a bigger number (&gt;= 1000) to get good precision; also note that a too small number could return an error ("estimated adjustment 'a' is NA").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>Criterion used to assess which model is the best. It can be set to "AIC", "AICc", "BIC", "cv", "cv_AUC", "cv_Huber" (Default="BIC").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_genes</code></td>
+<td>
+<p>Optional starting points for genetic score (must be the same length as the number of columns of <code>genes</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_env</code></td>
+<td>
+<p>Optional starting points for environmental score (must be the same length as the number of columns of <code>env</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Outcome distribution and link function (Default = gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_iter</code></td>
+<td>
+<p>Number of cross-validation iterations (Default = 5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_folds</code></td>
+<td>
+<p>Number of cross-validation folds (Default = 10). Using <code>cv_folds=NROW(data)</code> will lead to leave-one-out cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Optional list of vectors containing the fold number for each observation. Bypass cv_iter and cv_folds. Setting your own folds could be important for certain data types like time series or longitudinal data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Huber_p</code></td>
+<td>
+<p>Parameter controlling the Huber cross-validation error (Default = 1.345).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Optional id of observations, can be a vector or data.frame (only used when returning list of possible outliers).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classification</code></td>
+<td>
+<p>Set to TRUE if you are doing classification (binary outcome).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Seed for cross-validation folds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_only</code></td>
+<td>
+<p>If TRUE, only uses the first fold for training and predict the others folds; do not train on the other folds. So instead of cross-validation, this gives you train/test and you get the test R-squared as output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lme4</code></td>
+<td>
+<p>If TRUE, uses lme4::lmer or lme4::glmer; Note that is an experimental feature, bugs may arise and certain functions may fail. Currently only summary(), plot(), GxE_interaction_test(), LEGIT(), LEGIT_cv() work. Also note that the AIC and certain elements ignore the existence of the genes and environment variables, thus the AIC may not be used for variable selection of the genes and the environment. However, the AIC can still be used to compare models with the same genes and environments. (Default=FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing 1) the six models ordered from best to worse (vantage sensitivity WEAK/STRONG, diathesis-stress WEAK/STRONG, differential susceptibility WEAK/STRONG) and 2) a data frame with the criterion, the crossover, 95% coverage of the crossover, whether the crossover 95% interval is within the observable range and the percentage of observations below the crossover point in order from best to worst based on the selected criterion. Models not within the observable range should be rejected even if the criterion is slightly better. An extremely low percentage of observations below the crossover point is also evidence toward diathesis-stress. Note that we assume that the environmental score is from bad to good but if this is not the case, then the models labelled as "diathesis-stress" could actually reflect vantage sensitivity and vice-versa. If outcome is Good-to-Bad: C=min(E) is diathesis-stress, C=max(E) is vantage sensitivity. If outcome is Bad-to-Good: C=max(E) is diathesis-stress, C=min(E) is vantage sensitivity.
+</p>
+
+
+<h3>References</h3>
+
+<p>Alexia Jolicoeur-Martineau, Jay Belsky, Eszter Szekely, Keith F. Widaman, Michael Pluess, Celia Greenwood and Ashley Wazana. <em>Distinguishing differential susceptibility, diathesis-stress and vantage sensitivity: beyond the single gene and environment model</em> (2017). https://osf.io/preprints/psyarxiv/27uw8. 10.17605/OSF.IO/27UW8.
+</p>
+<p>Alexia Jolicoeur-Martineau, Ashley Wazana, Eszter Szekely, Meir Steiner, Alison S. Fleming, James L. Kennedy, Michael J. Meaney, Celia M.T. Greenwood and the MAVAN team. <em>Alternating optimization for GxE modelling with weighted genetic and environmental scores: examples from the MAVAN study</em> (2017). arXiv:1703.08111.
+</p>
+<p>Jay Belsky, Michael Pluess and Keith F. Widaman. <em>Confirmatory and competitive evaluation of alternative gene-environment interaction hypotheses</em> (2013). Journal of Child Psychology and Psychiatry, 54(10), 1135-1143.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Examples where x is in [0, 10]
+# Diathesis Stress WEAK
+ex_dia = example_with_crossover(250, c=10, coef_main = c(3,1,2), sigma=1)
+# Diathesis Stress STRONG
+ex_dia_s = example_with_crossover(250, c=10, coef_main = c(3,0,2), sigma=1)
+## Assuming there is a crossover point at x=5
+# Differential Susceptibility WEAK
+ex_ds = example_with_crossover(250, c=5, coef_main = c(3+5,1,2), sigma=1)
+# Differential Susceptibility STRONG
+ex_ds_s = example_with_crossover(250, c=5, coef_main = c(3+5,0,2), sigma=1)
+
+## If true model is "Diathesis Stress WEAK"
+GxE_test_BIC = GxE_interaction_test(ex_dia$data, ex_dia$G, ex_dia$E, 
+formula_noGxE = y ~ 1, start_genes = ex_dia$coef_G, start_env = ex_dia$coef_E, 
+criterion="BIC")
+GxE_test_BIC$results
+
+## If true model is "Diathesis Stress STRONG"
+GxE_test_BIC = GxE_interaction_test(ex_dia_s$data, ex_dia_s$G, ex_dia_s$E, 
+formula_noGxE = y ~ 1, start_genes = ex_dia_s$coef_G, start_env = ex_dia_s$coef_E, 
+criterion="BIC")
+GxE_test_BIC$results
+
+## If true model is "Differential susceptibility WEAK"
+GxE_test_BIC = GxE_interaction_test(ex_ds$data, ex_ds$G, ex_ds$E, 
+formula_noGxE = y ~ 1, start_genes = ex_ds$coef_G, start_env = ex_ds$coef_E, 
+criterion="BIC")
+GxE_test_BIC$results
+
+## If true model is "Differential susceptibility STRONG"
+GxE_test_BIC = GxE_interaction_test(ex_ds_s$data, ex_ds_s$G, ex_ds_s$E, 
+formula_noGxE = y ~ 1, start_genes = ex_ds_s$coef_G, start_env = ex_ds_s$coef_E,
+criterion="BIC")
+GxE_test_BIC$results
+
+# Example of plots
+plot(GxE_test_BIC$fits$diff_suscept_STRONG, xlim=c(0,10), ylim=c(3,13))
+plot(GxE_test_BIC$fits$diff_suscept_WEAK, xlim=c(0,10), ylim=c(3,13))
+plot(GxE_test_BIC$fits$diathesis_stress_STRONG, xlim=c(0,10), ylim=c(3,13))
+plot(GxE_test_BIC$fits$diathesis_stress_WEAK, xlim=c(0,10), ylim=c(3,13))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

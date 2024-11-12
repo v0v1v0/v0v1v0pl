@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mt_evaluate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to score data and predict current market type using pre-trained classification model</h2>
+
+<h3>Description</h3>
+
+<p>PURPOSE: Function that uses Deep Learning model and Time Series Column of the dataframe
+to find out specific market type of the financial asset
+it will also discard bad result outputting -1 if it is the case
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mt_evaluate(x, path_model, num_cols, timeframe)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<ul><li>
+<p> dataframe with one column containing asset indicator in the time descending order,
+typically 64 or more values
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_model</code></td>
+<td>
+<p>String, path to the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cols</code></td>
+<td>
+<p>Integer, number of columns (features) in the final vector input to the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, timeframe in Minutes.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>it is mandatory to switch on the virtual h2o machine with h2o.init()
+also to shut it down with h2o.shutdown(prompt = F)
+</p>
+
+
+<h3>Value</h3>
+
+<p>dataframe with predicted value of the market type
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+library(h2o)
+library(magrittr)
+library(dplyr)
+library(readr)
+library(lazytrade)
+
+path_model &lt;- normalizePath(tempdir(),winslash = "/")
+path_data &lt;- normalizePath(tempdir(),winslash = "/")
+
+data(macd_ML60M)
+
+# start h2o engine (using all CPU's by default)
+h2o.init(nthreads = 2)
+
+# performing Deep Learning Regression using the custom function
+# this function stores model to the temp location
+mt_make_model(indicator_dataset = macd_ML60M,
+              num_bars = 64,
+              timeframe = 60,
+              path_model = path_model,
+              path_data = path_data,
+              activate_balance = TRUE,
+              num_nn_options = 3)
+
+
+# Use sample data
+data(macd_100)
+
+# use one column for testing
+x &lt;- macd_100[ ,2]
+
+
+mt_evaluate(x = x,
+            path_model = path_model,
+            num_cols = 64,
+            timeframe = 60)
+
+h2o.shutdown(prompt = FALSE)
+
+#set delay to insure h2o unit closes properly before the next test
+Sys.sleep(5)
+
+
+
+</code></pre>
+
+
+</div>

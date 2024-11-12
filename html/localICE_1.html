@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>localICE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Local Individual Conditional Expectation (localICE)
+</h2>
+
+<h3>Description</h3>
+
+<p>Local Individual Conditional Expectation (localICE) is a local explanation approach from the field of eXplainable Artificial Intelligence (XAI). It is proposed in the master thesis of the author of this package as an extension to ICE and is a three-dimensional local explanation for particular data instances. The three dimensions are the two features at the horizontal and vertical axes as well as the target represented by different colors. The approach is applicable for classification and regression problems to explain interactions of two features towards the target. The plot for discrete targets looks similar to plots of cluster algorithms like k-means, where different clusters represent different predictions. The given <code>instance</code> is added to the plot as two dotted lines according to the feature values. The <code>localICE</code>-package can explain features of type <code>factor</code> and <code>numeric</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">localICE(
+  instance,
+  data,
+  feature_1,
+  feature_2,
+  target,
+  model,
+  predict.fun = NULL,
+  regression = TRUE,
+  step_1 = 1,
+  step_2 = 1
+  )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>instance</code></td>
+<td>
+<p>instance is a row of <code>data</code> that has to be explained by means of localICE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing all predictors and a representative distribution of data instances (rows). The data set can be the test data from model creation and does not have to contain predictions or true labels. The data set is needed to get the data distribution of <code>feature_1</code> and <code>feature_2</code> that should be explained for the given <code>instance</code>. The data distribution is then used to perturb the values of the two given features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_1</code></td>
+<td>
+<p>a feature of interest as <code>character</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feature_2</code></td>
+<td>
+<p>an other feature of interest as <code>character</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>the name of the target as <code>character</code>. It is required to name the legend of the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a machine learning model as object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict.fun</code></td>
+<td>
+<p>a prediction function if <code>model</code> is not of type <code>randomForest</code>, <code>mlr</code> or <code>caret</code>. An exemplary function for the machine learning library <code>h2o</code> is shown below in the "Examples" section</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regression</code></td>
+<td>
+<p>if the model is not a regression problem but a classification problem, then set <code>regression = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_1</code></td>
+<td>
+<p>set how accurate the explanation according to <code>feature_1</code> should be. Step is only required if <code>feature_1</code> is numeric. The greater the step, the faster the computation and the less accurate the explanation for <code>feature_1</code>. The step has to be smaller than <code>max(data[,feature_1]) - min(data[,feature_1])</code> and greater than <code>0</code>. For integer features, the step should also be an integer to avoid biased model predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step_2</code></td>
+<td>
+<p>same as <code>step_1</code> but for <code>feature_2</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The computation time of <code>localICE</code> is strongly dependent to the distribution of <code>feature_1</code>, <code>feature_2</code> and the steps <code>step_1</code> and <code>step_2</code> for numerical features.</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>localICE</code> returns a <code>ggplot2</code> object that can be modified with further <code>ggplot2</code> functions.</p>
+
+
+<h3>References</h3>
+
+<p>Goldstein, Alex; Kapelner, Adam; Bleich, Justin; Pitkin, Emil (2013): "Peeking Inside the Black Box: Visualizing Statistical Learning With Plots of Individual Conditional Expectation". In: Journal of Computational and Graphical Statistics 24.1 (2013), pp. 44-65. doi: 10.1080/10618600.2014.907095. url: https://doi.org/10.1080/10618600.2014.907095
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Regression example:
+if(require("randomForest")){
+  rf = randomForest(Sepal.Length ~., data = iris, ntree = 20)
+
+  explanation = localICE(
+    instance = iris[1, ],
+    data = iris,
+    feature_1 = "Species",
+    feature_2 = "Sepal.Width",
+    target = "Sepal.Length",
+    model = rf,
+    regression = TRUE,
+    step_2 = 0.1
+  )
+  plot(explanation)
+}
+
+# Classification example:
+if(require("randomForest") &amp;&amp; require("mlbench")){
+  data("PimaIndiansDiabetes")
+  rf = randomForest(diabetes ~., data = PimaIndiansDiabetes, ntree = 20)
+
+  explanation = localICE(
+    instance = PimaIndiansDiabetes[8, ],
+    data = PimaIndiansDiabetes,
+    feature_1 = "age",
+    feature_2 = "glucose",
+    target = "diabetes",
+    model = rf,
+    regression = FALSE,
+    step_1 = 5,
+    step_2 = 5
+  )
+  plot(explanation)
+}
+# An example of how to use predict.fun to use any machine learning library,
+# in this case the library h2o (please see GitHub for the complete h2o example):
+predict.fun = function(model, newdata){
+  prediction = h2o.predict(model, as.h2o(newdata))
+  prediction = as.data.frame(prediction)
+  prediction = prediction$prediction
+  return(prediction)
+}
+</code></pre>
+
+
+</div>

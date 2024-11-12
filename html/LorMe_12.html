@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>differential_bar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Differential Bar Plot and Error bar Plot</h2>
+
+<h3>Description</h3>
+
+<p>Generate Differential Bar Plot and Error bar Plot
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">differential_bar(
+  taxobj,
+  taxlevel,
+  comparison = NULL,
+  rel_threshold = 0.005,
+  anno_row = "taxonomy",
+  aes_col = NULL,
+  limit_num = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>taxobj</code></td>
+<td>
+<p>Configured tax summary objects.See in <code>object_config</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxlevel</code></td>
+<td>
+<p>Taxonomy levels used for visualization. Must be one of
+c("Domain","Phylum","Class","Order","Family","Genus","Species","Base").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparison</code></td>
+<td>
+<p>A vector of conditions to compare. Default: NULL, all unique conditions are compared (only for Two groups).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rel_threshold</code></td>
+<td>
+<p>Threshold filtering taxa for differential analysis. Default:0.005</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anno_row</code></td>
+<td>
+<p>Default: 'taxonomy'. Rownames for visualization. Options are 'taxonomy' for showing taxonomic information and 'ID' for showing taxonomic ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aes_col</code></td>
+<td>
+<p>A named vector of colors to be used in the plots.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit_num</code></td>
+<td>
+<p>Numeric. The maximum number of significant results to display. Default: NULL, showing all differential taxa.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the bar plot, source data for the bar plot, difference plot, and source data for the difference plot.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The differential analysis is performed using two-sided Welch's t-test.
+The p-values are adjusted using the 'BH' (i.e., FDR) method.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">{
+  # Data preparation
+  data("Two_group")
+
+  # Simple mode
+  diff_results &lt;- differential_bar(
+    taxobj = Two_group,
+    taxlevel = "Genus"
+  )
+  print(diff_results$Barplot)  # Print Barplot
+  head(diff_results$Barplot_sourcedata)  # Show source data of barplot
+  print(diff_results$Differenceplot)  # Print Differential errorbar plot
+  head(diff_results$Differenceplot_sourcedata)  # Show source data of Differential errorbar plot
+
+  require(patchwork)
+  diff_results$Barplot|diff_results$Differenceplot
+  # Displaying ID
+  diff_results &lt;- differential_bar(
+    taxobj = Two_group,
+    taxlevel = "Base",
+    anno_row = "ID"
+  )
+  print(diff_results$Barplot)
+
+  # Threshold adjustment
+  diff_results &lt;- differential_bar(
+    taxobj = Two_group,
+    taxlevel = "Base",
+    rel_threshold = 0.001
+  )
+  print(diff_results$Barplot)
+
+  # Limit the displaying number
+  diff_results &lt;- differential_bar(
+    taxobj = Two_group,
+    taxlevel = "Base",
+    rel_threshold = 0.001,
+    limit_num = 10
+  )
+  print(diff_results$Barplot)
+
+  # For object with more than two groups
+  # Data preparation
+  data("Three_group")
+
+  # Specific comparison
+  Three_group_col &lt;- Three_group$configuration$treat_col
+  diff_results &lt;- differential_bar(
+    taxobj = Three_group,
+    taxlevel = "Genus",
+    comparison = c("BF", "CF"),
+    aes_col = Three_group_col
+  )
+  print(diff_results$Barplot)
+}
+</code></pre>
+
+
+</div>

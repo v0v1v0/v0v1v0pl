@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sbrac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Safely Extract Elements of a Labeled Data Frame</h2>
+
+<h3>Description</h3>
+
+<p><code>sbrac</code> allows one to do "bracket-like" row and/or column selection
+(without actual brackets) on a labelr-labeled data.frame in a manner that
+preserves its labelr label attributes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sbrac(data, ri = NULL, ci = NULL, partial = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data.frame from which columns will be selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ri</code></td>
+<td>
+<p>row indices (integer positional or logical) or row.names (or
+partial row.names if partial = TRUE) to be selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>column indices (integer positional or logical) or column / variable
+names (or partial column names if partial = TRUE) to be selected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial</code></td>
+<td>
+<p>if TRUE, any row or column that contains the relevant
+character substring will be selected (e.g., sbrac(mtcars, c("Maz"), c("di"))
+will return all "Mazda" car rows and the column "disp").</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>sbrac</code> allows one to select rows and columns of a data.frame in a bracket-
+like fashion, using integers (positional indices), logicals, or (partial)
+character names (row names and column/variable names). For example,
+sbrac(df, 1:5, 2:4) returns a data.frame (with any labelr attribute
+meta-data intact), consisting of rows 1-5 and columns 2-4 of data.frame df;
+while sbrac(mtcars, "Maz", "a", partial = TRUE) returns all variables with
+substring "a" in their names for all rows with substring "Maz" in their row
+names. Integer indices (only) can be enclosed in -c() for negative index
+selection (i.e., "select not these"), where, e.g.,
+sbrac(df, -c(1,2), "x", partial = TRUE) means select all rows of df other
+than rows 1 and 2 and all columns that feature the letter "x" in their names.
+See also <code>ssubset</code>, <code>sfilter</code>, <code>sselect</code>, <code>sdrop</code>, <code>ssort</code>, and <code>srename</code>, as
+well as <code>slab</code> and <code>flab</code> for other labelr attribute-preserving subsetting
+tools.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a labelr label attribute-preserving data.frame, consisting of the
+selected rows and/or columns index-selected.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># create a copy of the mtcars data set
+mtc2 &lt;- mtcars
+
+# variable names and their labels
+names_labs_vec &lt;- c(
+  "mpg" = "Miles/(US) gallon",
+  "cyl" = "Number of cylinders",
+  "disp" = "Displacement (cu.in.)",
+  "hp" = "Gross horsepower",
+  "drat" = "Rear axle ratio",
+  "wt" = "Weight (1000 lbs)",
+  "qsec" = "1/4 mile time",
+  "vs" = "Engine (0 = V-shaped, 1 = straight)",
+  "am" = "Transmission (0 = automatic, 1 = manual)",
+  "gear" = "Number of forward gears",
+  "carb" = "Number of carburetors"
+)
+
+# assign variable labels
+mtc2 &lt;- add_name_labs(mtc2,
+  vars = names(names_labs_vec),
+  labs = names_labs_vec
+)
+
+# examples of sbrac() functionality
+sbrac(mtc2, 1:4, ) # commas used in a bracket-like way: row 1:4 and all cols
+sbrac(mtc2, , 1:4) # commas used in a bracket-like way: all rows and cols 1:4
+sbrac(mtc2, 1, 2) # 1 is row, 2 is col
+sbrac(mtc2, -c(8:32), -c(1:8)) # select NOT-these rows and cols (-)
+sbrac(mtc2, 1:5, 1:2) # rows 1-5, cols 1 and 2
+
+# if partial = TRUE, partial matching to get all Mazda or Merc + all
+# ...vars with "ar" in name
+sbrac(mtc2, c("Mazda", "Merc"), c("ar"), partial = TRUE) # see what this does
+mtc3 &lt;- sbrac(mtc2, c("45"), 1:2, partial = TRUE) # see what this does
+get_labs_att(mtc3, "name.labs") # name.labs still there
+</code></pre>
+
+
+</div>

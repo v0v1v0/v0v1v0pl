@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pwm.ub</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Unbiased Sample Probability-Weighted Moments </h2>
+
+<h3>Description</h3>
+
+<p>Unbiased sample probability-weighted moments (PWMs) are computed from a sample. The <code class="reqn">\beta_r</code>'s are computed using
+</p>
+<p style="text-align: center;"><code class="reqn">\beta_r = n^{-1} {n-1 \choose r}^{-1} \sum^n_{j=1} {j-1 \choose r} x_{j:n}\mbox{.}</code>
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pwm.ub(x, nmom=5, sort=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>Number of PWMs to return (<code class="reqn">r =</code> <code>nmom - 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Do the data need sorting? The computations require sorted data. This option is provided to optimize processing speed if presorted data already exists.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betas</code></td>
+<td>
+<p>The PWMs. Note that convention is the have a <code class="reqn">\beta_0</code>, but this is placed in the first index <code>i=1</code> of the <code>betas</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Source of the PWMs: “pwm.ub”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Through a user inquiry, it came to the author's attention in May 2014 that some unrelated studies using PWMs in the earth-system sciences have published erroneous sample PWMs formula. Because <span class="pkg">lmomco</span> is intended to be an authoritative source, here are some computations to further prove correctness with provenance: 
+</p>
+<pre>
+"pwm.handbookhydrology" &lt;- function(x, nmom=5) {
+   x &lt;- sort(x, decreasing = TRUE); n &lt;- length(x); betas &lt;- rep(NA, nmom)
+   for(r in 0:(nmom-1)) {
+      tmp &lt;- sum(sapply(1:(n-r),
+          function(j) { choose(n - j, r) * x[j] / choose(n - 1, r) }))
+      betas[(r+1)] &lt;- tmp/n
+   }
+   return(betas)
+}
+</pre>
+<p>and a demonstration with alternative algebra in Stedinger and others (1993)
+</p>
+<pre>
+set.seed(1)
+glo &lt;- vec2par(c(123,1123,-.5), type="glo"); X &lt;- rlmomco(100, glo)
+lmom2pwm(lmoms(X, nmom=5))$betas # unbiased L-moments flipped to PWMs
+[1]  998.7932 1134.0658 1046.4906  955.8872  879.3349
+pwm.ub(X, nmom=5)$betas  # Hosking and Wallis (1997) and Asquith (2011)
+[1]  998.7932 1134.0658 1046.4906  955.8872  879.3349
+pwm.handbookhydrology(X) # ** alert reverse sort, opposite usually seen**
+[1]  998.7932 1134.0658 1046.4906  955.8872  879.3349
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+<p>Greenwood, J.A., Landwehr, J.M., Matalas, N.C., and Wallis, J.R., 1979, Probability weighted moments—Definition and relation to parameters of several distributions expressable in inverse form: Water Resources Research, v. 15, pp. 1,049–1,054.
+</p>
+<p>Stedinger, J.R., Vogel, R.M., Foufoula-Georgiou, E., 1993, Frequency analysis of extreme events: <em>in</em> Handbook of Hydrology, ed. Maidment, D.R., McGraw-Hill, Section 18.6 Partial duration series, mixtures, and censored data, pp. 18.37–18.39.
+</p>
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pwm.pp</code>, <code>pwm.gev</code>, <code>pwm2lmom</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">pwm &lt;- pwm.ub(rnorm(20))
+</code></pre>
+
+
+</div>

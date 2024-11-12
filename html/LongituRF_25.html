@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.longituRF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict with longitudinal trees and random forests.</h2>
+
+<h3>Description</h3>
+
+<p>Predict with longitudinal trees and random forests.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'longituRF'
+predict(object, X, Z, id, time, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>: a <code>longituRF</code> output of (S)MERF; (S)REEMforest; (S)MERT or (S)REEMtree function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>[matrix]: matrix of the fixed effects for the new observations to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>[matrix]: matrix of the random effects for the new observations to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>[vector]: vector of the identifiers of the new observations to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>[vector]: vector of the time measurements of the new observations to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>: low levels arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>vector of the predicted output for the new observations.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(123)
+data &lt;- DataLongGenerator(n=20) # Generate the data composed by n=20 individuals.
+REEMF &lt;- REEMforest(X=data$X,Y=data$Y,Z=data$Z,id=data$id,time=data$time,mtry=2,ntree=500,sto="BM")
+# Then we predict on the learning sample :
+pred.REEMF &lt;- predict(REEMF, X=data$X,Z=data$Z,id=data$id, time=data$time)
+# Let's have a look at the predictions
+# the predictions are in red while the real output trajectories are in blue:
+par(mfrow=c(4,5),mar=c(2,2,2,2))
+for (i in unique(data$id)){
+  w &lt;- which(data$id==i)
+  plot(data$time[w],data$Y[w],type="l",col="blue")
+  lines(data$time[w],pred.REEMF[w], col="red")
+}
+# Train error :
+mean((pred.REEMF-data$Y)^2)
+
+# The same function can be used with a fitted SMERF model:
+smerf &lt;-MERF(X=data$X,Y=data$Y,Z=data$Z,id=data$id,time=data$time,mtry=2,ntree=500,sto="BM")
+pred.smerf &lt;- predict(smerf, X=data$X,Z=data$Z,id=data$id, time=data$time)
+# Train error :
+mean((pred.smerf-data$Y)^2)
+# This function can be used even on a MERF model (when no stochastic process is specified)
+merf &lt;-MERF(X=data$X,Y=data$Y,Z=data$Z,id=data$id,time=data$time,mtry=2,ntree=500,sto="none")
+pred.merf &lt;- predict(merf, X=data$X,Z=data$Z,id=data$id, time=data$time)
+# Train error :
+mean((pred.merf-data$Y)^2)
+
+
+</code></pre>
+
+
+</div>

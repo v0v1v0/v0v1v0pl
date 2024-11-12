@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ESS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Effective Sample Size due to Autocorrelation</h2>
+
+<h3>Description</h3>
+
+<p>This function may be used to estimate the effective sample size (ESS)
+(not to be confused with Elliptical Slice Sampling) of a continuous
+target distribution, where the sample size is reduced by
+autocorrelation. ESS is a measure of how well each continuous chain is
+mixing.
+</p>
+<p>ESS is a univariate function that is often applied to each continuous,
+marginal posterior distribution. A multivariate form is not
+included. By chance alone due to multiple independent tests, 5% of
+the continuous parameters may indicate that ESS is below a user
+threshold of acceptability, such as 100, even when above the
+threshold. Assessing convergence is difficult.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ESS(x)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument is a vector or matrix of posterior
+samples.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Effective Sample Size (ESS) was recommended by Radford Neal in the
+panel discussion of Kass et al. (1998). When a continuous, marginal
+posterior distribution is sampled with a Markov chain Monte Carlo
+(MCMC) algorithm, there is usually autocorrelation present in the
+samples. More autocorrelation is associated with less posterior
+sampled information, because the information in the samples is
+autocorrelated, or put another way, successive samples are not
+independent from earlier samples. This reduces the effective sample
+size of, and precision in representing, the continuous, marginal
+posterior distribution. <code>ESS</code> is one of the criteria in the
+<code>Consort</code> function, where stopping the MCMC updates is
+not recommended until <code>ESS</code> <code class="reqn">\ge 100</code>. Although the need
+for precision of each modeler differs with each model, it is often
+a good goal to obtain <code>ESS</code> <code class="reqn">= 1000</code>.
+</p>
+<p><code>ESS</code> is related to the integrated autocorrelation time (see
+<code>IAT</code> for more information).
+</p>
+<p>ESS is usually defined as
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{ESS}(\theta) = \frac{S}{1 + 2 \sum^{\infty}_{k=1} \rho_k
+    (\theta)},</code>
+</p>
+
+<p>where <code class="reqn">S</code> is the number of posterior samples,
+<code class="reqn">\rho_k</code> is the autocorrelation at lag <code class="reqn">k</code>, and
+<code class="reqn">\theta</code> is the vector of marginal posterior samples. The
+infinite sum is often truncated at lag <code class="reqn">k</code> when
+<code class="reqn">\rho_k (\theta) &lt; 0.05</code>. Just as with the
+<code>effectiveSize</code> function in the <code>coda</code> package, the
+<code>AIC</code> argument in the <code>ar</code> function is used to estimate the
+order.
+</p>
+<p>ESS is a measure of how well each continuous chain is mixing, and a
+continuous chain mixes better when in the target distribution. This
+does not imply that a poorly mixing chain still searching for its
+target distribution will suddenly mix well after finding it, though
+mixing should improve. A poorly mixing continuous chain does not
+necessarily indicate problems. A smaller ESS is often due to
+correlated parameters, and is commonly found with scale
+parameters. Posterior correlation may be obtained from the
+<code>PosteriorChecks</code> function, and plotted with the 
+<code>plotMatrix</code> function. Common remedies for poor mixing
+include re-parameterizing the model or trying a different MCMC
+algorithm that better handles correlated parameters. Slow mixing is
+indicative of an inefficiency in which a continuous chain takes longer
+to find its target distribution, and once found, takes longer to
+explore it. Therefore, slow mixing results in a longer required
+run-time to find and adequately represent the continuous target
+distribution, and increases the chance that the user may make
+inferences from a less than adequate representation of the continuous
+target distribution.
+</p>
+<p>There are many methods of re-parameterization to improve mixing. It
+is helpful when predictors are centered and scaled, such as with the
+<code>CenterScale</code> function. Parameters for predictors are
+often assigned prior distributions that are independent per parameter,
+in which case an exchangeable prior distribution or a multivariate
+prior distribution may help. If a parameter with poor mixing is
+bounded with the <code>interval</code> function, then
+transforming it to the real line (such as with a log transformation
+for a scale parameter) is often helpful, since constraining a
+parameter to an interval often reduces ESS. Another method is to
+re-parameterize so that one or more latent variables represent the
+process that results in slow mixing. Such re-parameterization uses
+data augmentation.
+</p>
+<p>This is numerically the same as the <code>effectiveSize</code> function in
+the <code>coda</code> package, but programmed to accept a simple vector or
+matrix so it does not require an <code>mcmc</code> or <code>mcmc.list</code>
+object, and the result is bound to be less than or equal to the
+original number of samples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector is returned, and each element is the effective sample size
+(ESS) for a corresponding column of <code>x</code>, after autocorrelation has
+been taken into account.
+</p>
+
+
+<h3>References</h3>
+
+<p>Kass, R.E., Carlin, B.P., Gelman, A., and Neal, R. (1998). "Markov
+Chain Monte Carlo in Practice: A Roundtable Discussion". <em>The
+American Statistician</em>, 52, p. 93–100. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CenterScale</code>,
+<code>Consort</code>,
+<code>IAT</code>,
+<code>interval</code>,
+<code>LaplacesDemon</code>,
+<code>plotMatrix</code>, and
+<code>PosteriorChecks</code>.
+</p>
+
+
+</div>

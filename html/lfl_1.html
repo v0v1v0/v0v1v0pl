@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggregateConsequents</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aggregation of fired consequents into a resulting fuzzy set</h2>
+
+<h3>Description</h3>
+
+<p>Take a character vector of consequent names, a numeric vector representing
+the degree of consequents' firing and a matrix that models fuzzy sets
+corresponding to the consequent names, and perform an aggregation of the
+consequents into a resulting fuzzy set.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aggregateConsequents(
+  conseq,
+  degrees,
+  partition,
+  firing = lukas.residuum,
+  aggreg = pgoedel.tnorm
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>conseq</code></td>
+<td>
+<p>A character vector of consequents. Each value in the vector
+must correspond to a name of some column of the <code>partition</code> matrix.
+The length of this vector must be the same as of the <code>degrees</code>
+argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degrees</code></td>
+<td>
+<p>A numeric vector of membership degrees at which the
+corresponding consequents (see the <code>conseq</code> argument) are fired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition</code></td>
+<td>
+<p>A matrix of membership degrees that describes the meaning of
+the consequents in vector <code>conseq</code>: each column of the matrix
+corresponds to a fuzzy set that models a single consequent (of a name given
+by column names of the matrix), each row corresponds to a single crisp
+value (which is not important for this function), hence each cell
+corresponds to a membership degree in which the crisp value is a member of
+a fuzzy set modeling the consequent.  Each consequent in <code>conseq</code>
+must correspond to some column of this matrix. Such matrix may be created
+e.g. by using <code>fcut()</code> or <code>lcut()</code> functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>firing</code></td>
+<td>
+<p>A two-argument function used to compute the resulting truth value of the consequent.
+Function is evaluated for each consequent in <code>conseq</code>, with corresponding <code>degrees</code> value
+as the first argument and corresponding truth-value of the consequent (from <code>partition</code>)
+as the second argument. In default, the Lukasiewicz residuum (<code>lukas.residuum()</code>) is
+evaluated that way.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggreg</code></td>
+<td>
+<p>An aggregation function to be used to combine fuzzy sets resulting from firing
+the consequents with the <code>firing</code> function. The function should accept multiple
+numeric vectors of membership degrees as its arguments.
+In default, the Goedel t-norm (<code>pgoedel.tnorm()</code>) is evaluated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is typically used within an inference mechanism, after a set of
+firing rules is determined and membership degrees of their antecedents are
+computed, to combine the consequents of the firing rules into a resulting
+fuzzy set. The result of this function is then typically defuzzified
+(see <code>defuzz()</code>) to  obtain a crisp result of the inference.
+</p>
+<p>Function assumes a set of rules with antecedents firing at degrees given in
+<code>degrees</code> and with consequents in <code>conseq</code>. The meaning of the consequents is
+modeled with fuzzy sets whose membership degree values are captured in the
+<code>partition</code> matrix.
+</p>
+<p>With default values of <code>firing</code> and <code>aggreg</code> parameters, the function
+computes a fuzzy set that results from a conjunction (Goedel minimum t-norm)
+of all provided implicative (Lukasiewicz residuum) rules.
+</p>
+<p>In detail, the function first computes the fuzzy set of each fired consequent
+by calling <code style="white-space: pre;">⁠part\[i\] &lt;- firing(degrees\[i\], partition\[, conseq\[i\]\])⁠</code> for each
+<code>i</code>-th consequent and the results are aggregated using the <code>aggreg</code>
+parameter: <code style="white-space: pre;">⁠aggreg(part\[1\], part\[2\], ...)⁠</code>. In order to aggregate consequents
+in a Mamdani-Assilian's fashion, set <code>firing</code> to <code>pgoedel.tnorm()</code> and <code>aggreg</code>
+to <code>pgoedel.tconorm()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of membership degrees of fuzzy set elements that correspond
+to rows in the <code>partition</code> matrix. If empty vector of consequents is
+provided, vector of 1's is returned. The length of the resulting vector
+equals to the number of rows of the <code>partition</code> matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fire()</code>, <code>perceive()</code>, <code>defuzz()</code>, <code>fcut()</code>, <code>lcut()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    # create a partition matrix
+    partition &lt;- matrix(c(0:10/10, 10:0/10, rep(0, 5),
+                          rep(0, 5), 0:10/10, 10:0/10,
+                          0:12/12, 1, 12:0/12),
+                        byrow=FALSE,
+                        ncol=3)
+    colnames(partition) &lt;- c('a', 'b', 'c')
+
+    # the result of aggregation is equal to:
+    # pmin(1, partition[, 1] + (1 - 0.5), partition[, 2] + (1 - 0.8))
+    aggregateConsequents(c('a', 'b'), c(0.5, 0.8), partition)
+
+</code></pre>
+
+
+</div>

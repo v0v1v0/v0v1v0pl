@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>idCLneg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cardiolipines (CL) annotation for ESI-</h2>
+
+<h3>Description</h3>
+
+<p>CL identification based on fragmentation patterns for LC-MS/MS DIA or DDA
+data acquired in negative mode.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">idCLneg(
+  msobject,
+  ppm_precursor = 5,
+  ppm_products = 10,
+  rttol = 5,
+  rt,
+  adducts = c("M-H", "M+Na-2H"),
+  clfrags = c(),
+  clrequired = c(),
+  ftype = c(),
+  chainfrags_sn1 = c("lysopa_M-H-H2O"),
+  chainfrags_sn2 = c("lysopa_M-H-H2O"),
+  chainfrags_sn3 = c("lysopa_M-H-H2O"),
+  chainfrags_sn4 = c("lysopa_M-H-H2O"),
+  intrules = c("Unknown"),
+  rates = c(),
+  intrequired = c(),
+  coelCutoff = 0.8,
+  dbs,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>msobject</code></td>
+<td>
+<p>an msobject returned by dataProcessing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppm_precursor</code></td>
+<td>
+<p>mass tolerance for precursor ions. By default, 5 ppm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppm_products</code></td>
+<td>
+<p>mass tolerance for product ions. By default, 10 ppm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rttol</code></td>
+<td>
+<p>total rt window for coelution between precursor and product
+ions. By default, 3 seconds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rt</code></td>
+<td>
+<p>rt range where the function will look for candidates. By default,
+it will search within all RT range in MS1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adducts</code></td>
+<td>
+<p>expected adducts for CL in ESI-. Adducts allowed can
+be modified in adductsTable (dbs argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clfrags</code></td>
+<td>
+<p>vector containing the expected fragments for a given lipid
+class. See checkClass for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clrequired</code></td>
+<td>
+<p>logical vector indicating if each class fragment is
+required or not. If any of them is required, at least one of them must be
+present within the coeluting fragments. See checkClass for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ftype</code></td>
+<td>
+<p>character vector indicating the type of fragments in clfrags.
+It can be: "F" (fragment), "NL" (neutral loss) or "BB" (building block).
+See checkClass for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chainfrags_sn1</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+the chain fragments in sn1 position. See chainFrags for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chainfrags_sn2</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+the chain fragments in sn2 position. See chainFrags for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chainfrags_sn3</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+the chain fragments in sn3 position. See chainFrags for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chainfrags_sn4</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+the chain fragments in sn4 position. See chainFrags for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intrules</code></td>
+<td>
+<p>character vector specifying the fragments to compare. See
+checkIntensityRules. If some intensity rules should be employed to
+identify the chains position but they are't known yet, use "Unknown". If it
+isn't required, leave an empty vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rates</code></td>
+<td>
+<p>character vector with the expected rates between fragments given
+as a string (e.g. "3/1"). See checkIntensityRules.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intrequired</code></td>
+<td>
+<p>logical vector indicating if any of the rules is required.
+If not, at least one must be verified to confirm the structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coelCutoff</code></td>
+<td>
+<p>coelution score threshold between parent and fragment ions.
+Only applied if rawData info is supplied. By default, 0.8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbs</code></td>
+<td>
+<p>list of data bases required for annotation. By default, dbs
+contains the required data frames based on the default fragmentation rules.
+If these rules are modified, dbs may need to be supplied. See createLipidDB
+and assignDB.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>print information messages.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>idCLneg</code> function involves 5 steps. 1) FullMS-based
+identification of candidate CL as M-H or M-2H. 2) Search of CL class fragments:
+no class fragments are searched by defaults as they use to have bad coelution
+scores. 3) Search of specific fragments that inform about chain composition
+at sn1 (lysoPA as M-H-H2O), sn2 (lysoPA as M-H-H2O), sn3 (lysoPA as M-H-H2O)
+and sn4 (lysoPA as M-H-H2O). 4) Look for possible chains structure based on
+the combination of chain fragments. 5) Check intensity rules to confirm
+chains position. For CL there are no intensity rules by default.
+</p>
+<p>Results data frame shows: ID, lipid class, CDB (total number
+of carbons and double bounds), FA composition (specific chains composition if
+it has been confirmed), mz, RT (in seconds), I (intensity, which comes
+directly from de input), Adducts, ppm (mz error), confidenceLevel (Subclass,
+FA level, where chains are known but not their positions, or FA position
+level) and Score (parent-fragment coelution score mean in DIA data or relative 
+sum intensity in DDA of all fragments used for the identification).
+</p>
+
+
+<h3>Value</h3>
+
+<p>annotated msobject (list with several elements). The results element
+is a data frame that shows: ID, lipid class, CDB (total number of carbons
+and double bounds), FA composition (specific chains composition if it has
+been confirmed), mz, RT (in seconds), I (intensity), Adducts, ppm (mz error),
+confidenceLevel (Subclass, FA level, where chains are known but not their
+positions, or FA position level), peakID, and Score (parent-fragment coelution 
+score mean in DIA data or relative sum intensity in DDA of all fragments used 
+for the identification).
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function has been writen based on fragmentation patterns
+observed for three different platforms (QTOF 6550 from Agilent, Synapt G2-Si
+from Waters and Q-exactive from Thermo), but it may need to be customized for
+other platforms or acquisition settings.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>M Isabel Alcoriza-Balaguer &lt;maialba@alumni.uv.es&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+msobject &lt;- idCLneg(msobject)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

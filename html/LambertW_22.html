@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>delta_GMM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate delta</h2>
+
+<h3>Description</h3>
+
+<p>This function minimizes the Euclidean distance between the sample kurtosis of
+the back-transformed data <code class="reqn">W_{\delta}(\boldsymbol z)</code> and a
+user-specified target kurtosis as a function of <code class="reqn">\delta</code> (see
+References).  Only an iterative application of this function will give a
+good estimate of <code class="reqn">\delta</code> (see <code>IGMM</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">delta_GMM(
+  z,
+  type = c("h", "hh"),
+  kurtosis.x = 3,
+  skewness.x = 0,
+  delta.init = delta_Taylor(z),
+  tol = .Machine$double.eps^0.25,
+  not.negative = FALSE,
+  optim.fct = c("nlm", "optimize"),
+  lower = -1,
+  upper = 3
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>a numeric vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of Lambert W <code class="reqn">\times</code> F distribution: skewed <code>"s"</code>;
+heavy-tail <code>"h"</code>; or skewed heavy-tail <code>"hh"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kurtosis.x</code></td>
+<td>
+<p>theoretical kurtosis of the input X; default: <code>3</code>
+(e.g., for <code class="reqn">X \sim</code> Gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skewness.x</code></td>
+<td>
+<p>theoretical skewness of the input X. Only used if <code>type = "hh"</code>; 
+default: <code>0</code> (e.g., for <code class="reqn">X \sim</code> symmetric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.init</code></td>
+<td>
+<p>starting value for optimization; default: <code>delta_Taylor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>a positive scalar; tolerance level for terminating 
+the iterative algorithm; default: <code>.Machine$double.eps^0.25</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.negative</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the estimate for <code class="reqn">\delta</code> is
+restricted to the non-negative reals. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.fct</code></td>
+<td>
+<p>which R optimization function should be used. Either <code>'optimize'</code> 
+(only for <code>type = 'h'</code> and if <code>not.negative = FALSE</code>) or <code>'nlm'</code>.  
+Performance-wise there is no big difference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p>lower and upper bound for optimization. Default: <code>-1</code> and <code>3</code> 
+(this covers most real-world heavy-tail scenarios).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with two elements: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p> optimal <code class="reqn">\delta</code> for data <code class="reqn">z</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>number of iterations (<code>NA</code> for <code>'optimize'</code>).</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>gamma_GMM</code> for the skewed version of this function;
+<code>IGMM</code> to estimate all parameters jointly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# very heavy-tailed (like a Cauchy)
+y &lt;- rLambertW(n = 1000, theta = list(beta = c(1, 2), delta = 1), 
+               distname = "normal")
+delta_GMM(y) # after the first iteration
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>searchrules</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Searching for fuzzy association rules</h2>
+
+<h3>Description</h3>
+
+<p>This function searches the given <code>fsets()</code> object <code>d</code> for all
+fuzzy association rules that satisfy defined constraints. It returns a list
+of fuzzy association rules together with some statistics characterizing them
+(such as support, confidence etc.).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">searchrules(
+  d,
+  lhs = 2:ncol(d),
+  rhs = 1,
+  tnorm = c("goedel", "goguen", "lukasiewicz"),
+  n = 100,
+  best = c("confidence"),
+  minSupport = 0.02,
+  minConfidence = 0.75,
+  maxConfidence = 1,
+  maxLength = 4,
+  numThreads = 1,
+  trie = (maxConfidence &lt; 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>An object of class <code>fsets()</code> - it is basically a matrix
+where columns represent the fuzzy sets and values are the membership
+degrees. For creation of such object, use <code>fcut()</code> or <code>lcut()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lhs</code></td>
+<td>
+<p>Indices of fuzzy attributes that may appear on the left-hand-side
+(LHS) of association rules, i.e. in the antecedent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>Indices of fuzzy attributes that may appear on the
+right-hand-side (RHS) of association rules, i.e. in the consequent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tnorm</code></td>
+<td>
+<p>A t-norm to be used for computation of conjunction of fuzzy
+attributes. (Allowed are even only starting letters of "lukasiewicz",
+"goedel" and "goguen").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The non-negative number of rules to be found. If zero, the function
+returns all rules satisfying the given conditions. If positive, only
+<code>n</code> best rules are returned. The criterium of what is “best” is
+specified with the <code>best</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>Specifies measure accordingly to which the rules are ordered
+from best to worst. This argument is used mainly in combination with the
+<code>n</code> argument. Currently, only single value ("confidence") can be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minSupport</code></td>
+<td>
+<p>The minimum support degree of a rule. Rules with support
+below that number are filtered out. It must be a numeric value from interval
+<code class="reqn">[0, 1]</code>. See below for details on how the support degree is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minConfidence</code></td>
+<td>
+<p>The minimum confidence degree of a rule. Rules with
+confidence below that number are filtered out.  It must be a numeric value
+from interval <code class="reqn">[0, 1]</code>. See below for details on how the confidence degree is
+computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxConfidence</code></td>
+<td>
+<p>Maximum confidence threshold. After finding a rule that
+has confidence degree above the <code>maxConfidence</code> threshold, no other
+rule is resulted based on adding some additional attribute to its antecedent
+part. I.e. if "Sm.age &amp; Me.age =&gt; Sm.height" has confidence above
+<code>maxConfidence</code> threshold, no another rule containing "Sm.age &amp; Me.age"
+will be produced regardless of its interest measures.
+</p>
+<p>If you want to disable this feature, set <code>maxConfidence</code> to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxLength</code></td>
+<td>
+<p>Maximum allowed length of the rule, i.e. maximum
+number of predicates that are allowed on the left-hand + right-hand side of the rule. If
+negative, the maximum length of rules is unlimited.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numThreads</code></td>
+<td>
+<p>Number of threads used to perform the algorithm in
+parallel. If greater than 1, the OpenMP library (not to be confused with
+Open MPI) is used for parallelization.  Please note that there are known
+problems of using OpenMP together with another means of parallelization that
+may be used within R. Therefore, if you plan to use the <code>searchrules</code>
+function with some of the external parallelization mechanisms such as
+library <code>doMC</code>, make sure that <code>numThreads</code> equals 1.  This
+feature is available only on systems that have installed the OpenMP library.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trie</code></td>
+<td>
+<p>Whether or not to use internal mechanism of Tries. If FALSE,
+then in the output may appear such rule that is a descendant of a rule that
+has confidence above <code>maxConfidence</code> threshold.
+</p>
+<p>Tries consume very much memory, so if you encounter problems with
+insufficient memory, set this argument to FALSE. On the other hand, the size
+of result (if <code>n</code> is set to 0) can be very high if trie is set to
+FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function searches data frame <code>d</code> for fuzzy association rules that
+satisfy conditions specified by the parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of the following elements: <code>rules</code> and <code>statistics</code>.
+</p>
+<p><code>rules</code> is a list of mined fuzzy association rules. Each element of
+that list is a character vector with consequent attribute being on the first
+position.
+</p>
+<p><code>statistics</code> is a data frame of statistical characteristics about mined
+rules. Each row corresponds to a rule in the <code>rules</code> list. Let us
+consider a rule "a &amp; b =&gt; c", let <code class="reqn">\otimes</code> be a t-norm specified with
+the <code>tnorm</code> parameter and <code class="reqn">i</code> goes over all rows of a data table
+<code>d</code>. Then columns of the <code>statistics</code> data frame are as follows:
+</p>
+
+<ul>
+<li>
+<p> support: a rule's support degree: <code class="reqn">1/nrow(d) * \sum_{\forall i} a(i) \otimes b(i) \otimes c(i)</code>
+</p>
+</li>
+<li>
+<p> lhsSupport: a support of rule's antecedent (LHS): <code class="reqn">1/nrow(d) * \sum_{\forall i} a(i) \otimes b(i)</code>
+</p>
+</li>
+<li>
+<p> rhsSupport: a support of rule's consequent (RHS): <code class="reqn">1/nrow(d) * \sum_{\forall i} c(i)</code>
+</p>
+</li>
+<li>
+<p> confidence: a rule's confidence degree: <code class="reqn">support / lhsSupport</code>
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fcut()</code>, <code>lcut()</code>, <code>farules()</code>, <code>fsets()</code>, <code>pbld()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  d &lt;- lcut(CO2)
+  searchrules(d, lhs=1:ncol(d), rhs=1:ncol(d))
+
+</code></pre>
+
+
+</div>

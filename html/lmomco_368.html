@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>supdist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Support of a Distribution based on the Parameters </h2>
+
+<h3>Description</h3>
+
+<p>This function takes a parameter object, such as that returned by <code>lmom2par</code>, and computes the support (the lower and upper bounds, <code class="reqn">\{L, U\}</code>) of the distribution given by the parameters. The computation is based on two calls to <code>par2qua</code> for the parameters in argument <code>para</code> (<code class="reqn">\Theta</code>) and nonexceedance probabilities <code class="reqn">F \in \{0, 1\}</code>:
+</p>
+<pre>lower &lt;- par2qua(0, para)
+upper &lt;- par2qua(1, para)</pre>
+<p>The quality of <code class="reqn">\{L, U\}</code> is dependent of the handling of <code class="reqn">F \in \{0,1\}</code> internal to each quantile function. Across the suite of distributions supported by <span class="pkg">lmomco</span>, potential applications, and parameter combinations, it difficult to ensure numerical results for the respective <code class="reqn">\{L, U\}</code> are either very small, are large, or are (or should be) infinite. The distinction is sometimes difficult depending how fast the tail(s) of a distribution is (are) either approaching a limit as <code class="reqn">F</code> respectively approaches <code class="reqn">0^{+}</code> or <code class="reqn">1^{-}</code>.
+</p>
+<p>The intent of this function is to provide a unified portal for <code class="reqn">\{L, U\}</code> estimation. Most of the time <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> (and <span class="pkg">lmomco</span>) do the right thing anyway and the further overhead within the parameter estimation suite of functions in <span class="pkg">lmomco</span> is not implemented.
+</p>
+<p>The support returned by this function might be useful in extended application development involving probability density functions <code>pdfCCC</code> (<code class="reqn">f(x,\Theta)</code>, see <code>dlmomco</code>) and cumulative distribution functions <code>cdfCCC</code> (<code class="reqn">F(x,\Theta)</code>, see <code>plmomco</code>) functions—both of these functions use as their primary argument a value <code class="reqn">x</code> that exists along the real number line.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">supdist(para, trapNaN=FALSE, delexp=0.5, paracheck=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trapNaN</code></td>
+<td>
+<p>A logical influencing how <code>NaN</code> are handled (see Note).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delexp</code></td>
+<td>
+<p>The magnitude of the decrementing of the exponent to search down and up from.  A very long-tailed but highly peaked distribution might require this to be smaller than default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters are checked for validity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Three character (minimum) distribution type (for example, <code>type="gev"</code>);</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>support</code></td>
+<td>
+<p>The support (or range) of the fitted distribution;</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonexceeds</code></td>
+<td>
+<p>The nonexceedance probabilities at the computed support.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fexpons</code></td>
+<td>
+<p>A vector indicating how the respective lower and upper boundaries were arrived at (see Note); and</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>finite</code></td>
+<td>
+<p>A logical on each entry of the <code>support</code> with a preemptive call by the <code>is.finite</code> function in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source
+of the distribution support: “supdist”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Concerning <code>fexpons</code>, for the returned vectors of length 2, index 1 is for <code class="reqn">\{L\}</code> and index 2 is for <code class="reqn">\{U\}</code>. If an entry in <code>fexpons</code> is <code>NA</code>, then <code class="reqn">F = 0</code> or <code class="reqn">F = 1</code> for the respective bound was possible. And even if <code>trapNaN</code> is <code>TRUE</code>, no further refinement on the bounds was attempted.
+</p>
+<p>On the otherhand, if <code>trapNaN</code> is <code>TRUE</code> and if the bounds <code class="reqn">\{L\}</code> and (or) <code class="reqn">\{U\}</code> is not <code>NA</code>, then an attempt was made to move away from <code class="reqn">F \in \{0,1\}</code> in incremental integer exponent from <code class="reqn">0^{+}</code> or <code class="reqn">1^{-}</code> until a <code>NaN</code> was not encountered. The integer exponents are <code class="reqn">i \in [-(\phi), -(\phi - 1), \ldots, -4]</code>, where <code class="reqn">\phi</code> <code>= .Machine$sizeof.longdouble</code> and <code class="reqn">-4</code> is a hardwired limit (1 part in 10,000). In the last example in the Examples section, the <code class="reqn">\{U\}</code> for <code class="reqn">F=1</code> quantile is <code>NaN</code> but <code class="reqn">1 - 10^i</code> for which <code class="reqn">i = -16</code>, which also is the <code>.Machine$sizeof.longdouble</code> on the author's development platform.
+</p>
+<p>At first release, it seems there was justification in triggering this to <code>TRUE</code> if a quantile function returns a <code>NA</code> when asked for <code class="reqn">F = 0</code> or <code class="reqn">F = 1</code>—some quantile functions partially trapped <code>NaN</code>s themselves. So even if <code>trapNaN == FALSE</code>, it is triggered to <code>TRUE</code> if a <code>NA</code> is discovered as described. <em>Users are encouraged to discuss adaptions or changes to the implementation of <code>supdist</code> with the author.</em>
+</p>
+<p>Thus it should be considered a feature of <code>supdist</code> that should a quantile function already trap errors at either <code class="reqn">F = 0</code> or <code class="reqn">F = 1</code> and return <code>NA</code>, then <code>trapNaN</code> is internally set to <code>TRUE</code> regardless of being originally <code>FALSE</code> and the preliminary limit is reset to <code>NaN</code>. The Rice distribution <code>quarice</code> is one such example that internally already traps an <code class="reqn">F = 1</code> by returning <code class="reqn">x(F{=}1) = </code><code>NA</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmom2par</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(c(33, 37, 41, 54, 78, 91, 100, 120, 124))
+supdist(lmom2par(lmr, type="gov" )) # Lower = 27.41782, Upper = 133.01470
+supdist(lmom2par(lmr, type="gev" )) # Lower = -Inf,     Upper = 264.4127
+
+supdist(lmom2par(lmr, type="wak" ))               # Lower = 16.43722, Upper = NaN
+supdist(lmom2par(lmr, type="wak" ), trapNaN=TRUE) # Lower = 16.43722, Upper = 152.75126
+#$support  16.43722  152.75126
+#$fexpons        NA  -16
+#$finite       TRUE  TRUE
+## Not run: 
+para &lt;- vec2par(c(0.69, 0.625), type="kmu") # very flat tails and narrow peak!
+supdist(para, delexp=1   )$support # [1] 0        NaN
+supdist(para, delexp=0.5 )$support # [1] 0.000000 3.030334
+supdist(para, delexp=0.05)$support # [1] 0.000000 3.155655
+# This distribution appears to have a limit at PI and the delexp=0.5
+
+## End(Not run)
+</code></pre>
+
+
+</div>

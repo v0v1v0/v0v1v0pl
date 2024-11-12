@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>theopwms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Theoretical Probability-Weighted Moments using Integration of the Quantile Function </h2>
+
+<h3>Description</h3>
+
+<p>Compute the theoretical probability-weighted moments (PWMs) for a distribution. A theoretical PWM in integral form is
+</p>
+<p style="text-align: center;"><code class="reqn"> \beta_r = \int^1_0 x(F)\,F^r\,\mathrm{d}F \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile function of the random variable <code class="reqn">X</code> for nonexceedance probability <code class="reqn">F</code> and <code class="reqn">r</code> represents the order of the PWM. This function loops across the above equation for each <code>nmom</code> set in the argument list. The function <code class="reqn">x(F)</code> is computed through the <code>par2qua</code> function. The distribution type is determined using the <code>type</code> attribute of the <code>para</code> argument, which is a parameter object of <span class="pkg">lmomco</span> (see <code>vec2par</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">theopwms(para, nmom=5, minF=0, maxF=1, quafunc=NULL,
+               nsim=50000, fold=5,
+               silent=TRUE, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>A distribution parameter object such as that by <code>lmom2par</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>The number of moments to compute. Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-zero (but small) if you have a divergent integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-unity (but close) if you have a divergent integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quafunc</code></td>
+<td>
+<p>An optional and arbitrary quantile function that simply needs to except a nonexceedance probability and the parameter object in <code>para</code>. This is a feature that permits computation of the PWMs of a quantile function that does not have to be implemented in the greater overhead hassles of the <span class="pkg">lmomco</span> style. This feature might be useful for estimation of quantile function mixtures or those distributions not otherwise implemented in this package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Simulation size for Monte Carlo integration is such is internally deemed necessary (see <code>silent</code> argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+<p>The number of fractions or number of folds of <code>nsim</code>, which in other words, means that <code>nsim</code> is divided by <code>folds</code> and a loop creating <code>folds</code> integrations of <code>nsim/folds</code> is used from which the mean and mean absolute error of the integrand are computed. This is to try to recover similar output as <code>integrate()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>The argument of <code>silent</code> for the <code>try()</code> operation wrapped on <code>integrate()</code>. If set true and the integral is probability divergent, Monte Carlo integration is triggered using <code>nsim</code> and <code>folds</code>. The user would have to set <code>verbose=TRUE</code> to then acquire the returned table in <code>integrations</code> of the integration passes including those are or are not Monte Carlo.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Toggle verbose output. Because the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code> is used to perform the numerical integration, it might be useful to see selected messages regarding the numerical integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betas</code></td>
+<td>
+<p>The PWMs. Note that convention is the have a <code class="reqn">\beta_0</code>, but this is placed in the first index <code>i=1</code> of the <code>betas</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Echo of the <code>nsim</code> argument if and only if at least one Monte Carlo integration was required, otherwise this is set to “not needed” on the return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Echo of the <code>folds</code> argument if and only if at least one Monte Carlo integration was required, otherwise this is set to “not needed” on the return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>monte_carlo</code></td>
+<td>
+<p>A logical vector of whether one or more Monte Carlo integrations was needed for the <code>r</code>-th index of the vector during the integrations for the <code class="reqn">r</code>-th PWM (beta).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the probability-weighted moments: “theopwms”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integrations</code></td>
+<td>
+<p>If <code>verbose=TRUE</code>, then the results of the integrations are a data frame stored here. Otherwise, <code>integrations</code> is not present in the list.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments–Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, p. 105–124.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>theoLmoms</code>, <code>pwm</code>, <code>pwm2lmom</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para     &lt;- vec2par(c(0,1),type='nor') # standard normal
+the.pwms &lt;- theopwms(para) # compute PWMs
+str(the.pwms)
+
+## Not run: 
+  # This example has a divergent integral triggered on the beta0. Monte Carlo (MC)
+  # integration is thus triggered. The verbose=TRUE saves numerical or MC
+  # integration result table to the return.
+  para &lt;- vec2par(c(2,2, 1.8673636098392308, -0.1447286792099476), type="kap")
+  pwmkap &lt;- lmom2pwm( lmomkap(para) )
+  print(pwmkap$betas) # 0.1155903 1.2153105 0.9304619 0.7282926 0.5938137
+  pwmthe &lt;- theopwms(para, nmom=5, verbose=TRUE)
+  print(pwmthe$betas) # 0.1235817 1.2153104 0.9304619 0.7282926 0.5938137
+
+  para &lt;- vec2par(c(2,2, 0.9898362024687231, -0.5140894097276032), type="kap")
+  pwmkap &lt;- lmom2pwm( lmomkap(para) )
+  print(pwmkap$betas) # -0.06452787  1.33177963  1.06818379  0.85911124  0.71308145
+  pwmthe &lt;- theopwms(para, nmom=5, verbose=TRUE)
+  print(pwmthe$betas) # -0.06901669  1.33177952  1.06818379  0.85911123  0.71308144 
+## End(Not run)
+</code></pre>
+
+
+</div>

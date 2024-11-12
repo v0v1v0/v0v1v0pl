@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>diggle.linear.power</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample size calculations for difference in slopes between two groups.</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the sample size calculation for difference in slopes 
+between two groups. See Diggle, et al (2002) and package vignette for more details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">diggle.linear.power(
+  n = NULL,
+  delta = NULL,
+  t = NULL,
+  sigma2 = 1,
+  R = NULL,
+  sig.level = 0.05,
+  power = NULL,
+  alternative = c("two.sided", "one.sided"),
+  tol = .Machine$double.eps^2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>sample size per group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>group difference in slopes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>the observation times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>the residual variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the working correlation matrix (or variance-covariance matrix if
+<code>sigma2</code> is 1). If <code>R</code> is a scalar, an exchangeable working
+correlation matrix will be assumed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.level</code></td>
+<td>
+<p>Type I error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>power</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>one- or two-sided test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>numerical tolerance used in root finding.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The number of subject required per arm to attain the specified
+<code>power</code> given <code>sig.level</code> and the other parameter estimates.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael C. Donohue, Steven D. Edland
+</p>
+
+
+<h3>References</h3>
+
+<p>Diggle P.J., Heagerty P.J., Liang K., Zeger S.L. (2002)
+<em>Analysis of longitudinal data</em>. Second Edition. Oxford Statistical
+Science Series.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmmpower</code>, <code>diggle.linear.power</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+browseVignettes(package = "longpower")
+
+## End(Not run)
+
+# Reproduces the table on page 29 of Diggle et al
+n &lt;- 3
+t &lt;- c(0,2,5)
+rho &lt;- c(0.2, 0.5, 0.8)
+sigma2 &lt;- c(100, 200, 300)
+tab &lt;- outer(rho, sigma2, 
+      Vectorize(function(rho, sigma2){
+        ceiling(diggle.linear.power(
+          delta=0.5,
+          t=t,
+          sigma2=sigma2,
+          R=rho,
+          alternative="one.sided",
+          power = 0.80)$n[1])}))
+colnames(tab) &lt;- paste("sigma2 =", sigma2)
+rownames(tab) &lt;- paste("rho =", rho)
+tab
+
+# An Alzheimer's Disease example using ADAS-cog pilot estimates
+# var of random intercept
+sig2.i &lt;- 55
+# var of random slope
+sig2.s &lt;- 24
+# residual var
+sig2.e &lt;- 10
+# covariance of slope and intercep
+cov.s.i &lt;- 0.8*sqrt(sig2.i)*sqrt(sig2.s)
+
+cov.t &lt;- function(t1, t2, sig2.i, sig2.s, cov.s.i){
+        sig2.i + t1*t2*sig2.s + (t1+t2)*cov.s.i 
+}
+
+t &lt;- seq(0,1.5,0.25)
+n &lt;- length(t)
+R &lt;- outer(t, t, function(x,y){cov.t(x,y, sig2.i, sig2.s, cov.s.i)})
+R &lt;- R + diag(sig2.e, n, n)
+
+diggle.linear.power(d=1.5, t=t, R=R, sig.level=0.05, power=0.80)
+
+</code></pre>
+
+
+</div>

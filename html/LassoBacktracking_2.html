@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cvLassoBT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation for <code>LassoBT</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Perform k-fold cross-validation potentially multiple times on permuted version of the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cvLassoBT(
+  x,
+  y,
+  lambda = NULL,
+  nlambda = 100L,
+  lambda.min.ratio = ifelse(nobs &lt; nvars, 0.01, 1e-04),
+  nfolds = 5L,
+  nperms = 1L,
+  mc.cores = 1L,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>input matrix of dimension nobs by nvars; each row is an observation
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response variable; shoud be a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>user supplied <code>lambda</code> sequence of decreasing penalty
+parameters. Typical usage is to allow the function to compute its own
+<code>lambda</code> sequence. Inappropriate sequences may cause convergence
+problems.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlambda</code></td>
+<td>
+<p>the number of lambda values. Must be at least 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min.ratio</code></td>
+<td>
+<p>smallest value in <code>lambda</code> as a fraction of the
+largest value at which all main effects coefficients are 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>number of folds. Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nperms</code></td>
+<td>
+<p>the number of permuted datasets to apply k-folds corss-validation to. Default is 1 so
+we carry out vanilla cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>the number of cores to use. Only applicable when not in Windows as it uses
+the <span class="pkg">parallel</span> package to parallelise the computations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments that can be passed to <code>LassoBT</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with components as below.
+</p>
+
+<dl>
+<dt><code>lambda</code></dt>
+<dd>
+<p>the sequence of <code>lambda</code> values used</p>
+</dd>
+<dt><code>cvm</code></dt>
+<dd>
+<p>a matrix of error estimates (with squared error loss). The rows correspond
+to different <code>lambda</code> values whilst the columns correspond to different iterations</p>
+</dd>
+<dt><code>BT_fit</code></dt>
+<dd>
+<p>a "<code>BT</code>" object from a fit to the full data.</p>
+</dd>
+<dt><code>cv_opt</code></dt>
+<dd>
+<p>a two component vector giving the cross-validation optimal <code>lambda</code> index
+and iteration</p>
+</dd>
+<dt><code>cv_opt_err</code></dt>
+<dd>
+<p>the minimal cross-validation error.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- matrix(rnorm(100*250), 100, 250)
+y &lt;- x[, 1] + x[, 2] - x[, 1]*x[, 2] + x[, 3] + rnorm(100)
+out &lt;- cvLassoBT(x, y, iter_max=10, nperms=2)
+</code></pre>
+
+
+</div>

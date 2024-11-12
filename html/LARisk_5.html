@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LAR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Lifetime Attributable Risk for one person</h2>
+
+<h3>Description</h3>
+
+<p><code>LAR</code> is used to estimate lifetime attributable radiation-related cancer risk for data with one person.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LAR(
+  data,
+  basedata,
+  sim = 300,
+  seed = 99,
+  current = as.numeric(substr(Sys.Date(), 1, 4)),
+  ci = 0.9,
+  weight = NULL,
+  DDREF = TRUE,
+  basepy = 1e+05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame containing demographic information and exposure information. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basedata</code></td>
+<td>
+<p>a list of the data of lifetime table and incidence rate table.
+The first element is lifetime table and the second is incidence rate table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim</code></td>
+<td>
+<p>number of iteration of simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>a random seed number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>current</code></td>
+<td>
+<p>a current year. default is year of the system time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>confidence level of the confidence interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>a list containing the value between 0 and 1 which is a weight on ERR model. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DDREF</code></td>
+<td>
+<p>logical. Whether to apply the dose and dose-rate effectiveness factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basepy</code></td>
+<td>
+<p>number of base person-years</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The maximum age in <code>LAR</code> is set as 100. If the data contains
+<code>birth</code> which makes attained age (=<code>current</code> - <code>birth</code>)
+exceed 100, the result has no useful value.
+</p>
+<p><code>data</code> should include information which includes gender, year of birth,
+year of exposure, sites where exposed, exposure rate, distribution of dose and
+dose parameters of exosed radiation. The name of each variables must be
+<code>sex</code>, <code>birth</code>, <code>exposure</code>, <code>site</code>, <code>exposure_rate</code>,
+<code>dosedist</code>, <code>dose1</code>, <code>dose2</code>, <code>dose3</code>.
+</p>
+<p>For some variables, there is a fixed format. <code>sex</code> can have the component 'male' or 'female'.
+<code>site</code> can have the component 'stomach', 'colon', 'liver', 'lung', 'breast', 'ovary', 'uterus', 'prostate', 'bladder', 'brain/cns',
+'thyroid', 'remainder', 'oral', 'oesophagus', 'rectum', 'gallbladder', 'pancreas', 'kidney', 'leukemia'.
+<code>exposure_rate</code> can have the component 'acute' or 'chronic'.
+<code>dosedist</code> can have the component 'fixedvalue', 'lognormal', 'normal', 'triangular', 'logtriangular', 'uniform', 'loguniform'.
+</p>
+<p><code>dose1</code>, <code>dose2</code>, <code>dose3</code> are parameters of dose distribution. The parameters for each distribution are that:
+</p>
+
+<dl>
+<dt>fixedvalue</dt>
+<dd>
+<p>dose value (dose1)</p>
+</dd>
+<dt>lognormal</dt>
+<dd>
+<p>median (dose1), geometric standard deviation (dose2)</p>
+</dd>
+<dt>normal</dt>
+<dd>
+<p>mean (dose1), standard deviation (dose2)</p>
+</dd>
+<dt>triangular or logtriangular</dt>
+<dd>
+<p>minimum (dose1), mode (dose2), maximum (dose3)</p>
+</dd>
+<dt>uniform or loguniform</dt>
+<dd>
+<p>minimum (dose1), maximum (dose2)</p>
+</dd>
+</dl>
+<p><code>weight</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>LAR</code> returns an object of "<code>LAR</code>" class.
+</p>
+<p>An object of class "<code>LAR</code>" is a list containing the following components:
+</p>
+
+<dl>
+<dt><code>LAR</code></dt>
+<dd>
+<p>Lifetime attributable risk (LAR) from the time of exposure to the end of the expected lifetime.</p>
+</dd>
+<dt><code>F_LAR</code></dt>
+<dd>
+<p>Future attributable risk from current to the expected lifetime.</p>
+</dd>
+<dt><code>LBR</code></dt>
+<dd>
+<p>Lifetime baseline risk.</p>
+</dd>
+<dt><code>BFR</code></dt>
+<dd>
+<p>Baseline future risk.</p>
+</dd>
+<dt><code>LFR</code></dt>
+<dd>
+<p>Lifetime fractional risk.</p>
+</dd>
+<dt><code>TFR</code></dt>
+<dd>
+<p>Total future risk.</p>
+</dd>
+<dt><code>current</code></dt>
+<dd>
+<p>Current year.</p>
+</dd>
+<dt><code>ci</code></dt>
+<dd>
+<p>Confidence level.</p>
+</dd>
+<dt><code>pinfo</code></dt>
+<dd>
+<p>Information of the person.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Berrington de Gonzalez, A., Iulian Apostoaei, A., Veiga, L.,
+Rajaraman, P., Thomas, B., Owen Hoffman, F., Gilbert, E. and Land, C.
+(2012). RadRAT: a radiation risk assessment tool for lifetime cancer risk
+projection. <em>Journal of Radiological Protection</em>, <b>32(3)</b>,
+pp.205-222.
+</p>
+<p>National Research Council (NRC) and Committee to Assess Health
+Risks from Exposure to Low Levels of Ionizing Radiation (2005) <em>Health
+Risks from Exposure to Low Levels of Ionizing Radiation: BEIR VII Phase 2</em>
+(Washington, DC: National Academy of Sciences)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LAR_batch</code>, <code>LAR_group</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## example with lifetime and incidence rate table in 2010 Korea.
+organ2 &lt;- split(organ, organ$ID)[[1]]   ## data of one person.
+
+## defualt
+lar1 &lt;- LAR(organ2, basedata = list(life2010, incid2010))
+summary(lar1)
+
+## change the weight for ERR and EAR models
+weight_list &lt;- list("rectum" = 0.5)
+lar2 &lt;- LAR(organ2, basedata = list(life2010, incid2010), weight = weight_list)
+summary(lar2)
+
+## change the DDREF option (DDREF=FALSE)
+lar3 &lt;- LAR(organ2, basedata = list(life2010, incid2010), DDREF = FALSE)
+summary(lar3)
+
+
+</code></pre>
+
+
+</div>

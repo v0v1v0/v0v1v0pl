@@ -1,0 +1,733 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ltmle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Longitudinal Targeted Maximum Likelihood Estimation</h2>
+
+<h3>Description</h3>
+
+<p><code>ltmle</code> is Targeted Maximum Likelihood Estimation (TMLE) of
+treatment/censoring specific mean outcome for point-treatment and
+longitudinal data. <code>ltmleMSM</code> adds Marginal Structural Models. Both
+always provide Inverse Probability of Treatment/Censoring Weighted estimate
+(IPTW) as well. Maximum likelihood based G-computation estimate (G-comp) can
+be obtained instead of TMLE. <code>ltmle</code> can be used to calculate additive
+treatment effect, risk ratio, and odds ratio.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ltmle(
+  data,
+  Anodes,
+  Cnodes = NULL,
+  Lnodes = NULL,
+  Ynodes,
+  survivalOutcome = NULL,
+  Qform = NULL,
+  gform = NULL,
+  abar,
+  rule = NULL,
+  gbounds = c(0.01, 1),
+  Yrange = NULL,
+  deterministic.g.function = NULL,
+  stratify = FALSE,
+  SL.library = "glm",
+  SL.cvControl = list(),
+  estimate.time = TRUE,
+  gcomp = FALSE,
+  iptw.only = FALSE,
+  deterministic.Q.function = NULL,
+  variance.method = "tmle",
+  observation.weights = NULL,
+  id = NULL
+)
+
+ltmleMSM(
+  data,
+  Anodes,
+  Cnodes = NULL,
+  Lnodes = NULL,
+  Ynodes,
+  survivalOutcome = NULL,
+  Qform = NULL,
+  gform = NULL,
+  gbounds = c(0.01, 1),
+  Yrange = NULL,
+  deterministic.g.function = NULL,
+  SL.library = "glm",
+  SL.cvControl = list(),
+  regimes,
+  working.msm,
+  summary.measures,
+  final.Ynodes = NULL,
+  stratify = FALSE,
+  msm.weights = "empirical",
+  estimate.time = TRUE,
+  gcomp = FALSE,
+  iptw.only = FALSE,
+  deterministic.Q.function = NULL,
+  variance.method = "tmle",
+  observation.weights = NULL,
+  id = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame following the time-ordering of the nodes. See
+'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Anodes</code></td>
+<td>
+<p>column names or indicies in <code>data</code> of treatment nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cnodes</code></td>
+<td>
+<p>column names or indicies in <code>data</code> of censoring nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lnodes</code></td>
+<td>
+<p>column names or indicies in <code>data</code> of time-dependent
+covariate nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ynodes</code></td>
+<td>
+<p>column names or indicies in <code>data</code> of outcome nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survivalOutcome</code></td>
+<td>
+<p>If <code>TRUE</code>, then Y nodes are indicators of an
+event, and if Y at some time point is 1, then all following should be 1.
+Required to be <code>TRUE</code> or <code>FALSE</code> if outcomes are binary and there
+are multiple Ynodes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qform</code></td>
+<td>
+<p>character vector of regression formulas for <code class="reqn">Q</code>. See
+'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gform</code></td>
+<td>
+<p>character vector of regression formulas for <code class="reqn">g</code> or a
+matrix/array of prob(A=1). See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abar</code></td>
+<td>
+<p>binary vector (numAnodes x 1) or matrix (n x numAnodes) of
+counterfactual treatment or a list of length 2. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule</code></td>
+<td>
+<p>a function to be applied to each row (a named vector) of
+<code>data</code> that returns a numeric vector of length numAnodes. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gbounds</code></td>
+<td>
+<p>lower and upper bounds on estimated cumulative probabilities
+for g-factors. Vector of length 2, order unimportant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yrange</code></td>
+<td>
+<p>NULL or a numerical vector where the min and max of
+<code>Yrange</code> specify the range of all Y nodes. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deterministic.g.function</code></td>
+<td>
+<p>optional information on A and C nodes that
+are given deterministically. See 'Details'. Default <code>NULL</code> indicates no
+deterministic links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratify</code></td>
+<td>
+<p>if <code>TRUE</code> stratify on following <code>abar</code> when
+estimating Q and g. If <code>FALSE</code>, pool over <code>abar</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SL.library</code></td>
+<td>
+<p>optional character vector of libraries to pass to
+<code>SuperLearner</code>. <code>NULL</code> indicates
+glm should be called instead of
+<code>SuperLearner</code>. '<code>default</code>'
+indicates a standard set of libraries. May be separately specified for
+<code class="reqn">Q</code> and <code class="reqn">g</code>. See 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SL.cvControl</code></td>
+<td>
+<p>optional list to be passed as <code>cvControl</code> to <code>SuperLearner</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimate.time</code></td>
+<td>
+<p>if <code>TRUE</code>, run an initial estimate using only 50
+observations and use this to print a very rough estimate of the total time
+to completion. No action if there are fewer than 50 observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gcomp</code></td>
+<td>
+<p>if <code>TRUE</code>, run the maximum likelihood based G-computation
+estimate <em>instead</em> of TMLE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iptw.only</code></td>
+<td>
+<p>by default (<code>iptw.only = FALSE</code>), both TMLE and IPTW
+are run in <code>ltmle</code> and <code>ltmleMSM</code>. If <code>iptw.only = TRUE</code>,
+only IPTW is run, which is faster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deterministic.Q.function</code></td>
+<td>
+<p>optional information on Q given
+deterministically. See 'Details'. Default <code>NULL</code> indicates no
+deterministic links.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance.method</code></td>
+<td>
+<p>Method for estimating variance of TMLE.
+One of "ic", "tmle", "iptw". If "tmle", compute both the robust variance
+estimate using TMLE and the influence curve based variance estimate (use the
+larger of the two). If "iptw", compute both the robust variance
+estimate using IPTW and the influence curve based variance estimate (use the
+larger of the two). If "ic", only compute the influence curve based
+variance estimate. "ic" is fastest, but may be substantially
+anti-conservative if there are positivity violations or rare outcomes. "tmle" is
+slowest but most robust if there are positivity violations or rare outcomes.
+"iptw" is a compromise between speed and robustness.
+variance.method="tmle" or "iptw" are not yet available with non-binary outcomes,
+gcomp=TRUE, stratify=TRUE, or deterministic.Q.function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observation.weights</code></td>
+<td>
+<p>observation (sampling) weights. Vector of length
+n. If <code>NULL</code>, assumed to be all 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Household or subject identifiers. Vector of length n or <code>NULL</code>.
+Integer, factor, or character recommended, but any type that can be coerced
+to factor will work. <code>NULL</code> means all distinct ids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regimes</code></td>
+<td>
+<p>binary array: n x numAnodes x numRegimes of counterfactual
+treatment or a list of 'rule' functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>working.msm</code></td>
+<td>
+<p>character formula for the working marginal structural
+model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summary.measures</code></td>
+<td>
+<p>array: num.regimes x num.summary.measures x
+num.final.Ynodes - measures summarizing the regimes that will be used on the
+right hand side of <code>working.msm</code> (baseline covariates may also be used
+in the right hand side of <code>working.msm</code> and do not need to be included
+in <code>summary.measures</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final.Ynodes</code></td>
+<td>
+<p>vector subset of Ynodes - used in MSM to pool over a set
+of outcome nodes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>msm.weights</code></td>
+<td>
+<p>projection weights for the working MSM. If "empirical",
+weight by empirical proportions of rows matching each regime for each
+final.Ynode, with duplicate regimes given zero weight. If <code>NULL</code>, no
+weights. Or an array of user-supplied weights with dimensions c(n,
+num.regimes, num.final.Ynodes) or c(num.regimes, num.final.Ynodes).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The estimates returned by <code>ltmle</code> are of a treatment specific mean,
+<code class="reqn">E[Y_{\bar{a}}]</code>, the mean of the final treatment node, where all
+treatment nodes, <code class="reqn">A</code>, are set to <code class="reqn">\bar{a}</code> (<code>abar</code>) and all
+censoring nodes <code class="reqn">C</code> are set to 1 (uncensored). The estimates returned by
+<code>ltmleMSM</code> are similar but are the parameters in a working marginal
+structural model.
+</p>
+<p><code>data</code> should be a data frame where the order of the columns
+corresponds to the time-ordering of the model.  </p>
+ <ul>
+<li>
+<p> in censoring
+columns (Cnodes): factor with two levels: "censored" and "uncensored". The
+helper function <code>BinaryToCensoring</code> can be used to create these
+factors.  </p>
+</li>
+<li>
+<p> in treatment columns (Anodes): 1 = treated, 0 = untreated
+(must be binary) </p>
+</li>
+<li>
+<p> in event columns (Ynodes): If <code>survivalOutcome</code>
+is <code>TRUE</code>, then Y nodes are treated as indicators of a one-time event.
+See details for <code>survivalOutocme</code>. If <code>survivalOutcome</code> is
+<code>FALSE</code>, Y nodes are treated as binary if all values are 0 or 1, and
+are treated as continuous otherwise. If Y nodes are continuous, they may be
+automatically scaled. See details for <code>Yrange</code>.  </p>
+</li>
+<li>
+<p> time-dependent
+covariate columns (Lnodes): can be any numeric data </p>
+</li>
+<li>
+<p> Data in
+<code>Cnodes</code>, <code>Anodes</code>, <code>Lnodes</code> and <code>Ynodes</code> are not used
+after (to the right of) censoring (or an event when
+<code>survivalOutcome==TRUE</code>) and may be coded as <code>NA</code> or any other
+value.  </p>
+</li>
+<li>
+<p> Columns in <code>data</code> that are before (to the left of) the
+first of <code>Cnodes</code> or <code>Anodes</code> are treated as baseline variables,
+even if they are specified as <code>Lnodes</code>.  </p>
+</li>
+<li>
+<p> After the first of
+<code>Cnodes</code>, <code>Anodes</code>, <code>Ynodes</code>, or <code>Lnodes</code>, every column
+must be in one of <code>Cnodes</code>, <code>Anodes</code>, <code>Ynodes</code>, or
+<code>Lnodes</code>.  </p>
+</li>
+</ul>
+<p>If <code>survivalOutcome</code> is <code>TRUE</code>, all Y values are indicators of an
+event (e.g. death) at or before the current time, where 1 = event and 0 = no
+event. The events in Ynodes must be of the form where once Y jumps to 1, Y
+remains 1 at subsequent nodes.
+</p>
+<p>For continuous outcomes, (<code>survivalOutcome==FALSE</code> and some Y nodes are
+not 0 or 1,) Y values are truncated at the minimum and maximum of
+<code>Yrange</code> if specified, and then transformed and scaled to be in [0,1].
+That is, transformed to <code>(Y-min(Yrange))/(max(Yrange)-min(Yrange))</code>. If
+<code>Yrange</code> is <code>NULL</code>, it is set to the range of all Y nodes. In that
+case, Y nodes are only scaled if any values fall outside of [0,1]. For
+intervention specific means (<code>ltmle</code>), parameter estimates are
+transformed back based <code>Yrange</code>.
+</p>
+<p><code>Qform</code> should be <code>NULL</code>, in which case all parent nodes of each L
+and Y node will be used as regressors, or a named character vector that can
+be coerced to class "<code>formula</code>". The length of <code>Qform</code> must
+be equal to <code>length(Lnodes) + length(Ynodes)</code>** and the names and order
+of the formulas must be the same as the names and order of the L and Y nodes
+in <code>data</code>. The left hand side of each formula should be
+"<code>Q.kplus1</code>". If <code>SL.library</code> is <code>NULL</code>, <code>glm</code> will be
+called using the elements of <code>Qform</code>. If <code>SL.library</code> is
+specified, <code>SuperLearner</code> will be
+called after a design matrix is created using <code>Qform.</code>
+</p>
+<p>** If there is a "block" of L and Y nodes not separated by A or C nodes,
+only one regression is required at the first L/Y node in a block. You can
+pass regression formulas for the other L/Y nodes, but they will be ignored
+(with a message). See example 5.
+</p>
+<p><code>gform</code> should be <code>NULL</code>, in which case all parent nodes of each L
+and Y node will be used as regressors, or a character vector that can be
+coerced to class "<code>formula</code>", or a matrix/array of Prob(A=1). If
+<code>gform</code> is a character vector, the length of <code>gform</code> must be equal
+to <code>length(Anodes) + length(Cnodes)</code> and the order of the formulas must
+be the same as the order the A and C nodes appear in <code>data</code>. The left
+hand side of each formula should be the name of the Anode or Cnode. If
+<code>SL.library</code> is <code>NULL</code>, <code>glm</code> will be called using the
+elements of <code>gform</code>. If <code>SL.library</code> is specified,
+<code>SuperLearner</code> will be called after a
+design matrix is created using <code>gform</code>.
+</p>
+<p>In <code>ltmle</code>, <code>gform</code> can also be a n x numACnodes matrix where
+entry (i, j) is the probability that the ith observation of the jth A/C node
+is 1 (if an Anode) or uncensored (if a Cnode), conditional on following abar
+up to that node. In <code>ltmleMSM</code>, <code>gform</code> can similarly be a n x
+numACnodes x numRegimes array, where entry (i, j, k) is the probability that
+the ith observation of the jth A/C node is 1 (if an Anode) or uncensored (if
+a Cnode), conditional on following regime k up to that node. If <code>gform</code>
+is a matrix/array, <code>deterministic.g.function</code> will not be used and
+should be <code>NULL</code>.
+</p>
+<p><code>abar</code> specifies the counterfactual values of the Anodes, using the
+order they appear in <code>data</code> and should have the same length (if abar is
+a vector) or number of columns (if abar is a matrix) as <code>Anodes</code>.
+</p>
+<p><code>rule</code> can be used to specify a dynamic treatment rule. <code>rule</code> is
+a function applied to each row of <code>data</code> which returns a numeric
+vector of the same length as <code>Anodes</code>.
+</p>
+<p><code>abar</code> and <code>rule</code> cannot both be specified. If one of them if a
+list of length 2, additive treatment effect, risk ratio, and odds ratio can
+be computed using <code>summary.ltmleEffectMeasures</code>.
+</p>
+<p><code>regimes</code> can be a binary array: n x numAnodes x numRegimes of
+counterfactual treatment or a list of 'rule' functions as described above
+for the <code>rule</code> argument for the <code>ltmle</code> function
+</p>
+<p><code>deterministic.g.function</code> can be a function used to specify model
+knowledge about value of Anodes and/or Cnodes that are set
+deterministically. For example, it may be the case that once a patient
+starts treatment, they always stay on treatment. For details on the form of
+the function and examples, see
+<code>deterministic.g.function_template</code>
+</p>
+<p><code>deterministic.Q.function</code> can be a function used to specify model
+knowledge about the final event state. For example, it may be the case that
+a patient can complete the study at some intermediate time point, in which
+case the probability of death is 0 (assuming they have not died already).
+For details on the form of the function and examples, see
+<code>deterministic.Q.function_template</code>
+</p>
+<p><code>SL.library</code> may be a character vector of libraries (or '<code>glm</code>' or
+'<code>default</code>'), in which case these libraries are used to estimate both
+<code class="reqn">Q</code> and <code class="reqn">g</code> OR a list with two components, <code>Q</code> and <code>g</code>,
+where each is a character vector of libraries (or '<code>glm</code>' or
+'<code>default</code>').  '<code>glm</code>' indicates glm should be called
+instead of <code>SuperLearner</code> If
+<code>SL.library</code> is the string '<code>default</code>', <code>SL.library</code> is set
+to <code>list("SL.glm", "SL.stepAIC", "SL.bayesglm", c("SL.glm",
+"screen.corP"), c("SL.step", "screen.corP"), c("SL.step.forward",
+"screen.corP"), c("SL.stepAIC", "screen.corP"), c("SL.step.interaction",
+"screen.corP"), c("SL.bayesglm", "screen.corP")</code>.  Note that the default set
+of libraries consists of main terms models. It may be advisable to include
+squared terms, interaction terms, etc in <code>gform</code> and <code>Qform</code> or
+include libraries that consider non-linear terms.
+</p>
+<p>If <code>attr(SL.library, "return.fit") == TRUE</code>, then <code>fit$g</code> and
+<code>fit$Q</code> will return full <code>SuperLearner</code> or <code>glm</code> objects.
+If not, only a summary matrix will be returned to save memory.
+</p>
+<p>The print method for <code>ltmle</code> objects only prints the tmle estimates.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>ltmle</code> returns an object of class "<code>ltmle</code>" (unless
+<code>abar</code> or <code>rule</code> is a list, in which case it returns an object of
+class <code>ltmleSummaryMeasures</code>, which has the same components as
+<code>ltmleMSM</code>.) The function <code>summary</code> (i.e.
+<code>summary.ltmle</code>) can be used to obtain or print a summary of the
+results. An object of class "<code>ltmle</code>" is a list containing the
+following components: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimates</code></td>
+<td>
+<p>a named vector of length 4 with
+elements, each an estimate of <code class="reqn">E[Y_{bar{a}}]</code>: </p>
+ <ul>
+<li>
+<p><code>tmle</code> - Targeted Maximum Likelihood Estimate [NULL if <code>gcomp</code> is
+<code>TRUE</code>] </p>
+</li>
+<li> <p><code>iptw</code> - Inverse Probability of Treatment/Censoring
+Weighted estimate </p>
+</li>
+<li> <p><code>gcomp</code> - maximum likelihood based
+G-computation estimate [NULL if <code>gcomp</code> is <code>FALSE</code>] </p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>a list with the following components of Influence Curve values</p>
+</td>
+</tr>
+</table>
+<ul>
+<li> <p><code>tmle</code> - vector of influence curve values for Targeted
+Maximum Likelihood Estimate [NULL if <code>gcomp</code> is <code>TRUE</code>] </p>
+</li>
+<li>
+<p><code>iptw</code> - vector of influence curve values for Inverse Probability of
+Treatment/Censoring Weighted estimate </p>
+</li>
+<li> <p><code>gcomp</code> - vector of
+influence curve values for Targeted Maximum Likelihood Estimate without
+updating [NULL if <code>gcomp</code> is <code>FALSE</code>] </p>
+</li>
+</ul>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cum.g</code></td>
+<td>
+<p>cumulative g,
+after bounding: for ltmle, n x numACnodes, for ltmleMSM, n x numACnodes x
+num.regimes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.g.unbounded</code></td>
+<td>
+<p>cumulative g, before bounding: for
+ltmle, n x numACnodes, for ltmleMSM, n x numACnodes x num.regimes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.g.used</code></td>
+<td>
+<p>binary - TRUE if an entry of cum.g was used in the updating
+step (note: even if cum.g.used is FALSE, a small value of cum.g.unbounded may
+still indicate a positivity problem): for ltmle, n x numACnodes,
+for ltmleMSM, n x numACnodes x num.regimes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gcomp</code></td>
+<td>
+<p>the <code>gcomp</code> input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulas</code></td>
+<td>
+<p>a <code>list</code> with elements <code>Qform</code> and <code>gform</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>a list with the following components</p>
+</td>
+</tr>
+</table>
+<ul>
+<li> <p><code>g</code> -
+list of length numACnodes - <code>glm</code> or <code>SuperLearner</code> (see Details)
+return objects from fitting g regressions
+</p>
+</li>
+<li> <p><code>Q</code> - list of length numLYnodes - <code>glm</code> or <code>SuperLearner</code>
+(see Details) return objects from fitting Q regressions
+</p>
+</li>
+<li> <p><code>Qstar</code> - list of length numLYnodes - <code>glm</code> (or numerical
+optimization if <code>glm</code> fails to solve the score equation) return objects
+from updating the Q fit </p>
+</li>
+</ul>
+<p><code>ltmleMSM</code> returns an object of class "<code>ltmleMSM</code>" The function
+<code>summary</code> (i.e. <code>summary.ltmleMSM</code>) can be used to
+obtain or print a summary of the results. An object of class
+"<code>ltmleMSM</code>" is a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>parameter estimates for working.msm using TMLE (GCOMP if
+<code>gcomp</code> input is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.iptw</code></td>
+<td>
+<p>parameter estimates for
+working.msm using IPTW</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC</code></td>
+<td>
+<p>matrix, n x numBetas - influence curve
+values for TMLE (without updating if <code>gcomp</code> input is <code>TRUE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IC.iptw</code></td>
+<td>
+<p>matrix, n x numBetas - influence curve values for IPTW</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>msm</code></td>
+<td>
+<p>object of class glm - the result of fitting the working.msm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.g</code></td>
+<td>
+<p>array, n x numACnodes x numRegimes - cumulative g, after
+bounding</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.g.unbounded</code></td>
+<td>
+<p>array, n x numACnodes x numRegimes -
+cumulative g, before bounding</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gcomp</code></td>
+<td>
+<p>the <code>gcomp</code> input</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulas</code></td>
+<td>
+<p>a <code>list</code> with
+elements <code>Qform</code> and <code>gform</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>a list with the following components</p>
+</td>
+</tr>
+</table>
+<ul>
+<li> <p><code>g</code> - list of length numRegimes of list of length
+numACnodes - <code>glm</code> or <code>SuperLearner</code> (see Details) return objects from
+fitting g regressions </p>
+</li>
+<li> <p><code>Q</code> - list of length numLYnodes -
+<code>glm</code> or <code>SuperLearner</code> (see Details) return objects from fitting Q
+regressions
+</p>
+</li>
+<li> <p><code>Qstar</code> - list of length numLYnodes - <code>glm</code> (or numerical
+optimization if <code>glm</code> fails to solve the score equation) return objects
+from updating the Q fit </p>
+</li>
+</ul>
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>ltmleMSM()</code>: Longitudinal Targeted Maximum Likelihood Estimation for a Marginal Structural Model
+</p>
+</li></ul>
+<h3>Author(s)</h3>
+
+<p>Joshua Schwab <a href="mailto:jschwab77@berkeley.edu">jschwab77@berkeley.edu</a>, Samuel Lendle, Maya
+Petersen, and Mark van der Laan
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.ltmle</code>, <code>summary.ltmleMSM</code>,
+<code>SuperLearner</code>,
+<code>deterministic.g.function_template</code>,
+<code>deterministic.Q.function_template</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# See \url{http://joshuaschwab.github.io/ltmle/} for more examples.
+
+rexpit &lt;- function(x) rbinom(n=length(x), size=1, prob=plogis(x))
+
+# Single time point Example
+n &lt;- 1000
+W &lt;- rnorm(n)
+A &lt;- rexpit(-1 + 2 * W)
+Y &lt;- rexpit(W + A)
+data &lt;- data.frame(W, A, Y)
+
+result1 &lt;- ltmle(data, Anodes="A", Ynodes="Y", abar=1)
+summary(result1)
+summary(result1, estimator="iptw")
+# MSM Example
+# Given data over 3 time points where A switches to 1 once and then stays 1. We want to know
+# how death varies as a function of gender, time and an indicator of whether a patient's
+# intended regime was to switch before time.
+# Note that working.msm includes time and switch.time, which are columns of
+# summary.measures; working.msm also includes male, which is ok because it is a baseline
+# covariate (it comes before any A/C/L/Y nodes).
+data(sampleDataForLtmleMSM)
+Anodes &lt;- grep("^A", names(sampleDataForLtmleMSM$data))
+Lnodes &lt;- c("CD4_1", "CD4_2")
+Ynodes &lt;- grep("^Y", names(sampleDataForLtmleMSM$data))
+msm.weights &lt;- matrix(1:12, nrow=4, ncol=3) #just an example (can also use a 200x3x4 array),
+                                            #or NULL (for no weights), or "empirical" (the default)
+
+result2 &lt;- ltmleMSM(sampleDataForLtmleMSM$data, Anodes=Anodes, Lnodes=Lnodes, Ynodes=Ynodes,
+                   survivalOutcome=TRUE,
+                   regimes=sampleDataForLtmleMSM$regimes,
+                   summary.measures=sampleDataForLtmleMSM$summary.measures, final.Ynodes=Ynodes,
+                   working.msm="Y ~ male + time + I(pmax(time - switch.time, 0))",
+                   msm.weights=msm.weights, estimate.time=FALSE)
+print(summary(result2))
+
+</code></pre>
+
+
+</div>

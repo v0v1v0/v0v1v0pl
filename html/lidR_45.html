@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>classify</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classify points</h2>
+
+<h3>Description</h3>
+
+<p>Classify points that meet some criterion and/or that belong in a region of interest. The
+functions updates the attribute <code>Classification</code> of the LAS object according to
+<a href="https://www.asprs.org/wp-content/uploads/2019/07/LAS_1_4_r15.pdf">las specifications</a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">classify_ground(las, algorithm, last_returns = TRUE)
+
+classify_noise(las, algorithm)
+
+classify_poi(
+  las,
+  class,
+  poi = NULL,
+  roi = NULL,
+  inverse_roi = FALSE,
+  by_reference = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>An algorithm for classification. lidR has has: sor, ivf for noise
+classification, and pmf, csf, mcc for ground classification (see respective
+documentation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last_returns</code></td>
+<td>
+<p>logical. The algorithm will use only the last returns (including the first returns
+in cases of a single return) to run the algorithm. If FALSE all the returns are used. If the attributes
+<code>'ReturnNumber'</code> or <code>'NumberOfReturns'</code> are absent, <code>'last_returns'</code> is turned
+to <code>FALSE</code> automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>The ASPRS class to attribute to the points that meet the criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poi</code></td>
+<td>
+<p>a formula of logical predicates. The points that are <code>TRUE</code> will be classified <code>class</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roi</code></td>
+<td>
+<p>A <code style="white-space: pre;">⁠SpatialPolygons*⁠</code>, from <code>sp</code> or a <code>sf/sfc_POLYGON</code> from <code>sf</code>.
+The points that are in the region of interest delimited by the polygon(s) are classified
+<code>class</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse_roi</code></td>
+<td>
+<p>bool. Inverses the <code>roi</code>. The points that are outside the polygon(s)
+are classified <code>class</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_reference</code></td>
+<td>
+<p>bool. Updates the classification in place (LAS only).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt>classify_noise</dt>
+<dd>
+<p>Classify points as 'noise' (outliers) with several possible algorithms.
+lidR has: sor, ivf. The points classified as 'noise' are assigned a value of 18.</p>
+</dd>
+<dt>classify_ground</dt>
+<dd>
+<p>Classify points as 'ground' with several possible algorithms.
+lidR has pmf, csf and mcc. The points classified as 'ground' are assigned a
+value of 2 </p>
+</dd>
+<dt>classify_poi</dt>
+<dd>
+<p>Classify points that meet some logical criterion and/or that belong in a
+region of interest with class of choice.</p>
+</dd>
+</dl>
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option <code>select</code> is not supported and not respected because it always preserves the file format
+and all the attributes. <code>select = "*"</code> is imposed internally.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># ===============
+# Classify ground
+# ===============
+
+if (require(RCSF, quietly = TRUE))
+{
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile, select = "xyzrn", filter = "-inside 273450 5274350 273550 5274450")
+
+# (Parameters chosen mainly for speed)
+mycsf &lt;- csf(TRUE, 1, 1, time_step = 1)
+las &lt;- classify_ground(las, mycsf)
+#plot(las, color = "Classification")
+}
+
+# ===============
+# Classify noise
+# ===============
+
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile, filter = "-inside 273450 5274350 273550 5274450")
+
+# Add 20 artificial outliers
+set.seed(314)
+id = round(runif(20, 0, npoints(las)))
+set.seed(42)
+err = runif(20, -50, 50)
+las$Z[id] = las$Z[id] + err
+
+# Using IVF
+las &lt;- classify_noise(las, ivf(5,2))
+#plot(las, color = "Classification")
+
+# Remove outliers using filter_poi()
+las_denoise &lt;- filter_poi(las, Classification != LASNOISE)
+
+# ===============
+# Classify POI
+# ===============
+
+LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+shp &lt;- system.file("extdata", "lake_polygons_UTM17.shp", package = "lidR")
+
+las  &lt;- readLAS(LASfile, filter = "-keep_random_fraction 0.1")
+lake &lt;- sf::st_read(shp, quiet = TRUE)
+
+# Classifies the points that are NOT in the lake and that are NOT ground points as class 5
+poi &lt;- ~Classification != LASGROUND
+las &lt;- classify_poi(las, LASHIGHVEGETATION, poi = poi, roi = lake, inverse = TRUE)
+
+# Classifies the points that are in the lake as class 9
+las &lt;- classify_poi(las, LASWATER, roi = lake, inverse = FALSE)
+
+#plot(las, color = "Classification")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validationSpec</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create validation spectrograms.</h2>
+
+<h3>Description</h3>
+
+<p>This function is used inside the <code>localize</code> function to create the panels of
+synchronized spectrograms for manual review.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validationSpec(
+  wavList,
+  coordinates,
+  locationEstimate,
+  from,
+  to,
+  tempC = 15,
+  soundSpeed,
+  F_Low,
+  F_High
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wavList</code></td>
+<td>
+<p>list of Wave objects. The name of the Wave objects MUST be
+present in the coordinates data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coordinates</code></td>
+<td>
+<p>data.frame. Must contain four required columns:
+column Station contains a character string with names of each recording
+station, while Easting, Northing and Elevation contain the x, y, and z
+coordinates of the station, in meters (E.g. UTM coordinates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locationEstimate</code></td>
+<td>
+<p>Dataframe with one row containing columns Easting, Northing and Elevation,
+specifying the estimated location of the sound source.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from, to</code></td>
+<td>
+<p>Numeric. The portion of the wavs to plot. If missing, the whole wav will be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tempC</code></td>
+<td>
+<p>Numeric. The ambient temperature in celsius, which is used to calculate the speed
+of sound in air if none is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>soundSpeed</code></td>
+<td>
+<p>Numeric. The speed of sound. If missing, tempC will be used to calculate
+the speed of sound in air.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F_Low, F_High</code></td>
+<td>
+<p>Numeric. The low and high frequency, in Hz, of the sound
+to be localized.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    
+    #Get filepaths for example data.
+    fp &lt;- list.files(system.file('extdata', package = 'locaR'),
+                      pattern = '.mp3', full.names = TRUE)
+    #Add names.
+    names(fp) &lt;- sapply(strsplit(basename(fp), '_'), '[[', 1)
+    #Load first row of detection data.
+    row &lt;- read.csv(system.file('extdata',
+         'Vignette_Detections_20200617_090000.csv', package = 'locaR'),
+          stringsAsFactors = FALSE)[1,]
+    #Get non-empty Station columns.
+    stationSubset &lt;- unlist(row[1,paste0('Station',1:6)])
+    stationSubset &lt;- stationSubset[!is.na(stationSubset) &amp; stationSubset != '']
+    #Create wav list.
+    wl &lt;- createWavList(paths = fp[stationSubset], names = stationSubset,
+           from = row$From, to = row$To, buffer = 0.2, index=1)
+    #Read coordinates.
+    coordinates &lt;- read.csv(system.file('extdata', 'Vignette_Coordinates.csv',
+                            package = 'locaR'), stringsAsFactors = FALSE)
+    row.names(coordinates) &lt;- coordinates$Station
+    #Subset coordinates.
+    crd &lt;- coordinates[stationSubset,]
+    #Localize.
+    loc &lt;- localize(wavList = wl, coordinates = crd, locFolder = tempdir(),
+               F_Low = row$F_Low, F_High = row$F_High, jpegName = '0001.jpeg',
+               keep.SearchMap = TRUE)
+    #Create validation spectrogram.
+    #Store old par
+    oldpar &lt;- par()$mfrow
+    par(mfrow = c(6,1))
+    validationSpec(wavList = wl, coordinates = crd, locationEstimate = loc$location,
+                                 F_Low = row$F_Low, F_High = row$F_High)
+    #Reset old par values.
+    par(mfrow = oldpar)
+    
+</code></pre>
+
+
+</div>

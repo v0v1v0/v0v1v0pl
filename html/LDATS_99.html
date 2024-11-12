@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>swap_chains</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct a set of among-chain swaps for the ptMCMC algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function handles the among-chain swapping based on 
+temperatures and likelihood differentials.  
+<br><br>
+This function was designed to work within <code>TS</code> and 
+specifically <code>est_changepoints</code>. It is still hardcoded to do
+so, but has the capacity to be generalized to work with any estimation
+via ptMCMC with additional coding work.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">swap_chains(chainsin, inputs, ids)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>chainsin</code></td>
+<td>
+<p>Chain configuration to be evaluated for swapping.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p>Class <code>ptMCMC_inputs</code> list, containing the static inputs
+for use within the ptMCMC algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>The vector of integer chain ids.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The ptMCMC algorithm couples the chains (which are 
+taking their own walks on the distribution surface) through "swaps", 
+where neighboring chains exchange configurations (Geyer 1991, Falcioni 
+and Deem 1999) following the Metropolis criterion (Metropolis 
+<em>et al.</em> 1953). This allows them to share information and search the
+surface in combination (Earl and Deem 2005).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>list</code> of updated change points, log-likelihoods, and chain
+ids, as well as a vector of acceptance indicators for each swap.
+</p>
+
+
+<h3>References</h3>
+
+<p>Earl, D. J. and M. W. Deem. 2005. Parallel tempering: theory, 
+applications, and new perspectives. <em>Physical Chemistry Chemical 
+Physics</em> <strong>7</strong>: 3910-3916.
+<a href="https://pubs.rsc.org/en/content/articlelanding/2005/cp/b509983h">link</a>.
+</p>
+<p>Falcioni, M. and M. W. Deem. 1999. A biased Monte Carlo scheme for 
+zeolite structure solution.  <em>Journal of Chemical Physics</em>
+<strong>110</strong>: 1754-1766.
+<a href="https://pubs.aip.org/aip/jcp/article/110/3/1754/475486/A-biased-Monte-Carlo-scheme-for-zeolite-structure">link</a>.
+</p>
+<p>Geyer, C. J. 1991. Markov Chain Monte Carlo maximum likelihood. <em>In
+Computing Science and Statistics: Proceedings of the 23rd Symposium on 
+the Interface</em>. pp 156-163. American Statistical Association, New York,
+USA. <a href="https://www.stat.umn.edu/geyer/f05/8931/c.pdf">link</a>.
+</p>
+<p>Metropolis, N., A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and E.
+Teller. 1953. Equations of state calculations by fast computing machines.
+<em>Journal of Chemical Physics</em> <strong>21</strong>: 1087-1092.
+<a href="https://bayes.wustl.edu/Manual/EquationOfState.pdf">link</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  data &lt;- data[order(data[,"newmoon"]), ]
+  saves &lt;- prep_saves(1, TS_control())
+  inputs &lt;- prep_ptMCMC_inputs(data, gamma ~ 1, 1, "newmoon", weights, 
+                               TS_control())
+  cpts &lt;- prep_cpts(data, gamma ~ 1, 1, "newmoon", weights, TS_control())
+  ids &lt;- prep_ids(TS_control())
+  for(i in 1:TS_control()$nit){
+    steps &lt;- step_chains(i, cpts, inputs)
+    swaps &lt;- swap_chains(steps, inputs, ids)
+    saves &lt;- update_saves(i, saves, steps, swaps)
+    cpts &lt;- update_cpts(cpts, swaps)
+    ids &lt;- update_ids(ids, swaps)
+  }
+
+
+</code></pre>
+
+
+</div>

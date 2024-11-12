@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generate_Gaussian</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Generate a Gaussian distributed data set
+</h2>
+
+<h3>Description</h3>
+
+<p>This function will generate a Gaussian distributed data set with latent variables and correlated replicates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">generate_Gaussian(n, R, p, l, s, sparsityA, sparsityobserved, sparsitylatent, lwb, 
+upb, seed)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>the number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the number of replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the number of observed variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>the number of latent variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>latent effects are generated as <code class="reqn">s</code> piecewise constant across replicates. The number <code class="reqn">s</code> should be a factor of <code class="reqn">R</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparsityA</code></td>
+<td>
+<p>proportion of the number of zeros in the transition matrix <code class="reqn">A</code>. Must be a number from 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparsityobserved</code></td>
+<td>
+<p>proportion of the number of zeros in the inverse covariance of the observed variables. Must be a number from 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparsitylatent</code></td>
+<td>
+<p>proportion of the number of zeros in the inverse covariances among latent variables and between observed variables and latent variables. Must be a number from 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwb</code></td>
+<td>
+<p>lower bound for the elements in the inverse covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upb</code></td>
+<td>
+<p>upper bound for the elements in the inverse covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>the seed for the random number generator.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function aims to generate a Gaussian distributed data set with latent variables and correlated replicates. For each observation, the latent variables are piecewise constant across replicates, and conditioned on the latent variables, the replicates follow a one-lag vector autoregressive model, where the transition matrix <code class="reqn">A</code> is sparse with non-zero elements set equal to 0.3. 
+The matrix <code class="reqn">\Sigma</code> is the covariance matrix for the observed variables X and the latent variables <code class="reqn">U</code>, and we partition <code class="reqn">\Sigma</code> into matrices that quantify the relationships among the observed variables (<code class="reqn">\Sigma_{XX}</code>), between the observed variables and latent variables (<code class="reqn">\Sigma_{XU}</code> or <code class="reqn">\Sigma_{UX}</code>), and of the latent variables (<code class="reqn">\Sigma_{UU}</code>).
+In general, the data is generated with:
+</p>
+<p style="text-align: center;"><code class="reqn">
+X_{i1} | U_{i1} \sim N_p(\Sigma_{XU}\Sigma^{-1}_{UU} U_{i1}, \Sigma_{XX} - \Sigma_{XU}\Sigma^{-1}_{UU}\Sigma_{UX}),
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+X_{it} | X_{i(t-1)},U_{it} \sim N_p(AX_{i(t-1)} + \Sigma_{XU}\Sigma^{-1}_{UU} U_{it}, \Sigma_{XX} - \Sigma_{XU}\Sigma^{-1}_{UU}\Sigma_{UX}),
+</code>
+</p>
+
+<p>where <code class="reqn">1 \le i \le n</code> and <code class="reqn">1 \le t \le R</code>. 
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the generated data, which is a list with <code class="reqn">n</code> elements and each element is a matrix with <code class="reqn">R</code> rows and <code class="reqn">p</code> columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truegraph</code></td>
+<td>
+<p>a matrix that encodes the conditional dependence relationships between sets of two observed variables</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Jin, Y., Ning, Y., and Tan, K. M. (2020), ‘Exponential Family Graphical Models with Correlated Replicates and Unmeasured Confounders’, preprint available.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data &lt;- generate_Gaussian(n = 50, R = 20, p = 30, l = 2, s = 2, sparsityA = 0.95,
+sparsityobserved = 0.9, sparsitylatent = 0.2, lwb = 0.3, upb = 0.3, seed = 1)
+</code></pre>
+
+
+</div>

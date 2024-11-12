@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quaaep4</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantile Function of the 4-Parameter Asymmetric Exponential Power Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the quantiles of the 4-parameter Asymmetric Exponential Power distribution given parameters (<code class="reqn">\xi</code>, <code class="reqn">\alpha</code>, <code class="reqn">\kappa</code>, and <code class="reqn">h</code>) of the distribution computed by <code>paraep4</code>. The quantile function of the distribution given the cumulative distribution function <code class="reqn">F(x)</code> for <code class="reqn">F &lt; F(\xi)</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">x(F) = \xi - \alpha\kappa\biggl[\gamma^{(-1)}\bigl((1+\kappa^2)F/\kappa^2,\; 1/h\bigr)\biggr]^{1/h}\mbox{,}</code>
+</p>
+
+<p>and for <code class="reqn">F \ge F(\xi)</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">x(F) = \xi + \frac{\alpha}{\kappa}\biggl[\gamma^{(-1)}\bigl((1+\kappa^2)(1-F),\; 1/h\bigr)\biggr]^{1/h} \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile <code class="reqn">x</code> for nonexceedance probability <code class="reqn">F</code>,
+<code class="reqn">\xi</code> is a location parameter, <code class="reqn">\alpha</code> is a scale parameter,
+<code class="reqn">\kappa</code> is a shape parameter, <code class="reqn">h</code> is another shape parameter, <code class="reqn">\gamma^{(-1)}(Z, shape)</code> is the inverse of the upper tail of the incomplete gamma function. The range of the distribution is <code class="reqn">-\infty &lt; x &lt; \infty</code>. The inverse upper tail of the incomplete gamma function is <code>qgamma(Z, shape, lower.tail=FALSE)</code> in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>. The mathematical definition of the upper tail of the incomplete gamma function shown in documentation for <code>cdfaep4</code>. If the <code class="reqn">\tau_3</code> of the distribution is zero (symmetrical), then the distribution is known as the Exponential Power (see <code>lmrdia46</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quaaep4(f, para, paracheck=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>paraep4</code> or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters are checked for validity. Overriding of this check might be extremely important and needed for use of the quantile function in the context of TL-moments with nonzero trimming.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Quantile value for nonexceedance probability <code class="reqn">F</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2014, Parameter estimation for the 4-parameter asymmetric exponential power distribution by the method of L-moments using R: Computational Statistics and Data Analysis, v. 71, pp. 955–970.
+</p>
+<p>Delicado, P., and Goria, M.N., 2008, A small sample comparison of maximum likelihood,
+moments and L-moments methods for the asymmetric exponential power distribution:
+Computational Statistics and Data Analysis, v. 52, no. 3, pp. 1661–1673.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfaep4</code>, <code>pdfaep4</code>, <code>lmomaep4</code>, <code>paraep4</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para &lt;- vec2par(c(0,1, 0.5, 2), type="aep4");
+IQR &lt;- quaaep4(0.75,para) - quaaep4(0.25,para);
+cat("Interquartile Range=",IQR,"\n")
+
+## Not run: 
+F &lt;- c(0.00001, 0.0001, 0.001, seq(0.01, 0.99, by=0.01),
+       0.999, 0.9999, 0.99999);
+delx &lt;- 0.1;
+x &lt;- seq(-10,10, by=delx);
+K &lt;- .67
+
+PAR &lt;- list(para=c(0,1, K, 0.5), type="aep4");
+plot(x,cdfaep4(x, PAR), type="n",
+     ylab="NONEXCEEDANCE PROBABILITY",
+     ylim=c(0,1), xlim=c(-20,20));
+lines(x,cdfaep4(x,PAR), lwd=3);
+lines(quaaep4(F, PAR), F, col=4);
+
+PAR &lt;- list(para=c(0,1, K, 1), type="aep4");
+lines(x,cdfaep4(x, PAR), lty=2, lwd=3);
+lines(quaaep4(F, PAR), F, col=4, lty=2);
+
+PAR &lt;- list(para=c(0,1, K, 2), type="aep4");
+lines(x,cdfaep4(x, PAR), lty=3, lwd=3);
+lines(quaaep4(F, PAR), F, col=4, lty=3);
+
+PAR &lt;- list(para=c(0,1, K, 4), type="aep4");
+lines(x,cdfaep4(x, PAR), lty=4, lwd=3);
+lines(quaaep4(F, PAR), F, col=4, lty=4);
+
+## End(Not run)
+</code></pre>
+
+
+</div>

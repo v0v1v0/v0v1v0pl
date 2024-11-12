@@ -1,0 +1,275 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cv.l2boost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>K-fold cross-validation using <code>l2boost</code>.</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the K-fold cross-validation prediction error for <code>l2boost</code> models.
+The prediction error is calculated using mean squared error (MSE). The optimal boosting step (<em>m=opt.step</em>)
+is obtained by selecting the step <em>m</em> resulting in the minimal MSE.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cv.l2boost(
+  x,
+  y,
+  K = 10,
+  M = NULL,
+  nu = 1e-04,
+  lambda = NULL,
+  trace = FALSE,
+  type = c("discrete", "hybrid", "friedman", "lars"),
+  cores = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>number of cross-validation folds (default: 10)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>the total number of iterations passed to <code>l2boost</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>l1 shrinkage parameter (default: 1e-4)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>l2 shrinkage parameter for elasticBoost (default: NULL = no l2-regularization)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Show computation/debugging output? (default: FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of l2boost fit with (default: discrete) see <code>l2boost</code> for description.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>number of cores to parallel the cv analysis. If not specified, detects the 
+number of cores. If more than 1 core, use n-1 for cross-validation. Implemented using 
+multicore (mclapply), or clusterApply on Windows machines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>l2boost</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The cross-validation method splits the test data set into K mutually exclusive subsets. An <code>l2boost</code> model 
+is built on K different training data sets, each created from a subsample of the full data set by sequentially leaving 
+out one of the K subsets. The prediction error estimate is calculated by averaging the mean square error of each K test 
+sets of the all of the K training datasets. The optimal step <em>m</em> is obtained at the step with a minimal averaged 
+mean square error.
+</p>
+<p>The full <code>l2boost</code> model is run after the cross-validation models, on the full data set. This model is
+run for the full number of iteration steps <em>M</em> and returned in the cv.l2boost$fit object. 
+</p>
+<p><code>cv.l2boost</code> only optimizes along the iteration count <em>m</em> for a given value of <em>nu</em>. This is
+equivalent to an L1-regularization optimization. In order to optimize an elasticBoost model on the L2-regularization 
+parameter lambda, a manual two way cross-validation can be obtained by sequentially optimizing over a range of lambda 
+values, and selecting the lambda/opt.step pair resulting in the minimal cross-validated mean square error. See the 
+examples below.
+</p>
+<p><code>cv.l2boost</code> uses the parallel package internally to speed up the cross-validation process on multicore 
+machines. Parallel is packaged with base R &gt;= 2.14, for earlier releases the multicore package provides the same 
+functionality. By default, <code>cv.l2boost</code> will use all cores available except 1. Each fold is run on it's
+own core and results are combined automatically. The number of cores can be overridden using the <em>cores</em> function
+argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of cross-validation results:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Choice of l2boost algorithm from  "discrete", "hybrid", "friedman","lars". see <code>l2boost</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>names</code></td>
+<td>
+<p>design matrix column names used in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>The L1 boosting shrinkage parameter value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>The L2 elasticBoost shrinkage parameter value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>number of folds used for cross-validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mse</code></td>
+<td>
+<p>Optimal cross-validation mean square error estimate </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mse.list</code></td>
+<td>
+<p>list of <em>K</em> vectors of mean square errors at each step <em>m</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>beta coefficient estimates from the full model at opt.step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.stand</code></td>
+<td>
+<p>standardized beta coefficient estimates from full model at opt.step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.step</code></td>
+<td>
+<p>optimal step m calculated by minimizing cross-validation error among all K training sets</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.norm</code></td>
+<td>
+<p>L1 norm of beta coefficients at opt.step</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p><code>l2boost</code> fit of full model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yhat</code></td>
+<td>
+<p>estimate of response from full model at opt.step</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>l2boost</code>, <code>plot.l2boost</code>, 
+<code>predict.l2boost</code> and <code>coef.l2boost</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#--------------------------------------------------------------------------
+# Example: ElasticBoost simulation
+# Compare l2boost and elasticNetBoosting using 10-fold CV
+# 
+# Elastic net simulation, see Zou H. and Hastie T. Regularization and 
+# variable selection via the elastic net. J. Royal Statist. Soc. B, 
+# 67(2):301-320, 2005
+set.seed(1025)
+dta &lt;- elasticNetSim(n=100)
+
+# The default values set up the signal on 3 groups of 5 variables,
+# Color the signal variables red, others are grey.
+sig &lt;- c(rep("red", 15), rep("grey", 40-15))
+
+# Set the boosting parameters
+Mtarget = 1000
+nuTarget = 1.e-2
+
+# For CRAN, only use 2 cores in the CV method
+cvCores=2
+
+# 10 fold l2boost CV  
+cv.obj &lt;- cv.l2boost(dta$x,dta$y,M=Mtarget, nu=nuTarget, cores=cvCores)
+
+# Plot the results
+par(mfrow=c(2,3))
+plot(cv.obj)
+abline(v=cv.obj$opt.step, lty=2, col="grey")
+plot(cv.obj$fit, type="coef", ylab=expression(beta[i]))
+abline(v=cv.obj$opt.step, lty=2, col="grey")
+plot(coef(cv.obj$fit, m=cv.obj$opt.step), cex=.5, 
+  ylab=expression(beta[i]), xlab="Column Index", ylim=c(0,140), col=sig)
+
+# elasticBoost l1-regularization parameter lambda=0.1 
+# 5 fold elasticNet CV
+cv.eBoost &lt;- cv.l2boost(dta$x,dta$y,M=Mtarget, K=5, nu=nuTarget, lambda=.1, cores=cvCores) 
+
+# plot the results
+plot(cv.eBoost)
+abline(v=cv.eBoost$opt.step, lty=2, col="grey")
+plot(cv.eBoost$fit, type="coef", ylab=expression(beta[i]))
+abline(v=cv.eBoost$opt.step, lty=2, col="grey")
+plot(coef(cv.eBoost$fit, m=cv.obj$opt.step), cex=.5, 
+  ylab=expression(beta[i]), xlab="Column Index", ylim=c(0,140), col=sig)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

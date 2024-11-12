@@ -1,0 +1,495 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lrsim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log-rank test simulation</h2>
+
+<h3>Description</h3>
+
+<p>Performs simulation for two-arm group sequential
+trials based on weighted log-rank test.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lrsim(
+  kMax = 1L,
+  informationRates = NA_real_,
+  criticalValues = NA_real_,
+  futilityBounds = NA_real_,
+  hazardRatioH0 = 1,
+  allocation1 = 1L,
+  allocation2 = 1L,
+  accrualTime = 0L,
+  accrualIntensity = NA_real_,
+  piecewiseSurvivalTime = 0L,
+  stratumFraction = 1L,
+  lambda1 = NA_real_,
+  lambda2 = NA_real_,
+  gamma1 = 0L,
+  gamma2 = 0L,
+  accrualDuration = NA_real_,
+  followupTime = NA_real_,
+  fixedFollowup = 0L,
+  rho1 = 0,
+  rho2 = 0,
+  plannedEvents = NA_integer_,
+  plannedTime = NA_real_,
+  maxNumberOfIterations = 1000L,
+  maxNumberOfRawDatasetsPerStage = 0L,
+  seed = NA_integer_
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>kMax</code></td>
+<td>
+<p>The maximum number of stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>informationRates</code></td>
+<td>
+<p>The information rates in terms of number
+of events for the conventional log-rank test and in terms of
+the actual information for weighted log-rank tests.
+Fixed prior to the trial. If left unspecified, it defaults to
+<code>plannedEvents / plannedEvents[kMax]</code> when <code>plannedEvents</code>
+is provided and to <code>plannedTime / plannedTime[kMax]</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criticalValues</code></td>
+<td>
+<p>Upper boundaries on the z-test statistic scale
+for stopping for efficacy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futilityBounds</code></td>
+<td>
+<p>Lower boundaries on the z-test statistic scale
+for stopping for futility at stages 1, ..., <code>kMax-1</code>. Defaults to
+<code>rep(-6, kMax-1)</code> if left unspecified. The futility bounds are
+non-binding for the calculation of critical values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardRatioH0</code></td>
+<td>
+<p>Hazard ratio under the null hypothesis for the active
+treatment versus control. Defaults to 1 for superiority test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocation1</code></td>
+<td>
+<p>Number of subjects in the active treatment group in
+a randomization block. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocation2</code></td>
+<td>
+<p>Number of subjects in the control group in
+a randomization block. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise Poisson enrollment time intervals. Must start with 0, e.g.,
+<code>c(0, 3)</code> breaks the time axis into 2 accrual intervals:
+[0, 3) and [3, Inf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualIntensity</code></td>
+<td>
+<p>A vector of accrual intensities. One for
+each accrual time interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piecewiseSurvivalTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise exponential survival time intervals. Must start with 0, e.g.,
+<code>c(0, 6)</code> breaks the time axis into 2 event intervals:
+[0, 6) and [6, Inf).
+Defaults to 0 for exponential distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratumFraction</code></td>
+<td>
+<p>A vector of stratum fractions that sum to 1.
+Defaults to 1 for no stratification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda1</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the active treatment group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda2</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the control group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of hazard
+rates for piecewise exponential dropout applicable for all strata, or a
+vector of hazard rates for dropout in each analysis time interval
+by stratum for the active treatment group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of hazard
+rates for piecewise exponential dropout applicable for all strata, or a
+vector of hazard rates for dropout in each analysis time interval
+by stratum for the control group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualDuration</code></td>
+<td>
+<p>Duration of the enrollment period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followupTime</code></td>
+<td>
+<p>Follow-up time for the last enrolled subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedFollowup</code></td>
+<td>
+<p>Whether a fixed follow-up design is used.
+Defaults to 0 for variable follow-up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho1</code></td>
+<td>
+<p>The first parameter of the Fleming-Harrington family of
+weighted log-rank test. Defaults to 0 for conventional log-rank test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho2</code></td>
+<td>
+<p>The second parameter of the Fleming-Harrington family of
+weighted log-rank test. Defaults to 0 for conventional log-rank test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plannedEvents</code></td>
+<td>
+<p>The planned cumulative total number of events at
+each stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plannedTime</code></td>
+<td>
+<p>The calendar times for the analyses. To use calendar
+time to plan the analyses, <code>plannedEvents</code> should be missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxNumberOfIterations</code></td>
+<td>
+<p>The number of simulation iterations.
+Defaults to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxNumberOfRawDatasetsPerStage</code></td>
+<td>
+<p>The number of raw datasets per
+stage to extract.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The seed to reproduce the simulation results.
+The seed from the environment will be used if left unspecified,</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 class <code>lrsim</code> object with 3 components:
+</p>
+
+<ul>
+<li> <p><code>overview</code>: A list containing the following information:
+</p>
+
+<ul>
+<li> <p><code>rejectPerStage</code>: The efficacy stopping probability by stage.
+</p>
+</li>
+<li> <p><code>futilityPerStage</code>: The futility stopping probability by
+stage.
+</p>
+</li>
+<li> <p><code>cumulativeRejection</code>: Cumulative efficacy stopping
+probability by stage.
+</p>
+</li>
+<li> <p><code>cumulativeFutility</code>: The cumulative futility stopping
+probability by stage.
+</p>
+</li>
+<li> <p><code>numberOfEvents</code>: The average number of events by stage.
+</p>
+</li>
+<li> <p><code>numberOfDropouts</code>: The average number of dropouts by stage.
+</p>
+</li>
+<li> <p><code>numberOfSubjects</code>: The average number of subjects by stage.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The average analysis time by stage.
+</p>
+</li>
+<li> <p><code>overallReject</code>: The overall rejection probability.
+</p>
+</li>
+<li> <p><code>expectedNumberOfEvents</code>: The expected number of events for
+the overall study.
+</p>
+</li>
+<li> <p><code>expectedNumberOfDropouts</code>: The expected number of dropouts
+for the overall study.
+</p>
+</li>
+<li> <p><code>expectedNumberOfSubjects</code>: The expected number of subjects
+for the overall study.
+</p>
+</li>
+<li> <p><code>expectedStudyDuration</code>: The expected study duration.
+</p>
+</li>
+<li> <p><code>hazardRatioH0</code>: Hazard ratio under the null hypothesis for
+the active treatment versus control.
+</p>
+</li>
+<li> <p><code>useEvents</code>: whether the analyses are planned
+based on the number of events or calendar time.
+</p>
+</li>
+<li> <p><code>accrualDuration</code>: Duration of the enrollment period.
+</p>
+</li>
+<li> <p><code>fixedFollowup</code>: Whether a fixed follow-up design is used.
+</p>
+</li>
+<li> <p><code>rho1</code>: The first parameter of the Fleming-Harrington family
+of weighted log-rank test. Defaults to 0 for conventional log-rank
+test.
+</p>
+</li>
+<li> <p><code>rho2</code>: The second parameter of the Fleming-Harrington family
+of weighted log-rank test. Defaults to 0 for conventional log-rank
+test.
+</p>
+</li>
+<li> <p><code>kMax</code>: The maximum number of stages.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>sumdata</code>: A data frame of summary data by iteration and stage:
+</p>
+
+<ul>
+<li> <p><code>iterationNumber</code>: The iteration number.
+</p>
+</li>
+<li> <p><code>stopStage</code>: The stage at which the trial stops.
+</p>
+</li>
+<li> <p><code>eventsNotAchieved</code>: Whether the target number of events
+is not achieved for the iteration.
+</p>
+</li>
+<li> <p><code>stageNumber</code>: The stage number, covering all stages even if
+the trial stops at an interim look.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The time for the stage since trial start.
+</p>
+</li>
+<li> <p><code>accruals1</code>: The number of subjects enrolled at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>accruals2</code>: The number of subjects enrolled at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalAccruals</code>: The total number of subjects enrolled at
+the stage.
+</p>
+</li>
+<li> <p><code>events1</code>: The number of events at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>events2</code>: The number of events at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalEvents</code>: The total number of events at the stage.
+</p>
+</li>
+<li> <p><code>dropouts1</code>: The number of dropouts at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>dropouts2</code>: The number of dropouts at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalDropouts</code>: The total number of dropouts at the stage.
+</p>
+</li>
+<li> <p><code>uscore</code>: The numerator of the log-rank test statistic.
+</p>
+</li>
+<li> <p><code>vscore</code>: The variance of the log-rank test statistic.
+</p>
+</li>
+<li> <p><code>logRankStatistic</code>: The log-rank test Z-statistic.
+</p>
+</li>
+<li> <p><code>rejectPerStage</code>: Whether to reject the null hypothesis
+at the stage.
+</p>
+</li>
+<li> <p><code>futilityPerStage</code>: Whether to stop the trial for futility
+at the stage.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>rawdata</code> (exists if <code>maxNumberOfRawDatasetsPerStage</code> is a
+positive integer): A data frame for subject-level data for selected
+replications, containing the following variables:
+</p>
+
+<ul>
+<li> <p><code>iterationNumber</code>: The iteration number.
+</p>
+</li>
+<li> <p><code>stopStage</code>: The stage at which the trial stops.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The time for the stage since trial start.
+</p>
+</li>
+<li> <p><code>subjectId</code>: The subject ID.
+</p>
+</li>
+<li> <p><code>arrivalTime</code>: The enrollment time for the subject.
+</p>
+</li>
+<li> <p><code>stratum</code>: The stratum for the subject.
+</p>
+</li>
+<li> <p><code>treatmentGroup</code>: The treatment group (1 or 2) for the
+subject.
+</p>
+</li>
+<li> <p><code>survivalTime</code>: The underlying survival time for the subject.
+</p>
+</li>
+<li> <p><code>dropoutTime</code>: The underlying dropout time for the subject.
+</p>
+</li>
+<li> <p><code>timeUnderObservation</code>: The time under observation
+since randomization.
+</p>
+</li>
+<li> <p><code>event</code>: Whether the subject experienced the event.
+</p>
+</li>
+<li> <p><code>dropoutEvent</code>: Whether the subject dropped out.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: analyses based on number of events
+
+sim1 = lrsim(kMax = 2, informationRates = c(0.5, 1),
+             criticalValues = c(2.797, 1.977),
+             accrualIntensity = 11,
+             lambda1 = 0.018, lambda2 = 0.030,
+             accrualDuration = 12,
+             plannedEvents = c(60, 120),
+             maxNumberOfIterations = 1000,
+             maxNumberOfRawDatasetsPerStage = 1,
+             seed = 314159)
+
+# summary statistics
+sim1
+
+# summary for each simulated data set
+head(sim1$sumdata)
+
+# raw data for selected replication
+head(sim1$rawdata)
+
+
+# Example 2: analyses based on calendar time have similar power
+
+sim2 = lrsim(kMax = 2, informationRates = c(0.5, 1),
+             criticalValues = c(2.797, 1.977),
+             accrualIntensity = 11,
+             lambda1 = 0.018, lambda2 = 0.030,
+             accrualDuration = 12,
+             plannedTime = c(31.9, 113.2),
+             maxNumberOfIterations = 1000,
+             maxNumberOfRawDatasetsPerStage = 1,
+             seed = 314159)
+
+# summary statistics
+sim2
+
+# summary for each simulated data set
+head(sim2$sumdata)
+
+</code></pre>
+
+
+</div>

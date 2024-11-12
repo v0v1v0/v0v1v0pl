@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plotEGclass</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot classifier of eQTL genotype from expression data</h2>
+
+<h3>Description</h3>
+
+<p>Diagnostic plot of one of the eQTL classifiers from the results of
+<code>disteg()</code>: generally expression phenotype against observed eQTL
+genotype, colored by inferred eQTL genotype.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plotEGclass(
+  d,
+  eqtl = 1,
+  outercol = "inferred",
+  innercol = "observed",
+  thecolors = c("#7B68ED", "#1B9E78", "#CA3767", "#E59E00"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Output of <code>disteg()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eqtl</code></td>
+<td>
+<p>Numeric index or a character vector (of the form "1@102.35")
+indicating the eQTL to consider.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outercol</code></td>
+<td>
+<p>Indicates how to color the outer edge of the points:
+<code>"observed"</code> indicates to color based on observed genotypes;
+<code>"inferred"</code> indicates to color based on inferred genotypes; otherwise,
+give a color.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innercol</code></td>
+<td>
+<p>Like <code>outercol</code>, but indicating the interior of the
+points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thecolors</code></td>
+<td>
+<p>The colors to use in the plot.  The last element (after the
+number of genotypes) indicates the color to use for missing values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed to <code>base::plot()</code> and
+<code>graphics::points()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function produces a diagnostic plot for studying one of the k-nearest
+neighbor classifiers underlying the output from <code>disteg()</code>.
+</p>
+<p>In the case of one expression phenotype attached to the selected eQTL, the
+plot is a dot plot of gene expression against observed eQTL genotype.
+</p>
+<p>In the case of two expression phenotypes, the plot is a scatterplot of the
+two expression phenotypes against each other.
+</p>
+<p>In the case of more than two expression phenotypes, we use
+<code>graphics::pairs()</code> to produce a matrix of scatterplots.
+</p>
+
+
+<h3>Value</h3>
+
+<p>None.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl W Broman, <a href="mailto:broman@wisc.edu">broman@wisc.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>disteg()</code>, <code>plot.lineupdist()</code>,
+<code>plot2dist()</code>, <code>class::knn()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(qtl)
+
+# load example data
+data(f2cross, expr1, pmap, genepos)
+
+
+# calculate QTL genotype probabilities
+f2cross &lt;- calc.genoprob(f2cross, step=1)
+
+# find nearest pseudomarkers
+pmark &lt;- find.gene.pseudomarker(f2cross, pmap, genepos)
+
+# line up individuals
+id &lt;- findCommonID(f2cross, expr1)
+
+# calculate LOD score for local eQTL
+locallod &lt;- calc.locallod(f2cross[,id$first], expr1[id$second,], pmark)
+
+# take those with LOD &gt; 25
+expr1s &lt;- expr1[,locallod&gt;25,drop=FALSE]
+
+# calculate distance between individuals
+#     (prop'n mismatches between obs and inferred eQTL geno)
+d &lt;- disteg(f2cross, expr1s, pmark)
+
+# plot of classifier for and second eQTL
+par(mfrow=c(2,1), las=1)
+plotEGclass(d)
+plotEGclass(d, 2)
+
+</code></pre>
+
+
+</div>

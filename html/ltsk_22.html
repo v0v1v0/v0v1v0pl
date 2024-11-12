@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ltsk.cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Local Time and Space Kriging Cross Validation, n-Fold or Leave-one-out
+</h2>
+
+<h3>Description</h3>
+
+<p>Cross validation functions for local time space kriging</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ltsk.cv(nfold, obs, th, nbins, part=NULL,zcoord = "z",...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nfold</code></td>
+<td>
+
+<p>integer, apply n-fold cross validation; if larger than number of observed data, apply leave-one-out cross validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+
+<p>data frame containing spatiotemporal locations and observed data
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th</code></td>
+<td>
+
+<p>vector of length two; a priori chosen distance threshold and time lag for neighbor search
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nbins</code></td>
+<td>
+
+<p>vector of length two; a priori chosen bins to divide distance threshold and time lag equally</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>part</code></td>
+<td>
+
+<p>vector of random digits between 1 and <code>nfold</code>; if NULL, it was sampled with replacement from <code>seq(1,nfold)</code> of length <code>nrow(obs)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zcoord</code></td>
+<td>
+
+<p>character constant, the field name for data in <code>obs</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>other arguments that will be passed to <code>cltsk</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Leave-one-out cross validation visits a data point, and predicts the value at that location by leaving out the observed value, and proceeds with the next data point. N-fold cross validation makes a partitions the data set in N parts. For all observations in a part, predictions are made based on the remaining N-1 parts; this is repeated for each of the N parts.</p>
+
+
+<h3>Value</h3>
+
+<p>a matrix of the cross validation residual, each column corresponds to a given distance threshold and time lag; a data frame containing the summary statistics of the cross validation residuals, including number of non-missing kriging, the sum of square prediction errors and the mean square prediction errors. Each individual row is a combination of distance threshold and time lag.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Naresh Kumar (NKumar@med.miami.edu)
+</p>
+<p>Dong Liang (dliang@umces.edu)
+</p>
+
+
+<h3>References</h3>
+
+<p>Iaco, S. De &amp; Myers, D. E. &amp; Posa, D., 2001. "Space-time analysis using a general product-sum model," Statistics &amp; Probability Letters, Elsevier, vol. 52(1), pages 21-28, March.
+</p>
+<p>Kumar, N., et al. (2013). "Satellite-based PM concentrations and their application to COPD in Cleveland, OH." Journal of Exposure Science and Environmental Epidemiology 23(6): 637-646.
+</p>
+<p>Liang, D. and N. Kumar (2013). "Time-space Kriging to address the spatiotemporal misalignment in the large datasets." Atmospheric Environment 72: 60-69.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## load the data
+set.seed(123)
+data(epa_cl)
+ii= with(obs,which(amonth==5 &amp; aday &lt;13)) ## first week of Januray 2005;
+x=obs[sample(ii,400),]
+## apply log transformation
+x[,'pr_pm25'] = log(x[,'pr_pm25'])
+## run kriging
+out &lt;- ltsk.cv(nfold=10,obs=x,th=c(0.10,10),nbins=c(2,2),zcoord='pr_pm25',verbose=FALSE,cl=0)
+</code></pre>
+
+
+</div>

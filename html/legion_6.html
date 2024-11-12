@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>oves</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Occurrence part of Vector State Space</h2>
+
+<h3>Description</h3>
+
+<p>Function calculates the probability for the occurrence part of vector state space model.
+This is needed in order to forecast intermittent demand using other functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">oves(data, occurrence = c("logistic", "none", "fixed"), ic = c("AICc",
+  "AIC", "BIC", "BICc"), h = 10, holdout = FALSE,
+  probability = c("dependent", "independent"), model = "ANN",
+  persistence = NULL, transition = NULL, phi = NULL, initial = NULL,
+  initialSeason = NULL, xreg = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The matrix with data, where series are in columns and
+observations are in rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occurrence</code></td>
+<td>
+<p>Type of method used in probability estimation. Can be
+<code>"none"</code> - none, <code>"fixed"</code> - constant probability or
+<code>"logistic"</code> - probability based on logit model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>Information criteria to use in case of model selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Forecast horizon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout</code></td>
+<td>
+<p>If <code>TRUE</code>, holdout sample of size <code>h</code> is taken from
+the end of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probability</code></td>
+<td>
+<p>Type of probability assumed in the model. If
+<code>"dependent"</code>, then it is assumed that occurrence of one variable is
+connected with the occurrence with another one. In case of <code>"independent"</code>
+the occurrence of the variables is assumed to happen independent of each
+other.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Type of ETS model used for the estimation. Normally this should
+be either <code>"ANN"</code> or <code>"MNN"</code>. If you assume that there are some
+tendencies in occurrence, then you can use more complicated models. Model
+selection is not yet available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>persistence</code></td>
+<td>
+<p>Persistence matrix type. If <code>NULL</code>, then it is estimated.
+See ves for the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition</code></td>
+<td>
+<p>Transition matrix type. If <code>NULL</code>, then it is estimated.
+See ves for the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>Damping parameter type. If <code>NULL</code>, then it is estimated.
+See ves for the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>Initial vector type. If <code>NULL</code>, then it is estimated.
+See ves for the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialSeason</code></td>
+<td>
+<p>Type of the initial vector of seasonal components.
+If <code>NULL</code>, then it is estimated. See ves for the details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>Vector of matrix of exogenous variables, explaining some parts
+of occurrence variable (probability).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters. This is not needed for now.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function estimates probability of demand occurrence, using one of the VES
+state-space models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The object of class "oves" is returned. It contains following list of
+values:
+</p>
+
+<ul>
+<li> <p><code>model</code> - the type of the estimated ETS model;
+</p>
+</li>
+<li> <p><code>fitted</code> - fitted values of the constructed model;
+</p>
+</li>
+<li> <p><code>forecast</code> - forecast for <code>h</code> observations ahead;
+</p>
+</li>
+<li> <p><code>states</code> - values of states (currently level only);
+</p>
+</li>
+<li> <p><code>variance</code> - conditional variance of the forecast;
+</p>
+</li>
+<li> <p><code>logLik</code> - likelihood value for the model
+</p>
+</li>
+<li> <p><code>nParam</code> - number of parameters used in the model;
+</p>
+</li>
+<li> <p><code>residuals</code> - residuals of the model;
+</p>
+</li>
+<li> <p><code>data</code> - actual values of probabilities (zeros and ones).
+</p>
+</li>
+<li> <p><code>persistence</code> - the vector of smoothing parameters;
+</p>
+</li>
+<li> <p><code>initial</code> - initial values of the state vector;
+</p>
+</li>
+<li> <p><code>initialSeason</code> - the matrix of initials seasonal states;
+</p>
+</li>
+<li> <p><code>occurrence</code> - type of occurrence model used;
+</p>
+</li>
+<li> <p><code>probability</code> - type of probability used;
+</p>
+</li>
+<li> <p><code>issModel</code> - intermittent state-space model used for
+calculations. Useful only in the case of <code>occurrence="l"</code> and
+<code>probability="d"</code>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Ivan Svetunkov, <a href="mailto:ivan@svetunkov.ru">ivan@svetunkov.ru</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>oes, ves</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+Y &lt;- cbind(c(rpois(25,0.1),rpois(25,0.5),rpois(25,1),rpois(25,5)),
+           c(rpois(25,0.1),rpois(25,0.5),rpois(25,1),rpois(25,5)))
+
+oves(Y, occurrence="l")
+oves(Y, occurrence="l", probability="i")
+
+</code></pre>
+
+
+</div>

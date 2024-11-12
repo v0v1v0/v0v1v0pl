@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>perceive</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>From a set of rules, remove each rule for which another rule exists that is
+more specific.</h2>
+
+<h3>Description</h3>
+
+<p>Examine rules in a list and remove all of them for whose other more specific
+rules are present in the list. The specificity is determined by calling the
+<code>is.specific()</code> function.  This operation is a part of the
+<code>pbld()</code> inference mechanism.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">perceive(
+  rules,
+  fsets,
+  type = c("global", "local"),
+  fired = NULL,
+  vars = NULL,
+  specs = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>A list of character vectors where each element is a fuzzy set
+name (a predicate) and thus each such vector forms a rule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fsets</code></td>
+<td>
+<p>A valid instance of the <code>fsets()</code> class such that all predicates
+in <code>rules</code> (i.e., all values of all character vectors in <code>rules$rules</code>)
+can be found in <code>colnames(fsets)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of perception to use. It can be either <code>"local"</code>
+or <code>"global"</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fired</code></td>
+<td>
+<p>If <code>type=="global"</code> then this argument can be NULL. If
+<code>type</code> is <code>"local"</code> then <code>fired</code> must be a numeric vector of
+values in the interval <code class="reqn">[0,1]</code> indicating the truth values of all rules,
+i.e. the length of the vector must be equal to the number of rules in the
+<code>rules</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>A deprecated parameter that must be <code>NULL</code>. Formerly, it was
+a named (typically character) vector that determined which
+predicates originate from the same variable, i.e. which of them semantically
+deal with the same property.  For that purpose, each value from any vector
+stored in the <code>rules</code> list must be present in <code>names(vars)</code>.  See
+also <code>vars()</code> function of the <code>fsets()</code> class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specs</code></td>
+<td>
+<p>A deprecated parameter that must be <code>NULL</code>. Formerly, it was
+a square numeric matrix containing values from <code class="reqn">\{0, 1\}</code>.
+It is a specificity matrix for which each row and column corresponds to an
+<code>rules</code>'es predicate <code>specs[i][j] = 1</code> if and only if the
+<code class="reqn">i</code>-th predicate is more specific (i.e. the corresponding fuzzy set is a
+subset of) than the <code class="reqn">j</code>-th predicate (i.e. <code>x[, j]</code>).  See also
+<code>specs()</code> function of the <code>fsets()</code> class.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In other words, for each rule <code>x</code> in the <code>rules</code> list, it searches for another
+rule <code>y</code> such that <code>is.specific(y, x)</code> returns TRUE. If yes then
+<code>x</code> is removed from the list.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A modified list of rules for which no other more specific rule
+exists. (Each rule is a vector.)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>is.specific()</code>, <code>fsets()</code>, <code>fcut()</code>, <code>lcut()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># prepare fsets
+f &lt;- lcut(data.frame(a=0:1, b=0:1, c=0:1, d=0:1))
+
+# run perceive function: (sm.a, bi.c) has
+# more specific rule (ve.sm.a, bi.c)
+perceive(list(c('sm.a', 'bi.c'),
+              c('ve.sm.a', 'bi.c'),
+              c('sm.b', 'sm.d')),
+         f)
+
+</code></pre>
+
+
+</div>

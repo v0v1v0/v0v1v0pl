@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>flowunit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Set and retrieve unit of the discharge</h2>
+
+<h3>Description</h3>
+
+<p>In order to compute deficit volumes time series of discharges (either of class <code>'lfobj'</code> or <code>'xts'</code>) <code>summary.deficit</code> needs to be aware of the unit. Units are stored in the attributes of the time series. <code>flowunit(x)</code> retrieves the current unit from the attributes, <code>flowunit(x) &lt;- value</code> sets a new one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">flowunit(x)
+## S3 method for class 'xts'
+flowunit(x)
+## S3 method for class 'lfobj'
+flowunit(x)
+
+flowunit(x) &lt;- value
+## S3 replacement method for class 'xts'
+flowunit(x) &lt;- value
+## S3 replacement method for class 'lfobj'
+flowunit(x) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> The time series, either of class <code>'lfobj'</code> or <code>'xts'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p> a valid character string of length one that can be interpreted as flow unit. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Currently, just a few functions like <code>summary.deficit</code> and <code>lfstat:::plot.deficit_dygraph</code> make use of the unit stored as an attribute.
+</p>
+<p>Usually flow units are of dimension $L^3 T^-1$. Currently a length $l$ can be on of <code>c("metre", "cm", "centimetre" "litre")</code>, whereas time $T$ can be one in <code>c("days", "hours", "mins", "secs")</code>, possibly abbreviated. The numerator of the fraction (everything before the literal <code>"/"</code>) is interpreted as the length (superscripts like <code>"^3"</code> are discarded), the denominator as time. E.g. valid units would be <code>"cm^3/s"</code>, <code>"m^3/day"</code> or <code>"litre/sec"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A character vector of length one, containing the currently used discharge unit.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(ray)
+ray &lt;- as.xts(ray)["1970::1970", ]
+
+# currently discharges are in cubic metres per second
+flowunit(ray)
+
+# calculating deficit volumes, for fixed threshold 0.001 m^3/s
+(s &lt;- summary(find_droughts(ray, threshold = 0.001)))
+
+# multiplying the discharge by 1000 converts is to litre per second
+ray$discharge &lt;- ray$discharge * 1000
+
+# changing the unit accordingly, yields the same volumes
+flowunit(ray) &lt;- "l/s"
+(ss &lt;- summary(find_droughts(ray, threshold = 1)))
+
+identical(s$volume, ss$volume)
+</code></pre>
+
+
+</div>

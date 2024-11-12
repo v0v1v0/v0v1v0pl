@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>indval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dufrene-Legendre Indicator Species Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the indicator value (fidelity and relative abundance) of
+species in clusters or types.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">indval(x, ...)
+## Default S3 method:
+indval(x,clustering,numitr=1000,...)
+## S3 method for class 'stride'
+indval(x,comm,numitr=1,...)
+## S3 method for class 'indval'
+summary(object, p=0.05, type='short', digits=2, show=p,
+       sort=FALSE, too.many=100, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix or data.frame of samples with species as columns and
+samples as rows, or an object of class ‘stride’ from function
+<code>stride</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustering</code></td>
+<td>
+<p>a vector of numeric cluster memberships for samples, or a
+classification object returned from <code>pam</code>, 
+or <code>optpart</code>, <code>slice</code>,
+or <code>archi</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numitr</code></td>
+<td>
+<p>the number of randomizations to iterate to calculate
+probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comm</code></td>
+<td>
+<p>a data.frame with samples as rows and species as columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object of class ‘indval’</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the maximum probability for a species to be listed in the summary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>a switch to choose between ‘short’ and ‘long’ style summary</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>the number of significant digits to show</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show</code></td>
+<td>
+<p>the threshold to show values as opposed to a dot column place-holder</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>a switch to control user-managed interactive table sorting</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>too.many</code></td>
+<td>
+<p>a threshold reduce the listing for large data sets</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to the summary or generic function</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates the indicator value ‘d’ of species as the product of the 
+relative frequency and relative average abundance in clusters.  Specifically,
+</p>
+<p>where:<br><code class="reqn">p_{ij}</code> =  presence/absence (1/0) of species <code class="reqn">i</code> in 
+sample <code class="reqn">j</code>; <br><code class="reqn">x_{ij}</code> =  abundance of species <code class="reqn">i</code> in sample <code class="reqn">j</code>; <br><code class="reqn">n_c</code> = number of samples in cluster <code class="reqn">c</code>;<br>
+for cluster <code class="reqn">c \in K</code>; <br></p>
+<p style="text-align: center;"><code class="reqn">f_{ic} = {\sum_{j \in c} p_{ij} \over n_c}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">a_{ic} = {\sum_{j \in c} x_{ij} / n_c \over \sum_{k=1}^K (\sum_{j \in k} x_{ij} / n_k)}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">d_{ic} = f_{ic} \times a_{ic}</code>
+</p>
+
+<p>Calculated on a ‘stride’ the function calculates the indicator values of
+species for each of the separate partitions in the stride.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The default function returns a list of class ‘indval’ with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>relfrq</code></td>
+<td>
+<p>relative frequency of species in classes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relabu</code></td>
+<td>
+<p>relative abundance of species in classes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indval</code></td>
+<td>
+<p>the indicator value for each species</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxcls</code></td>
+<td>
+<p>the class each species has maximum indicator value for</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indcls</code></td>
+<td>
+<p>the indicator value for each species to its maximum class</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pval</code></td>
+<td>
+<p>the probability of obtaining as high an indicator values as
+observed over the specified iterations</p>
+</td>
+</tr>
+</table>
+<p>The stride-based function returns a data.frame with the number of clusters
+in the first column and the mean indicator value in the second.
+</p>
+<p>The ‘summary’ function has two options.  In ‘short’ mode it presents
+a table of indicator species whose probability is less then ‘p’, giving their 
+indicator value and the identity of the cluster they indicate, along with the
+sum of probabilities for the entire data set.  In ‘long’ mode, the indicator 
+value of each species in each class is shown, with values less than ‘show’ 
+replaced by a place-holder dot to emphasize larger values.
+</p>
+<p>If ‘sort==TRUE’, a prompt is given to re-order the rows of the matrix 
+interactively.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Indicator value analysis was proposed by Dufrene and Legendre (1997) as a
+possible stopping rule for clustering, but has been used by
+ecologists for a variety of analyses.  Dufrene and Legendre's nomenclature in
+the paper is somewhat ambiguous, but the equations above are taken from the
+worked example in the paper, not the equations on page 350 which
+appear to be in error.  Dufrene and Legendre, however, multiply <code class="reqn">d</code>
+by 100; this function does not.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Roberts
+<a href="mailto:droberts@montana.edu">droberts@montana.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Dufrene, M. and Legendre, P.  1997.  Species assemblages and indicator species:
+the need for a flexible asymmetrical approach.  Ecol. Monogr. 67(3):345-366.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>isamic</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(bryceveg) # returns a vegetation data.frame
+data(brycesite)
+clust &lt;- cut(brycesite$elev,5,labels=FALSE)
+summary(indval(bryceveg,clust))
+</code></pre>
+
+
+</div>

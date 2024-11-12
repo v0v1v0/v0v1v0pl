@@ -1,0 +1,302 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LSM_real_option</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Value capital investment projects through least-squares Monte Carlo (LSM) simulation:</h2>
+
+<h3>Description</h3>
+
+<p>Given a set of state variables and associated net cash flows for an investment project simulated through Monte Carlo simulation,
+solve for the real option value of a capital investment project through the least-squares Monte Carlo simulation method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LSM_real_option(
+  state_variables,
+  NCF,
+  CAPEX,
+  dt,
+  rf,
+  construction = 0,
+  orthogonal = "Laguerre",
+  degree = 9,
+  cross_product = TRUE,
+  verbose = FALSE,
+  debugging = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>state_variables</code></td>
+<td>
+<p><code>matrix</code> or <code>array</code>. The simulated states of the underlying stochastic variables. The first dimension corresponds to the simulated values
+of the state variables at each discrete observation point. The second dimension corresponds to each individual simulation of the state variable. The third dimension
+corresponds to each state variable considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NCF</code></td>
+<td>
+<p>The net cash flows resulting from operating the underlying capital investment project for one discrete time step at the current simulated values of the state variables.
+Each column corresponds to a simulated price path of underlying stochastic variables, and each row the net cash flows at a discrete time point for each simulated path.
+The dimensions of object 'NCF' must match the first two dimensions of the object passed to the 'state_variables' argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CAPEX</code></td>
+<td>
+<p><code>numeric</code> or <code>vector</code> object. The initial capital investment of the project. This value can be either constant or time dependent. When the 'CAPEX' argument
+is time dependent, it must be a vector object of length equal to the number of discrete observations of the simulations (i.e. the number of rows of both 'state_variables' and 'NCF')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>Constant, discrete time step of simulated observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf</code></td>
+<td>
+<p>The annual risk-free interest rate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>construction</code></td>
+<td>
+<p>An <code>integer</code> corresponding to the number of periods of construction of the underlying asset. The construction time represents the time between
+the initial capital expenditure and when net cash flows are accrued, representing the construction time required of the investment project.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orthogonal</code></td>
+<td>
+<p><code>character</code>. The orthogonal polynomial used to develop basis functions that estimate the continuation value in the LSM simulation method.
+<code>orthogonal</code> arguments available are: "Power", "Laguerre", "Jacobi", "Legendre", "Chebyshev", "Hermite". See <b>details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>The number of orthogonal polynomials used in the least-squares fit. See <b>details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cross_product</code></td>
+<td>
+<p><code>logical</code>. Should a cross product of state variables be considered? Relevant only when the number of state variables
+is greater than one</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>logical</code>. Should additional information be output? See <b>values</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debugging</code></td>
+<td>
+<p><code>logical</code> Should additional simulation information be output? See <b>values</b>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>LSM_real_option</code> function provides an implementation of the least-squares Monte Carlo (LSM) simulation approach to numerically approximate
+the value of capital investment projects considering the flexibility of timing of investment under stochastically evolving uncertainty. The function provides flexibility in the stochastic behavior of the underlying uncertainty, with simulated values
+of state variables provided within the <code>state_variables</code> argument. The <code>LSM_real_option</code> function also provides analysis into the expected investment timing, probability, and the expected payback period of the project.
+</p>
+<p><b>Least-Squares Monte Carlo Simulation:</b>
+</p>
+<p>The least-squares Monte Carlo (LSM) simulation method is a numeric approach first presented by Longstaff and Schwartz (2001) that
+approximates the value of options with early exercise opportunities. The LSM simulation method is considered one of the most efficient
+methods of valuing American-style options due to its flexibility and computational efficiency. The approach can feature multiple
+stochastically evolving underlying uncertainties, following both standard and exotic stochastic processes.
+</p>
+<p>The LSM method first approximates stochastic variables through a stochastic process to develop cross-sectional information,
+then directly estimates the continuation value of in-the-money simulation paths by "(regressing) the ex-post realized payoffs from
+continuation on functions of the values of the state variables" (Longstaff and Schwartz, 2001).
+</p>
+<p><b>Real Options Analysis</b>
+</p>
+<p>Real options analysis of investment projects considers the value of the option to delay investment in a project until
+underlying, stochastically evolving uncertainty has revealed itself. Real options analysis treats investment into capital investment projects as an optimal stopping problem, optimizing the timing of investment that maximizes the payoffs of investment under underlying stochastic uncertainty.
+Real options analysis is also capable of evaluating the critical value of underlying state variables at which immediate investment into a project is optimal. See Dixit and Pindyck (1994) for more details of real options analysis.
+</p>
+<p>The <code>LSM_real_option</code> function considers the option to invest into a capital investment project within a finite forecasting horizon. Investment into the project results in accruing all future net cash flows (NCF) until the end of the forecasting horizon at the cost of the capital expenditure (CAPEX).
+Immediate investment into a capital investment project is optimal when the waiting option value (WOV) is zero. Critical values of state variables at which immediate investment in optimal can therefore be obtained through finding the root of the WOV.
+</p>
+<p>The primary difference between the <code>LSM_real_option</code> and <code>LSM.AmericanOption</code> function is the way in which they evaluate the payoff of
+exercise of the American-style option. The <code>LSM.AmericanOption</code> function considers the payoff of exercise to be a one time payoff (i.e. buying or selling the security in a vanilla call or put option) corresponding to the respective payoff argument.
+The <code>LSM_real_option</code> function instead, at each discrete time period, for each simulated price path, compares the sum of all remaining discounted cash flows that are accrued following immediate investment into
+a project to the end of the forecasting horizon with the expected value of delaying investment. This is is known as the 'running present value' (RPV) of the project, which is the discretised present value of all
+future cash flows of the project. The RPV of a project increases as the size of the discrete time step decreases, highlighting the need
+for small discrete time steps to accurately value investment projects. This is due to the discounting effect of discounting larger
+cash flows over greater time periods compared to smaller cash flows being discounted more frequently.
+</p>
+<p><b>Orthogonal Polynomials:</b>
+</p>
+<p>To improve the accuracy of estimation of continuation values, the economic values in each period are regressed on a linear
+combination of a set of basis functions of the stochastic variables. These estimated regression parameters and the simulated
+stochastic variables are then used to calculate the estimator for the expected economic values.
+</p>
+<p>Longstaff and Schwartz (2001) state that as the conditional expectation of the continuation value belongs to a Hilbert space,
+it can be represented by a combination of orthogonal basis functions. Increasing the number of stochastic state variables
+therefore increases the number of required basis functions exponentially. The orthogonal polynomials available in the
+<code>LSM_real_options</code> package are: Laguerre, Jacobi, Legendre (spherical), Hermite (probabilistic), Chebyshev (of the first kind).
+The simple powers of state variables is further available. Explicit expressions of each of these orthogonal polynomials are
+available within the textbook of Abramowitz and Stegun (1965).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>LSM_real_option</code> function returns a <code>list</code> object. The number of objects returned in the list is dependent upon the <code>logical</code>
+values of arguments <code>verbose</code> and <code>debugging</code>.
+</p>
+<p><code>LSM_real_option</code> by default returns 3 objects within the <code>list</code> class object:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>ROV</code> </td>
+<td style="text-align: left;"> 'Real Option value': The value of the capital investment project considering flexibility in the timing of investment.  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>NPV</code> </td>
+<td style="text-align: left;"> 'Net Present Value': The value of the capital investment project considering immediate investment. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>WOV</code> </td>
+<td style="text-align: left;"> 'Waiting Option Value': The value of the option to delay initial investment, equal to the difference between the ROV and NPV. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>When <code>verbose = T</code>, an additional 9 objects are returned within the <code>list</code> class object, providing further analysis into the capital investment project:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>ROV SE</code> </td>
+<td style="text-align: left;"> The standard error of 'ROV'. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>NPV SE</code> </td>
+<td style="text-align: left;"> The standard error of 'NPV'. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>WOV SE</code> </td>
+<td style="text-align: left;"> The standard error of 'WOV'. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Expected Timing</code> </td>
+<td style="text-align: left;"> The expected timing of investment, in years. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Expected Timing SE</code> </td>
+<td style="text-align: left;"> The standard error of the expected timing of investment. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Investment Prob</code> </td>
+<td style="text-align: left;"> The probability of investment within the forecasting horizon. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Cumulative Investment Prob</code> </td>
+<td style="text-align: left;"> The cumulative probability of investment at each discrete time point over the forecasting horizon. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>PB</code> </td>
+<td style="text-align: left;"> The expected payback time of initial capital investment, in years. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>PB SE</code> </td>
+<td style="text-align: left;"> The standard error of the expected payback time. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>When <code>debugging = T</code>, an additional 4 objects are returned within the <code>list</code> class object.
+These objects provide information about the values of individual simulated price paths:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>Investment Period</code> </td>
+<td style="text-align: left;"> The time of investment of invested price paths. Price paths that did not trigger investment are represented as <code>NA</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Project Value</code> </td>
+<td style="text-align: left;"> The calculated project value at time zero for each simulated price path. The 'ROV' is equal to the mean of this vector. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Immediate Profit</code> </td>
+<td style="text-align: left;"> The profit resulting from immediate investment for each discrete time period and for all simulated price paths  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Running Present Value</code> </td>
+<td style="text-align: left;">  The present value of all future cash flows of an investment project for each discrete time period and for all simulated price paths</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Abramowitz, M., and I. A. Stegun, (1965). Handbook of mathematical functions with formulas, graphs, and mathematical tables. Courier Corporation.
+</p>
+<p>Dixit, A. K., and R. S. Pindyck, (1994). Investment under uncertainty. Princeton university press.
+</p>
+<p>Longstaff, F. A., and E. S. Schwartz, (2001). Valuing American options by simulation: a simple least-squares approach. The review of financial studies, 14(1), 113-147.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example: Value a capital investment project where the revenues follow a
+# Geometric Brownian Motion stochastic process:
+
+## Step 1 - Simulate asset prices:
+asset_prices &lt;- GBM_simulate(n = 100, t = 10, mu = 0.05,
+                         sigma = 0.2, S0 = 100, dt = 1/2)
+
+## Step 2 - Perform Real Option Analysis (ROA):
+ROA &lt;- LSM_real_option(state_variables = asset_prices,
+                     NCF = asset_prices - 100,
+                     CAPEX = 1000,
+                     dt = 1/2,
+                     rf = 0.05)
+</code></pre>
+
+
+</div>

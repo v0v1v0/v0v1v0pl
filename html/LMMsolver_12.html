@@ -1,0 +1,234 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LMMsolve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solve Linear Mixed Models</h2>
+
+<h3>Description</h3>
+
+<p>Solve Linear Mixed Models using REML.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LMMsolve(
+  fixed,
+  random = NULL,
+  spline = NULL,
+  group = NULL,
+  ginverse = NULL,
+  weights = NULL,
+  data,
+  residual = NULL,
+  family = gaussian(),
+  offset = 0,
+  tolerance = 1e-06,
+  trace = FALSE,
+  maxit = 250,
+  theta = NULL,
+  grpTheta = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>A formula for the fixed part of the model. Should be of the
+form "response ~ pred"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>A formula for the random part of the model. Should be of the
+form "~ pred".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spline</code></td>
+<td>
+<p>A formula for the spline part of the model. Should be of the
+form "~ spl1D()", ~ spl2D()" or "~spl3D()". Generalized Additive Models (GAMs) can
+also be used, for example "~ spl1D() + spl2D()"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>A named list where each component is a numeric vector
+specifying contiguous fields in data that are to be considered as a
+single term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ginverse</code></td>
+<td>
+<p>A named list with each component a symmetric matrix, the
+precision matrix of a corresponding random term in the model. The row and
+column order of the precision matrices should match the order of the
+levels of the corresponding factor in the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>A character string identifying the column
+of data to use as relative weights in the fit. Default value NULL, weights are
+all equal to one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame containing the modeling data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residual</code></td>
+<td>
+<p>A formula for the residual part of the model. Should be of
+the form "~ pred".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>An object of class family specifying the distribution
+and link function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>An optional numerical vector containing an a priori
+known component to be included in the linear predictor during fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p>A numerical value. The convergence tolerance for the
+modified Henderson algorithm to estimate the variance components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Should the progress of the algorithm be printed? Default
+<code>trace = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>A numerical value. The maximum number of iterations for the
+algorithm. Default <code>maxit = 250</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>initial values for penalty or precision parameters. Default
+<code>NULL</code>, all precision parameters set equal to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grpTheta</code></td>
+<td>
+<p>a vector to give components the same penalty. Default
+<code>NULL</code>, all components have a separate penalty.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A Linear Mixed Model (LMM) has the form
+</p>
+<p style="text-align: center;"><code class="reqn">y = X \beta + Z u + e, u ~ N(0,G), e ~ N(0,R)</code>
+</p>
+<p> where
+<code class="reqn">y</code> is a vector of observations, <code class="reqn">\beta</code> is a vector with the fixed
+effects, <code class="reqn">u</code> is a vector with the random effects, and <code class="reqn">e</code> a vector of
+random residuals. <code class="reqn">X</code> and <code class="reqn">Z</code> are design matrices.
+</p>
+<p>LMMsolve can fit models where the matrices <code class="reqn">G^{-1}</code> and <code class="reqn">R^{-1}</code> are
+a linear combination of precision matrices <code class="reqn">Q_{G,i}</code> and <code class="reqn">Q_{R,i}</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">G^{-1} = \sum_{i} \psi_i Q_{G,i} \;, R^{-1} = \sum_{i} \phi_i Q_{R,i}</code>
+</p>
+
+<p>where the precision parameters <code class="reqn">\psi_i</code> and <code class="reqn">\phi_i</code> are estimated
+using REML. For most standard mixed models <code class="reqn">1/{\psi_i}</code> are the variance
+components and <code class="reqn">1/{\phi_i}</code> the residual variances. We use a formulation
+in terms of precision parameters to allow for non-standard mixed models using
+tensor product splines.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>LMMsolve</code> representing the fitted model.
+See <code>LMMsolveObject</code> for a full description of the components in
+this object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LMMsolveObject</code>, <code>spl1D</code>,
+<code>spl2D</code>, <code>spl3D</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Fit models on john.alpha data from agridat package.
+data(john.alpha, package = "agridat")
+
+## Fit simple model with only fixed effects.
+LMM1 &lt;- LMMsolve(fixed = yield ~ rep + gen,
+                data = john.alpha)
+
+## Fit the same model with genotype as random effect.
+LMM1_rand &lt;- LMMsolve(fixed = yield ~ rep,
+                     random = ~gen,
+                     data = john.alpha)
+
+## Fit the model with a 1-dimensional spline at the plot level.
+LMM1_spline &lt;- LMMsolve(fixed = yield ~ rep + gen,
+                       spline = ~spl1D(x = plot, nseg = 20),
+                       data = john.alpha)
+
+## Fit models on multipop data included in the package.
+data(multipop)
+
+## The residual variances for the two populations can be different.
+## Allow for heterogeneous residual variances using the residual argument.
+LMM2 &lt;- LMMsolve(fixed = pheno ~ cross,
+                residual = ~cross,
+                data = multipop)
+
+## QTL-probabilities are defined by the columns pA, pB, pC.
+## They can be included in the random part of the model by specifying the
+## group argument and using grp() in the random part.
+
+# Define groups by specifying columns in data corresponding to groups in a list.
+# Name used in grp() should match names specified in list.
+lGrp &lt;- list(QTL = 3:5)
+LMM2_group &lt;- LMMsolve(fixed = pheno ~ cross,
+                      group = lGrp,
+                      random = ~grp(QTL),
+                      residual = ~cross,
+                      data = multipop)
+
+</code></pre>
+
+
+</div>

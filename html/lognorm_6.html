@@ -1,0 +1,93 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimateParmsLognormFromSample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate lognormal distribution parameters from a sample</h2>
+
+<h3>Description</h3>
+
+<p>Estimate lognormal distribution parameters from a sample
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimateParmsLognormFromSample(x, na.rm = FALSE)
+
+estimateStdErrParms(x, na.rm = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector of sampled values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>a logical value indicating whether 
+NA values should be stripped before the computation proceeds.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The expected value of a can be determined with
+higher accuracy the larger the sample. Here, the uncorrelated
+assumption is applied at the log scale and distribution parameters
+are returned with the same expected value as the sample, but with
+uncertainty (sigma) decreased by sqrt(nfin - 1). 
+</p>
+<p>Since with low relative error, the lognormal becomes very close
+to the normal distribution, the distribution of the mean can be
+well approximated by a normal with sd(mean(x)) ~ sd(x)/sqrt(n-1).
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric vector with components <code>mu</code> and <code>sigma</code>,
+i.e., the center parameter (mean at log scale, log(median)) and 
+the scale parameter (standard deviation at log scale)
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>estimateParmsLognormFromSample</code>: Estimate lognormal distribution parameters from a sample
+</p>
+</li>
+<li> <p><code>estimateStdErrParms</code>: Estimate parameters of the lognormal distribution of the mean from an uncorrelated sample
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">.mu &lt;- log(1)
+.sigma &lt;- log(2)
+n = 200
+x &lt;- exp(rnorm(n, mean = .mu, sd = .sigma))
+exp(pL &lt;- estimateParmsLognormFromSample(x)) # median and multiplicative stddev
+c(mean(x), meanx &lt;- getLognormMoments(pL["mu"],pL["sigma"])[,"mean"])
+c(sd(x), sdx &lt;- sqrt(getLognormMoments(pL["mu"],pL["sigma"])[,"var"]))
+
+# stddev decreases (each sample about 0.9) to about 0.07
+# for the mean with n replicated samples
+se &lt;- estimateStdErrParms(x)
+sqrt(getLognormMoments(se["mu"],se["sigma"])[,"var"])
+sd(x)/sqrt(n-1) # well approximated by normal
+# expected value stays the same
+c(meanx, getLognormMoments(se["mu"],se["sigma"])[,"mean"])
+</code></pre>
+
+
+</div>

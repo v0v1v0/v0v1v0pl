@@ -1,0 +1,254 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lpridge</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Local polynomial regression fitting with ridging</h2>
+
+<h3>Description</h3>
+
+<p>Fast and stable algorithm for nonparametric estimation of regression
+functions and their derivatives via local polynomials and local
+polynomial ridge regression with polynomial weight functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lpridge(x, y, bandwidth, deriv=0, n.out=200, x.out=NULL,
+	order = NULL, ridge = NULL, weight = "epa", mnew = 100,
+	var = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of design points, not necessarily ordered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of observations of the same length as x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>bandwidth for nonparametric estimation.  Either a
+number or a vector of the same length as x.out. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>order of derivative of the regression function to be
+estimated; default is 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.out</code></td>
+<td>
+<p>number of output design points at which to evaluate the
+estimator; defaults to 200.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.out</code></td>
+<td>
+<p>vector of output design points at which to evaluate the
+estimator;  By default, an equidistant grid of <code>n.out</code>
+points from <code>min(x)</code> to <code>max(x)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>order of the polynomial used for local polynomials. The
+default value is <code>deriv + 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ridge</code></td>
+<td>
+<p>ridging parameter.  The default value performs a slight
+ridging (see "Details").  <code>ridge = 0</code> leads to the local polynomial
+estimator without ridging.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>kernel weight function.  The default value is
+weight = "epa" for Epanechnikov weights.  Other weights are "bi" for
+biweights (square of "epa") and "tri" for triweights (cube of
+"epa").  If weight is a vector, it is interpreted as vector of
+coefficients of the polynomial weight function.  Thus, weight = "epa"
+is equivalent to weight = c(1,0,-1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mnew</code></td>
+<td>
+<p>force to restart the algorithm after mnew updating
+steps.  The default value is mnew = 100.  For <code>mnew = 1</code> you get a
+numerically "super-stable" algorithm (see reference SBE&amp;G below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>logical flag: if TRUE, the variance of the estimator
+proportional to the residual variance is computed (see "Details" below).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>described in the reference SBE&amp;G below.  Several parameters
+described there are fixed either in the fortran routine or in the
+<span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-function.  There, you find comments how to change them.
+</p>
+<p>In S&amp;G, a bad finite sample behavior of local polynomials for random
+design was found, and ridging of the estimator was proposed.  In
+<code>lpridge()</code>, we use a ridging matrix corresponding to the smoothness
+assumption <em>“The squared difference of the derivative of order
+deriv of the regression function at the point of estimation and the
+weighted mean of design points is bounded by the residual variance
+divided by the ridge parameter.”</em>
+</p>
+<p>Thus, without any smoothness assumption, <code>ridge = 0</code> would be
+appropriate, and for a nearly constant derivative of order
+<code>deriv</code>, a ridge parameter going to infinity behaves well.  For
+equidistant design, ridging influences the estimator only at the
+boundary.  Asymptotically, the influence of any non-increasing ridge
+parameter vanishes.
+</p>
+<p>So far, our experience with the choice of a ridging parameter is
+limited.  Therefore we have chosen a default value which performs a
+slight modification of the local polynomial estimator (with
+denotations <code class="reqn">h =</code> <code>bandwidth</code>, <code class="reqn">d =</code> <code>deriv</code>, and
+where <code class="reqn">n_0</code> = <code>length(x)*mean(bandwidth)/diff(range(x))</code>
+is a mean number of observations in a smoothing interval):
+</p>
+<p style="text-align: center;"><code class="reqn">ridge = 5\sqrt{n_0} h^{2d} / ((2d+3)(2d+5))</code>
+</p>
+
+<p>For <code>var=TRUE</code>, the variance of the estimator proportional to the
+residual variance is computed, i.e., the exact finite sample variance of the
+regression estimator is <code>var(est) = est.var * sigma^2</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list including used parameters and estimator.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of ordered design points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of observations ordered according to x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>vector of bandwidths actually used for nonparametric
+estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>order of derivative of the regression function estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.out</code></td>
+<td>
+<p>vector of ordered output design points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>order of the polynomial used for local polynomials.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ridge</code></td>
+<td>
+<p>ridging parameter used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>vector of coefficients of the kernel weight function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mnew</code></td>
+<td>
+<p>force to restart the algorithm after mnew updating steps. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>logical flag: whether the variance of the estimator was computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>estimator of the derivative of order deriv of the
+regression function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est.var</code></td>
+<td>
+<p>estimator of the variance of est (proportional to
+residual variance).</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>The same as for <code>lpepa</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(cars)
+attach(cars)
+plot(speed, dist, main = "data(cars) &amp; lpRIDGE Regression")
+
+
+
+myfit &lt;- lpridge(speed,dist,bandw = 5, ridge=0)		# local polynomials
+lines(myfit$x.out,myfit$est,col=2)
+
+myridge &lt;- lpridge(speed,dist,bandw = 5)		# local pol. ridge
+lines(myridge$x.out,myridge$est,col=3)
+mtext("bandw = 5")
+legend(5,120, c("ridge = 0", "default ridging"), col = 2:3, lty = 1)
+detach()
+</code></pre>
+
+
+</div>

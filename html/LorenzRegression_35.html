@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lorenz.FABS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates the parameter vector in a penalized Lorenz regression with lasso penalty</h2>
+
+<h3>Description</h3>
+
+<p><code>Lorenz.FABS</code> solves the penalized Lorenz regression with (adaptive) Lasso penalty on a grid of lambda values.
+For each value of lambda, the function returns estimates for the vector of parameters and for the estimated explained Gini coefficient, as well as the Lorenz-<code class="reqn">R^2</code> of the regression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lorenz.FABS(
+  y,
+  x,
+  standardize = TRUE,
+  weights = NULL,
+  kernel = 1,
+  h = length(y)^(-1/5.5),
+  gamma = 0.05,
+  lambda = "Shi",
+  w.adaptive = NULL,
+  eps = 0.005,
+  iter = 10^4,
+  lambda.min = 1e-07
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a vector of responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix of explanatory variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Should the variables be standardized before the estimation process? Default value is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>vector of sample weights. By default, each observation is given the same weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>integer indicating what kernel function to use. The value 1 is the default and implies the use of an Epanechnikov kernel while the value of 2 implies the use of a biweight kernel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>bandwidth of the kernel, determining the smoothness of the approximation of the indicator function. Default value is n^(-1/5.5) where n is the sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>value of the Lagrange multiplier in the loss function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>this parameter relates to the regularization parameter. Several options are available.
+</p>
+
+<dl>
+<dt><code>grid</code></dt>
+<dd>
+<p>If <code>lambda="grid"</code>, lambda is defined on a grid, equidistant in the logarithmic scale.</p>
+</dd>
+<dt><code>Shi</code></dt>
+<dd>
+<p>If <code>lambda="Shi"</code>, lambda, is defined within the algorithm, as in Shi et al (2018).</p>
+</dd>
+<dt><code>supplied</code></dt>
+<dd>
+<p>If the user wants to supply the lambda vector himself</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w.adaptive</code></td>
+<td>
+<p>vector of size equal to the number of covariates where each entry indicates the weight in the adaptive Lasso. By default, each covariate is given the same weight (Lasso).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>step size in the FABS algorithm. Default value is 0.005.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>maximum number of iterations. Default value is 10^4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.min</code></td>
+<td>
+<p>lower bound of the penalty parameter. Only used if <code>lambda="Shi"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The regression is solved using the FABS algorithm developed by Shi et al (2018) and adapted to our case.
+For a comprehensive explanation of the Penalized Lorenz Regression, see Jacquemain et al.
+In order to ensure identifiability, theta is forced to have a L2-norm equal to one.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with several components:
+</p>
+
+<dl>
+<dt><code>lambda</code></dt>
+<dd>
+<p>vector gathering the different values of the regularization parameter</p>
+</dd>
+<dt><code>theta</code></dt>
+<dd>
+<p>matrix where column i provides the vector of estimated coefficients corresponding to the value <code>lambda[i]</code> of the regularization parameter.</p>
+</dd>
+<dt><code>LR2</code></dt>
+<dd>
+<p>vector where element i provides the Lorenz-<code class="reqn">R^2</code> attached to the value <code>lambda[i]</code> of the regularization parameter.</p>
+</dd>
+<dt><code>Gi.expl</code></dt>
+<dd>
+<p>vector where element i provides the estimated explained Gini coefficient related to the value <code>lambda[i]</code> of the regularization parameter.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Jacquemain, A., C. Heuchenne, and E. Pircalabelu (2024). A penalised bootstrap estimation procedure for the explained Gini coefficient. <em>Electronic Journal of Statistics 18(1) 247-300</em>.
+</p>
+<p>Shi, X., Y. Huang, J. Huang, and S. Ma (2018). A Forward and Backward Stagewise Algorithm for Nonconvex Loss Function with Adaptive Lasso, <em>Computational Statistics &amp; Data Analysis 124</em>, 235-251.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lorenz.Reg</code>, <code>Lorenz.SCADFABS</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Data.Incomes)
+y &lt;- Data.Incomes[,1]
+x &lt;- as.matrix(Data.Incomes[,-c(1,2)])
+Lorenz.FABS(y, x)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>evfit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit an extreme value distribution to observations</h2>
+
+<h3>Description</h3>
+
+<p>Fits an extreme value distribution using <var>L</var>-moments to the values provided. In the presence of zero flow observations a mixed distribution is fitted.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">evfit(x, distribution, zeta = NULL, check = TRUE,
+      extreme = c("minimum", "maximum"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector. Data which is an extreme value distribution is fitted to. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distribution</code></td>
+<td>
+<p>A character vector of distributions to fit. Basically all distributions provided by Hosking's <code>lmom-package</code> and their reversed counterparts can be chosen. See <code>reversing</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>numeric vector of length one for manually setting a lower bound. Only a few distributions allow for a lower bound, namely <code>'gpa'</code>, <code>'ln3'</code>, <code>'wak'</code> and <code>'wei'</code>. The default value of <code>NULL</code> results in not bounding the distribution, therefore the parameter <code>zeta</code> is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check</code></td>
+<td>
+<p>logical, should <code>check_distribution</code> get called?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extreme</code></td>
+<td>
+<p>character vector of length one. Can be either <code>'minimum'</code> or <code>'maximum'</code>. Helps to choose a correct distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is vectorized over <code>distribution</code>.
+</p>
+<p>According to paragraph 7.4.2 of the <abbr><span class="acronym">WNO</span></abbr> manual, special care has to be taken in the presence of zero flow observations. A cdf called G(x) is fitted to the non-zero values of the original time series.
+</p>
+<p>If a distribution is fitted which allows for finite lower bound (<code>zeta</code>), and <code>zeta</code> is estimated being negative, estimation is repeated constraining <code>zeta = 0</code>. If this behavior is not desired, the parameter <code>zeta</code> has to be set explicitly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>'evfit'</code> containing the <var>L</var>-moments and the estimated parameters is returned. Objects of class <code>'evfit'</code> are basically a list with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>the values <code>x</code> used for fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq.zeros</code></td>
+<td>
+<p>a character vector of length one. Frequency of zero flow observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is.censored</code></td>
+<td>
+<p>logical, if the censored time was used for fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>a list as long as <code>distribution</code> containing the estimated parameters for each distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>sample L-moments of the censored series (only containing non-zero values). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extreme</code></td>
+<td>
+<p>character vector of length one, indicating what kind of extreme value was fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T_Years_Event</code></td>
+<td>
+<p>optional. If quantiles have been computed they a stored in a matrix with return periods in rows and distributions in columns.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>There are methods for printing summarizing objects of class <code>'evfit'</code>.
+</p>
+<p><code>evfit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("ngaruroro")
+ng &lt;- as.xts(ngaruroro)
+minima &lt;- as.vector(apply.yearly(ng$discharge, min, na.rm = TRUE))
+evfit(x = minima, distribution = c("wei", "gevR"),
+      extreme = "minimum")
+</code></pre>
+
+
+</div>

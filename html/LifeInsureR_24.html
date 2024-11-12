@@ -1,0 +1,1221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>InsuranceContract</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Base Class for Insurance Contracts</h2>
+
+<h3>Description</h3>
+
+<p>Base Class for Insurance Contracts
+</p>
+<p>Base Class for Insurance Contracts
+</p>
+
+
+<h3>Details</h3>
+
+<p>R6 class that models a complete, general insurance contract.
+The corresponding tariff and the profit participation scheme, as well as
+all other relevant contract parameters (if not defined by the tariff or
+explicitly overridden by the contract) can be given in the constructor.
+</p>
+
+
+<h3>Usage</h3>
+
+<p>The typical usage of this class is to simply call
+<a href="#method-new"><code>InsuranceContract$new()</code></a>.
+</p>
+<p>All parameters from the InsuranceContract.ParameterDefaults can be passed
+to the constructor of the class (i.e. the <a href="#method-new"><code>InsuranceContract$new()</code></a>-call).
+Parameters not explicitly given, will be taken from the tariff or as a fall-back
+mechanism from the InsuranceContract.ParameterDefaults defaults.
+</p>
+<p>Immediately upon construction, all premiums, reserves and cash flows for the
+whole contract period are calculated and can be accessed via the <code>Values</code>
+field of the object.
+</p>
+
+
+<h3>Calculation approach: Valuation</h3>
+
+<p>The calculation of all contract values is controlled by the function
+<a href="#method-calculateContract"><code>InsuranceContract$calculateContract()</code></a> (using methods of the InsuranceTarif
+object) and follows the following logic:
+</p>
+
+<ol>
+<li>
+<p> First the <strong>contingent (unit) cash flows</strong> and the <strong>transition probbilities</strong>
+are determined.
+</p>
+</li>
+<li>
+<p> The <strong>actuarial equivalence principle</strong> states that at time of inception, the
+(net and gross) premium must be determined in a way that the present value
+of the future benefits and costs minus the present value of the future premiums
+must be equal, i.e. in expectation the future premiums ove the whole lifetime
+of the contract will exactly cover the benefits and costs. Similarly, at all
+later time steps, the difference between these two present values needs to be
+reserved (i.e. has already been paid by the customer by previous premiums).
+</p>
+</li>
+<li>
+<p> This allows the premiums to be calculated by first calculating the <strong>present
+values</strong> for all of the <strong>benefit and costs cash flow</strong> vectors.
+</p>
+</li>
+<li>
+<p> The formulas
+to calculate the gross, Zillmer and net <strong>premiums</strong> involve simple linear
+combinations of these present values, so the <strong>coefficients of these formulas</strong>
+are determined next.
+</p>
+</li>
+<li>
+<p> With the coefficients of the premium formulas calculated, all <strong>premiums
+can be calculated</strong> (first the gross premium, because due to potential gross
+premium refunds in case of death, the formula for the net premium requires
+the gross premium, which the formula for the gross premium involves no other
+type of premuim).
+</p>
+</li>
+<li>
+<p> With premiums determined, all unit cash flows and unit present values can
+now be expressed in monetary terms / as <strong>absolute cash flows</strong> (i.e. the actual Euro-amount that flows
+rather than a percentage).
+</p>
+</li>
+<li>
+<p> As described above, the difference between the present values of premiums
+and present values of benefits and costs is defined as the required amount
+of reserves, so the <strong>reserves (net, gross, administration cost, balance sheet)</strong>
+and all values derived from them (i.e. surrender value, sum insured in case of
+premium waiver, etc.) are calculated.
+</p>
+</li>
+<li>
+<p> The <strong>decomposition of the premium</strong> into parts dedicated to specific purposes
+(tax, rebates, net premium, gross premium, Zillmer premium, cost components,
+risk premium, savings premium, etc.) can be done once the reserves are
+ready (since e.g. the savings premium is defined as the difference of
+discounted reserves at times $t$ and $t+1$).
+</p>
+</li>
+<li>
+<p> If the contract has <strong>(discretionary or obligatory) profit sharing</strong>B mechanisms
+included, the corresponding ProfitParticipation object can calculate that
+profit sharing amounts, once all guaranteed values are calculated. This can
+also be triggered manually (with custom profit sharing rates) by calling
+the methods <a href="#method-profitScenario"><code>InsuranceContract$profitScenario()</code></a>]
+or <a href="#method-addProfitScenario"><code>InsuranceContract$addProfitScenario()</code></a>.
+</p>
+</li>
+</ol>
+<h3>Calculation approach: Cash Flows</h3>
+
+<p>An insurance contract is basically defined by the (unit) cash flows it produces:
+</p>
+
+<ul>
+<li> <p><strong>Premium payments</strong> (in advance or in arrears) at each timestep
+</p>
+</li>
+<li> <p><strong>Survival payments</strong> at each timestep
+</p>
+</li>
+<li> <p><strong>Guaranteed payments</strong> at each timestep
+</p>
+</li>
+<li> <p><strong>Death benefits</strong> at each timestep
+</p>
+</li>
+<li> <p><strong>Disease benefits</strong> at each timestep
+</p>
+</li>
+</ul>
+<p>Together with the transition probabilities (mortalityTable parameter)
+the present values can be calculated, from which the premiums follow and
+finally the reserves and a potential profit sharing.
+</p>
+<p>For example, a <em><strong>term life insurance with regular premiums</strong></em> would have the following
+cash flows:
+</p>
+
+<ul>
+<li>
+<p> premium cash flows: 1, 1, 1, 1, 1, ...
+</p>
+</li>
+<li>
+<p> survival cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> guaranteed cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> death benefit cash flows: 1, 1, 1, 1, 1, ...
+</p>
+</li>
+</ul>
+<p>A <em><strong>single-premium term life insurance</strong></em> would look similar, except for the premiums:
+</p>
+
+<ul><li>
+<p> premium cash flows: 1, 0, 0, 0, 0, ...
+</p>
+</li></ul>
+<p>A <em><strong>pure endowment</strong></em> has no death benefits, but a survival benefit of 1 at the
+maturity of the contract:
+</p>
+
+<ul>
+<li>
+<p> premium cash flows: 1, 1, 1, 1, 1, ...
+</p>
+</li>
+<li>
+<p> survival cash flows: 0, 0, ..., 0, 1
+</p>
+</li>
+<li>
+<p> guaranteed cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> death benefit cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+</ul>
+<p>An <em><strong>endowment</strong></em> has also death benefits during the contract duration:
+</p>
+
+<ul>
+<li>
+<p> premium cash flows: 1, 1, 1, 1, 1, ...
+</p>
+</li>
+<li>
+<p> survival cash flows: 0, 0, ..., 0, 1
+</p>
+</li>
+<li>
+<p> guaranteed cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> death benefit cash flows: 1, 1, 1, 1, 1, ...
+</p>
+</li>
+</ul>
+<p>A <em><strong>(deferred) annuity</strong>B</em> has premium cash flows only during the deferral peroid
+and only survival cash flows during the annuity payment phase. Often, in case
+of death during the deferral period, all premiums paid are refunded as a death
+benefit.:
+</p>
+
+<ul>
+<li>
+<p> premium cash flows: 1, 1, ...,  1, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> survival cash flows: 0, 0, ..., 0, 1, 1, 1,...
+</p>
+</li>
+<li>
+<p> guaranteed cash flows: 0, 0, 0, 0, 0, ...
+</p>
+</li>
+<li>
+<p> death benefit cash flows: 1, 2, 3, 4, 5, ..., 0, 0, ...
+</p>
+</li>
+</ul>
+<p>A <em><strong>terme-fix insurance</strong></em> has a guaranteed payment at maturity, even if the insured
+has already died. The premiums, however, are only paid until death (which is
+not reflected in the contingent cash flows, but rather in the transition
+probabilities):
+</p>
+
+<ul>
+<li>
+<p> premium cash flows: 1, 1, 1, 1, ...,  1
+</p>
+</li>
+<li>
+<p> survival cash flows: 0, 0, 0, 0, ..., 0
+</p>
+</li>
+<li>
+<p> guaranteed cash flows: 0, 0, 0, ..., 0, 1
+</p>
+</li>
+<li>
+<p> death benefit cash flows: 0, 0, 0, 0, ..., 0
+</p>
+</li>
+</ul>
+<p>The <code>InsuranceContract$new()</code> function creates a new
+insurance contract for the given tariff, using the parameters passed
+to the function (and the defaults specified in the tariff).
+</p>
+<p>As soon as this function is called, the contract object calculates
+all time series (cash flows, premiums, reserves, profit participation)
+for the whole contract duration.
+</p>
+<p>The most important parameters that are typically passed to the
+constructor are:
+</p>
+
+<ul>
+<li> <p><code>age</code> ... Age of the insured person (used to derive mortalities / transition probabilities)
+</p>
+</li>
+<li> <p><code>policyPeriod</code> ... Maturity of the policy (in years)
+</p>
+</li>
+<li> <p><code>premiumPeriod</code> ... How long premiums are paid (<code>premiumPeriod = 1</code>
+for single-premium contracts, <code>premiumPeriod</code> equals
+<code>policyPeriod</code> for regular premium payments for the whole
+contract period, while other premium payment durations indicate
+premium payments only for shorter periods than the whole contract
+duration. Contract extensions without any premium payments are
+indicated by <code>premiumPeriod</code>=0). Default is equal to
+<code>policyPeriod</code>
+</p>
+</li>
+<li> <p><code>sumInsured</code> ... The sum insured (i.e. survival benefit for
+endowments, death benefit for whole/term life insurances,
+annuity payments for annuities)
+</p>
+</li>
+<li> <p><code>contractClosing</code> ... Date of the contract beginning (typically
+created using something like <code>as.Date("2020-08-01")</code>)
+</p>
+</li>
+<li> <p><code>YOB</code> ... Year of birth of the insured (for cohort mortality
+tables). If not given, YOB is derived from <code>age</code> and
+<code>contractClosing</code>.
+</p>
+</li>
+<li> <p><code>deferralPeriod</code> ... Deferral period for deferred annuities
+(i.e. when annuity payments start at a future point in time).
+Default is 0.
+</p>
+</li>
+<li> <p><code>premiumFrequency</code> ... How many premium payments per year are
+made (e.g. 1 for yearly premiums, 4 for quarterly premiumd,
+12 for monthly premium payments). Default is 1 (yearly premiums).
+</p>
+</li>
+</ul>
+<p>While these are the most common and most important parameters, all
+parameters can be overwritten on a per-contract basis, even those
+that are defined by the tariff. For a full list and explanation of all
+parameters, see InsuranceContract.ParameterDefaults.
+</p>
+<p>The <code>InsuranceContract$addHistorySnapshot()</code> function
+adds the current (or the explicitly given) state of the contract
+(parameters, calculated values, tarif, list of all contract blocks)
+to the history list (available in the <code>history</code> field of the
+contract, i.e. <code>InsuranceContract$history</code>).
+</p>
+<p>Contracts with multiple contract blocks (typically either
+contracts with dynamic increases, sum increases or protection riders)
+are constructed by instantiating the child block (e.g. a single
+dynamic increase or the rider) independently with its own (shorter)
+duration and then inserting it into the parent contract with this
+function at the given time.
+</p>
+<p>If no InsuranceContract object is passed as <code>block</code>, a copy
+of the parent is created with overriding parameters given in <code>...</code>.
+</p>
+<p>This method adds a new contract block describing a dynamic
+or sum increase (increasing the sum insured at a later time
+$t$ than contract inception). This increase is modelled by a
+separate InsuranceContract object with the sum difference
+as its own <code>sumInsured</code>.
+</p>
+<div class="sourceCode"><pre>     By default, all parameters are taken from the main contract,
+     with the maturity adjusted to match the original contract's
+     maturity.
+
+     The main contract holds all child blocks, controls their
+     valueation and aggregates all children's values to the
+     total values of the overall contract.
+</pre></div>
+<p>When a contract expires, this function adds a follow-up contract
+(with either the same or a different tariff), using the existing
+reserve as <code>additionalCapital</code> at inception.
+Technically, a child block using the new contract data of the extension
+is added to the original contract. The over-all contract values are then
+the sum of the original contract (providing values until expiration)
+and the extension (providing values after the extension).
+</p>
+<p>This method calculates all contract values (potentially
+starting from and preserving all values before a later time
+<code>valuesFrom</code>). This function is not meant to be called
+directly, but internally, whenever a contract is created or
+modified.
+</p>
+<div class="sourceCode"><pre>     There is, however, a legitimate case to call this function
+     when a contract was initially created with a value of
+     \code{calculate} other than "all", so not all values of the
+     contract were calculated. When one later needs more values
+     than were initially calculated, this function can be called.
+     However, any contract changes might need to be rolled back
+     and reapplied again afterwards. So even in this case it is
+     probably easier to create the contract object from scratch
+     again.
+</pre></div>
+<p>This function is an internal function for contracts with
+multiple child blocks (dynamic increases, sum increases, riders).
+It takes the values from all child blocks and calculates the
+overall values from all child blocks aggregated.
+</p>
+<div class="sourceCode"><pre>   This function should not be called manually.
+</pre></div>
+<p>This function modifies the contract at time $t$ so that
+no further premiums are paid (i.e. a paid-up contract) and the
+<code>sumInsured</code> is adjusted according to the existing reserves.
+</p>
+<p>This function calculates one profit scenario with the
+provided profit participation parameters (all parameters
+not given in the call are taken from their values of the
+contract, profit participation scheme or tariff).
+</p>
+<p>This function calculates one profit scenario with the
+provided profit participation parameters (all parameters
+not given in the call are taken from their values of the
+contract, profit participation scheme or tariff). The results
+are stored in a list of profit scenarios inside the contract.
+</p>
+<div class="sourceCode"><pre>    This function can be chained to calculate and add multiple
+    profit scenarios.
+</pre></div>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>tarif</code></dt>
+<dd>
+<p>The InsuranceTarif underlying this contract. The tarif is the abstract
+product description (i.e. defining the type of insurance, fixing tpyes
+of benefits, specifying costs, guaranteed interest rate, mortality tables,
+potential profit sharing mechanisms, etc.), while the contract holds
+the individual parts like age, sum insured, contract duration, premium
+payment frequency, etc.</p>
+</dd>
+<dt><code>parent</code></dt>
+<dd>
+<p>A pointer to the parent contract. Some contracts consist of multiple
+parts (e.g. a main savings contract with a dread-disease rider, or
+a contract with multiple dynamic increases). These are internally
+represented by one InsuranceContract object per contract part, plus
+one contract object combining them and deriving combined premiums,
+reserves and profit participation. The child contracts (i.e. the
+objects representing the individual parts) have a pointer to their
+parent, while the overall contract holds a list of all its child contract parts.</p>
+</dd>
+<dt><code>ContractParameters</code></dt>
+<dd>
+<p>Insurance contract parameters explicitly specified in the contract
+(i.e. parameters that are NOT taken from the tariff of the defaults).</p>
+</dd>
+<dt><code>Parameters</code></dt>
+<dd>
+<p>Full set of insurance contract parameters applying to this contract.
+The set of parameters is a combination of explicitly given (contract-specific)
+values, parameters determined by the tariff and default values.</p>
+</dd>
+<dt><code>Values</code></dt>
+<dd>
+<p>List of all contract values (cash flows, present values, premiums,
+reserves, premium decomposition, profit participation, etc.). These
+values will be calculated and filled when the contract is created
+and updated whenever the contract is changed.</p>
+</dd>
+<dt><code>blocks</code></dt>
+<dd>
+<p>For contracts with multiple contract parts: List of all tariff blocks
+(independently calculated InsuranceContract objects, that are combined
+to one contract, e.g. dynamic/sum increases). If this field is empty,
+this object describes a contract block (calculated as a stand-alone
+tariff), otherwise it will simply be the sum of its blocks (adjusted
+to span the same time periods)</p>
+</dd>
+<dt><code>history</code></dt>
+<dd>
+<p>A list keeping track of all contract changes (including the whole
+contract state and its values before the change).</p>
+</dd>
+<dt><code>dummy.public</code></dt>
+<dd>
+<p>dummy field to allow a trailing comma after the previous field/method</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-InsuranceContract-new"><code>InsuranceContract$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-addHistorySnapshot"><code>InsuranceContract$addHistorySnapshot()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-addBlock"><code>InsuranceContract$addBlock()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-addDynamics"><code>InsuranceContract$addDynamics()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-addExtension"><code>InsuranceContract$addExtension()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-calculateContract"><code>InsuranceContract$calculateContract()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-consolidateBlocks"><code>InsuranceContract$consolidateBlocks()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-premiumWaiver"><code>InsuranceContract$premiumWaiver()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-profitScenario"><code>InsuranceContract$profitScenario()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-addProfitScenario"><code>InsuranceContract$addProfitScenario()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-InsuranceContract-clone"><code>InsuranceContract$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-InsuranceContract-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Create a new insurance contract (for the given tariff/product) and calculate all time series
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$new(
+  tarif,
+  parent = NULL,
+  calculate = "all",
+  profitid = "default",
+  ...
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>tarif</code></dt>
+<dd>
+<p>The InsuranceTarif object describing the Tariff/Product
+and providing defaults for the parameters.</p>
+</dd>
+<dt><code>parent</code></dt>
+<dd>
+<p>For contracts with multiple contract blocks (dynamic
+increases, sum increases, riders), each child is created with
+a pointer to its parent. NULL for single-block contracts or
+for the overall-contract of a multi-block contract. This
+parameter is used internally, but should not be used in
+user-written code.</p>
+</dd>
+<dt><code>calculate</code></dt>
+<dd>
+<p>how much of the contract's time series need to be
+calculated. See CalculationEnum for all possible values. This
+is usefull to prevent calculation of e.g. reserves and profit
+participation, when one only wants to create a grid of premiums.</p>
+</dd>
+<dt><code>profitid</code></dt>
+<dd>
+<p>The ID of the default profit participation scenario.
+The default profit participation scenario uses the default
+values passed, while further scenarios can be added by
+<a href="#method-addProfitScenario"><code>InsuranceContract$addProfitScenario()</code></a>.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Further parameters (age, sum insured, contract closing /
+begin, premium payment details, etc.) of the contract, which
+can also override parameters defined at the tariff-level.
+Possible values are all sub-fields of the
+InsuranceContract.ParameterDefaults data structure.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-addHistorySnapshot"></a>
+
+
+
+<h4>Method <code>addHistorySnapshot()</code>
+</h4>
+
+<p>Add the current state of the contract to the history list
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$addHistorySnapshot(
+  time = 0,
+  comment = "Initial contract values",
+  type = "Contract",
+  params = self$Parameters,
+  values = self$Values,
+  tarif = self$tarif,
+  blocks = self$blocks
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>time</code></dt>
+<dd>
+<p>the time described by the snapshot</p>
+</dd>
+<dt><code>comment</code></dt>
+<dd>
+<p>a comment to store together with the contract state</p>
+</dd>
+<dt><code>type</code></dt>
+<dd>
+<p>The type of action that caused a history snapshot to
+be stored. Typical values are "Contract" to describe the initial
+contract, "Premium Waiver" or "Dynamic Increase".</p>
+</dd>
+<dt><code>params</code></dt>
+<dd>
+<p>The set of params to be stored in the history snapshot
+(default is <code>self$Parameters</code>, if not explicitly given)</p>
+</dd>
+<dt><code>values</code></dt>
+<dd>
+<p>The calculated time series of all contract values
+calculated so far. Default is <code>self$Values</code>, if not
+explicitly given</p>
+</dd>
+<dt><code>tarif</code></dt>
+<dd>
+<p>The underlying InsuranceTarif object describing the
+Product/Tariff. Default is <code>self$tarif</code>, if not explicitly given.</p>
+</dd>
+<dt><code>blocks</code></dt>
+<dd>
+<p>The list of all contract children for contracts with
+multiple insurance blocks (e.g. dynamic increases, riders, etc.)</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-addBlock"></a>
+
+
+
+<h4>Method <code>addBlock()</code>
+</h4>
+
+<p>Add a child contract block (e.g. a dynamic increase or a rider) to an insurance contract
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$addBlock(
+  id = NULL,
+  block = NULL,
+  t = block$Values$int$blockStart,
+  comment = paste0("Additional block at time t=", t),
+  blockType = "Dynamics",
+  ...
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The identifier of the child block to be inserted</p>
+</dd>
+<dt><code>block</code></dt>
+<dd>
+<p>The InsuranceContract object describing the child block.
+If NULL (or not given at all), a copy of the parent will be
+created.</p>
+</dd>
+<dt><code>t</code></dt>
+<dd>
+<p>Then the child block starts, relative to the parent block.
+The child block is calculated independently (with time 0
+describing its own start), so when aggregating all values from
+the individual blocks to overall values for the whole contract,
+the child's values need to be translated to the parent contracts's
+time frame using this parameter</p>
+</dd>
+<dt><code>comment</code></dt>
+<dd>
+<p>The comment to use in the history snapshot.</p>
+</dd>
+<dt><code>blockType</code></dt>
+<dd>
+<p>The type of block to be added (e.g. Dynamics, Extension,
+etc.). Can be any (short) string.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>parameters to be passed to <a href="#method-new"><code>InsuranceContract$new()</code></a> when
+<code>block</code> is not given and a copy of the parent should be
+created with overrides.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-addDynamics"></a>
+
+
+
+<h4>Method <code>addDynamics()</code>
+</h4>
+
+<p>Add a dynamic increase with the same parameters as the main contract part
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$addDynamics(t, NewSumInsured, SumInsuredDelta, id, ...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>t</code></dt>
+<dd>
+<p>The time within the main contract when the sum increase happens.
+The InsuranceContract object describing the dynamic increase
+will still internally start at its own time 0, but the
+aggregation by the main contract will correctly offset to
+the time $t$ within the main contract.</p>
+</dd>
+<dt><code>NewSumInsured</code></dt>
+<dd>
+<p>The over-all new sum insured (sum of original
+contract and all dynamica increaeses). The <code>sumInsured</code>
+of the new dynamic increase block will be determined as the
+difference of the old and new overall sum insured. Alternatively,
+it can directly be given as the <code>SumInsuredDelta</code>
+argument instead.</p>
+</dd>
+<dt><code>SumInsuredDelta</code></dt>
+<dd>
+<p>The sum insured of only the dynamic increase,
+i.e. the sumInsured of the dynamic contract block only. The
+overall sum insured will increase by this amount. Only one of
+<code>NewSumInsured</code> and <code>SumInsuredDelta</code> is needed,
+the other one will be calculated accordingly. If both are
+given, the <code>SumInsuredDelta</code> will take precedence.</p>
+</dd>
+<dt><code>id</code></dt>
+<dd>
+<p>The identifier of the contract block describing the dynamic
+increase. This is a free-form string that should be unique
+within the list of child blocks. It will be displayed in the
+'Excel' export feature and in the history snapshot list.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Parameters to override in the dynamic block. By default,
+all parameters of the main contract block will be used, but
+they can be overridden per dynamic increase block.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-addExtension"></a>
+
+
+
+<h4>Method <code>addExtension()</code>
+</h4>
+
+<p>Add a contract extension after the contract has ended
+(existing reserve is used as initial capital of the follow-up contract).
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$addExtension(
+  id = NULL,
+  t = NULL,
+  comment = paste0("Contract extension at time t=", t),
+  ...
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The identifier of the child block to be inserted</p>
+</dd>
+<dt><code>t</code></dt>
+<dd>
+<p>The time of the extension (relative to the parent block),
+by default contract expiration of the parent block.
+The extension is calculated independently (with time 0
+describing its own start), but using the existing reserve as
+initialCapital and the parent's parameters as fall-back values.</p>
+</dd>
+<dt><code>comment</code></dt>
+<dd>
+<p>The comment to use in the history snapshot.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Additional parameters to be passed to
+<a href="#method-new"><code>InsuranceContract$new</code></a> to create the contract
+extension object.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-calculateContract"></a>
+
+
+
+<h4>Method <code>calculateContract()</code>
+</h4>
+
+<p>Calculate all time series of the contract from the parameters
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$calculateContract(
+  calculate = "all",
+  valuesFrom = 0,
+  premiumCalculationTime = 0,
+  preservePastPV = TRUE,
+  additionalCapital = 0,
+  recalculatePremiums = TRUE,
+  recalculatePremiumSum = TRUE,
+  history_comment = NULL,
+  history_type = "Contract"
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>calculate</code></dt>
+<dd>
+<p>Which values to calculate. See CalculationEnum</p>
+</dd>
+<dt><code>valuesFrom</code></dt>
+<dd>
+<p>Calculate only values starting from this time step
+on (all values before that time will be preserved). This is
+required when a contract is changed significantly (potentially
+even switching to a new tariff), so that the calculation bases
+for previous periods are no longer available.</p>
+</dd>
+<dt><code>premiumCalculationTime</code></dt>
+<dd>
+<p>The time point when the premium should
+be re-calculated (including existing reserves) based on the
+actuarial equivalence principle. All reserves will be based on
+these new premiums.</p>
+</dd>
+<dt><code>preservePastPV</code></dt>
+<dd>
+<p>Whether present value before the recalculation
+time <code>valuesFrom</code> should be preserved or recalculated.
+When they are recalculated, the present values are consistent
+to the new cash flows over the whole contract period, but
+they no longer represent the actual contract state at these
+times. If values are not recalculated, the reserves at each
+time step represent the proper state at that point in time.</p>
+</dd>
+<dt><code>additionalCapital</code></dt>
+<dd>
+<p>The capital that is added to the contract
+(e.g. capital carried over from a previous contract) at the
+premium calculation time.</p>
+</dd>
+<dt><code>recalculatePremiums</code></dt>
+<dd>
+<p>Whether the premiums should be recalculated
+at time <code>premiumCalculationTime</code> at all.</p>
+</dd>
+<dt><code>recalculatePremiumSum</code></dt>
+<dd>
+<p>Whether to recalculate the overall premium
+sum when the premium is recalculated.</p>
+</dd>
+<dt><code>history_comment</code></dt>
+<dd>
+<p>The comment for the history snapshot entry</p>
+</dd>
+<dt><code>history_type</code></dt>
+<dd>
+<p>The type (free-form string) to record in the history snapshot</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-consolidateBlocks"></a>
+
+
+
+<h4>Method <code>consolidateBlocks()</code>
+</h4>
+
+<p>Aggregate values from all child contract blocks (if any)
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$consolidateBlocks(valuesFrom = 0)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>valuesFrom</code></dt>
+<dd>
+<p>The time from when to aggragate values. Values before
+that time will be left unchanged.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-premiumWaiver"></a>
+
+
+
+<h4>Method <code>premiumWaiver()</code>
+</h4>
+
+<p>Stop premium payments and re-calculate sumInsured of the paid-up contract
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$premiumWaiver(t, ...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>t</code></dt>
+<dd>
+<p>Time of the premium waiver.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Further parameters (currently unused)</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-profitScenario"></a>
+
+
+
+<h4>Method <code>profitScenario()</code>
+</h4>
+
+<p>Calculate one profit scenario and return all values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$profitScenario(...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>...</code></dt>
+<dd>
+<p>Scenario-specific profit sharing parameters, overriding
+the default values. Typically, adjusted profit rates are required
+in a profitScenario.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Returns</h5>
+
+<p>a data.frame holding all profit participation values (rates,
+bases for the different profit types, profit allocations,
+terminal bonus funds, profit in case of death/surrender/premium waiver)
+</p>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-addProfitScenario"></a>
+
+
+
+<h4>Method <code>addProfitScenario()</code>
+</h4>
+
+<p>Calculate one profit scenario and store it in the contract
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$addProfitScenario(id, ...)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>id</code></dt>
+<dd>
+<p>The unique ID of the profit scenario. Will be used as key
+in the list of profit scenarios and printed out in the 'Excel'
+export.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>Scenario-specific profit sharing parameters, overriding
+the default values. Typically, adjusted profit rates are required
+in a profitScenario.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre># TODO
+</pre>
+</div>
+
+
+<hr>
+<a id="method-InsuranceContract-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>InsuranceContract$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># TODO
+
+
+## ------------------------------------------------
+## Method `InsuranceContract$addHistorySnapshot`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$addBlock`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$addDynamics`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$addExtension`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$premiumWaiver`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$profitScenario`
+## ------------------------------------------------
+
+# TODO
+
+## ------------------------------------------------
+## Method `InsuranceContract$addProfitScenario`
+## ------------------------------------------------
+
+# TODO
+</code></pre>
+
+
+</div>

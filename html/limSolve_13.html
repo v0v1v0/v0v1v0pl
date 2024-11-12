@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>RigaWeb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+An underdetermined linear inverse problem: the Gulf of Riga *spring*
+planktonic food web
+</h2>
+
+<h3>Description</h3>
+
+<p>Input matrices and vectors for estimating the flows in the planktonic food
+web of the Gulf of Riga.
+</p>
+<p>(as in Donali et al. (1999)).
+</p>
+<p>The original input file can be found in the package subdirectory
+<code>/inst/docs/RigaSpring.input</code>
+</p>
+<p>There are 7 functional compartments:
+P1,P2,B,N,Z,D,OC
+(two phytoplankton groups, Bacteria, Nanozooplankton, Zooplankton,
+Detritus and DOC).
+</p>
+<p>and 2 externals: CO2 and SED (sedimentation)
+</p>
+<p>These are connected with 26 flows:
+P1-&gt;CO2, P2-&gt;CO2, Z-&gt;CO2, N-&gt;CO2, B-&gt;CO2, CO2-&gt;P1, CO2-&gt;P2, P1-&gt;Z, P1-&gt;N,
+P1-&gt;DOC, P1-&gt;SED, P2-&gt;DOC, P2-&gt;Z, P2-&gt;D, P2-&gt;SED, N-&gt;DOC, N-&gt;Z, Z-&gt;DOC,
+Z-&gt;D, Z-&gt;SED, D-&gt;Z, D-&gt;DOC, D-&gt;SED, B-&gt;N, B-&gt;SED, DOC-&gt;B
+</p>
+<p>The lsei model contains:
+</p>
+
+<ul>
+<li>
+<p> 14 equalities (Ax=B): the 7 mass balances (one for each compartment)
+and 7 measurement equations
+</p>
+</li>
+<li>
+<p> 26 unknowns (x), the flow values
+</p>
+</li>
+<li>
+<p> 45 inequalities (Gx&gt;h). The first 19 inequalities impose bounds
+on some combinations of flows.
+The last 26 inequalities impose that the flows have to be positive.
+</p>
+</li>
+</ul>
+<p>As there are more unknowns (26) than equations (14), there exist an
+infinite amount of solutions (it is an underdetermined problem).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">RigaWeb</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A list with the matrices and vectors that constitute the mass balance problem:
+<code>A</code>, <code>B</code>, <code>G</code> and <code>H</code>.
+</p>
+<p>The columnames of <code>A</code> and <code>G</code> are the names of the unknown
+reaction rates;
+The first 14 rownames of <code>A</code> give the names of the components
+(these rows consitute the mass balance equations).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karline Soetaert &lt;karline.soetaert@nioz.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Donali, E., Olli, K., Heiskanen, A.S., Andersen, T., 1999. Carbon flow
+patterns in the planktonic food web of the Gulf of Riga, the Baltic Sea:
+a reconstruction by the inverse method. Journal of Marine Systems 23,
+251..268.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+E &lt;- RigaWeb$A
+F &lt;- RigaWeb$B
+G &lt;- RigaWeb$G
+H &lt;- RigaWeb$H
+
+# 1. parsimonious (simplest) solution
+pars &lt;- lsei(E = E, F = F, G = G, H = H)$X
+
+# 2.ranges of all unknowns, including the central value
+xr   &lt;- xranges(E = E, F = F, G = G, H = H, central = TRUE)
+
+# the central point is a valid solution:
+X &lt;- xr[,"central"]
+max(abs(E%*%X - F))
+min(G%*%X - H)
+
+## Not run:    # this does not work on windows i386!
+# 3. Sample solution space; the central value is a good starting point
+#   for algorithms cda and rda - but these need many iterations   
+xs  &lt;- xsample(E = E, F = F, G = G, H = H,
+               iter = 10000, out = 1000, type = "rda", x0 = X)$X
+# better convergence using 50000 iterations, but this takes a while
+xs  &lt;- xsample(E = E, F = F, G = G, H = H,
+               iter = 50000, out = 1000, type = "rda", x0 = X)$X
+
+pairs(xs, pch = ".", cex = 2, gap = 0, upper.panel = NULL)
+
+
+# using mirror algorithm takes less iterations,
+# but an iteration takes more time ; it is better to start in a corner...
+# (i.e. no need to use X as starting value)
+xs  &lt;- xsample(E = E, F = F, G = G, H = H,
+               iter = 1500, output = 500, type = "mirror")$X
+pairs(xs, pch = ".", cex = 2, gap = 0, upper.panel = NULL, 
+      yaxt = "n", xaxt = "n")
+
+# Print results:
+data.frame(pars = pars, xr[ ,1:2], Mean = colMeans(xs), sd = apply(xs, 2, sd))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

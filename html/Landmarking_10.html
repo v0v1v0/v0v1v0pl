@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.landmark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a calibration plot</h2>
+
+<h3>Description</h3>
+
+<p>Creates a calibration plot for the landmark model fitted by <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>.
+This function plots the observed frequencies of the event of interest against the predicted probabilities of the event of interest.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'landmark'
+plot(x, x_L, n, x_lims, y_lims, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Object inheriting the class <code>landmark</code>, this should be the output from either <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>. It should contain a list
+of landmark models corresponding to different landmark times <code>x_L</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_L</code></td>
+<td>
+<p>Numeric specifying the landmark time. This indicates which landmark model in <code>x</code> to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Numeric specifying the number of bins to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_lims</code></td>
+<td>
+<p>Vector of length 2 specifying the limits of the x axes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_lims</code></td>
+<td>
+<p>Vector of length 2 specifying the limits of the y axes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>ggplot2::labs</code> to modify axis, legend, and plot labels</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function bins the predicted probabilities of the event of interest into <code>n</code> bins. The event of interest is the event with
+<code>event_status=1</code> when fitting the landmark model. For each of the <code>n</code> sets of individuals, the Aalen-Johansen estimator is fit to that set
+and used to calculate the risk of an event at the horizon time. The predictions (from the landmark model) and the observed frequencies
+(from the Aalen-Johansen estimator) are plotted against each other. For a perfect prediction model, the points will be plotted along the y=x line.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Calibration plot showing the value of predicted probabilities against observed frequencies, with a <code>y=x</code> line.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(Landmarking)
+data(data_repeat_outcomes)
+data_model_landmark_LOCF &lt;-
+  fit_LOCF_landmark(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    covariates =
+      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time =
+      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    k = 10,
+    individual_id = "id",
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
+ plot(x=data_model_landmark_LOCF,x_L=60,n=5)
+ plot(x=data_model_landmark_LOCF,x_L=61,n=5)
+</code></pre>
+
+
+</div>

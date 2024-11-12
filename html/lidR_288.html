@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_3d</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a spatial object to a point cloud scene</h2>
+
+<h3>Description</h3>
+
+<p>Add a raster ('raster', 'stars' 'terra') object that represents a digital terrain model or a
+'SpatialPointsDataFrame' or 'sf' that represents tree tops to a point cloud scene. To add elements
+to a scene with a point cloud plotted with the function plot from lidR, the functions 'add_*'
+take as first argument the output of the plot function (see examples), because the plot function
+does not plot the actual coordinates of the point cloud, but offset values. See function
+plot and its argument 'clear_artifacts' for more details. It works only
+with 'rgl' i.e. 'backend = "rgl"' which is the default.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_dtm3d(dtm, bg = "black", clear_artifacts = TRUE, ...)
+
+add_dtm3d(x, dtm, ...)
+
+add_treetops3d(x, ttops, z = "Z", ...)
+
+add_flightlines3d(x, flightlines, z = "Z", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dtm</code></td>
+<td>
+<p>An object of the class 'RasterLayer' or 'stars' or 'SpatRaster'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bg</code></td>
+<td>
+<p>The color for the background. Default is black.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clear_artifacts</code></td>
+<td>
+<p>logical. It is a known and documented issue that 3D visualisation with
+<code>rgl</code> displays artifacts. The points and lines are inaccurately positioned in the space and thus
+the rendering may look false or weird. This is because 'rgl' computes with single precision 'float'.
+To fix this, the objects are shifted to (0,0) to reduce the number of digits needed to represent
+their coordinates. The drawback is that the objects are not plotted at their actual coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Supplementary parameters for surface3d or
+spheres3d.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The output of the function plot used with a LAS object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ttops</code></td>
+<td>
+<p>A 'SpatialPointsDataFrame' or 'sf/sfc' that contains tree tops coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>character. The name of the attribute that contains the height of the tree tops or of the
+flightlines. Only for XY geometries Ignored if the input have XYZ geometries</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flightlines</code></td>
+<td>
+<p>A 'SpatialPointsDataFrame' or 'sf' that contains flightlines coordinates.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile)
+
+dtm &lt;- rasterize_terrain(las, algorithm = tin())
+ttops &lt;- locate_trees(las, lmf(ws = 5))
+
+plot_dtm3d(dtm)
+
+x &lt;- plot(las)
+add_dtm3d(x, dtm)
+add_treetops3d(x, ttops)
+
+plot(las) |&gt; add_dtm3d(dtm) |&gt; add_treetops3d(ttops)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

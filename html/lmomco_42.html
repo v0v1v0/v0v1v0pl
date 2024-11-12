@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BEhypergeo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Barnes Extended Hypergeometric Function</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the Barnes Extended Hypergeometric function, which in <span class="pkg">lmomco</span> is useful in applications involving expectations of order statistics for the Generalized Exponential Poisson (GEP) distribution (see <code>lmomgep</code>). The function is
+</p>
+<p style="text-align: center;"><code class="reqn">
+F_{p,q}(\bm{\mathrm{n}},\bm{\mathrm{d}}; \lambda) = \sum_{k=0}^\infty \frac{\lambda^k}{\Gamma(k+1)}\frac{\Pi_{i=1}^{p} \Gamma(n_i + k)\Gamma^{-1}{(n_i)}}{\Pi_{i=1}^{q} \Gamma(d_i + k)\Gamma^{-1}{(d_i)}}\mbox{,} 
+</code>
+</p>
+
+<p>where <code class="reqn">\bm{\mathrm{n}} = [n_1, n_2, \ldots, n_p]</code> for <code class="reqn">p</code> operands and <code class="reqn">\bm{\mathrm{d}} = [d_1, d_2, \ldots, d_q]</code> for <code class="reqn">q</code> operands, and <code class="reqn">\lambda &gt; 0</code> is a parameter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BEhypergeo(p,q, N,D, lambda, eps=1E-12, maxit=500)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>An integer value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>An integer value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>A scalar or vector associated with the <code class="reqn">p</code> summation (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>A scalar or vector associated with the <code class="reqn">q</code> summation (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>A real value <code class="reqn">\lambda &gt; 0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>The relative convergence error on which to break an infinite loop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>The maximum number of interations before a mandatory break on the loop, and a warning will be issued.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For the GEP both <code class="reqn">\bm{\mathrm{n}}</code> and <code class="reqn">\bm{\mathrm{d}}</code> are vectors of the same value, such as <code class="reqn">\bm{\mathrm{n}} = [1, \ldots, 1]</code> and <code class="reqn">\bm{\mathrm{d}} = [2, \ldots, 2]</code>. This implementation is built around this need by the GEP and if the length of either vector is not equal to the operand then the first value of the vector is repeated the operand times. For example for <code class="reqn">\bm{\mathrm{n}}</code>, if <code>n = 1</code>, then <code>n = rep(n[1], length(p))</code> and so on for <code class="reqn">\bm{\mathrm{d}}</code>. Given that <code>n</code> and <code>d</code> are vectorized for the GEP, then a shorthand is used for the GEP mathematics shown herein:
+</p>
+<p style="text-align: center;"><code class="reqn">F^{12}_{22}(h(j+1)) \equiv F_{2,2}([1,\ldots,1], [2,\ldots,2]; h(j+1))\mbox{,}</code>
+</p>
+ 
+<p>for the <code class="reqn">h</code> parameter of the distribution.
+</p>
+<p>Lastly, for <span class="pkg">lmomco</span> and the GEP the arguments only involve <code class="reqn">p = q = 2</code> and <code class="reqn">N = 1</code>, <code class="reqn">D = 2</code>, so the function is uniquely a function of the <code class="reqn">h</code> parameter of the distribution:
+</p>
+<pre>
+  H &lt;- 10^seq(-10,10, by=0.01)
+  F22 &lt;- sapply(1:length(H), function(i) BEhypergeo(2,2,1,1, H[i])$value
+  plot(log10(H), log10(F22), type="l")
+</pre>
+<p>For this example, the solution increasingly wobbles towards large <code class="reqn">h</code>, which is further explored by
+</p>
+<pre>
+  plot(log10(H[1:(length(H)-1)]), diff(log10(F22)), type="l", xlim=c(0,7))
+  plot(log10(H[H &gt; 75 &amp; H &lt; 140]), c(NA,diff(log10(F22[H &gt; 75 &amp; H &lt; 140]))),
+       type="b"); lines(c(2.11,2.11), c(0,10))
+</pre>
+<p>It can be provisionally concluded that the solution to <code class="reqn">F^{12}_{22}(\cdot)</code> begins to be suddenly questionable because of numerical difficulties beyond <code class="reqn">\log(h) = 2.11</code>. Therefore, it is given that <code class="reqn">h &lt; 128</code> might be an operational numerical upper limit.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>The value for the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>its</code></td>
+<td>
+<p>The number of iterations <code class="reqn">j</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p>The error of convergence.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Kus, C., 2007, A new lifetime distribution: Computational Statistics and Data Analysis, v. 51, pp. 4497–4509.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomgep</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">BEhypergeo(2,2,1,2,1.5)
+</code></pre>
+
+
+</div>

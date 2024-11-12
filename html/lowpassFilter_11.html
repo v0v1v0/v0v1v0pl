@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>helpFunctionsFilter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convolved piecewise constant signals</h2>
+
+<h3>Description</h3>
+
+<p>Creates piecewise constant signals with a single jump / peak. Computes the convolution of piecewise constant signals with the kernel of a lowpass filter.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getConvolution(t, stepfun, filter, truncated = TRUE)
+getSignalJump(t, cp, leftValue, rightValue)
+getConvolutionJump(t, cp, leftValue, rightValue, filter, truncated = TRUE)
+getSignalPeak(t, cp1, cp2, value, leftValue, rightValue) 
+getConvolutionPeak(t, cp1, cp2, value, leftValue, rightValue, filter, truncated = TRUE) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>a numeric vector giving the time points at which the signal / convolution should be computed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepfun</code></td>
+<td>
+<p>specification of the piecewise constant signal, i.e. a <code>data.frame</code> with named arguments <code>leftEnd</code>, <code>rightEnd</code> and <code>value</code> giving the start and end points of the constant segments and the values on the segments, for instance an object of class <code>stepblock</code> as available by the package 'stepR'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cp, cp1, cp2</code></td>
+<td>
+<p>a single numeric giving the location of the single, first and second jump point, respectively</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value, leftValue, rightValue</code></td>
+<td>
+<p>a single numeric giving the function value at, before and after the peak / jump, respectively</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>an object of class <code>lowpassFilter</code> giving the analogue lowpass filter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truncated</code></td>
+<td>
+<p>a single logical (not NA) indicating whether the signal should be convolved with the truncated or the untruncated filter kernel</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a numeric of length <code>length(t)</code> giving the signal / convolution at time points <code>t</code>
+</p>
+
+
+<h3>References</h3>
+
+<p>Pein, F., Bartsch, A., Steinem, C., and Munk, A. (2020) Heterogeneous idealization of ion channel recordings - Open channel noise. Submitted.
+</p>
+<p>Pein, F., Tecuapetla-Gómez, I., Schütte, O., Steinem, C., Munk, A. (2018) Fully-automatic multiresolution idealization for filtered ion channel recordings: flickering event detection. IEEE Trans. Nanobioscience, 17(3):300-320.
+</p>
+<p>Pein, F. (2017) Heterogeneous Multiscale Change-Point Inference and its Application to Ion Channel Recordings.
+PhD thesis, Georg-August-Universität Göttingen. http://hdl.handle.net/11858/00-1735-0000-002E-E34A-7.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lowpassFilter</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># creating and plotting a signal with a single jump at 0 from 0 to 1
+time &lt;- seq(-2, 13, 0.01)
+signal &lt;- getSignalJump(time, 0, 0, 1)
+plot(time, signal, type = "l")
+
+# setting up the filter
+filter &lt;- lowpassFilter(param = list(pole = 4, cutoff = 0.1))
+
+# convolution with the truncated filter
+convolution &lt;- getConvolutionJump(time, 0, 0, 1, filter)
+lines(time, convolution, col = "red")
+
+# without truncating the filter, looks almost equal
+convolution &lt;- getConvolutionJump(time, 0, 0, 1, filter, truncated = FALSE)
+lines(time, convolution, col = "blue")
+
+
+# creating and plotting a signal with a single peak with jumps
+# at 0 and at 3 from 0 to 1 to 0
+time &lt;- seq(-2, 16, 0.01)
+signal &lt;- getSignalPeak(time, 0, 3, 1, 0, 0)
+plot(time, signal, type = "l")
+
+# convolution with the truncated filter
+convolution &lt;- getConvolutionPeak(time, 0, 3, 1, 0, 0, filter)
+lines(time, convolution, col = "red")
+
+# without truncating the filter, looks almost equal
+convolution &lt;- getConvolutionPeak(time, 0, 3, 1, 0, 0, filter, truncated = FALSE)
+lines(time, convolution, col = "blue")
+
+
+# doing the same with getConvolution
+# signal can also be an object of class stepblock instead,
+# e.g. constructed by stepR::stepblock
+signal &lt;- data.frame(value = c(0, 1, 0), leftEnd = c(-2, 0, 3), rightEnd = c(0, 3, 16))
+
+convolution &lt;- getConvolution(time, signal, filter)
+lines(time, convolution, col = "red")
+
+convolution &lt;- getConvolution(time, signal, filter, truncated = FALSE)
+lines(time, convolution, col = "blue")
+
+
+# more complicated signal
+time &lt;- seq(-2, 21, 0.01)
+signal &lt;- data.frame(value = c(0, 10, 0, 50, 0), leftEnd = c(-2, 0, 3, 6, 8),
+                     rightEnd = c(0, 3, 6, 8, 21))
+
+convolution &lt;- getConvolution(time, signal, filter)
+plot(time, convolution, col = "red", type = "l")
+
+convolution &lt;- getConvolution(time, signal, filter, truncated = FALSE)
+lines(time, convolution, col = "blue")
+</code></pre>
+
+
+</div>

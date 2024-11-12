@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>W</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lambert W function, its logarithm and derivative</h2>
+
+<h3>Description</h3>
+
+<p>The Lambert W function <code class="reqn">W(z) = u</code> is defined as the inverse
+of (see <code>xexp</code>)
+</p>
+<p style="text-align: center;"><code class="reqn"> u \exp(u) = z, </code>
+</p>
+
+<p>i.e., it satisfies <code class="reqn">W(z) \exp(W(z)) = z</code>.
+</p>
+<p><code>W</code> evaluates the Lambert W function (<code>W</code>), its first derivative
+(<code>deriv_W</code>), and its logarithm (<code>log_W</code>).  All of them have a
+principal (<code>branch = 0</code> (default)) and non-principal branch
+(<code>branch = -1</code>) solution.
+</p>
+<p><code>W</code> is a wrapper for <code>lambertW0</code> and
+<code>lambertWm1</code> in the <span class="pkg">lamW</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">W(z, branch = 0)
+
+deriv_W(z, branch = 0, W.z = W(z, branch = branch))
+
+log_deriv_W(z, branch = 0, W.z = W(z, branch = branch))
+
+deriv_log_W(z, branch = 0, W.z = W(z, branch = branch))
+
+log_W(z, branch = 0, W.z = W(z, branch = branch))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>a numeric vector of real values; note that <code>W(Inf, branch = 0)
+= Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>branch</code></td>
+<td>
+<p>either <code>0</code> or <code>-1</code> for the principal or non-principal
+branch solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W.z</code></td>
+<td>
+<p>Lambert W function evaluated at <code>z</code>; see Details below for
+why this is useful.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Depending on the argument <code class="reqn">z</code> of <code class="reqn">W(z)</code> one can distinguish 3 cases:
+</p>
+<dl>
+<dt><code class="reqn">z \geq 0</code></dt>
+<dd>
+<p>solution is unique <code>W(z) = W(z, branch =
+0)</code></p>
+</dd>
+</dl>
+<p>; </p>
+<dl>
+<dt><code class="reqn">-1/e \leq z &lt; 0</code></dt>
+<dd>
+<p>two solutions: the principal (<code>W(z,
+branch = 0)</code>) and non-principal (<code>W(z, branch = -1)</code>) branch;</p>
+</dd>
+<dt><code class="reqn">z &lt; -1/e</code></dt>
+<dd>
+<p> no solution exists in the reals.</p>
+</dd>
+</dl>
+<p><code>log_W</code> computes the natural logarithm of <code class="reqn">W(z)</code>. This can be done
+efficiently since <code class="reqn">\log W(z) = \log z - W(z)</code>. Similarly, the
+derivative can be expressed as a function of <code class="reqn">W(z)</code>:
+</p>
+<p style="text-align: center;"><code class="reqn"> W'(z) = \frac{1}{(1 + W(z)) \exp(W(z))} = \frac{W(z)}{z(1 + W(z))}. </code>
+</p>
+
+<p>Note that <code class="reqn">W'(0) = 1</code> and <code class="reqn">W'(-1/e) = \infty</code>.
+</p>
+<p>Moreover, by taking logs on both sides we can even simplify further to
+</p>
+<p style="text-align: center;"><code class="reqn">\log W'(z) = \log W(z) - \log z - \log (1 + W(z))</code>
+</p>
+<p> which, since
+<code class="reqn">\log W(z) = \log z - W(z)</code>, simplifies to
+</p>
+<p style="text-align: center;"><code class="reqn"> \log W'(z) = - W(z) - \log (1 + W(z)).</code>
+</p>
+ 
+<p>For this reason it is numerically faster to pass the value of <code class="reqn">W(z)</code> as
+an argument to <code>deriv_W</code> since <code>W(z)</code> often has already been
+evaluated in a previous step.
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric; same dimensions/size as <code>z</code>.
+</p>
+<p><code>W</code> returns numeric, <code>Inf</code> (for <code>z = Inf</code>), or <code>NA</code> if
+<code class="reqn">z &lt; -1/e</code>. 
+</p>
+<p>Note that <code>W</code> handles <code>NaN</code> differently to
+<code>lambertW0</code> / <code>lambertWm1</code> in the <span class="pkg">lamW</span> package; it returns
+<code>NA</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Corless, R. M., G. H. Gonnet, D. E. G. Hare, D. J. Jeffrey and D. E. Knuth
+(1996). “On the Lambert W function”. Advances in Computational
+Mathematics, pp. 329-359.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lambertW0</code> / <code>lambertWm1</code>in the <span class="pkg">lamW</span> package;
+<code>xexp</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+W(-0.25) # "reasonable" input event 
+W(-0.25, branch = -1) # "extreme" input event
+
+curve(W(x, branch = -1), -1, 2, type = "l", col = 2, lwd = 2)
+curve(W(x), -1, 2, type = "l", add = TRUE, lty = 2) 
+abline(v = - 1 / exp(1))
+
+# For lower values, the principal branch gives the 'wrong' solution; 
+# the non-principal must be used.
+xexp(-10) 
+W(xexp(-10), branch = 0) 
+W(xexp(-10), branch = -1)
+
+curve(log(x), 0.1, 5, lty = 2, col = 1, ylab = "")
+curve(W(x), 0, 5, add = TRUE, col = "red")
+curve(log_W(x), 0.1, 5, add = TRUE, col = "blue")
+grid()
+legend("bottomright", c("log(x)", "W(x)", "log(W(x))"),
+       col = c("black", "red", "blue"), lty = c(2, 1, 1))
+
+</code></pre>
+
+
+</div>

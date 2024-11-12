@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lyl_ci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Confidence intervals for Life Years Lost.</h2>
+
+<h3>Description</h3>
+
+<p><code>lyl_ci</code> estimates confidence intervals for Life Years Lost using non-parametric
+bootstrap. The confidence level can be specified when summarizing the results with
+the function <code>summary.lyl_ci</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lyl_ci(lyl_estimation, niter = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lyl_estimation</code></td>
+<td>
+<p>An object of class <code>lyl</code> or <code>lyl_range</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>Number of iterations for the bootstrap (default is 1,000).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with class <code>"lyl_ci"</code> containing the following components:
+</p>
+
+<ul>
+<li>
+<p><code>LYL</code>: Data frame with one observation per age and at least 3 variables: <code>age</code>; <code>life_exp</code>
+which is the estimated remaining life expectancy at age <code>age_specific</code> years
+and before age <code>tau</code> years; and one variable corresponding to the estimated Life Years Lost for each specific
+cause of death. If only one cause of death is considered (no competing risks), this variable is <code>Dead</code> and includes
+the total overall Life Years Lost
+</p>
+</li>
+<li>
+<p><code>LYL_ci</code>: Data frame with one observation per age-iteration and at least 4 variables: <code>age</code>; <code>iteration</code>, which
+correspond to each specific iteration; <code>life_exp</code> which is the estimated remaining life expectancy at age <code>age_specific</code> years
+and before age <code>tau</code> years; and one variable corresponding to the estimated Life Years Lost for each specific
+cause of death. If only one cause of death is considered (no competing risks), this variable is <code>Dead</code> and includes
+the total overall Life Years Lost
+</p>
+</li>
+<li>
+<p><code>tau</code>: Maximum theoretical age <code class="reqn">\tau</code>
+</p>
+</li>
+<li>
+<p><code>age_specific</code>: Specific age at which the Life Years Lost have been estimated
+</p>
+</li>
+<li>
+<p><code>age_begin</code>: Specific starting age at which the Life Years Lost have been estimated
+</p>
+</li>
+<li>
+<p><code>age_end</code>: Specific ending age at which the Life Years Lost have been estimated
+</p>
+</li>
+<li>
+<p><code>death_labels</code>: Label(s) for death status
+</p>
+</li>
+<li>
+<p><code>competing_risks</code>: Logical value (<code>TRUE</code> = more than one cause of death (competing risks))
+</p>
+</li>
+<li>
+<p><code>type</code>: Whether the estimation is at <code>"age_specific"</code> or <code>"age_range"</code>.
+</p>
+</li>
+<li>
+<p><code>niter</code>: Number of iterations used to estimate the confidence intervals
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+
+<ul><li>
+<p>Plana-Ripoll et al. lillies – An R package for the estimation of excess Life Years Lost among patients with a given disease or condition.
+<em>PLoS ONE</em>. 2020;15(3):e0228073.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p><code>lyl</code> for estimation of Life Years Lost at one specific age.
+</p>
+</li>
+<li>
+<p><code>lyl_range</code> for estimation of Life Years Lost for a range of different ages.
+</p>
+</li>
+<li>
+<p><code>lyl_diff</code> to compare Life Years Lost for two populations.
+</p>
+</li>
+<li>
+<p><code>summary.lyl_ci</code> to summarize objects obtained with function <code>lyl_ci</code>.
+</p>
+</li>
+<li>
+<p><code>plot.lyl_ci</code> to plot objects obtained with function <code>lyl_ci</code>.
+</p>
+</li>
+</ul>
+<p><code>lyl_range</code> for estimation of Life Years Lost for a range of different ages.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load simulated data as example
+data(simu_data)
+
+# Estimate remaining life expectancy and Life Years
+# Lost after age 45 years and before age 95 years
+lyl_estimation &lt;- lyl(data = simu_data, t = age_death, status = death,
+                      age_specific = 45, tau = 95)
+
+
+# Calculate bootstrapped confidence interval (3 iterations to test; more are necessary)
+lyl_estimation_ci &lt;- lyl_ci(lyl_estimation, niter = 3)
+summary(lyl_estimation_ci)
+plot(lyl_estimation_ci)
+
+# Estimate remaining life expectancy and Life Years
+# Lost after each age from 0 to 94 years and before age 95 years
+lyl_estimation2 &lt;- lyl_range(data = simu_data, t = age_death, status = death,
+                             age_begin = 0, age_end = 94, tau = 95)
+
+# Calculate bootstrapped confidence interval (3 iterations to test; more are necessary)
+lyl_estimation_ci2 &lt;- lyl_ci(lyl_estimation2, niter = 3)
+summary(lyl_estimation_ci2, weights = simu_data$age_disease)
+plot(lyl_estimation_ci2, weights = simu_data$age_disease)
+
+</code></pre>
+
+
+</div>

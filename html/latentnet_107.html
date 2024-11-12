@@ -1,0 +1,214 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.ergmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ERGMM Fit Summaries</h2>
+
+<h3>Description</h3>
+
+<p><code>summary.ergmm</code> prodcues a summary of an
+<code>ergmm</code> object, including point estimates,
+standard errors, and BIC calculation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ergmm'
+summary(
+  object,
+  point.est = c(if (!is.null(object[["mle"]])) "mle", if (!is.null(object[["sample"]]))
+    c("pmean", "mkl")),
+  quantiles = c(0.025, 0.975),
+  se = "mle" %in% point.est,
+  bic.eff.obs = c("ties", "dyads", "actors"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An <code>ergmm</code> object to be summarized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>point.est</code></td>
+<td>
+<p>Point estimates to compute: a character vector with some
+subset of <code>"mle"</code>, <code>"pmean"</code>, <code>"mkl"</code>, and <code>"pmode"</code>.
+Defaults to a concatenation of <code>"mle"</code> (if fit), <code>"pmean"</code>, and
+<code>"mkl"</code> (if MCMC was run).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>Posterior quantiles (credible intervals) to compute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Whether to compute standard errors. Defaults to <code>TRUE</code> if MLE
+was fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eff.obs, bic.eff.obs</code></td>
+<td>
+<p>What effective sample size to use for BIC
+calculation?
+</p>
+
+<dl>
+<dt><code>"ties"</code></dt>
+<dd>
+<p>the number of non-missing ties in the network. This is the approach recommended by Handcock et al. (2007) and the default. Not well-defined for valued networks.</p>
+</dd>
+<dt><code>"dyads"</code></dt>
+<dd>
+<p>the number of non-missing dyads (potential ties) in the network.</p>
+</dd>
+<dt><code>"actors"</code></dt>
+<dd>
+<p>the number of actors in the network. The default prior to 2.7.0.</p>
+</dd>
+<dt>a number</dt>
+<dd>
+<p>to specify a specific sample size.</p>
+</dd>
+<dt><code>NULL</code></dt>
+<dd>
+<p>Don't compute the BIC at all. Mostly for internal use.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that BIC computed for the random effects models uses the same
+formualtion as Handcock et al., so it is likely correct, but has not been
+peer-reviewed.
+</p>
+<p>This BIC can be (reasonably) safely used to select the number of clusters or
+which fixed effects to include in the model. It is not clear whether it is
+appropriate to use this BIC to select the dimension of latent space and
+whether or not to include random actor effects. These considerations are
+independent of the bug described below.
+</p>
+<p>Prior to version 2.7.0, there was a bug in BIC calculation that used <code class="reqn">p
++ n(d+r+s)</code> as the number of parameters in the likelihood (where <code class="reqn">p</code> is
+the number of fixed effects, <code class="reqn">n</code> the number of actors, <code class="reqn">d</code>, the
+latent space dimension, and <code class="reqn">r</code> and <code class="reqn">s</code> indicators of presence of
+sender and receiver (or sociality) effects). This value should have been
+just <code class="reqn">p</code>.
+</p>
+<p>The following applications could have produced different results:
+</p>
+
+<ul>
+<li>
+<p>Using the BIC to select latent space dimension.
+</p>
+</li>
+<li>
+<p>Using the BIC to decide whether or not to include random effects.
+</p>
+</li>
+</ul>
+<p>The following applications could not (i.e., would be off by a constant):
+</p>
+
+<ul>
+<li>
+<p>Using the BIC to select the number of clusters.
+</p>
+</li>
+<li>
+<p>Using the BIC to select the fixed effects to be used.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>For <code>summary</code>, an object of class
+<code>summary.ergmm</code>. A print method is
+available.
+</p>
+<p>The BICs are available as the element "bic" of the object returned.
+</p>
+<p><code>bic.ergmm</code> returns the BIC for the model directly.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chris Fraley and Adrian E. Raftery (2002). <em>Model-based
+clustering, discriminant analysis, and density estimation</em>. Journal of the
+American Statistical Association, 97(458), 611-631.
+</p>
+<p>Mark S. Handcock, Adrian E. Raftery and Jeremy Tantrum (2007).
+<em>Model-Based Clustering for Social Networks</em>.  Journal of the Royal
+Statistical Society: Series A (Statistics in Society), 170(2), 301-354.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ergmm.object</code>, <code>ergmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+data(sampson)
+# Fit the model for cluster sizes 1 through 4:
+fits&lt;-list(
+           ergmm(samplike~euclidean(d=2,G=1)),
+           ergmm(samplike~euclidean(d=2,G=2)),
+           ergmm(samplike~euclidean(d=2,G=3)),
+           ergmm(samplike~euclidean(d=2,G=4))
+           )
+
+## Not run: 
+# Optionally, plot all fits.
+lapply(fits,plot)
+
+## End(Not run)
+
+# Compute the BICs for the fits and plot them:
+(bics&lt;-reshape(
+    as.data.frame(t(sapply(fits,
+                           function(x)c(G=x$model$G,unlist(bic.ergmm(x))[c("Y","Z","overall")])))),
+    list(c("Y","Z","overall")),idvar="G",v.names="BIC",timevar="Component",
+    times=c("likelihood","clustering","overall"),direction="long"
+    ))
+
+with(bics,interaction.plot(G,Component,BIC,type="b",xlab="Clusters", ylab="BIC"))
+
+# Summarize and plot whichever fit has the lowest overall BIC:
+bestG&lt;-with(bics[bics$Component=="overall",],G[which.min(BIC)])
+summary(fits[[bestG]])
+plot(fits[[bestG]])
+
+
+</code></pre>
+
+
+</div>

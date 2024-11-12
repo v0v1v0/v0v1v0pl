@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>shape_detection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Algorithms for shape detection of the local point neighbourhood</h2>
+
+<h3>Description</h3>
+
+<p>These functions are made to be used in segment_shapes. They implement algorithms for local
+neighbourhood shape estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">shp_plane(th1 = 25, th2 = 6, k = 8)
+
+shp_hplane(th1 = 25, th2 = 6, th3 = 0.98, k = 8)
+
+shp_line(th1 = 10, k = 8)
+
+shp_hline(th1 = 10, th2 = 0.02, k = 8)
+
+shp_vline(th1 = 10, th2 = 0.98, k = 8)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>th1, th2, th3</code></td>
+<td>
+<p>numeric. Threshold values (see details)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>integer. Number of neighbours used to estimate the neighborhood.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the following, <code class="reqn">a_1, a_2, a_3</code> denote the eigenvalues of the covariance matrix
+of the neighbouring points in ascending order. <code class="reqn">|Z_1|, |Z_2|, |Z_3|</code> denote
+the norm of the Z component of first, second and third axis of the decomposition.
+<code class="reqn">th_1, th_2, th_3</code>  denote a set of threshold values. Points are labelled
+<code>TRUE</code> if they meet the following criteria. <code>FALSE</code> otherwise.<br></p>
+
+<dl>
+<dt>shp_plane</dt>
+<dd>
+<p>Detection of plans based on criteria defined by Limberger &amp; Oliveira (2015) (see
+references). A point is labelled TRUE if the neighborhood is approximately planar, that is:
+</p>
+<p style="text-align: center;"><code class="reqn">a_2 &gt; (th_1 \times a_1) \&amp; (th_2 \times a_2) &gt; a_3</code>
+</p>
+</dd>
+<dt>shp_hplane</dt>
+<dd>
+<p>The same as 'plane' but with an extra test on the orientation of the Z vector
+of the principal components to test the horizontality of the surface.
+</p>
+<p style="text-align: center;"><code class="reqn">a_2 &gt; (th_1 \times a_1) \&amp; (th_2 \times a_2) &gt; a_3 \&amp; |Z_3| &gt; th_3</code>
+</p>
+
+<p>In theory  <code class="reqn">|Z_3|</code> should be exactly equal to 1. In practice 0.98 or 0.99 should be fine</p>
+</dd>
+<dt>shp_line</dt>
+<dd>
+<p>Detection of lines inspired by the Limberger &amp; Oliveira (2015) criterion. A point is
+labelled TRUE if the neighbourhood is approximately linear, that is:
+</p>
+<p style="text-align: center;"><code class="reqn">th_1 \times a_2 &lt; a_3 \&amp; th_1 \times a_1 &lt; a_3</code>
+</p>
+</dd>
+<dt>shp_hline</dt>
+<dd>
+<p>Detection of horizontal lines inspired by the Limberger &amp; Oliveira (2015) criterion.
+A point is labelled TRUE if the neighbourhood is approximately linear and horizontal, that is:
+</p>
+<p style="text-align: center;"><code class="reqn">th_1 \times a_2 &lt; a_3 \&amp; th_1 \times a_1 &lt; a_3 \&amp; |Z_1| &lt; th_2</code>
+</p>
+
+<p>In theory <code class="reqn">|Z_1|</code> should be exactly equal to 0. In practice 0.02 or 0.01 should be fine</p>
+</dd>
+<dt>shp_vline</dt>
+<dd>
+<p>Detection of vertical lines inspired by the Limberger &amp; Oliveira (2015) criterion.
+A point is labelled TRUE if the neighbourhood is approximately linear and vertical, that is:
+</p>
+<p style="text-align: center;"><code class="reqn">th_1 \times a_2 &lt; a_3 \&amp; th_1 \times a_1 &lt; a_3 \&amp; |Z_1| &gt; th_2</code>
+</p>
+
+<p>In theory <code class="reqn">|Z_1|</code> should be exactly equal to 1. In practice 0.98 or 0.99 should be fine</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Limberger, F. A., &amp; Oliveira, M. M. (2015). Real-time detection of planar regions in unorganized
+point clouds. Pattern Recognition, 48(6), 2043–2053. https://doi.org/10.1016/j.patcog.2014.12.020<br><br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generating some data
+n = 400
+xplane = runif(n,0,6)
+yplane = runif(n,0,6)
+zplane = xplane + 0.8 * yplane + runif(n, 0, 0.1)
+plane = data.frame(X = xplane, Y = yplane, Z = zplane)
+
+xhplane = runif(n,5,15)
+yhplane = runif(n,0,10)
+zhplane = 5 + runif(n, 0, 0.)
+hplane = data.frame(X = xhplane, Y = yhplane, Z = zhplane)
+
+tline = 1:n
+xline = 0.05*tline
+yline = 0.01*tline
+zline = 0.02*tline + runif(n, 0, 0.1)
+line = data.frame(X = xline, Y = yline, Z = zline)
+
+thline = 1:n
+xhline = 0.05*thline + runif(n, 0, 0.05)
+yhline = 10 - 0.01*thline + runif(n, 0, 0.05)
+zhline = 3 + runif(n, 0, 0.05)
+hline = data.frame(X = xhline, Y = yhline, Z = zhline)
+
+tvline = 1:n
+xvline = 5 + runif(n, 0, 0.05)
+yvline = 5 + runif(n, 0, 0.05)
+zvline = 0.02*tline
+vline = data.frame(X = xvline, Y = yvline, Z = zvline)
+
+las &lt;- rbind(plane, line, hplane, hline, vline)
+las &lt;- LAS(las)
+
+las &lt;- segment_shapes(las, shp_plane(k = 20), "plane")
+las &lt;- segment_shapes(las, shp_hplane(k = 20), "hplane")
+las &lt;- segment_shapes(las, shp_line(k = 20), "line")
+las &lt;- segment_shapes(las, shp_hline(k = 20), "hline")
+las &lt;- segment_shapes(las, shp_vline(k = 20), "vline")
+
+#plot(las)
+#plot(las, color = "plane")
+#plot(las, color = "hplane")
+#plot(las, color = "line")
+#plot(las, color = "hline")
+#plot(las, color = "vline")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate_params</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the parameters for a given data set and model</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the parameters for a given data set and model
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate_params(
+  data,
+  init_params = c(beta_A = 0.25, beta_B = 0.25, gamma_A = 0.5, gamma_B = 0.5, tau_1 = 0,
+    tau_2 = 0),
+  n_boot = 100,
+  GIA_fn = base_GIA,
+  S_fn = calc_S_base,
+  fn_list = NULL,
+  alpha = 0.05,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame with the following columns
+</p>
+
+<ul>
+<li>
+<p>dose_Adose A mg/mL
+</p>
+</li>
+<li>
+<p>dose_Bdose B mg/mL
+</p>
+</li>
+<li>
+<p>GIAGIA
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_params</code></td>
+<td>
+<p>named vector of parameters, that correspond to those used in 'GIA_fn'.  These will be used as the initial guesses.  A default is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+<p>number of boot straps to use to estimate confidence intervals of the parameters, GIA estimates, and values of S.  The default is 100.  If n_boot = 0, then no bootstraps will be run and only the point estimates will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GIA_fn</code></td>
+<td>
+<p>function to calculate the GIA from dose_A and dose_B combinations and given set of parameters.  Default is base_GIA</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S_fn</code></td>
+<td>
+<p>Function to calculate S. Default is calc_S_base</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn_list</code></td>
+<td>
+<p>additional arguments to pass to GIA_fn</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>alpha level used to produce CIs.  The bootstrap will use a two-tailed method.  The default is .05 to produce a 95% CI</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating whether we should print where we are in the process.  Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list with the following elements
+</p>
+
+<ul>
+<li>
+<p>params_esta data frame of dimension # of params x 4 where each row in the data frame is a parameter and where the columns are the mean, lower, alpha/2 quantile,  and upper,100 - alpha/2 quantile
+</p>
+</li>
+<li>
+<p>S_est a data frame of one row  x 4 where we provide the mean, lower, and upper estimates
+</p>
+</li>
+<li>
+<p>GIA_estthe original data with additional columns of the mean, lower, and upper estimates for each dose combination
+</p>
+</li>
+<li>
+<p>SSESum of Square Error for the model under the best (mean) parameters
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+df &lt;- loewesadditivity::cyrpa_ripr
+df$dose_A &lt;- df$CyRPA
+df$dose_B &lt;- df$RIPR
+data &lt;- fortify_gia_data(df)
+model_params &lt;- c("beta_A" = .5, "beta_B" = .5,
+                 "gamma_A" = .5, "gamma_B" = .5,
+                 "tau_1" = 0, "tau_2" = 0)
+n_boot &lt;- 10
+GIA_fn &lt;- base_GIA
+S_fn &lt;- calc_S_base
+fn_list &lt;- NULL
+alpha &lt;- .05
+verbose &lt;- FALSE
+out &lt;- estimate_params(data = data,
+init_params = model_params,
+n_boot = n_boot,
+GIA_fn = GIA_fn,
+S_fn = S_fn,
+fn_list = fn_list,
+alpha = alpha,
+verbose = verbose)
+names(out)
+</code></pre>
+
+
+</div>

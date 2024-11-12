@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quaaep4kapmix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantile Function Mixture Between the 4-Parameter Asymmetric Exponential Power and Kappa Distributions</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the quantiles of a mixture as needed between the 4-parameter Asymmetric Exponential Power (AEP4) and Kappa distributions given L-moments (<code>lmoms</code>). The quantile function of a two-distribution mixture is supported by <code>par2qua2</code> and is
+</p>
+<p style="text-align: center;"><code class="reqn">x(F) = (1-w) \times A(F) + w \times K(F)\mbox{,} </code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the mixture for nonexceedance probability <code class="reqn">F</code>, <code class="reqn">A(F)</code> is the AEP4 quantile function (<code>quaaep4</code>), <code class="reqn">K(F)</code> is the Kappa quantile function (<code>quakap</code>), and <code class="reqn">w</code> is a weight factor.
+</p>
+<p>Now, the above mixture is only applied if the <code class="reqn">\tau_4</code> for the given <code class="reqn">\tau_3</code> is within the overlapping region of the AEP4 and Kappa distributions. For this condition, the <code class="reqn">w</code> is computed by proration between the upper Kappa distribution bound (same as the <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> of the Generalized Logistic distribution, see <code>lmrdia</code>) and the lower bounds of the AEP4. For <code class="reqn">\tau_4</code> above the Kappa, then the AEP4 is exclusive and conversely, for <code class="reqn">\tau_4</code> below the AEP4, then the Kappa is exclusive.
+</p>
+<p>The <code class="reqn">w</code> therefore is the proration
+</p>
+<p style="text-align: center;"><code class="reqn">w = [\tau^{K}_4(\hat\tau_3) - \hat\tau_4] / [\tau^{K}_4(\hat\tau_3) - \tau^{A}_4(\hat\tau_3)]\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\hat\tau_4</code> is the sample L-kurtosis, <code class="reqn">\tau^{K}_4</code> is the upper bounds of the Kappa and <code class="reqn">\tau^{A}_4</code> is the lower bounds of the AEP4 for the sample L-skew (<code class="reqn">\hat\tau_3</code>).
+</p>
+<p>The parameter estimation for the AEP4 by <code>paraep4</code> can fall back to pure Kappa if argument <code>kapapproved=TRUE</code> is set. Such a fall back is unrelated to the mixture described here.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quaaep4kapmix(f, lmom, checklmom=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>A L-moment object created by <code>lmoms</code> or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Quantile value for nonexceedance probability <code class="reqn">F</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2014, Parameter estimation for the 4-parameter asymmetric exponential power distribution by the method of L-moments using R: Computational Statistics and Data Analysis, v. 71, pp. 955–970.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>par2qua2</code>, <code>quaaep4</code>, <code>quakap</code>, <code>paraep4</code>, <code>parkap</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+FF &lt;- c(0.0001, 0.0005, 0.001, seq(0.01,0.99, by=0.01), 0.999,
+       0.9995, 0.9999); Z &lt;- qnorm(FF)
+t3s &lt;- seq(0, 0.5, by=0.1); T4step &lt;- 0.02
+pdf("mixture_test.pdf")
+for(t3 in t3s) {
+   T4low &lt;- (5*t3^2 - 1)/4; T4kapup &lt;- (5*t3^2 + 1)/6
+   t4s &lt;- seq(T4low+T4step, T4kapup+2*T4step, by=T4step)
+   for(t4 in t4s) {
+      lmr &lt;- vec2lmom(c(0,1,t3,t4)) # make L-moments for lmomco
+      if(! are.lmom.valid(lmr)) next # for general protection
+      kap  &lt;- parkap(lmr)
+      if(kap$ifail == 5) next # avoid further work if numeric problems
+      aep4 &lt;- paraep4(lmr, method="A")
+      X &lt;- quaaep4kapmix(FF, lmr)
+      if(is.null(X)) next # one last protection
+      plot(Z, X, type="l", lwd=5, col=1, ylim=c(-15,15),
+           xlab="STANDARD NORMAL VARIATE",
+           ylab="VARIABLE VALUE")
+      mtext(paste("L-skew =",lmr$ratios[3],
+                  "  L-kurtosis = ",lmr$ratios[4]))
+      # Now add two more quantile functions for reference and review
+      # of the mixture. These of course would not be done in practice
+      # only quaaep4kapmix() would suffice.
+      if(! as.logical(aep4$ifail)) {
+         lines(Z, qlmomco(F,aep4), lwd=2, col=2)
+      }
+      if(! as.logical(kap$ifail)) {
+         lines(Z, qlmomco(F,kap),  lwd=2, col=3)
+      }
+      message("t3=",t3,"  t4=",t4) # stout for a log file
+  }
+}
+dev.off()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

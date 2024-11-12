@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>appender_file</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Append log messages to a file</h2>
+
+<h3>Description</h3>
+
+<p>Log messages are written to a file with basic log rotation: when max number of lines or bytes is defined to be other than <code>Inf</code>, then the log file is renamed with a <code>.1</code> suffix and a new log file is created. The renaming happens recursively (eg <code>logfile.1</code> renamed to <code>logfile.2</code>) until the specified <code>max_files</code>, then the oldest file (<code>logfile.{max_files-1}</code>) is deleted.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">appender_file(
+  file,
+  append = TRUE,
+  max_lines = Inf,
+  max_bytes = Inf,
+  max_files = 1L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>path</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append</code></td>
+<td>
+<p>boolean passed to <code>cat</code> defining if the file should be overwritten with the most recent log message instead of appending</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_lines</code></td>
+<td>
+<p>numeric specifying the maximum number of lines allowed in a file before rotating</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_bytes</code></td>
+<td>
+<p>numeric specifying the maximum number of bytes allowed in a file before rotating</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_files</code></td>
+<td>
+<p>integer specifying the maximum number of files to be used in rotation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>function taking <code>lines</code> argument
+</p>
+
+
+<h3>See Also</h3>
+
+<p>This is generator function for <code>log_appender</code>, for alternatives, see eg <code>appender_console</code>, <code>appender_tee</code>, <code>appender_slack</code>, <code>appender_pushbullet</code>, <code>appender_telegram</code>, <code>appender_syslog</code>, <code>appender_kinesis</code> and <code>appender_async</code> for evaluate any <code>log_appender</code> function in a background process.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## ##########################################################################
+## simple example logging to a file
+t &lt;- tempfile()
+log_appender(appender_file(t))
+for (i in 1:25) log_info(i)
+readLines(t)
+
+## ##########################################################################
+## more complex example of logging to file
+## rotated after every 3rd line up to max 5 files
+
+## create a folder storing the log files
+t &lt;- tempfile(); dir.create(t)
+f &lt;- file.path(t, 'log')
+
+## define the file logger with log rotation enabled
+log_appender(appender_file(f, max_lines = 3, max_files = 5L))
+
+## log 25 messages
+for (i in 1:25) log_info(i)
+
+## see what was logged
+lapply(list.files(t, full.names = TRUE), function(t) {
+  cat('\n##', t, '\n')
+  cat(readLines(t), sep = '\n')
+})
+
+## enable internal logging to see what's actually happening in the logrotate steps
+log_threshold(TRACE, namespace = '.logger')
+## run the above commands again
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>thetaWML</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weighted maximum likelihood estimator</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the shape parameter of a Pareto distribution using a weighted
+maximum likelihood approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">thetaWML(
+  x,
+  k = NULL,
+  x0 = NULL,
+  weight = c("residuals", "probability"),
+  const,
+  bias = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of observations in the upper tail to which the Pareto
+distribution is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>the threshold (scale parameter) above which the Pareto distribution
+is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>a character string specifying the weight function to be used.
+If <code>"residuals"</code> (the default), the weight function is based on
+standardized residuals.  If <code>"probability"</code>, probability based weighting
+is used.  Partial string matching allows these names to be abbreviated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>const</code></td>
+<td>
+<p>Tuning constant(s) that control the robustness of the method.
+If <code>weight="residuals"</code>, a single numeric value is required (the default
+is 2.5).  If <code>weight="probability"</code>, a numeric vector of length two must
+be supplied (a single numeric value is recycled; the default is 0.005 for
+both tuning parameters).  See the references for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias</code></td>
+<td>
+<p>a logical indicating whether bias correction should be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to
+<code>uniroot</code> (see “Details”).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments <code>k</code> and <code>x0</code> of course correspond with each other.
+If <code>k</code> is supplied, the threshold <code>x0</code> is estimated with the <code class="reqn">n
+- k</code> largest value in <code>x</code>, where <code class="reqn">n</code> is the number of observations.
+On the other hand, if the threshold <code>x0</code> is supplied, <code>k</code> is given
+by the number of observations in <code>x</code> larger than <code>x0</code>.  Therefore,
+either <code>k</code> or <code>x0</code> needs to be supplied.  If both are supplied,
+only <code>k</code> is used (mainly for back compatibility).
+</p>
+<p>The weighted maximum likelihood estimator belongs to the class of
+M-estimators.  In order to obtain the estimate, the root of a certain
+function needs to be found, which is implemented using
+<code>uniroot</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The estimated shape parameter.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The argument <code>x0</code> for the threshold (scale parameter) of the
+Pareto distribution was introduced in version 0.2.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Alfons and Josef Holzer
+</p>
+
+
+<h3>References</h3>
+
+<p>Dupuis, D.J. and Morgenthaler, S. (2002) Robust weighted
+likelihood estimators with an application to bivariate extreme value
+problems. <em>The Canadian Journal of Statistics</em>, <b>30</b>(1), 17–36.
+</p>
+<p>Dupuis, D.J. and Victoria-Feser, M.-P. (2006) A robust prediction error
+criterion for Pareto modelling of upper tails. <em>The Canadian Journal of
+Statistics</em>, <b>34</b>(4), 639–658.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>paretoTail</code>, <code>fitPareto</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(eusilc)
+# equivalized disposable income is equal for each household
+# member, therefore only one household member is taken
+eusilc &lt;- eusilc[!duplicated(eusilc$db030),]
+
+# estimate threshold
+ts &lt;- paretoScale(eusilc$eqIncome, w = eusilc$db090)
+
+# using number of observations in tail
+thetaWML(eusilc$eqIncome, k = ts$k)
+
+# using threshold
+thetaWML(eusilc$eqIncome, x0 = ts$x0)
+
+</code></pre>
+
+
+</div>

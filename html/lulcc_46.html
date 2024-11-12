@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>NeighbRasterStack</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a NeighbRasterStack object</h2>
+
+<h3>Description</h3>
+
+<p>Methods to calculate neighbourhood values for cells in raster maps using
+<code>raster::focal</code>. By default the fraction of non-NA cells
+within the moving window (i.e. the size of the weights matrix) devoted to each
+land use category is calculated. This behaviour can be changed by altering the
+weights matrix or providing an alternative function. The resulting object can
+be used as the basis of neighbourhood decision rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">NeighbRasterStack(x, weights, neighb, ...)
+
+## S4 method for signature 'RasterLayer,list,ANY'
+NeighbRasterStack(x, weights, neighb,
+  categories, fun = mean, ...)
+
+## S4 method for signature 'RasterLayer,matrix,ANY'
+NeighbRasterStack(x, weights, neighb,
+  categories, fun = mean, ...)
+
+## S4 method for signature 'RasterLayer,ANY,NeighbRasterStack'
+NeighbRasterStack(x, weights,
+  neighb)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>RasterLayer containing categorical data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>list containing a matrix of weights (the <code>w</code> argument in
+<code>raster::focal</code>) for each land use category. The order
+of list or vector elements should correspond to the order of land use
+categories in <code>categories</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neighb</code></td>
+<td>
+<p>NeighbRasterStack object. Only used if <code>categories</code> and
+<code>weights</code> are not provided. This option can be useful when existing
+NeighbRasterStack objects need to be updated because a new land use map is
+available, such as during the allocation procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>raster::focal</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categories</code></td>
+<td>
+<p>numeric vector containing land use categories for which
+neighbourhood values should be calculated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>function. Input argument to <code>focal</code>. Default is <code>mean</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A NeighbRasterStack object.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>NeighbRasterStack-class</code>, <code>allowNeighb</code>,
+<code>raster::focal</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Plum Island Ecosystems
+
+## observed data
+obs &lt;- ObsLulcRasterStack(x=pie,
+                    pattern="lu",
+                    categories=c(1,2,3),
+                    labels=c("forest","built","other"),
+                    t=c(0,6,14))
+
+## create a NeighbRasterStack object for 1985 land use map
+w1 &lt;- matrix(data=1, nrow=3, ncol=3, byrow=TRUE)
+w2 &lt;- w1
+w3 &lt;- w1
+
+nb1 &lt;- NeighbRasterStack(x=obs[[1]],
+                 categories=c(1,2,3),
+                 weights=list(w1,w2,w3))
+
+## update nb2 for 1991
+nb2 &lt;- NeighbRasterStack(x=obs[[2]],
+                  neighb=nb1)
+
+## plot neighbourhood map for forest
+plot(nb2[[1]])
+
+</code></pre>
+
+
+</div>

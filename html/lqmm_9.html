@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Bootstrap functions for LQM and LQMM
+</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to obtain a bootstrap sample of a fitted LQM or LQMM. It is a generic function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">boot(object, R = 50, seed = round(runif(1, 1, 10000)), startQR = FALSE)
+## S3 method for class 'lqm'
+boot(object, R = 50, seed = round(runif(1, 1, 10000)), startQR = FALSE)
+## S3 method for class 'lqmm'
+boot(object, R = 50, seed = round(runif(1, 1, 10000)), startQR = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of <code>class</code> "lqm" or "lqmm".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>number of bootstrap replications.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>optional random number generator seed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startQR</code></td>
+<td>
+
+<p>logical flag. If <code>TRUE</code> the estimated parameters in <code>object</code> are used as starting values in the algorithm applied to each bootstrap sample. This may cause the algorithm to converge too often to a similar optimum, which would ultimately result in underestimated standard errors. If <code>FALSE</code> (recommended), starting values are based on <code>lm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>boot.lqm</code> is a data frame with <code>R</code> rows and <code>npars</code> columns containing the bootstrap estimates of <code>theta</code>. If <code>object</code> contains results for multiple quantiles, <code>boot.lqm</code> returns an array of dimension <code>c(R,npars,nt)</code>, where <code>nt</code> is the length of <code>tau</code>.
+</p>
+<p>An object of class <code>boot.lqmm</code> is a data frame with <code>R</code> rows and <code>npars</code> columns containing the bootstrap estimates of <code>theta_x</code>, <code>theta_z</code>, and <code>scale</code>. If <code>object</code> contains results for multiple quantiles, <code>boot.lqmm</code> returns an array of dimension <code>c(R,npars,nt)</code>, where <code>nt</code> is the length of <code>tau</code>. The elements of <code>theta_z</code> are labelled with <code>reStruct</code>. See function <code>covHandling</code> and the example below on how to derive the variance-covariance matrix of the random effects starting from <code>theta_z</code>.
+</p>
+<p>The following attributes are available:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>index of the quantile(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimated</code></td>
+<td>
+<p>the estimated parameter as given by <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>number of bootstrap replications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>the random number generator seed used to produce the bootstrap sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npars</code></td>
+<td>
+<p>total numer of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rdf</code></td>
+<td>
+<p>the number of residual degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indices</code></td>
+<td>
+<p>the bootstrap sample of independent data units.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Marco Geraci
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# boot.lqm
+set.seed(123)
+n &lt;- 500
+test &lt;- data.frame(x = runif(n,0,1))
+test$y &lt;- 30 + test$x + rnorm(n)
+fit.lqm &lt;- lqm(y ~ x, data = test, tau = 0.5)
+fit.boot &lt;- boot(fit.lqm)
+str(fit.boot)
+
+# boot.lqmm
+data(Orthodont)
+fit &lt;- lqmm(distance ~ age, random = ~ 1, group = Subject,
+	tau = 0.5, data = Orthodont)
+fit.boot &lt;- boot(fit)
+str(fit.boot)
+</code></pre>
+
+
+</div>

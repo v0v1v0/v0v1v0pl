@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ssort</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Safely Sort (Re-order) a Labeled Data Frame</h2>
+
+<h3>Description</h3>
+
+<p><code>ssort</code> allows one to sort (after the fashion of base::order or
+dplyr::arrange) the rows of a data.frame based on column values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ssort(data, vars, descending = FALSE, na.last = TRUE, fact.to.char = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data.frame to be sorted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>the variables to be sorted on, specified as a quoted character
+vector of variable names or an integer vector of column position indices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>descending</code></td>
+<td>
+<p>whether to sort the given variable of vars in descending
+or ascending order. Default is FALSE, which will be recycled to all vars
+arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.last</code></td>
+<td>
+<p>force NA values to appear last in a variable's sort order if
+TRUE (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fact.to.char</code></td>
+<td>
+<p>coerce all factor variables to character variables.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function accepts a data.frame, followed by a quoted vector of column
+names (or an integer vector of column position indices), followed by
+an indication of which are to be sorted ascending (default) or descending.
+If multiple columns are supplied to vars, sorting prioritizes the columns
+that appear earlier, with values of subsequent columns being sorted within
+distinct values of earlier columns. Note: <code>ssort</code> is fast enough on small
+data.frames and very slow on "larger" (&gt;500K records) data.frames,
+particularly for more complex or demanding sort requests. Other R packages
+may provide faster sorting while preserving labelr attributes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a labelr label attribute-preserving data.frame consisting of the
+re-sorted data.frame.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># make toy demographic (gender, raceth, etc.) data set
+set.seed(555)
+df &lt;- make_demo_data(n = 1000) # another labelr:: function
+
+# let's add variable VALUE labels for variable "raceth"
+df &lt;- add_val_labs(df,
+  vars = "raceth", vals = c(1:7),
+  labs = c("White", "Black", "Hispanic", "Asian", "AIAN", "Multi", "Other"),
+  max.unique.vals = 50
+)
+
+head(df, 3)
+check_labs_att(df, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+dfsort1 &lt;- ssort(df, c("raceth", "gender", "age"), descending = c(TRUE, FALSE, FALSE))
+
+head(dfsort1, 20)
+
+check_labs_att(dfsort1, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+dfsort2 &lt;- ssort(df, c("age", "gender"))
+
+head(dfsort2, 20)
+
+check_labs_att(dfsort2, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+dfsort3 &lt;- ssort(df, c("raceth"))
+
+head(dfsort3, 10)
+
+check_labs_att(dfsort3, "val.labs.raceth") # "raceth" lab specifically TRUE
+
+</code></pre>
+
+
+</div>

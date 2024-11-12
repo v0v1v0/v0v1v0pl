@@ -1,0 +1,416 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AppenderMemory</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Abstract class for logging to memory buffers</h2>
+
+<h3>Description</h3>
+
+<p><strong>NOTE</strong>: This is an <em>abstract class</em>. Abstract classes cannot be instantiated
+directly, but are exported for package developers that want to extend lgr -
+for example by creating their own Appenders or Layouts.
+Please refer to the <em>see also</em> section for actual implementations of this
+class.
+</p>
+<p>AppenderMemory is extended by Appenders that retain an in-memory event
+buffer, such as AppenderBuffer and <code>AppenderPushbullet</code> from the
+<a href="https://github.com/s-fleck/lgrExtra">lgrExtra</a> package.
+</p>
+
+
+<h3>Super classes</h3>
+
+<p><code>lgr::Filterable</code> -&gt; <code>lgr::Appender</code> -&gt; <code>AppenderMemory</code>
+</p>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>flush_on_exit</code></dt>
+<dd>
+<p>A <code>logical</code> scalar. Should the buffer be flushed if
+the Appender is destroyed (e.g. because the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> session is terminated)?</p>
+</dd>
+<dt><code>flush_on_rotate</code></dt>
+<dd>
+<p>A <code>logical</code> scalar. Should the buffer be flushed when it is
+rotated because <code style="white-space: pre;">⁠$buffer_size⁠</code> is exceeded?</p>
+</dd>
+<dt><code>should_flush</code></dt>
+<dd>
+<p>A <code>function</code> with exactly one arguments: <code>event</code>.
+<code style="white-space: pre;">⁠$append()⁠</code> calls this function internally on the current LogEvent
+and flushes the buffer if it evaluates to <code>TRUE</code>.</p>
+</dd>
+<dt><code>buffer_size</code></dt>
+<dd>
+<p><code>integer</code> scalar <code style="white-space: pre;">⁠&gt;= 0⁠</code>. Maximum number of LogEvents
+to buffer.</p>
+</dd>
+<dt><code>flush_threshold</code></dt>
+<dd>
+<p>A <code>numeric</code> or <code>character</code> threshold. LogEvents
+with a log_level equal to or lower than this threshold trigger
+flushing the buffer.</p>
+</dd>
+<dt><code>buffer_events</code></dt>
+<dd>
+<p>A <code>list</code> of LogEvents. Contents of the buffer.</p>
+</dd>
+<dt><code>buffer_events</code></dt>
+<dd>
+<p>A <code>data.frame</code>. Contents of the buffer converted
+to a <code>data.frame</code>.</p>
+</dd>
+<dt><code>buffer_events</code></dt>
+<dd>
+<p>A <code>data.frame</code>. Contents of the buffer converted
+to a <code>data.table</code>.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-AppenderMemory-new"><code>AppenderMemory$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-append"><code>AppenderMemory$append()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-flush"><code>AppenderMemory$flush()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-clear"><code>AppenderMemory$clear()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-set_buffer_size"><code>AppenderMemory$set_buffer_size()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-set_should_flush"><code>AppenderMemory$set_should_flush()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-set_flush_on_exit"><code>AppenderMemory$set_flush_on_exit()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-set_flush_on_rotate"><code>AppenderMemory$set_flush_on_rotate()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-set_flush_threshold"><code>AppenderMemory$set_flush_threshold()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-show"><code>AppenderMemory$show()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderMemory-format"><code>AppenderMemory$format()</code></a>
+</p>
+</li>
+</ul>
+<details><summary>Inherited methods</summary><ul>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="add_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-add_filter"><code>lgr::Filterable$add_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="../../lgr/html/Filterable.html#method-Filterable-filter"><code>lgr::Filterable$filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="../../lgr/html/Filterable.html#method-Filterable-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_layout"><a href="../../lgr/html/Appender.html#method-Appender-set_layout"><code>lgr::Appender$set_layout()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_threshold"><a href="../../lgr/html/Appender.html#method-Appender-set_threshold"><code>lgr::Appender$set_threshold()</code></a></span></li>
+</ul></details><hr>
+<a id="method-AppenderMemory-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$new(...)</pre></div>
+
+
+<hr>
+<a id="method-AppenderMemory-append"></a>
+
+
+
+<h4>Method <code>append()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$append(event)</pre></div>
+
+
+<hr>
+<a id="method-AppenderMemory-flush"></a>
+
+
+
+<h4>Method <code>flush()</code>
+</h4>
+
+<p>Sends the buffer's contents to all attached Appenders and
+then clears the Buffer
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$flush()</pre></div>
+
+
+<hr>
+<a id="method-AppenderMemory-clear"></a>
+
+
+
+<h4>Method <code>clear()</code>
+</h4>
+
+<p>Clears the buffer, discarding all buffered Events
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$clear()</pre></div>
+
+
+<hr>
+<a id="method-AppenderMemory-set_buffer_size"></a>
+
+
+
+<h4>Method <code>set_buffer_size()</code>
+</h4>
+
+<p>Set the maximum size of the buffer
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$set_buffer_size(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>an <code>integer</code> scalar <code style="white-space: pre;">⁠&gt;= 0⁠</code>. Number of LogEvents to buffer.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-set_should_flush"></a>
+
+
+
+<h4>Method <code>set_should_flush()</code>
+</h4>
+
+<p>Set function that can trigger flushing the buffer
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$set_should_flush(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>A <code>function</code> with the single argument <code>event</code>. Setting <code>x</code> to
+<code>NULL</code> is a shortcut for <code>function(event) FALSE</code>. See active bindings.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-set_flush_on_exit"></a>
+
+
+
+<h4>Method <code>set_flush_on_exit()</code>
+</h4>
+
+<p>Should the buffer be flushed when the Appender is destroyed?
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$set_flush_on_exit(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>A <code>logical</code> scalar. See active bindings.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-set_flush_on_rotate"></a>
+
+
+
+<h4>Method <code>set_flush_on_rotate()</code>
+</h4>
+
+<p>Should the buffer be flushed if <code>buffer_size</code> is exceeded?
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$set_flush_on_rotate(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>A <code>logical</code> scalar. See active bindings.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-set_flush_threshold"></a>
+
+
+
+<h4>Method <code>set_flush_threshold()</code>
+</h4>
+
+<p>Set threshold that triggers flushing
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$set_flush_threshold(level)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>level</code></dt>
+<dd>
+<p>A <code>numeric</code> or <code>character</code> threshold. See
+active bindings.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-show"></a>
+
+
+
+<h4>Method <code>show()</code>
+</h4>
+
+<p>Display the contents of the log table. Relies on the
+<code style="white-space: pre;">⁠$format_event⁠</code> method of the Layout attached to this Appender.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$show(threshold = NA_integer_, n = 20L)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>threshold</code></dt>
+<dd>
+<p><code>character</code> or <code>integer</code> scalar. The minimum log level
+that should be displayed.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p><code>integer</code> scalar. Show only the last <code>n</code> log entries that match
+<code>threshold</code>.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderMemory-format"></a>
+
+
+
+<h4>Method <code>format()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderMemory$format(color = FALSE, ...)</pre></div>
+
+
+
+
+<h3>See Also</h3>
+
+<p>LayoutFormat
+</p>
+<p>Other abstract classes: 
+<code>AppenderTable</code>,
+<code>Appender</code>,
+<code>Filterable</code>
+</p>
+
+
+</div>

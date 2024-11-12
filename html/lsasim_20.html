@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cluster_gen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate cluster sample</h2>
+
+<h3>Description</h3>
+
+<p>Generate cluster sample
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cluster_gen(
+  n,
+  N = 1,
+  cluster_labels = NULL,
+  resp_labels = NULL,
+  cat_prop = NULL,
+  n_X = NULL,
+  n_W = NULL,
+  c_mean = NULL,
+  sigma = NULL,
+  cor_matrix = NULL,
+  separate_questionnaires = TRUE,
+  collapse = "none",
+  sum_pop = sapply(N, sum),
+  calc_weights = TRUE,
+  sampling_method = "mixed",
+  rho = NULL,
+  theta = FALSE,
+  verbose = TRUE,
+  print_pop_structure = verbose,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>numeric vector with the number of sampled observations (clusters or subjects) on each level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>list of numeric vector with the population size of each *sampled* cluster element on each level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster_labels</code></td>
+<td>
+<p>character vector with the names of each cluster level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resp_labels</code></td>
+<td>
+<p>character vector with the names of the questionnaire respondents on each level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cat_prop</code></td>
+<td>
+<p>list of cumulative proportions for each item. If <code>theta
+= TRUE</code>, the first element of <code>cat_prop</code> must be a scalar 1, which
+corresponds to the <code>theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_X</code></td>
+<td>
+<p>list of 'n_X' per cluster level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_W</code></td>
+<td>
+<p>list of 'n_W' per cluster level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c_mean</code></td>
+<td>
+<p>vector of means for the continuous variables or list of vectors for the continuous variables for each level. Defaults to 0, but can change if 'rho' is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>vector of standard deviations for the continuous variables or list of vectors for the continuous variables for each level. Defaults to 1, but can change if 'rho' is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor_matrix</code></td>
+<td>
+<p>Correlation matrix between all variables (except weights). By default, correlations are randomly generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>separate_questionnaires</code></td>
+<td>
+<p>if 'TRUE', each level will have its own questionnaire</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse</code></td>
+<td>
+<p>if 'TRUE', function output contains only one data frame with all answers. It can also be "none", "partial" and "full" for finer control on 3+ levels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sum_pop</code></td>
+<td>
+<p>total population at each level (sampled or not)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_weights</code></td>
+<td>
+<p>if 'TRUE', sampling weights are calculated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling_method</code></td>
+<td>
+<p>can be "SRS" for Simple Random Sampling or "PPS" for Probabilities Proportional to Size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>estimated intraclass correlation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>if <code>TRUE</code>, the first continuous variable will be labeled
+'theta'. Otherwise, it will be labeled 'q1'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if 'TRUE', prints output messages</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_pop_structure</code></td>
+<td>
+<p>if 'TRUE', prints the population hierarchical structure (as long as it differs from the sample structure)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters to be passed to 'questionnaire_gen()'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function relies heavily in two sub-functions—'cluster_gen_separate' and 'cluster_gen_together'—which can be called independently. This does not make 'cluster_gen' a simple wrapper function, as it performs several operations prior to calling its sub-functions, such as randomly generating 'n_X' and 'n_W' if they are not determined by user.
+'n' can have unitary length, in which case all clusters will have the same size.
+'N' is *not* the population size across all elements of a level, but the population size for each element of one level.
+Regarding the additional parameters to be passed to 'questionnaire_gen()', they can be passed either in the same format as 'questionnaire_gen()' or as more complex objects that contain information for each cluster level.
+</p>
+
+
+<h3>Value</h3>
+
+<p>list with background questionnaire data, grouped by level or not
+</p>
+
+
+<h3>Note</h3>
+
+<p>For the purpose of this function, levels are counted starting from the top nesting/clustering level. This means that, for example, schools are the first cluster level, classes are the second, and students are the third and final level. This behavior can be customized by naming the 'n' argument or providing custom labels in 'cluster_labels' and 'resp_labels'.
+</p>
+<p>Manually setting both 'c_mean' and 'rho', while possible, may yield unexpected results due to how those parameters work together. A high intraclass correlation ('rho') theoretically means that each group will end up with different means so they can be better separated. If 'c_mean' is left untouched (i.e., at the default value of zero), then 'c_mean' will freely change between clusters in order to result in the expected intraclass correlation. For large samples, 'c_mean' will in practice correspond to the grand mean across that level, as the means of each element will be different no matter the sample size.
+</p>
+<p>Moreover, if 'c_mean', 'sigma' and 'rho' are passed to the function, the means will be recalculated as a function of the other two parameters. The three are interdependent and cannot be passed simultaneously.
+</p>
+<p>If in addition to 'rho' the user also determine different means for each level, the only way the math can check out is if the variance in each group becomes very high. For examples of this scenario and the one described in the previous paragraph, check out the final section of this page.
+</p>
+<p>The 'ranges()' function should always be put inside a 'list()',as putting it inside a vector ('c()') will cancel its effect. For more details, please read the documentation of the 'ranges()' function.
+</p>
+<p>The only arguments that can be used to label each level are 'n', 'N', 'cluster_labels' and 'resp_labels'. Labeling other arguments such as 'c_mean' and 'cat_prop' has no effect on the final results, but it is a recommended way for users to keep track of which value corresponds to which element in a complex hierarchical structure.
+</p>
+<p>One of the extra arguments that can be passed by this function is 'family'.
+If <code>family == "gaussian"</code>, the questionnaire will be generated
+assuming that all the variables are jointly-distributed as a multivariate
+normal. The default behavior is <code>family == NULL</code>, where the data is
+generated using the polychoric correlation matrix, with no distributional
+assumptions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>cluster_estimates cluster_gen_separate cluster_gen_together questionnaire_gen
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Simple structure of 3 schools with 5 students each
+cluster_gen(c(3, 5))
+
+# Complex structure of 2 schools with different number of students,
+# sampling weights and custom number of questions
+n &lt;- list(3, c(20, 15, 25))
+N &lt;- list(5, c(200, 500, 400, 100, 100))
+cluster_gen(n, N, n_X = 5, n_W = 2)
+
+# Condensing the output
+set.seed(0); cluster_gen(c(2, 4))
+set.seed(0); cluster_gen(c(2, 4), collapse=TRUE) # same, but in one dataset
+
+# Condensing the output: 3 levels
+str(cluster_gen(c(2, 2, 1), collapse="none"))
+str(cluster_gen(c(2, 2, 1), collapse="partial"))
+str(cluster_gen(c(2, 2, 1), collapse="full"))
+
+# Controlling the intra-class correlation and the grand mean
+x &lt;- cluster_gen(c(5, 1000), rho = .9, n_X = 2, n_W = 0, c_mean = 10)
+sapply(1:5, function(s) mean(x$school[[s]]$q1))  # means per school != 10
+mean(sapply(1:5, function(s) mean(x$school[[s]]$q1))) # closer to c_mean
+
+# Making the intraclass variance explode by forcing "incompatible" rho and c_mean
+x &lt;- cluster_gen(c(5, 1000), rho = .5, n_X = 2, n_W = 0, c_mean = 1:5)
+anova(x)
+</code></pre>
+
+
+</div>

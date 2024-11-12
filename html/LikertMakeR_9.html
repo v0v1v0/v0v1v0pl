@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>makeItemsScale</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>scale items from a summated scale</h2>
+
+<h3>Description</h3>
+
+<p><code>makeItemsScale()</code> generates a random dataframe
+of scale items based on a predefined summated scale,
+such as created by the <code>lfast()</code> function.
+</p>
+<p>scale, lowerbound, upperbound, items
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">makeItemsScale(scale, lowerbound, upperbound, items, variance = 0.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>(int) a vector or dataframe of the summated rating scale.
+Should range from ('lowerbound' * 'items') to ('upperbound' * 'items')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowerbound</code></td>
+<td>
+<p>(int) lower bound of the scale item
+(example: '1' in a '1' to '5' rating)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upperbound</code></td>
+<td>
+<p>(int) upper bound of the scale item
+(example: '5' in a '1' to '5' rating)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>items</code></td>
+<td>
+<p>(positive, int) k, or number of columns to generate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variance</code></td>
+<td>
+<p>(positive, real) standard deviation of values sampled
+from a normally-distributed log transformation. Default = '0.5'.
+</p>
+<p>A value of '0' makes all values in the correlation matrix the same,
+equal to the mean correlation needed to produce the desired <em>Cronbach's Alpha</em>.
+A value of '2', or more, risks producing a matrix that is not positive-
+definite, so not feasible.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a dataframe with 'items' columns and 'length(scale)' rows
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## define parameters
+items &lt;- 4
+lowerbound &lt;- 1
+upperbound &lt;- 5
+
+## scale properties
+n &lt;- 64
+mean &lt;- 3.5
+sd &lt;- 1.00
+
+## create scale
+set.seed(42)
+meanScale &lt;- lfast(
+  n = n, mean = mean, sd = sd,
+  lowerbound = lowerbound, upperbound = upperbound,
+  items = items
+)
+summatedScale &lt;- meanScale * items
+
+## create items
+newItems &lt;- makeItemsScale(
+  scale = summatedScale,
+  lowerbound = lowerbound, upperbound = upperbound,
+  items = items
+)
+str(newItems)
+
+##
+## Testing Lowest value to Highest value of a scale
+##
+lowerbound &lt;- 1
+upperbound &lt;- 5
+items &lt;- 6
+
+# lowest to highest values
+myvalues &lt;- c((lowerbound * items):(upperbound * items))
+
+## Low variance usually gives higher Cronbach's Alpha
+mydat_20 &lt;- makeItemsScale(
+  scale = myvalues,
+  lowerbound = lowerbound, upperbound = upperbound,
+  items = items, variance = 0.20
+)
+
+str(mydat_20)
+
+moments &lt;- data.frame(
+  means = apply(mydat_20, MARGIN = 2, FUN = mean) |&gt; round(3),
+  sds = apply(mydat_20, MARGIN = 2, FUN = sd) |&gt; round(3)
+) |&gt; t()
+
+moments
+
+cor(mydat_20) |&gt; round(2)
+alpha(mydat_20) |&gt; round(2)
+
+
+## default variance
+mydat_50 &lt;- makeItemsScale(
+  scale = myvalues,
+  lowerbound = lowerbound, upperbound = upperbound,
+  items = items, variance = 0.50
+)
+
+str(mydat_50)
+
+moments &lt;- data.frame(
+  means = apply(mydat_50, MARGIN = 2, FUN = mean) |&gt; round(3),
+  sds = apply(mydat_50, MARGIN = 2, FUN = sd) |&gt; round(3)
+) |&gt; t()
+
+moments
+
+cor(mydat_50) |&gt; round(2)
+alpha(mydat_50) |&gt; round(2)
+
+
+## higher variance usually gives lower Cronbach's Alpha
+mydat_80 &lt;- makeItemsScale(
+  scale = myvalues,
+  lowerbound = lowerbound, upperbound = upperbound,
+  items = items, variance = 0.80
+)
+
+str(mydat_80)
+
+moments &lt;- data.frame(
+  means = apply(mydat_80, MARGIN = 2, FUN = mean) |&gt; round(3),
+  sds = apply(mydat_80, MARGIN = 2, FUN = sd) |&gt; round(3)
+) |&gt; t()
+
+moments
+
+cor(mydat_80) |&gt; round(2)
+alpha(mydat_80) |&gt; round(2)
+
+</code></pre>
+
+
+</div>

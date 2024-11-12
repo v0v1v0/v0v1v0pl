@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aml_consolidate_results</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to consolidate model test results</h2>
+
+<h3>Description</h3>
+
+<p>Function is designed to evaluate test results of multiple models.
+This is done to select only group of models with the best performance. In addition,
+function will provide facility to generate logs hence to allow tracking of long term model performance
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aml_consolidate_results(
+  timeframe = 15,
+  used_symbols,
+  path_model,
+  path_sbxm,
+  path_sbxs,
+  min_quality = 0.75,
+  get_quantile = FALSE,
+  log_results = FALSE,
+  path_logs = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, Data timeframe interval in minutes e.g. 60 min</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>used_symbols</code></td>
+<td>
+<p>Vector, containing several financial instruments that were previously used
+to test the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_model</code></td>
+<td>
+<p>String, User path where the test results were stored</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_sbxm</code></td>
+<td>
+<p>String, User path to the sandbox where file with strategy test results should be written (master terminal)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_sbxs</code></td>
+<td>
+<p>String, User path to the sandbox where file with strategy test results should be written (slave terminal)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_quality</code></td>
+<td>
+<p>Double, value typically from 0.25 to 0.95 to select the min threshold value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get_quantile</code></td>
+<td>
+<p>Bool, whether or not function should return an overall value of model performances
+this will be used to conditionally update only less performant models</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_results</code></td>
+<td>
+<p>Bool, option to write logs with cumulative results obtained for all models</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_logs</code></td>
+<td>
+<p>String, User path to the folder where to log results</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Provide a modular facility to aggregate and update files, write performance logs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function is writing files into Decision Support System folders
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+library(dplyr)
+library(magrittr)
+library(readr)
+library(lazytrade)
+library(stats)
+
+testpath &lt;- normalizePath(tempdir(),winslash = "/")
+path_model &lt;- file.path(testpath, "_Model")
+path_sbxm &lt;- file.path(testpath, "_T1")
+path_sbxs &lt;- file.path(testpath, "_T3")
+path_logs &lt;- file.path(testpath, "_LOGS")
+dir.create(path_model)
+dir.create(path_sbxm)
+dir.create(path_sbxs)
+dir.create(path_logs)
+
+file.copy(from = system.file("extdata", "StrTest-EURGBPM15.csv", package = "lazytrade"),
+          to = file.path(path_model, "StrTest-EURGBPM15.csv"), overwrite = TRUE)
+
+file.copy(from = system.file("extdata", "StrTest-EURJPYM15.csv", package = "lazytrade"),
+          to = file.path(path_model, "StrTest-EURJPYM15.csv"), overwrite = TRUE)
+
+file.copy(from = system.file("extdata", "StrTest-EURUSDM15.csv", package = "lazytrade"),
+          to = file.path(path_model, "StrTest-EURUSDM15.csv"), overwrite = TRUE)
+
+Pairs &lt;- c("EURGBP","EURJPY", "EURUSD")
+
+aml_consolidate_results(timeframe = 15,
+                        used_symbols = Pairs,
+                        path_model = path_model,
+                        path_sbxm = path_sbxm,
+                        path_sbxs = path_sbxs,
+                        min_quality = 0.75,
+                        get_quantile = FALSE)
+
+
+
+aml_consolidate_results(timeframe = 15,
+                        used_symbols = Pairs,
+                        path_model = path_model,
+                        path_sbxm = path_sbxm,
+                        path_sbxs = path_sbxs,
+                        min_quality = 0.75,
+                        get_quantile = FALSE,
+                        log_results = TRUE,
+                        path_logs = path_logs)
+
+
+</code></pre>
+
+
+</div>

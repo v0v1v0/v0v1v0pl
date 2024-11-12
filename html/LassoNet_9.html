@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lasso.net.grid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimates coefficients and connection signs over the grid of values  of penalty parameters <code class="reqn">\lambda</code>1 and <code class="reqn">\lambda</code>2.
+</h2>
+
+<h3>Description</h3>
+
+<p>Fits network regressions over the grid of values of penalty parameters <code class="reqn">\lambda</code>1 and <code class="reqn">\lambda</code>2, stores connection signs, number of iterations until convergence and convergence outcome.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lasso.net.grid(x,y ,beta.0,lambda1,lambda2,M1,m.iter,n.iter,iscpp=TRUE,tol,alt.num)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code class="reqn">n \times p</code> input data matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response vector or size <code class="reqn">n \times 1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.0</code></td>
+<td>
+<p>initial value for <code class="reqn">\beta</code>. default - zero vector of size <code class="reqn">n \times 1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda1</code></td>
+<td>
+<p>lasso penalty coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda2</code></td>
+<td>
+<p>network penalty coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M1</code></td>
+<td>
+<p>penalty matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m.iter</code></td>
+<td>
+<p>maximum number of iterations for sign matrix updating; default - 100</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.iter</code></td>
+<td>
+<p>maximum number of iterations for <code class="reqn">\beta</code> updating; default - 1e5</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iscpp</code></td>
+<td>
+<p>binary choice for using cpp function in coordinate updates; 1 - use C++ (default), 0 - use R</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>convergence in <code class="reqn">\beta</code> tolerance level; default - 1e-6</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alt.num</code></td>
+<td>
+<p>alt.num remaining iterataions are stored; default - 12</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fits network regression for the grid values of <code class="reqn">\lambda</code>1 and <code class="reqn">\lambda</code>2 using warm starts.</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>matrix of <code class="reqn">\beta</code> coefficients, columns are for different <code class="reqn">\lambda</code>1
+parameters, rows <code class="reqn">\lambda</code>2 parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mse</code></td>
+<td>
+<p>mean squared error value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>array of connection signs. <code class="reqn">M[,,i,j]</code> is the connection sign matrix for j-th <code class="reqn">\lambda</code>1 value and i-th <code class="reqn">\lambda</code>2 value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>matrix with stored number of steps for sign matrix to converge</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update.steps</code></td>
+<td>
+<p>matrix with stored number of steps for <code class="reqn">\beta</code> updates to converge. (only stores the last values from connection signs iterations)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence.in.M</code></td>
+<td>
+<p>matrix with stored values for convergence in sign matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence.in.grid</code></td>
+<td>
+<p>matrix with stored values for convergence in <code class="reqn">\beta</code> coefficients. If at least one <code class="reqn">\beta</code> did not converge in sign matrix iterations, 0 (false) is stored, otherwise 1 (true)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi.conv</code></td>
+<td>
+<p>array with stored connection signs changes in each iteration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.alt</code></td>
+<td>
+<p>array of coefficient vectors in case connection signs alternate</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Maintainer: Jonas Striaukas &lt;jonas.striaukas@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Weber, M., Striaukas, J., Schumacher, M., Binder, H. "Network-Constrained Covariate Coefficient and Connection Sign Estimation" (2018) &lt;doi:10.2139/ssrn.3211163&gt;</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">p=200
+n=100
+beta.0=array(1,c(p,1))
+x=matrix(rnorm(n*p),n,p)
+y=rnorm(n,mean=0,sd=1)
+lambda1=c(0,1)
+lambda2=c(0,1)
+M1=diag(p)
+lasso.net.grid(x, y, beta.0, lambda1, lambda2, M1)
+</code></pre>
+
+
+</div>

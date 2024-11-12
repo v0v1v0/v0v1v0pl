@@ -1,0 +1,372 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lp_apriori</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Implements lp_apriori models</h2>
+
+<h3>Description</h3>
+
+<p>Adjusts an initial J0xK0 vote transfer matrix (ecological contingency table) to guarantee (i) congruency with aggregate results and (ii) completeness.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lp_apriori(
+  votes_election1,
+  votes_election2,
+  apriori,
+  weights = "constant",
+  new_and_exit_voters = "raw",
+  uniform = TRUE,
+  solver = "lp_solve",
+  integers = TRUE,
+  integers.solver = "symphony",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>votes_election1</code></td>
+<td>
+<p>data.frame (or matrix) of order IxJ1 (or vector of length J1)
+with the votes gained by (or the numbers corresponding to) the J1
+political options competing on election 1 (or origin) in the I
+territorial units considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>votes_election2</code></td>
+<td>
+<p>data.frame (or matrix) of order IxK2 (or vector of length K2)
+with the votes gained by (or the numbers corresponding to) the K2
+political options competing on election 2 (or destination) in the I
+territorial units considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>apriori</code></td>
+<td>
+<p>data.frame (or matrix) of order J0xK0 with an initial estimate of the
+(row-standarized) voter transition proportions/fractions, pjk0, between
+the first J0 election options of election 1 and the first K0 election options
+of election 2. It could be also a data.frame (matrix) of counts.
+This matrix can contain some missing values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Either a numeric matrix (or data.frame) of order J0xK0 of weights, wjk, or
+a character string indicating the structure of weights to be used. As character
+string this argument admits seven different values: <code>constant</code>, <code>x</code>, <code>xy</code>, <code>expected</code>, <code>counts</code>,
+<code>sqrt</code>, or <code>sd</code>. Default, <code>constant</code> (i.e., wjk = 1). The wjk coefficients measure the
+(relative) degree of confidence we have in the a priori values pjk0.
+Everything else constant, the greater a weight wjk the closer the estimated pjk and
+the pjk0 proportions will be.
+As numeric matrix, this matrix can contain some missing values, usually located in the same cells than
+the missing values of <code>apriori</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_and_exit_voters</code></td>
+<td>
+<p>A character string indicating the level of information available
+in <code>votes_election1</code> and <code>votes_election2</code> regarding new entries
+and exits of the election censuses between the two elections.
+This argument allows, in addition to the options discussed in Pavia
+(2023), three more options. This argument admits eleven different values:
+<code>raw</code>, <code>regular</code>, <code>ordinary</code>, <code>enriched</code>, <code>adjust1</code>, <code>adjust2</code>,
+<code>simultaneous</code>, <code>semifull</code>, <code>full</code>, <code>fullreverse</code> and <code>gold</code>.
+Default, <code>raw</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniform</code></td>
+<td>
+<p>A TRUE/FALSE value that indicates if census exits affect all the electoral options in
+a (relatively) similar fashion; depending on the scenario any equation(s) among equations (6) to (11) of
+Pavia (2023) could be used in the underlying model. Default, <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used, only
+<code>lp_solve</code> and <code>symphony</code> are allowed. By default, <code>lp_solve</code>. The package <code>Rsymphony</code>
+needs to be installed for the option <code>symphony</code> to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers</code></td>
+<td>
+<p>A TRUE/FALSE value that indicates whether the LP solution of counts (votes) must be
+approximate to the closest integer solution using ILP to generate the final solution.
+Default, TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers.solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used for
+approximating to the closest integer solution. Only <code>symphony</code> and <code>lp_solve</code> are allowed.
+By default, <code>symphony</code>. The package <code>Rsymphony</code> needs to be installed for the
+option <code>symphony</code> to be used. Only used when <code>integers = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to the function. Not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Description of the <code>new_and_exit_voters</code> argument in more detail.
+</p>
+
+<ul>
+<li> <p><code>raw</code>: The default value. This argument accounts for the most plausible scenario when
+estimating vote transfer matrices. A scenario with two elections elapsed at least
+some months where only the raw election data recorded in the I (territorial) units,
+in which the electoral space under study is divided, are available.
+In this scenario, net exits and net entries are estimated according to
+equation (7) of Romero et al. (2020). When both net entries and exits are no
+null, constraint (15) of Pavia (2023) applies. If there are net exits and <code>uniform = TRUE</code>
+either constraints (6) or (8) and (15) of Pavia (2023) are imposed. In this scenario,
+J could be equal to J1 or J1 + 1 and K equal to K2 or K2 + 1.
+</p>
+</li>
+<li> <p><code>regular</code>: This value accounts for a scenario with
+two elections elapsed at least some months where (i) the column J1
+of <code>votes_election1</code> corresponds to new young electors who have the right
+to vote for the first time, (ii) net exits and maybe other additional
+net entries are computed according to equation (7) of Romero et al. (2020), and
+(iii) we can (or not) assume that net exits impact equally all the first J1 - 1
+options of election 1. When both net entries and exits are no null, constraints
+(13) and (15) of Pavia (2023) apply. If <code>uniform = TRUE</code> and there are net exits either
+constraints (8) or (11) of Pavia (2023), depending on whether there are or not net
+entries, are also imposed. In this scenario, J could be equal to J1 or J1 + 1 and
+K equal to K2 or K2 + 1. Note that this scenario could be also used if
+column J1 of <code>votes_election1</code> would correspond to immigrants instead of
+new young electors.
+</p>
+</li>
+<li> <p><code>ordinary</code>: This value accounts for a scenario
+with two elections elapsed at least some months where (i) the column K1
+of <code>votes_election2</code> corresponds to electors who died in the period between
+elections, (ii) net entries and maybe other additional net exits are
+computed according to equation (7) of Romero et al. (2020), and (iii) we can
+assume (or not) that exits impact equally all the J1 options of election 1.
+When both net entries and exits are no null, constraints (14) and
+(15) of Pavia (2023) apply and if <code>uniform = TRUE</code> either constraints
+(8) and (9) or, without net entries, (6) and (7) of Pavia (2023) are also imposed.
+In this scenario, J could be equal to J1 or J1 + 1 and K equal to K2 or K2 + 1.
+Note that this scenario could be also used if column K1 of
+<code>votes_election2</code> would correspond to emigrants instead of deaths.
+</p>
+</li>
+<li> <p><code>enriched</code>: This value accounts for a scenario that somehow combine <code>regular</code> and
+<code>ordinary</code> scenarios. We consider two elections elapsed at least some months where
+(i) the column J1 of <code>votes_election1</code> corresponds to new young electors
+who have the right to vote for the first time, (ii) the column K2 of
+<code>votes_election2</code> corresponds to electors who died in the interperiod
+election, (iii) other (net) entries and (net) exits are computed according
+to equation (7) of Romero et al. (2020), and (iv) we can assume
+(or not) that exits impact equally all the J1 - 1 options of election 1.
+When both net entries and exits are no null, constraints (12) to
+(15) of Pavia (2023) apply and if <code>uniform = TRUE</code> constraints
+(10) and (11) of Pavia (2023) are also imposed. In this scenario, J could be equal
+to J1 or J1 + 1 and K equal to K2 or K2 + 1. Note that this scenario could be also used if
+the column J1 of <code>votes_election1</code> would correspond to immigrants instead of
+new young electors and/or if column K1 of <code>votes_election2</code> would correspond
+to emigrants instead of deaths.
+</p>
+</li>
+<li> <p><code>adjust1</code>: This value accounts for a scenario
+with two elections elapsed at least some months where the census in
+each of the I polling units of the first election (the row-sums of <code>votes_election1</code>) are
+proportionally adjusted to match the corresponding census of the polling units in the
+second election (the row-sums of <code>votes_election2</code>).
+If <code>integers = TRUE</code>, each row in <code>votes_election1</code> is proportionally adjusted to the closest integer
+vector whose sum is equal to the sum of the corresponding row in <code>votes_election2</code>.
+</p>
+</li>
+<li> <p><code>adjust2</code>: This value accounts for a scenario
+with two elections elapsed at least some months where the census in
+each of the I polling units of the second election (the row-sums of <code>votes_election2</code>)
+are proportionally adjusted to match the corresponding census of the polling units
+in the first election (the row-sums of <code>votes_election1</code>).
+If <code>integers = TRUE</code>, each row in <code>votes_election2</code> is adjusted to the closest integer
+vector whose sum is equal to the sum of the corresponding row in <code>votes_election1</code>.
+</p>
+</li>
+<li> <p><code>simultaneous</code>: This is the value to be used in classical ecological inference problems,
+such as in ecological studies of racial voting, and in scenarios with two simultaneous elections.
+In this scenario, the sum by rows of <code>votes_election1</code> and <code>votes_election2</code> must coincide.
+Constraints defined by equations (8) and (9) of Romero et al. (2020) are not included in
+the model. In this case, the lphom function just implements the basic model defined,
+for instance, by equations (1) to (5) of Pavia (2024).
+</p>
+</li>
+<li> <p><code>semifull</code>: This value accounts for a scenario with two elections elapsed at least some
+months, where: (i) the column J1 = J of <code>votes_election1</code> totals new
+electors (young and immigrants) that have the right to vote for the first time and
+(ii) the column K2 = K of <code>votes_election2</code> corresponds to total exits of the census
+lists (due to death or emigration). In this scenario, the sum by rows of
+<code>votes_election1</code> and <code>votes_election2</code> must agree and constraint (15)
+of Pavia (2023) apply. Additionally, if <code>uniform = TRUE</code> constraints
+(8) of Pavia (2023) are also imposed.
+</p>
+</li>
+<li> <p><code>full</code>: This value accounts for a scenario with two elections elapsed at least some
+months, where (i) the column J - 1 of <code>votes_election1</code> totals new young
+electors that have the right to vote for the first time, (ii) the column J (=J1)
+of <code>votes_election1</code> measures new immigrants that have the right to vote and
+(iii) the column K (=K2) of <code>votes_election2</code> corresponds to total exits of the census
+lists (due to death or emigration). In this scenario, the sum by rows of
+<code>votes_election1</code> and <code>votes_election2</code> must agree and constraints (13)
+and (15) of Pavia (2023) apply.  Additionally, if <code>uniform = TRUE</code> constraints
+(11) of Pavia (2023) are also imposed.
+</p>
+</li>
+<li> <p><code>fullreverse</code>: This value is somehow the mirror version of <code>full</code>.
+It accounts for a scenario with two elections elapsed at least some
+months, where (i) the column J1 = J of <code>votes_election1</code> totals new
+electors (young and immigrants) that have the right to vote for the first time and
+(ii) where total exits are separated out between exits due to emigration
+(column K - 1 of <code>votes_election2</code>) and death (column K of <code>votes_election2</code>).
+In this scenario, the sum by rows of <code>votes_election1</code> and <code>votes_election2</code> must
+agree and constraints (14) and (15) of Pavia (2023) apply.
+Additionally, if <code>uniform = TRUE</code> constraints (8) and (9) of Pavia (2023) are also imposed.
+</p>
+</li>
+<li> <p><code>gold</code>: This value accounts for a scenario similar to <code>full</code>, where total exits are
+separated out between exits due to emigration (column K - 1 of <code>votes_election2</code>)
+and death (column K of <code>votes_election2</code>). In this scenario, the sum by rows
+of <code>votes_election1</code> and <code>votes_election2</code> must agree. Constraints (12) to
+(15) of Pavia (2023) apply and if <code>uniform = TRUE</code> constraints (10) and (11)
+of Pavia (2023) are also imposed.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list with the following components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>VTM</code></td>
+<td>
+<p> A matrix of order JxK with the estimated percentages of row-standardized vote transitions from election 1 to election 2.
+In <code>raw</code>, <code>regular</code>, <code>ordinary</code> and <code>enriched</code> scenarios when the percentage of net entries is small, less than 1% of the census,
+net entries are omitted (i.e., J = J1) even when estimates for net entries different from zero are obtained. Likewise, in the same scenarios when the percentage of net exits is small, less than 1%
+of the census, net exits are omitted (i.e., K = K2) even when estimates for net exits different from zero are obtained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes</code></td>
+<td>
+<p> A matrix of order JxK with the estimated vote transitions from election 1 to election 2.
+In <code>raw</code>, <code>regular</code>, <code>ordinary</code> and <code>enriched</code> scenarios when the percentage of net entries is small, less than 1% of the census,
+net entries are omitted (i.e., J = J1) even when estimates for net entries different from zero are obtained. Likewise, in the same scenarios when the percentage of net exits is small, less than 1%
+of the census, net exits are omitted (i.e., K = K2) even when estimates for net exits different from zero are obtained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> A matrix of order JxK with the weights used to adjust the a priori vote transitions from  election 1 to election 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OTM</code></td>
+<td>
+<p> A matrix of order KxJ with the estimated percentages of the origin of the votes obtained for the different options of election 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.complete</code></td>
+<td>
+<p> A matrix of order JxK with the estimated proportions of row-standardized vote transitions from election 1 to election 2.
+In <code>raw</code>, <code>regular</code>, <code>ordinary</code> and <code>enriched</code> scenarios, this matrix includes the row and the column corresponding to net entries
+and net exits (when they are present) even when they are really small.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.complete.votes</code></td>
+<td>
+<p> A matrix of order JxK with the estimated vote transitions from election 1 to election 2.
+In <code>raw</code>, <code>regular</code>, <code>ordinary</code> and <code>enriched</code> scenarios, this matrix includes the row and the column corresponding to net entries
+and net exits (when they are present) even when they are really small.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p> A list containing all the objects with the values used as arguments by the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p> A vector with the final data used as votes of the origin election after taking into account the level of information available regarding to new entries and exits of the election censuses between the two elections.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>destination</code></td>
+<td>
+<p> A vector with the final data used as votes of the origin election after taking into account the level of information available regarding to new entries and exits of the election censuses between the two elections.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose M. Pavia, <a href="mailto:pavia@uv.es">pavia@uv.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Pavia, JM (2023). Adjustment of initial estimates of voter transition probabilities to guarantee consistency and completeness, <em>SN Social Sciences</em>, 3, 75. <a href="https://doi.org/10.1007/s43545-023-00658-y">doi:10.1007/s43545-023-00658-y</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lphom</code> <code>tslphom</code> <code>nslphom</code> <code>lclphom</code>
+</p>
+<p>Other linear programing ecological inference functions: 
+<code>lclphom()</code>,
+<code>lphom_dual()</code>,
+<code>lphom_joint()</code>,
+<code>lphom()</code>,
+<code>nslphom_dual()</code>,
+<code>nslphom_joint()</code>,
+<code>nslphom()</code>,
+<code>rslphom()</code>,
+<code>tslphom_dual()</code>,
+<code>tslphom_joint()</code>,
+<code>tslphom()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">P0 &lt;- matrix(c(.75, .02, .15, .08, .01, .01, .97, .01,
+               .01, .01, .01, .97, .01, .10, .80, .09,
+               .20, .30, .30, .20, .10, .10, .50, .30,
+               .10, .30, NA, NA, .25, .20, NA, NA), 
+             byrow = TRUE, 8, 4)
+mt &lt;- lp_apriori(France2017P[, 1:8], France2017P[, 9:12], P0, integers = FALSE)
+</code></pre>
+
+
+</div>

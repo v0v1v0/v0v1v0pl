@@ -1,0 +1,411 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mps2par</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Use Maximum Product of Spacings to Estimate the Parameters of a Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function uses the method of maximum product of spacings (MPS) (maximum spacing estimation or maximum product of spacings estimation) to estimate the parameters of a distribution. MPS is based on maximization of the <em>geometric mean</em> of probability spacings in the data where the spacings are defined as the differences between the values of the cumulative distribution function, <code class="reqn">F(x)</code>, at sequential data indices.
+</p>
+<p>MPS (Dey <em>et al.</em>, 2016, pp. 13–14) is an optimization problem formed by maximizing the geometric mean of the spacing between consecutively ordered observations standardized to a U-statistic. Let <code class="reqn">\Theta</code> represent a vector of parameters for a candidate fit of <code class="reqn">F(x|\Theta)</code>, and let <code class="reqn">U_i(\Theta) = F(X_{i:n}|\Theta)</code> be the nonexceedance probabilities of the observed values of the order statistics <code class="reqn">x_{i:n}</code> for a sample of size <code class="reqn">n</code>.  Define the differences
+</p>
+<p style="text-align: center;"><code class="reqn">D_i(\Theta) = U_i(\Theta) - U_{i-1}(\Theta)\mbox{\ for\ } i = 1, \ldots, n+1\mbox{,}</code>
+</p>
+
+<p>with the additions to the vector <code class="reqn">U</code> of <code class="reqn">U_0(\Theta) = 0</code> and <code class="reqn">U_{n+1}(\Theta) = 1</code>. The objective function is
+</p>
+<p style="text-align: center;"><code class="reqn">M_n(\Theta) = - \sum_{i=1}^{n+1} \log\, D_i(\Theta)\mbox{,}</code>
+</p>
+
+<p>where the <code class="reqn">\Theta</code> for a maximized <code class="reqn">{-}M_n</code> represents the parameters fit by MPS. Some authors to keep with the idea of geometric mean include factor of <code class="reqn">1/(n+1)</code> for the definition of <code class="reqn">M_n</code>. Whereas other authors (Shao and Hahn, 1999, eq. 2.0), show
+</p>
+<p style="text-align: center;"><code class="reqn">S_n(\Theta) = (n+1)^{-1} \sum_{i=1}^{n+1} \log[(n+1)D_i(\Theta)]\mbox{.}</code>
+</p>
+
+<p>So it seems that some care is needed when considering the implementation when the value of “the summation of the logarithms” is to be directly interpreted. Wong and Li (2006) provide a salient review of MPS in regards to an investigation of maximum likelihood (MLE), MPS, and probability-weighted moments (<code>pwm</code>) for the GEV (<code>quagev</code>) and GPA (<code>quagpa</code>) distributions. Finally, Soukissian and Tsalis (2015) also study MPS, MLE, L-moments, and several other methods for GEV fitting.
+</p>
+<p>If the initial parameters have a support inside the range of the data, infinity is returned immediately by the optimizer and further action stops and the parameters returned are <code>NULL</code>. For the implementation here, if <code>check.support</code> is true, and the initial parameter estimate (if not provided and acceptable by <code>init.para</code>) by default will be seeded through the method of L-moments (unbiased, <code>lmoms</code>), which should be close and convergence will be fairly fast if a solution is possible. If these parameters can not be used for spinup, the implementation will then attempt various probability-weighted moment by plotting position (<code>pwm.pp</code>) converted to L-moments (<code>pwm2lmom</code>) as part of an extended attempt to find a support of the starting distribution encompass the data. Finally, if that approach fails, a last ditch effort using starting parameters from maximum likelihood computed by a default call to <code>mle2par</code> is made. Sometimes data are pathological and user supervision is needed but not always successful—MPS can show failure for certain samples and(or) choice of distribution.
+</p>
+<p>It is important to remark that the support of a fitted distribution is not checked within the loop for optimization once spun up. The reasons are twofold: (1) The speed hit by repeated calls to <code>supdist</code>, but in reality (2) PDFs in <span class="pkg">lmomco</span> are supposed to report zero density for outside the support of a distribution (see NEWS) and for the <code class="reqn">-\log(D_i(\Theta)\rightarrow 0) \rightarrow \infty</code> and hence infinity is returned for that state of the optimization loop and alternative solution will be tried.
+</p>
+<p>As a note, if all <code class="reqn">U</code> are equally spaced, then <code class="reqn">|M(\Theta)| = I_o = (n+1)\log(n+1)</code>. This begins the concept towards goodness-of-fit. The <code class="reqn">M_n(\Theta)</code> is a form of the Moran-Darling statistic for goodness-of-fit. The <code class="reqn">M_n(\Theta)</code> is a Normal distribution with
+</p>
+<p style="text-align: center;"><code class="reqn">\mu_M \approx (n+1)[\log(n+1)+\gamma{}] - \frac{1}{2} - \frac{1}{12(n+1)}\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\sigma_M \approx (n+1)\biggl(\frac{\pi^2}{6\,{}} - 1\biggr)-\frac{1}{2} - \frac{1}{6(n+1)}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\gamma \approx 0.577221</code> (Euler–Mascheroni constant, <code>-digamma(1)</code>) or as the definite integral
+</p>
+<p style="text-align: center;"><code class="reqn">\gamma^\mathrm{Euler}_{\mathrm{Mascheroni}} = -\int_0^\infty \mathrm{exp}(-t) \log(t)\; \mathrm{d}{t}\mbox{,}</code>
+</p>
+
+<p>An extension into small samples using the Chi-Square distribution is
+</p>
+<p style="text-align: center;"><code class="reqn">A = C_1 + C_2\times\chi^2_n\mbox{,}</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">C_1 = \mu_M - \sqrt{\frac{\sigma^2_M\,n}{2}}\mbox{\ and\ }C_2 = \sqrt{\frac{\sigma^2_M}{2n}}\mbox{,}</code>
+</p>
+
+<p>and where <code class="reqn">\chi^2_n</code> is the Chi-Square distribution with <code class="reqn">n</code> degrees of freedom. A test statistic is
+</p>
+<p style="text-align: center;"><code class="reqn">T(\Theta) = \frac{M_n(\Theta) - C_1 + \frac{p}{2}}{C_2}\mbox{,}</code>
+</p>
+
+<p>where the term <code class="reqn">p/2</code> is a bias correction based on the number of fitted distribution parameters <code class="reqn">p</code>. The null hypothesis that the fitted distribution is correct is to be rejected if <code class="reqn">T(\Theta)</code> exceeds a critical value from the Chi-Square distribution. The MPS method has a relation to maximum likelihood (<code>mle2par</code>) and the two are asymptotically equivalent.
+</p>
+<p><b>Important Remark Concerning Ties</b>—Ties in the data cause <em>instant degeneration</em> with MPS and must be mitigated for and thus attention to this documentation and even the source code itself is required.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mps2par(x, type, init.para=NULL, ties=c("bernstein", "rounding", "density"),
+            delta=0, log10offset=3, get.untied=FALSE, check.support=TRUE,
+            moran=TRUE, silent=TRUE, null.on.not.converge=TRUE,
+            ptransf=  function(t) return(t),
+            pretransf=function(t) return(t),
+            mle2par=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Three character (minimum) distribution type (for example, <code>type="gev"</code>, see <code>dist.list</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.para</code></td>
+<td>
+<p>Initial parameters as a vector <code class="reqn">\Theta</code> or as an <span class="pkg">lmomco</span> parameter “object” from say <code>vec2par</code>. If a vector is given, then internally <code>vec2par</code> is called with distribution equal to <code>type</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>Ties cause degeneration in the computation of <code class="reqn">M(\Theta)</code>:<br>
+Option <code>bernstein</code> triggers a smoothing of only the ties using the <code>dat2bernqua</code> function—Bernstein-type smoothing for ties is likely near harmless when ties are near the center of the distribution, but of course caution is advised if ties exist near the extremal values; the settings for <code>log10offset</code> and <code>delta</code> are ignored if <code>bernstein</code> is selected Also for a tie-run having an odd number of elements, the middle tied value is left as original data.<br>
+Option <code>rounding</code> triggers two types of adjustment: if <code>delta &gt; 0</code> then a round-off error approach inspired by Cheng and Stephens (1989, eq. 4.1) is used (see <b>Note</b>) and <code>log10offset</code> is ignored, but if <code>delta=0</code>, then <code>log10offset</code> is picked up as an order of magnitude offset (see <b>Note</b>). Use of options <code>log10offset</code> and <code>delta</code> are likely to not keep a middle unmodified in an odd-length, tie-run in contrast to use of <code>bernstein</code>.<br>
+Option <code>density</code> triggers the substitution of the probability density <code class="reqn">g(x_{i:n}|\Theta)</code> at the <code class="reqn">i</code>th tie from the current fit of the distribution. <b>Warning</b>—It appears that inference is lost almost immediately because the magnitude of <code class="reqn">M_n</code> losses meaning because probability densities are not in the same scale as changes in probabilities exemplified by the <code class="reqn">D_i</code>. This author has not yet found literature discussing this, but density substitution is a recognized strategy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>The optional <code class="reqn">\delta</code> value if <code class="reqn">\delta &gt; 0</code> and if <code>ties=</code><code>"rounding"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log10offset</code></td>
+<td>
+<p>The optional base-10 logarithmic offset approach to roundoff errors if <code>delta=0</code> and if <code>ties=</code><code>"rounding"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get.untied</code></td>
+<td>
+<p>A logical to populate a <code>ties</code> element in the returned <code>list</code> with the untied-pseudo data as it was made available to the optimizer and the number of iternations required to exhaust all ties. An emergency break it implemented if the number of iterations appears to be blowing up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.support</code></td>
+<td>
+<p>A logical to trigger a call to <code>supdist</code> to compute the support of the distribution at the initial parameters. As mentioned, MPS degenerates if <code>min(x)</code> <code class="reqn">&lt;</code> the lower support or if <code>max(x)</code> <code class="reqn">&gt;</code> the upper support. Regardless of the setting of <code>check.support</code> and <code>NULL</code> will be returned because this is what the optimizer will do anyway.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>moran</code></td>
+<td>
+<p>A logical to trigger the goodness-of-fit test described previously.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>A logical to silence the <code>try()</code> function wrapping the <code>optim()</code> function and to provide a returned list of the optimization output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null.on.not.converge</code></td>
+<td>
+<p>A logical to trigging simple return of <code>NULL</code> if the <code>optim()</code> function returns a nonzero convergence status.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptransf</code></td>
+<td>
+<p>An optional parameter transformation function (see <b>Examples</b>) that is useful to guide the optimization run. For example, suppose the first parameter of a three parameter distribution resides in the positive domain, then <br><code>ptransf(t) = </code>
+<code>function(t) c(log(t[1]), t[2], t[3])</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pretransf</code></td>
+<td>
+<p>An optional parameter retransformation function (see <b>Examples</b>) that is useful to guide the optimization run. For example, suppose the first parameter of a three parameter distribution resides in the positive domain, then <br><code>pretransf(t) = </code> <code>function(t) c(exp(t[1]), t[2], t[3])</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle2par</code></td>
+<td>
+<p>A logical to turn off the potential last attempt at maximum likelihood estimates of a valid seed as part of <code>check.support=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for the <code>optim()</code> function and other uses.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.  This list should contain at least the following items, but some distributions such as the <code>revgum</code> have extra.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution in three character (minimum) format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Attribute specifying source of the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.para</code></td>
+<td>
+<p>The initial parameters. Warning to users, when inspecting returned values make sure that one is referencing the MPS parameters in <code>para</code> and not those shown in <code>init.para</code>!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim</code></td>
+<td>
+<p>An optional <code>list</code> of returned content from the optimizer if not <code>silent</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties</code></td>
+<td>
+<p>An optional <code>list</code> of untied-pseudo data and number of iterations required to achieve no ties (usually unity!) if and only if there were ties in the original data, <code>get.untied</code> is true, and <code>ties != "density"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MoranTest</code></td>
+<td>
+<p>An optional <code>list</code> of returned values that will include both diagnostics and statistics. The diagnostics are the computed <code class="reqn">\mu_M(n)</code>, <code class="reqn">\sigma^2_M(n)</code>, <code class="reqn">C_1</code>, <code class="reqn">C_2</code>, and <code class="reqn">n</code>. The statistics are the minimum value <code class="reqn">I_o</code> theoretically attainable <code class="reqn">|M_n(\Theta)|</code> for equally spaced differences, the minimized value <code class="reqn">M_n(\Theta)</code>, the <code class="reqn">T(\Theta)</code>, and the corresponding <code>p.value</code> from the upper tail of the <code class="reqn">\chi^2_n</code> distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>During optimization, the objective function requires evaluation at the initial parameters and must be finite. If <code>Inf</code> is returned on first call to the objective function, then a warning like this
+</p>
+<pre>
+  optim() attempt is NULL
+</pre>
+<p>should be seen. The <code>silent</code> by default though will silence this error. Error trapping for the estimated support of the distribution from the initial parameter values is made by <code>check.support=TRUE</code> and verbose warnings given to help remind the user. Considerable attempt is made internally to circumvent the appearance of the above error.
+</p>
+<p>More specifically, an MPS solution degenerates when the fitted distribution has a narrower support than the underlying data and artificially “ties” show up within the objective function even if the original data lacked ties or were already mitigated for. The user's only real recourse is to try fitting another distribution either by starting parameters or even distribution type. Situations could arise for which carefully chosen starting parameters could permit the optimizer to keep its simplex within the viable domain. The MPS method is sensitive to tails of a distribution having asymoptic limits as <code class="reqn">F \rightarrow 0^{+}</code> or <code class="reqn">F \rightarrow 1^{-}</code>.
+</p>
+<p>The Moran test can be quickly checked with highly skewed and somewhat problematic data by
+</p>
+<pre>
+  # CPU intensive experiment
+  gev &lt;- vec2par(c(4,0.3,-0.2), type="gev"); nsim &lt;- 5000
+  G &lt;- replicate(nsim, mps2par(rlmomco(100, gev), # extract the p-values
+                               type="gev")$MoranTest$statistics[4])
+  G &lt;- unlist(G) # unlisting required if NULLs came back from mps2par()
+  length(G[G &lt;= 0.05])/length(G) # 0.0408 (!=0.05 but some fits not possible)
+  V &lt;- replicate(nsim, mps2par(rlmomco(100, gev),
+                               type="nor")$MoranTest$statistics[4])
+  V &lt;- unlist(V) # A test run give 4,518 solutions
+  length(V[V &lt;= 0.05])/length(V) # 0.820 higher because not gev used
+  W &lt;- replicate(nsim, mps2par(rlmomco(100, gev),
+                               type="glo")$MoranTest$statistics[4])
+  W &lt;- unlist(W)
+  length(W[W &lt;= 0.05])/length(W) # 0.0456 higher because not gev used but
+  # very close because of the proximity of the glo to the gev for the given
+  # L-skew of the parent: lmomgev(gev)$ratios[3] = 0.3051
+</pre>
+<p>Concerning round-off errors, the Cheng and Stephens (1989, eq. 4.1) approach is to assume that the round-off errors are <code class="reqn">x \pm \delta</code>, compute the upper and lower probabilities <code class="reqn">f</code> for <code class="reqn">f_L \mapsto x - \delta</code> and <code class="reqn">f_U \mapsto x + \delta</code>, and then prorate the <code class="reqn">D_i</code> in even spacings of <code class="reqn">1/(r-1)</code> where <code class="reqn">r</code> is the number of tied values in a given tie-run. The approach for <code>mps2par</code> is similar but simplies the algorithm to evenly prorate the <code class="reqn">x</code> values in a tie-run. In other words, the current implementation is to actually massage the data before passage into the optimizer.  If the <code class="reqn">\delta = 0</code>, a base-10 logarithmic approach will be used in which, the order of magnitude of the value in a tie-run is computed and the <code>log10offset</code> subtracted to approximate the roundoff but recognize that for skewed data the roundoff might be scale dependent. The default treats a tie of three <code class="reqn">x_i = 15{,}000</code> as <code class="reqn">x_{i|r}=14{,}965.50; 15{,}000.00; 15{,}034.58</code>. In either approach, an iterative loop is present to continue looping until no further ties are found—this is made to protect against the potential for the algorithm to create new ties. A sorted vector of the final data for the optimize is available in the <code>ties</code> element of the returned list if and only if ties were originally present, <code>get.untied=TRUE</code>, and <code>ties != "density"</code>. Ties and compensation likely these prorations can only make <code class="reqn">M(\Theta)</code> smaller, and hence the test becomes conservative.
+</p>
+<p>A note of other MPS implementations in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> is needed. The <span class="pkg">fBasics</span> and <span class="pkg">gld</span> packages both provide for MPS estimation for the generalized lambda distribution. The salient source files and code chunks are shown. First, consider package <span class="pkg">fBasics</span>:
+</p>
+<pre>
+  fBasics --&gt; dist-gldFit.R --&gt; .gldFit.mps --&gt;
+            f = try(-typeFun(log(DH[DH &gt; 0])), silent = TRUE)
+</pre>
+<p>where it is seen that <code class="reqn">D_i = 0</code> are ignored! Such a practice does not appear efficacious during development and testing of the implementation in <span class="pkg">lmomco</span>, parameter solutions very substantially different than reason can occur or even failure of convergence by the <span class="pkg">fBasics</span> implementation. Further investigation is warranted. Second, consider package <span class="pkg">gld</span>:
+</p>
+<pre>
+  gld --&gt; fit_fkml.R --&gt; fit_fkml.c --&gt; method.id == 2:
+  # If F[i]-F[i-1] = 0, replace by f[i-1]
+  #                      (ie the density at smaller observation)
+</pre>
+<p>which obviously make the density substitution for ties as well <code>ties=</code><code>"density"</code> for the implementation here. Testing indicates that viable parameter solutions will result with direct insertion of the density in the case of ties. Interference, however, of the <code class="reqn">M_n</code> is almost assuredly to be greatly weakened or destroyed depending on the shape of the probability density function or a large number of ties. The problem is that the sum of the <code class="reqn">D_i</code> are no longered ensured to sum to unity. The literature appears silent on this particular aspect of MPS, and further investigation is warranted.
+</p>
+<p>The <span class="pkg">eva</span> package provides MPS for GEV and GPD. The approach there does not appear to replace changes of zero by density but to insert a “smallness” in conjunction with other conditioning checking (only the <code>cond3</code> is shown below) and a curious penalty of <code>1e6</code>. The point is that different approaches have been made by others.
+</p>
+<pre>
+  eva --&gt; gevrFit --&gt; method="mps"
+  cdf[(is.nan(cdf) | is.infinite(cdf))] &lt;- 0
+  cdf &lt;- c(0, cdf, 1); D &lt;- diff(cdf); cond3 &lt;- any(D &lt; 0)
+  ## Check if any differences are zero due to rounding and adjust
+  D &lt;- ifelse(D &lt;= 0, .Machine$double.eps, D)
+  if(cond1 | cond2 | cond3) { abs(sum(log(D))) + 1e6 } else { -sum(log(D)) }
+</pre>
+<p>Let us conclude with an example for the GEV between <span class="pkg">eva</span> and <span class="pkg">lmomco</span> and note sign difference in definition of the GEV shape but otherwise a general similarity in results:
+</p>
+<pre>
+  X &lt;- rlmomco(97, vec2par(c(100,12,-.5), type="gev"))
+  pargev(lmoms(X))$para
+       #                  xi                alpha                kappa
+       #         100.4015424           12.6401335           -0.5926457
+  eva::gevrFit(X, method="mps")$par.ests
+       #Location (Intercept)    Scale (Intercept)    Shape (Intercept)
+       #         100.5407709           13.5385491            0.6106928
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Cheng, R.C.H., Stephens, M.A., 1989, A goodness-of-fit test using Moran's statistic with estimated parameters: Biometrika, v. 76, no. 2, pp. 385–392.
+</p>
+<p>Dey, D.K., Roy, Dooti, Yan, Jun, 2016, Univariate extreme value analysis, chapter 1, <em>in</em> Dey, D.K., and Yan, Jun, eds., Extreme value modeling and risk analysis—Methods and applications: Boca Raton, FL, CRC Press, pp. 1–22.
+</p>
+<p>Shao, Y., and Hahn, M.G., 1999, Strong consistency of the maximum product of spacings estimates with applications in nonparametrics and in estimation of unimodal densities: Annals of the Institute of Statistical Mathematics, v. 51, no. 1, pp. 31–49.
+</p>
+<p>Soukissian, T.H., and Tsalis, C., 2015, The effect of the generalized extreme value distribution parameter estimation methods in extreme wind speed prediction: Natural Hazards, v. 78, pp. 1777–1809.
+</p>
+<p>Wong, T.S.T., and Li, W.K., 2006, A note on the estimation of extreme value distributions using maximum product of spacings: IMS Lecture Notes, v. 52, pp. 272–283.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmom2par</code>, <code>mle2par</code>, <code>tlmr2par</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+pe3 &lt;- vec2par(c(4.2, 0.2, 0.6), type="pe3") # Simulated values should have at least
+X &lt;- rlmomco(202, pe3); Xr  &lt;- round(sort(X), digits=3) # one tie-run after rounding,
+mps2par(X,  type="pe3")$para      # and the user can observe the (minor in this case)
+mps2par(Xr, type="pe3")$para      # effect on parameters.
+# Another note on MPS is needed. It is not reflection symmetric.
+mps2par( X, type="pe3")$para
+mps2par(-X, type="pe3")$para 
+## End(Not run)
+
+## Not run: 
+# Use 1,000 replications for sample size of 75 and estimate the bias and variance of
+# the method of L-moments and maximum product spacing (MPS) for the 100-year event
+# using the Pearson Type III distribution.
+set.seed(1596)
+nsim &lt;- 1000; n &lt;- 75; Tyear &lt;- 100; type &lt;- "pe3"
+parent.lmr &lt;- vec2lmom(c(5.5, 0.15, 0.03))   # L-moments of the "parent"
+parent  &lt;- lmom2par(parent.lmr, type="pe3")  # "the parent"
+Q100tru &lt;- qlmomco(T2prob(Tyear), parent)    # "true value"
+Q100lmr &lt;- Q100mps &lt;- rep(NA, nsim)          # empty vectors
+T3lmr &lt;- T4lmr &lt;- T3mps &lt;- T4mps &lt;- rep(NA, nsim)
+for(i in 1:nsim) { # simulate from the parent, compute L-moments
+   tmpX &lt;- rlmomco(n, parent); lmrX &lt;- lmoms(tmpX)
+   if(! are.lmom.valid(lmrX)) { # quiet check on viability
+     lmrX &lt;- pwm2lmom(pwms.pp(tmpX)) # try a pwm by plotting positions instead
+     if(! are.lmom.valid(lmrX)) next
+   }
+   lmrpar &lt;- lmom2par(lmrX, type=type)                  # Method of L-moments
+   mpspar &lt;-  mps2par(tmpX, type=type, init.para=lmrpar) # Method of MPS
+   if(! is.null(lmrpar)) {
+      Q100lmr[i] &lt;- qlmomco(T2prob(Tyear), lmrpar); lmrlmr &lt;- par2lmom(lmrpar)
+      T3lmr[i] &lt;- lmrlmr$ratios[3]; T4lmr[i] &lt;- lmrlmr$ratios[4]
+   }
+   if(! is.null(mpspar)) {
+      Q100mps[i] &lt;- qlmomco(T2prob(Tyear), mpspar); mpslmr &lt;- par2lmom(mpspar)
+      T3mps[i] &lt;- mpslmr$ratios[3]; T4mps[i] &lt;- mpslmr$ratios[4]
+   }
+}
+print(summary(Q100tru - Q100lmr)) # Method of L-moment   (mean = -0.00176)
+print(summary(Q100tru - Q100mps)) # Method of MPS        (mean = -0.02746)
+print(var(Q100tru - Q100lmr, na.rm=TRUE)) # Method of L-moments (0.009053)
+print(var(Q100tru - Q100mps, na.rm=TRUE)) # Method of MPS       (0.009880)
+# CONCLUSION: MPS is very competitive to the mighty L-moments.
+
+LMR &lt;- data.frame(METHOD=rep("Method L-moments",        nsim), T3=T3lmr, T4=T4lmr)
+MPS &lt;- data.frame(METHOD=rep("Maximum Product Spacing", nsim), T3=T3mps, T4=T4mps)
+ZZ &lt;- merge(LMR, MPS, all=TRUE)
+boxplot(ZZ$T3~ZZ$METHOD, data=ZZ); mtext("L-skew Distributions")
+boxplot(ZZ$T4~ZZ$METHOD, data=ZZ); mtext("L-kurtosis Distributions") #
+## End(Not run)
+
+## Not run: 
+# Data shown in Cheng and Stephens (1989). They have typesetting error on their
+# "sigma." Results mu=34.072 and sigma=sqrt(6.874)=2.6218
+H590 &lt;- c(27.55, 31.82, 33.74, 34.15, 35.32, 36.78,
+          29.89, 32.23, 33.74, 34.44, 35.44, 37.07,
+          30.07, 32.28, 33.86, 34.62, 35.61, 37.36,
+          30.65, 32.69, 33.86, 34.74, 35.61, 37.36,
+          31.23, 32.98, 33.86, 34.74, 35.73, 37.36,
+          31.53, 33.28, 34.15, 35.03, 35.90, 40.28,
+          31.53, 33.28, 34.15, 35.03, 36.20) # breaking stress MPAx1E6 of carbon block.
+mps2par(H590, type="nor", ties="rounding", delta=0.005)$para
+mps2par(H590, type="nor", ties="rounding" )$para
+mps2par(H590, type="nor", ties="bernstein")$para
+#        mu     sigma
+# 34.071424  2.622484 # using a slight variant on their eq. 4.1.
+# 34.071424  2.622614 # using log10offset=3
+# 34.088769  2.690781 # using Bernstein smooth and unaffecting middle of odd tie runs
+# The MoranTest show rejection of the Normal distribution at alpha=0.05, with the
+# "rounding" and "delta=0.005"" and T=63.8 compared to their result of T=63.1,
+# which to be considered that the strategy here is not precisely the same as theirs.
+## End(Not run)
+
+## Not run: 
+# Demonstration of parameter transformation and retransformation
+set.seed(9209) # same seed used under mle2par() in parallel example
+x &lt;- rlmomco(500, vec2par(c(1,1,3), type="gam")) # 3-p Generalized Gamma
+guess &lt;- lmr2par(x, type="gam", p=3) # By providing a 3-p guess the 3-p
+# Generalized Gamma will be triggered internally. There are problems passing
+# "p" argument to optim() if that function is to pick up the ... argument.
+mps2par(x, type="gam", init.para=guess, silent=FALSE,
+           ptransf=  function(t) { c(log(t[1]), log(t[2]), t[3])},
+           pretransf=function(t) { c(exp(t[1]), exp(t[2]), t[3])})$para
+# Reports:       mu     sigma        nu   for some simulated data.
+#         0.9997019 1.0135674 3.0259012 
+## End(Not run)
+</code></pre>
+
+
+</div>

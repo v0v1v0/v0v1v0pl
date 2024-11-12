@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Langevin1D</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the Drift and Diffusion of one-dimensional stochastic processes</h2>
+
+<h3>Description</h3>
+
+<p><code>Langevin1D</code> calculates the Drift and Diffusion vectors (with errors)
+for a given time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Langevin1D(
+  data,
+  bins,
+  steps,
+  sf = ifelse(is.ts(data), frequency(data), 1),
+  bin_min = 100,
+  reqThreads = -1,
+  kernel = FALSE,
+  h
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a vector containing the time series or a time-series object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bins</code></td>
+<td>
+<p>a scalar denoting the number of <code>bins</code> to calculate the
+conditional moments on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>steps</code></td>
+<td>
+<p>a vector giving the <code class="reqn">\tau</code> steps to calculate the
+conditional moments (in samples (=<code class="reqn">\tau * sf</code>)). Only used if
+<code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sf</code></td>
+<td>
+<p>a scalar denoting the sampling frequency (optional if <code>data</code>
+is a time-series object).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin_min</code></td>
+<td>
+<p>a scalar denoting the minimal number of events per <code>bin</code>.
+Defaults to <code>100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reqThreads</code></td>
+<td>
+<p>a scalar denoting how many threads to use. Defaults to
+<code>-1</code> which means all available cores. Only used if <code>kernel</code> is
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>a logical denoting if the kernel based Nadaraya-Watson
+estimator should be used to calculate drift and diffusion vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>a scalar denoting the bandwidth of the data. Defaults to Scott's
+variation of Silverman's rule of thumb. Only used if <code>kernel</code> is
+<code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>Langevin1D</code> returns a list with thirteen (six if <code>kernel</code>
+is <code>TRUE</code>) components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>D1</code></td>
+<td>
+<p>a vector of the Drift coefficient for each <code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eD1</code></td>
+<td>
+<p>a vector of the error of the Drift coefficient for each
+<code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D2</code></td>
+<td>
+<p>a vector of the Diffusion coefficient for each <code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eD2</code></td>
+<td>
+<p>a vector of the error of the Diffusion coefficient for
+each <code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D4</code></td>
+<td>
+<p>a vector of the fourth Kramers-Moyal coefficient for each
+<code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean_bin</code></td>
+<td>
+<p>a vector of the mean value per <code>bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density</code></td>
+<td>
+<p>a vector of the number of events per <code>bin</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M1</code></td>
+<td>
+<p>a matrix of the first conditional moment for each
+<code class="reqn">\tau</code>. Rows correspond to <code>bin</code>, columns to <code class="reqn">\tau</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eM1</code></td>
+<td>
+<p>a matrix of the error of the first conditional moment
+for each <code class="reqn">\tau</code>. Rows correspond to <code>bin</code>, columns to <code class="reqn">\tau</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M2</code></td>
+<td>
+<p>a matrix of the second conditional moment for each
+<code class="reqn">\tau</code>. Rows correspond to <code>bin</code>, columns to <code class="reqn">\tau</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eM2</code></td>
+<td>
+<p>a matrix of the error of the second conditional moment
+for each <code class="reqn">\tau</code>. Rows correspond to <code>bin</code>, columns to <code class="reqn">\tau</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M4</code></td>
+<td>
+<p>a matrix of the fourth conditional moment for each
+<code class="reqn">\tau</code>. Rows correspond to <code>bin</code>, columns to <code class="reqn">\tau</code>.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>a vector of the <code>bin</code> borders.
+If <code>kernel</code> is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Philip Rinn
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Langevin2D</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Set number of bins, steps and the sampling frequency
+bins &lt;- 20
+steps &lt;- c(1:5)
+sf &lt;- 1000
+
+#### Linear drift, constant diffusion
+
+# Generate a time series with linear D^1 = -x and constant D^2 = 1
+x &lt;- timeseries1D(N = 1e6, d11 = -1, d20 = 1, sf = sf)
+# Do the analysis
+est &lt;- Langevin1D(data = x, bins = bins, steps = steps, sf = sf)
+# Plot the result and add the theoretical expectation as red line
+plot(est$mean_bin, est$D1)
+lines(est$mean_bin, -est$mean_bin, col = "red")
+plot(est$mean_bin, est$D2)
+abline(h = 1, col = "red")
+
+#### Cubic drift, constant diffusion
+
+# Generate a time series with cubic D^1 = x - x^3 and constant D^2 = 1
+x &lt;- timeseries1D(N = 1e6, d13 = -1, d11 = 1, d20 = 1, sf = sf)
+# Do the analysis
+est &lt;- Langevin1D(data = x, bins = bins, steps = steps, sf = sf)
+# Plot the result and add the theoretical expectation as red line
+plot(est$mean_bin, est$D1)
+lines(est$mean_bin, est$mean_bin - est$mean_bin^3, col = "red")
+plot(est$mean_bin, est$D2)
+abline(h = 1, col = "red")
+</code></pre>
+
+
+</div>

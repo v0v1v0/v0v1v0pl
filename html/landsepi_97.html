@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>survivalProbToMatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Survival probability To Matrix</h2>
+
+<h3>Description</h3>
+
+<p>Transform the off-season survival probability of the pathogen
+(1D vector of length Nyears*Ncroptypes) into a matrix (for visualization purpose)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">survivalProbToMatrix(params)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a LandsepiParams object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>After updating the off-season survival probability with <code>updateSurvivalProb()</code>,
+this function returns the probability as a matrix for every year (rows) and croptypes (columns)
+as well as, if croptypes have been previously allocated to a landscape, a matrix for every
+polygon (rows) and year (columns).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing a matrix of dimensions (Nyears, Ncroptypes) as well as a matrix of
+dimensions (Npoly, Nyears)
+</p>
+
+
+<h3>See Also</h3>
+
+<p>updateSurvivalProb
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+simul_params &lt;- createSimulParams()
+simul_params &lt;- setTime(simul_params, Nyears=10, nTSpY=120)
+simul_params &lt;- setPathogen(simul_params, loadPathogen("rust"))
+
+cultivar1 &lt;- loadCultivar(name = "Susceptible", type = "wheat")
+cultivar2 &lt;- loadCultivar(name = "Resistant", type = "wheat")
+cultivars &lt;- data.frame(rbind(cultivar1, cultivar2), stringsAsFactors = FALSE)
+simul_params &lt;- setCultivars(simul_params, cultivars)
+
+croptypes &lt;- loadCroptypes(simul_params
+, names = c("Susceptible crop", "Resistant crop", "Mixture"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Susceptible crop", "Susceptible")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop", "Resistant")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Mixture", c("Susceptible", "Resistant"))
+simul_params &lt;- setCroptypes(simul_params, croptypes)
+
+Ncroptypes &lt;- nrow(simul_params@Croptypes)
+Nyears &lt;- simul_params@TimeParam$Nyears
+
+landscape &lt;- loadLandscape(1)
+simul_params &lt;- setLandscape(simul_params, landscape)
+simul_params &lt;- allocateLandscapeCroptypes(simul_params,
+rotation_period = 0, rotation_sequence = croptypes$croptypeID,
+rotation_realloc = FALSE,
+prop = rep(1/Ncroptypes, Ncroptypes),
+aggreg = 0.05, graphic = FALSE)
+
+## One probability per year and per croptype:
+simul_params &lt;- updateSurvivalProb(simul_params
+, mat=matrix(runif(Nyears*Ncroptypes), ncol=Ncroptypes))
+simul_params@Pathogen
+survivalProbToMatrix(simul_params)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

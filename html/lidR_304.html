@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>point_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Point-based metrics</h2>
+
+<h3>Description</h3>
+
+<p>Computes a series of user-defined descriptive statistics for a LiDAR dataset for each point based
+on its k-nearest neighbours or its sphere neighbourhood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">point_metrics(las, func, k, r, xyz = FALSE, filter = NULL, ...)
+
+point_eigenvalues(
+  las,
+  k,
+  r,
+  xyz = FALSE,
+  metrics = FALSE,
+  coeffs = FALSE,
+  filter = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>formula. An expression to be applied to each point neighbourhood (see also
+template_metrics).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k, r</code></td>
+<td>
+<p>integer and numeric respectively for k-nearest neighbours and radius of the neighborhood
+sphere. If k is given and r is missing, computes with the knn, if r is given and k is missing
+computes with a sphere neighborhood, if k and r are given computes with the knn and a limit on the
+search distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xyz</code></td>
+<td>
+<p>logical. Coordinates of each point are returned in addition to each metric. Otherwise an
+ID referring to each point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>formula of logical predicates. Enables the function to run only on points of interest
+in an optimized way. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>unused.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>logical. Compute metrics or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeffs</code></td>
+<td>
+<p>logical. Principal component coefficients are returned</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When the neighbourhood is knn the user-defined function is fed with the current
+processed point and its k-1 neighbours. The current point being considered as
+the 1-neighbour with a distance 0 to the reference point. The points are ordered
+by distance to the central point. When the neighbourhood is a sphere the processed
+point is also included in the query but points are coming in a random order. <code>point_eigenmetrics</code>
+computes the eigenvalues of the covariance matrix and computes associated metrics following
+Lucas et al, 2019 (see references). It is equivalent to <code>point_metrics(las, .stdshapemetrics)</code>
+but much faster because it is optimized and parallelized internally.
+</p>
+
+
+<h3>Performances</h3>
+
+<p>It is important to bear in mind that this function is very fast for the feature it provides i.e.
+mapping a user-defined function at the point level using optimized memory management. However, it
+is still computationally demanding.<br><br>
+To help users to get an idea of how computationally demanding this function is, let's compare it to
+pixel_metrics. Assuming we want to apply <code>mean(Z)</code> on a 1 km² tile with 1 point/m²
+with a resolution of 20 m (400 m² cells), then the function <code>mean</code> is called roughly 2500
+times (once  per cell). On the contrary, with <code>point_metrics</code>, <code>mean</code> is called 1000000
+times (once per point). So the function is expected to be more than 400 times slower in this specific
+case (but it does not provide the same feature).<br><br>
+This is why the user-defined function is expected to be well-optimized, otherwise it might drastically
+slow down this already heavy computation. See examples.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+
+# Read only 0.5 points/m^2 for the purposes of this example
+las = readLAS(LASfile, filter = "-thin_with_grid 2")
+
+# Computes the eigenvalues of the covariance matrix of the neighbouring
+# points and applies a test on these values. This function simulates the
+# 'shp_plane()' algorithm from 'segment_shape()'
+plane_metrics1 = function(x,y,z, th1 = 25, th2 = 6) {
+  xyz &lt;- cbind(x,y,z)
+  cov_m &lt;- cov(xyz)
+  eigen_m &lt;- eigen(cov_m)$value
+  is_planar &lt;- eigen_m[2] &gt; (th1*eigen_m[3]) &amp;&amp; (th2*eigen_m[2]) &gt; eigen_m[1]
+  return(list(planar = is_planar))
+}
+
+# Apply a user-defined function
+M &lt;- point_metrics(las, ~plane_metrics1(X,Y,Z), k = 25)
+#&gt; Computed in 6.3 seconds
+
+# We can verify that it returns the same as 'shp_plane'
+las &lt;- segment_shapes(las, shp_plane(k = 25), "planar")
+#&gt; Computed in 0.1 seconds
+
+all.equal(M$planar, las$planar)
+
+# At this stage we can be clever and find that the bottleneck is
+# the eigenvalue computation. Let's write a C++ version of it with
+# Rcpp and RcppArmadillo
+Rcpp::sourceCpp(code = "
+#include &lt;RcppArmadillo.h&gt;
+// [[Rcpp::depends(RcppArmadillo)]]
+
+// [[Rcpp::export]]
+SEXP eigen_values(arma::mat A) {
+arma::mat coeff;
+arma::mat score;
+arma::vec latent;
+arma::princomp(coeff, score, latent, A);
+return(Rcpp::wrap(latent));
+}")
+
+plane_metrics2 = function(x,y,z, th1 = 25, th2 = 6) {
+  xyz &lt;- cbind(x,y,z)
+  eigen_m &lt;- eigen_values(xyz)
+  is_planar &lt;- eigen_m[2] &gt; (th1*eigen_m[3]) &amp;&amp; (th2*eigen_m[2]) &gt; eigen_m[1]
+  return(list(planar = is_planar))
+}
+
+M &lt;- point_metrics(las, ~plane_metrics2(X,Y,Z), k = 25)
+#&gt; Computed in 0.5 seconds
+
+all.equal(M$planar, las$planar)
+# Here we can see that the optimized version is way better but is still 5-times slower
+# because of the overhead of calling R functions and switching back and forth from R to C++.
+
+M &lt;- point_eigenvalues(las, k = 25)
+is_planar = M$eigen_medium &gt; (25*M$eigen_smallest) &amp; (6*M$eigen_medium) &gt; M$eigen_largest
+
+# Use the filter argument to process only first returns
+M1 &lt;- point_metrics(las, ~plane_metrics2(X,Y,Z), k = 25, filter = ~ReturnNumber == 1)
+dim(M1) # 13894 instead of 17182 previously.
+
+## End(Not run)
+</code></pre>
+
+
+</div>

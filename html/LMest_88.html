@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>se</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Standard errors</h2>
+
+<h3>Description</h3>
+
+<p>Function to compute standard errors for the parameter estimates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">se(est, ...)
+## S3 method for class 'LMbasic'
+se(est, ...)
+## S3 method for class 'LMbasiccont'
+se(est, ...)
+## S3 method for class 'LMlatent'
+se(est, ...)
+## S3 method for class 'LMlatentcont'
+se(est, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>an object obtained from a call to <code>lmest</code> and <code>lmestCont</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Standard errors for estimates in <code>est</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci,
+Silvia Pandolfi,
+Fulvia Pennoni,
+Alessio Farcomeni,
+Alessio Serafini
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# LM model for categorical responses without covariates 
+
+data("data_SRHS_long")
+SRHS &lt;- data_SRHS_long[1:2400,]
+
+# Categories rescaled to vary from 0 (“poor”) to 4 (“excellent”)
+
+SRHS$srhs &lt;- 5 - SRHS$srhs
+
+out &lt;- lmest(responsesFormula = srhs ~ NULL,
+             index = c("id","t"),
+             data = SRHS,
+             k = 3,
+             modBasic = 1,
+             out_se = FALSE)
+            
+out.se &lt;- se(out)
+
+out1 &lt;- lmest(responsesFormula = srhs ~ NULL,
+              index = c("id","t"),
+              data = SRHS,
+              k = 3,
+              modBasic = 1,
+              out_se = TRUE)
+            
+out1.se &lt;- se(out1)
+
+# LM model for categorical responses with covariates on the latent model
+
+out2 &lt;- lmest(responsesFormula = srhs ~ NULL,
+              latentFormula =  ~
+              I(gender - 1) +
+              I( 0 + (race == 2) + (race == 3)) +
+              I(0 + (education == 4)) +
+              I(0 + (education == 5)) +
+              I(age - 50) + I((age-50)^2/100),
+              index = c("id","t"),
+              data = SRHS,
+              k = 2,
+              paramLatent = "multilogit",
+              start = 0)
+              
+out2.se &lt;- se(out2)
+
+# LM model for continous responses without covariates 
+
+data(data_long_cont)
+
+out3 &lt;- lmestCont(responsesFormula = Y1 + Y2 + Y3 ~ NULL,
+                  index = c("id", "time"),
+                  data = data_long_cont,
+                  k =3,
+                  modBasic = 1,
+                  tol = 10^-5)
+                  
+out3.se &lt;- se(out3)
+
+# LM model for continous responses with covariates 
+
+out4 &lt;- lmestCont(responsesFormula = Y1 + Y2 + Y3  ~ NULL,
+                  latentFormula = ~ X1 + X2 | X1 + X2,
+                  index = c("id", "time"),
+                  data = data_long_cont,
+                  k = 3,
+                  output = TRUE)
+                  
+out4.se &lt;- se(out4)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

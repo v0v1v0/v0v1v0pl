@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tttlmomco</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Total Time on Test Transform of Distributions</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the Total Time on Test Transform Quantile Function for a quantile function <code class="reqn">x(F)</code> (<code>par2qua</code>, <code>qlmomco</code>).  The TTT is defined by Nair et al. (2013, p. 171–172, 176) has several expressions
+</p>
+<p style="text-align: center;"><code class="reqn">T(u) = \mu - (1 - u) M(u)\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">T(u) = x(u) - u R(u)\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">T(u) = (1-u) x(u) + \mu L(u)\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">T(u)</code> is the total time on test for nonexceedance probability <code class="reqn">u</code>,  <code class="reqn">M(u)</code> is the residual mean quantile function (<code>rmlmomco</code>), <code class="reqn">x(u)</code> is a constant for <code class="reqn">x(F = u)</code>, <code class="reqn">R(u)</code> is the reversed mean residual quantile function (<code>rrmlmomco</code>), <code class="reqn">L(u)</code> is the Lorenz curve (<code>lrzlmomco</code>), and <code class="reqn">\mu</code> as the following definitions
+</p>
+<p style="text-align: center;"><code class="reqn">\mu \equiv \lambda_1(u=0)\mbox{\ first L-moment of residual life for\ }u=0\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\mu \equiv \lambda_1(x(F))\mbox{\ first L-moment of the quantile function}\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\mu \equiv \mu(0)\mbox{\ conditional mean for\ }u=0\mbox{.}</code>
+</p>
+
+<p>The definitions imply that within numerical tolerances that <code class="reqn">\mu(0)</code> (<code>cmlmomco</code>) should be equal to <code class="reqn">T(1)</code>, which means that the conditional mean that the 0th percentile in life has been reached equals that total time on test for the 100th percentile. The later can be interpreted as meaning that each of realization of the lifetime distribution for the respective sample size lived to its expected ordered lifetimes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tttlmomco(f, para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>lmom2par</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Total time on test value for <code class="reqn">F</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The second definition for <code class="reqn">\mu</code> is used and in <span class="pkg">lmomco</span> code the implementation for nonexceedance probability <code>f</code> and parameter object <code>para</code> is
+</p>
+<pre>
+Tu &lt;- par2qua(f, para) - f*rrmlmomco(f, para) # 2nd def.
+</pre>
+<p>but other possible implementations for the first and third definitions respectively are
+</p>
+<pre>
+Tu &lt;- cmlmomco(f=0, para) - (1-f)*rmlmomco(f, para) # 1st def.
+Tu &lt;- (1-f)*par2qua(f, para) + cmlmomco(f=0, para)*lrzlmomco(f, para) # 3rd def.
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Nair, N.U., Sankaran, P.G., and Balakrishnan, N., 2013, Quantile-based reliability analysis: Springer, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>qlmomco</code>, <code>rmlmomco</code>, <code>rrmlmomco</code>, <code>lrzlmomco</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># It is easiest to think about residual life as starting at the origin, units in days.
+A &lt;- vec2par(c(0.0, 2649, 2.11), type="gov") # so set lower bounds = 0.0
+tttlmomco(0.5, A)  # The median lifetime = 859 days
+
+f &lt;- c(0.25,0.75) # All three computations report: 306.2951 and 1217.1360 days.
+Tu1 &lt;- cmlmomco(f=0, A) - (1-f)* rmlmomco(f, A)
+Tu2 &lt;-    par2qua(f, A) -    f * rrmlmomco(f, A)
+Tu3 &lt;- (1-f)*par2qua(f, A) + cmlmomco(f=0, A)*lrzlmomco(f, A)
+
+if(abs(cmlmomco(0,A) - tttlmomco(1,A)) &lt; 1E-4) {
+   print("These two quantities should be nearly identical.\n")
+}
+</code></pre>
+
+
+</div>

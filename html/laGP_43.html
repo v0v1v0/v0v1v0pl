@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>newGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Create A New GP Object
+</h2>
+
+<h3>Description</h3>
+
+<p>Build a Gaussian process C-side object based on the <code>X</code>-<code>Z</code>
+data and parameters provided, and augment those objects with new
+data
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">newGP(X, Z, d, g, dK = FALSE)
+newGPsep(X, Z, d, g, dK = FALSE)
+updateGP(gpi, X, Z, verb = 0)
+updateGPsep(gpsepi, X, Z, verb = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>a vector of responses/dependent values with <code>length(Z) = nrow(X)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>a positive scalar lengthscale parameter for an isotropic Gaussian
+correlation function (<code>newGP</code>); or a vector for a separable
+version (<code>newGPsep</code>) 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>a positive scalar nugget parameter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dK</code></td>
+<td>
+
+<p>a scalar logical indicating whether or not derivative information
+(for the lengthscale) should be maintained by the GP object; 
+this is required for calculating MLEs/MAPs of the lengthscale 
+parameter(s) via <code>mleGP</code> and <code>jmleGP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpi</code></td>
+<td>
+
+<p>a C-side GP object identifier (positive integer); e.g., as returned by <code>newGP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpsepi</code></td>
+<td>
+<p> similar to <code>gpi</code> but indicating a separable GP object,
+as returned by <code>newGPsep</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer indicating the verbosity level.  A positive value
+causes progress statements to be printed to the screen for each
+update of <code>i in 1:nrow(X)</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>newGP</code> allocates a new GP object on the C-side and returns its
+unique integer identifier (<code>gpi</code>), taking time which is cubic on
+<code>nrow(X)</code>;  allocated GP objects must (eventually) be destroyed
+with <code>deleteGP</code> or <code>deleteGPs</code> or memory will leak.
+The same applies for <code>newGPsep</code>, except deploying a separable 
+correlation with limited feature set; see <code>deleteGPsep</code> and
+<code>deleteGPseps</code>
+</p>
+<p><code>updateGP</code> takes <code>gpi</code> identifier as
+input and augments that GP with new data.  A sequence of updates is
+performed, for each <code>i in 1:nrow(X)</code>, each taking time which is
+quadratic in the number of data points. 
+<code>updateGP</code> also updates any statistics needed in order to quickly
+search for new local design candidates via <code>laGP</code>.
+The same applies to <code>updateGPsep</code> on <code>gpsepi</code> objects
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>newGP</code> and <code>newGPsep</code> create 
+a unique GP indicator (<code>gpi</code> or <code>gpsepi</code>) referencing a C-side object;
+<code>updateGP</code> and <code>updateGPsep</code> do not return anything, but yields a
+modified C-side object as a side effect </p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>For standard GP inference, refer to any graduate text, e.g., Rasmussen
+&amp; Williams <em>Gaussian Processes for Machine Learning</em>, or
+</p>
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 6.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>For efficient updates of GPs, see: 
+</p>
+<p>R.B. Gramacy and D.W. Apley (2015).
+<em>Local Gaussian process approximation for large computer
+experiments.</em> Journal of Computational and Graphical Statistics, 
+24(2), pp. 561-678; preprint on arXiv:1303.0383;
+<a href="https://arxiv.org/abs/1303.0383">https://arxiv.org/abs/1303.0383</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>deleteGP</code>, <code>mleGP</code>, <code>predGP</code>, <code>laGP</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## for more examples, see predGP and mleGP docs
+
+## simple sine data
+X &lt;- matrix(seq(0,2*pi,length=7), ncol=1)
+Z &lt;- sin(X)
+
+## new GP fit
+gpi &lt;- newGP(X, Z, 2, 0.000001)
+
+## make predictions
+XX &lt;- matrix(seq(-1,2*pi+1, length=499), ncol=ncol(X))
+p &lt;- predGP(gpi, XX)
+
+## sample from the predictive distribution
+if(require(mvtnorm)) {
+  N &lt;- 100
+  ZZ &lt;- rmvt(N, p$Sigma, p$df) 
+  ZZ &lt;- ZZ + t(matrix(rep(p$mean, N), ncol=N))
+  matplot(XX, t(ZZ), col="gray", lwd=0.5, lty=1, type="l", 
+         xlab="x", ylab="f-hat(x)", bty="n")
+  points(X, Z, pch=19, cex=2)
+}
+
+## update with four more points
+X2 &lt;- matrix(c(pi/2, 3*pi/2, -0.5, 2*pi+0.5), ncol=1)
+Z2 &lt;- sin(X2)
+updateGP(gpi, X2, Z2)
+
+## make a new set of predictions
+p2 &lt;- predGP(gpi, XX)
+if(require(mvtnorm)) {
+  ZZ &lt;- rmvt(N, p2$Sigma, p2$df) 
+  ZZ &lt;- ZZ + t(matrix(rep(p2$mean, N), ncol=N))
+  matplot(XX, t(ZZ), col="gray", lwd=0.5, lty=1, type="l", 
+         xlab="x", ylab="f-hat(x)", bty="n")
+  points(X, Z, pch=19, cex=2)
+  points(X2, Z2, pch=19, cex=2, col=2)
+}
+
+## clean up
+deleteGP(gpi)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addReactiveFeatures</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a reactive layer to map.</h2>
+
+<h3>Description</h3>
+
+<p>This function adds a layer to a map that is dependent on another layer.
+The reactive layer will be shown/hidden when holding the Ctrl-button on your
+keyboard and performing the action defined by <code>on</code>. <code>on</code> can be
+either "click" (default) or "mouseover".
+</p>
+<p>Note: <code>srcLayer</code> needs to be added to the map using <code>addGeoJSON</code>
+because we need to be able to link the two layers by a common attribute
+defined by argument <code>by</code>. Linking will be done via <code>group</code> name
+of <code>srcLayer</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addReactiveFeatures(
+  map,
+  x,
+  srcLayer,
+  by,
+  on,
+  group,
+  layerId = NULL,
+  options = NULL,
+  style = NULL,
+  updateStyle = NULL,
+  popup = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>a mapview or leaflet object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the (sf) features to be added to the map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>srcLayer</code></td>
+<td>
+<p>the group name of the source layer that <code>x</code> should be bound to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>shared attribute between <code>x</code> and <code>srcLayer</code> by which the
+two layers should be bound together.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>on</code></td>
+<td>
+<p>the action to invoke the action. Can be one of "click" (default) and
+"mouseover". The action will be triggered by holding Ctrl-key and performing <code>on</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>the group name for the object to be added to <code>map</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layerId</code></td>
+<td>
+<p>the layerId.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>options to be passed to the layer.
+See e.g. <code>pathOptions</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+<p>named list of styling instructions for the geometries in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>updateStyle</code></td>
+<td>
+<p>named list of how to update the styling of the <code>srcLayer</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popup</code></td>
+<td>
+<p>a character vector of the HTML content for the popups of layer <code>x</code>.
+See <code>addControl</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(leaflet)
+library(leafem)
+library(sf)
+library(geojsonsf)
+
+# create some random data
+che = st_as_sf(gadmCHE)
+if (require(lwgeom)) {
+  pts = st_as_sf(st_sample(che, 200))
+  pts = st_join(pts, che[, "ID_1"])
+
+  che = sf_geojson(che)
+
+  leaflet() %&gt;%
+    addTiles() %&gt;%
+    addGeoJSON(che, group = "che") %&gt;%
+    addReactiveFeatures(
+      pts
+      , srcLayer = "che"
+      , by = "ID_1"
+      , on = "click"
+      , group = "pts"
+      , style = list(color = "black", fillOpacity = 0.3)
+      , updateStyle = list(
+        opacity = 0.3
+        , fillOpacity = 0.3
+        , color = "forestgreen"
+        , fillColor = "forestgreen"
+      )
+    ) %&gt;%
+    addMouseCoordinates() %&gt;%
+    setView(lng = 8.31, lat = 46.75, zoom = 8)
+}
+
+</code></pre>
+
+
+</div>

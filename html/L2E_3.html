@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CV_L2E_sparse_ncv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross validation for L2E sparse regression with existing penalization methods</h2>
+
+<h3>Description</h3>
+
+<p><code>CV_L2E_sparse_ncv</code> performs k-fold cross-validation for robust sparse regression under the L2 criterion.
+Available penalties include lasso, MCP and SCAD.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CV_L2E_sparse_ncv(
+  y,
+  X,
+  beta0,
+  tau0,
+  lambdaSeq,
+  penalty = "MCP",
+  nfolds = 5,
+  seed = 1234,
+  method = "median",
+  max_iter = 100,
+  tol = 1e-04,
+  trace = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta0</code></td>
+<td>
+<p>Initial vector of regression coefficients, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau0</code></td>
+<td>
+<p>Initial precision estimate, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdaSeq</code></td>
+<td>
+<p>A decreasing sequence of tuning parameter lambda, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>Available penalties include lasso, MCP and SCAD.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>The number of cross-validation folds. Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Users can set the seed of the random number generator to obtain reproducible results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Median or mean to compute the objective</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Relative tolerance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>Whether to trace the progress of the cross-validation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list object containing the mean and standard error of the cross-validation error – CVE and CVSE – for each value of k (vectors),
+the index of the lambda with the minimum CVE and the lambda value itself (scalars),
+the index of the lambda value with the 1SE CVE and the lambda value itself (scalars),
+the sequence of lambda used in the regression (vector), and
+a vector listing which fold each element of y was assigned to
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Completes in 20 seconds
+
+set.seed(12345)
+n &lt;- 100
+tau &lt;- 1
+f &lt;- matrix(c(rep(2,5), rep(0,45)), ncol = 1)
+X &lt;- X0 &lt;- matrix(rnorm(n*50), nrow = n)
+y &lt;- y0 &lt;- X0 %*% f + (1/tau)*rnorm(n)
+
+## Clean Data
+lambda &lt;- 10^seq(-1, -2, length.out=20)
+# (not run)
+# cv &lt;- CV_L2E_sparse_ncv(y=y, X=X, lambdaSeq=lambda, penalty="SCAD", seed=1234, nfolds=2)
+# (lambda_min &lt;- cv$lambda.min)
+
+# sol &lt;- L2E_sparse_ncv(y=y, X=X, lambdaSeq=lambda_min, penalty="SCAD")
+# r &lt;- y - X %*% sol$Beta
+# ix &lt;- which(abs(r) &gt; 3/sol$Tau)
+# l2e_fit &lt;- X %*% sol$Beta
+
+# plot(y, l2e_fit, ylab='Predicted values', pch=16, cex=0.8)
+# points(y[ix], l2e_fit[ix], pch=16, col='blue', cex=0.8)
+
+## Contaminated Data
+i &lt;- 1:5
+y[i] &lt;- 2 + y0[i]
+X[i,] &lt;- 2 + X0[i,]
+
+# (not run)
+# cv &lt;- CV_L2E_sparse_ncv(y=y, X=X, lambdaSeq=lambda, penalty="SCAD", seed=1234, nfolds=2)
+# (lambda_min &lt;- cv$lambda.min)
+
+# sol &lt;- L2E_sparse_ncv(y=y, X=X, lambdaSeq=lambda_min, penalty="SCAD")
+# r &lt;- y - X %*% sol$Beta
+# ix &lt;- which(abs(r) &gt; 3/sol$Tau)
+# l2e_fit &lt;- X %*% sol$Beta
+
+# plot(y, l2e_fit, ylab='Predicted values', pch=16, cex=0.8)
+# points(y[ix], l2e_fit[ix], pch=16, col='blue', cex=0.8)
+
+</code></pre>
+
+
+</div>

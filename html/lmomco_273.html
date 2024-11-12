@@ -1,0 +1,129 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfkmu</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Kappa-Mu Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density
+of the Kappa-Mu (<code class="reqn">\kappa:\mu</code>) distribution given parameters (<code class="reqn">\kappa</code> and <code class="reqn">\mu</code>)  computed by <code>parkmu</code>. The probability density function  is
+</p>
+<p style="text-align: center;"><code class="reqn">
+f(x) = \frac{2\mu(1+\kappa)^{(\mu + 1)/2}}{\kappa^{(\mu-1)/2}\mathrm{exp}(\mu\kappa)}\,x^\mu\,\exp(-\mu(1+\kappa)x^2)\,I_{\mu - 1}(2\mu\sqrt{\kappa(1+\kappa)}x)\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">f(x)</code> is the nonexceedance probability for quantile <code class="reqn">x</code>, and the modified Bessel function of the first kind is <code class="reqn">I_k(x)</code>, and define <code class="reqn">m</code> as
+</p>
+<p style="text-align: center;"><code class="reqn">m = \frac{\mu(1+\kappa)^2}{1+2\kappa}\mbox{.}</code>
+</p>
+
+<p>and for a given <code class="reqn">m</code>, the new parameter <code class="reqn">\mu</code> must lie in the range
+</p>
+<p style="text-align: center;"><code class="reqn">0 \le \mu \le m\mbox{.}</code>
+</p>
+
+<p>The definition of <code class="reqn">I_k(x)</code> is seen under <code>pdfemu</code>. Lastly, if <code class="reqn">\kappa = \infty</code>, then there is a Dirca Delta function of probability at <code class="reqn">x=0</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfkmu(x, para, paracheck=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parkmu</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters and checked for validity.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Yacoub, M.D., 2007, The kappa-mu distribution and the eta-mu distribution: IEEE Antennas and Propagation Magazine, v. 49, no. 1, pp. 68–81
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfkmu</code>, <code>quakmu</code>, <code>lmomkmu</code>, <code>parkmu</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+x &lt;- seq(0,4, by=.1)
+para &lt;- vec2par(c(.5, 1.4), type="kmu")
+F &lt;- cdfkmu(x, para)
+X &lt;- quakmu(F, para, quahi=pi)
+plot(F, X, type="l", lwd=8)
+lines(F, x, col=2)
+
+## End(Not run)
+## Not run: 
+# Note that in this example very delicate steps are taken to show
+# how one interacts with the Dirac Delta function (x=0) when the m
+# is known but mu == 0. For x=0, the fraction of total probability
+# is recorded, but when one is doing numerical summation to evaluate
+# whether the total probability under the PDF is unity some algebraic
+# manipulations are needed as shown for the conditional when kappa
+# is infinity.
+
+delx &lt;- 0.001
+x &lt;- seq(0,3, by=delx)
+
+plot(c(0,3), c(0,1), xlab="RHO", ylab="pdfkmu(RHO)", type="n")
+m &lt;- 1.25
+mus &lt;- c(0.25, 0.50, 0.75, 1, 1.25, 0)
+for(mu in mus) {
+   kappa &lt;- m/mu - 1 + sqrt((m/mu)*((m/mu)-1))
+   para &lt;- vec2par(c(kappa, mu), type="kmu")
+   if(! is.finite(kappa)) {
+      para &lt;- vec2par(c(Inf,m), type="kmu")
+      density &lt;- pdfkmu(x, para)
+      lines(x, density, col=2, lwd=3)
+      dirac &lt;- 1/delx - sum(density[x != 0])
+      cumulant &lt;- (sum(density) + density[1]*(1/delx - 1))*delx
+      density[x == 0] &lt;- rep(dirac, length(density[x == 0]))
+      message("Total integrated probability is ", cumulant, "\n")
+   }
+   lines(x, pdfkmu(x, para))
+}
+mtext("Yacoub (2007, figure 3)")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

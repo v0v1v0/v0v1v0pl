@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cooling.schedule</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Define the cooling schedule for simulated annealing</h2>
+
+<h3>Description</h3>
+
+<p>This function should be used to configure a search
+with simulated annealing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cooling.schedule(
+  type = "adaptive",
+  start_temp = 1,
+  end_temp = -1,
+  lambda = 0.01,
+  total_iter = 2e+05,
+  markov_iter = 1000,
+  markov_leave_frac = 1,
+  acc_type = "probabilistic",
+  frozen_def = "acc",
+  frozen_acc_frac = 0.01,
+  frozen_markov_count = 5,
+  frozen_markov_mode = "total",
+  start_temp_steps = 10000,
+  start_acc_ratio = 0.95,
+  auto_start_temp = TRUE,
+  remember_models = TRUE,
+  print_iter = 1000
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of cooling schedule. <code>"adaptive"</code>
+(default) or <code>"geometric"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_temp</code></td>
+<td>
+<p>Start temperature on a log10 scale.
+Only used if <code>auto_start_temp = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end_temp</code></td>
+<td>
+<p>End temperature on a log10 scale.
+Only used if <code>type = "geometric"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Cooling parameter for the adaptive
+schedule. Values between 0.01 and 0.1 are recommended
+such that in total, several hundred thousand
+iterations are performed. Lower values lead to a more
+fine search with more iterations while higher values
+lead to a more coarse search with less total
+iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total_iter</code></td>
+<td>
+<p>Total number of iterations that
+should be performed. Only used for the geometric
+cooling schedule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markov_iter</code></td>
+<td>
+<p>Number of iterations for each
+Markov chain. The standard value does not need to be
+tuned, since the temperature steps and number of
+iterations per chain act complementary to each other,
+i.e., less iterations can be compensated by smaller
+temperature steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>markov_leave_frac</code></td>
+<td>
+<p>Fraction of accepted moves
+leading to an early temperature reduction. This is
+primarily used at (too) high temperatures lowering
+the temperature if essentially a random walk is
+performed. E.g., a value of 0.5 together with
+<code>markov_iter = 1000</code> means that the chain will
+be left if <code class="reqn">0.5 \cdot 1000 = 500</code> states were
+accepted in a single chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acc_type</code></td>
+<td>
+<p>Type of acceptance function. The
+standard <code>"probabilistic"</code> uses the conventional
+function
+<code class="reqn">\exp((\mathrm{Score}_\mathrm{old} -
+\mathrm{Score}_\mathrm{new})/t)</code>
+for calculating the acceptance probability.
+<code>"deterministic"</code> accepts the new state, if and only
+if
+<code class="reqn">\mathrm{Score}_\mathrm{new} -
+\mathrm{Score}_\mathrm{old} &lt; t</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frozen_def</code></td>
+<td>
+<p>How to define a frozen chain.
+<code>"acc"</code> means that if less than
+<code class="reqn">\texttt{frozen\_acc\_frac} \cdot
+\texttt{markov\_iter}</code> states with different scores
+were accepted in a single chain, this chain is
+marked as frozen. <code>"sd"</code> declares a chain as frozen if the
+corresponding score standard deviation is zero.
+Several frozen chains indicate that the search is finished.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frozen_acc_frac</code></td>
+<td>
+<p>If <code>frozen_def = "acc"</code>, this parameter
+determines the fraction of iterations that define a frozen chain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frozen_markov_count</code></td>
+<td>
+<p>Number of frozen chains that
+need to be observed for finishing the search.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frozen_markov_mode</code></td>
+<td>
+<p>Do the frozen chains
+have to occur consecutively (<code>"consecutive"</code>)
+or is the total number of frozen chains
+relevant (<code>"total"</code>)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_temp_steps</code></td>
+<td>
+<p>Number of iterations that should be used for
+estimating the ideal start temperature if <code>auto_start_temp =
+TRUE</code> is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_acc_ratio</code></td>
+<td>
+<p>Acceptance ratio that
+should be achieved with the automatically
+configured start temperature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_start_temp</code></td>
+<td>
+<p>Should the start
+temperature be configured automatically?
+<code>TRUE</code> or <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remember_models</code></td>
+<td>
+<p>Should already evaluated
+models be saved in a 2-dimensional hash table
+to prevent fitting the same trees multiple
+times?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_iter</code></td>
+<td>
+<p>Number of iterations after which
+a progress report shall be printed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>type = "adapative"</code> (default)
+automatically choses the temperature steps by using the
+standard deviation of the scores in a Markov chain
+together with the current temperature to
+evaluate if equilibrium is achieved. If the standard
+deviation is small or the temperature is high,
+equilibrium can be assumed leading
+to a strong temperature reduction. Otherwise, the
+temperature is only merely lowered.
+The parameter <code>lambda</code> is essential to control
+how fast the schedule will be executed and, thus,
+how many total iterations will be performed.
+</p>
+<p><code>type = "geometric"</code> is the conventional
+approach which requires more finetuning. Here,
+temperatures are uniformly lowered on a log10 scale.
+Thus, a start and an end temperature have to be
+supplied.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>cooling.schedule</code>
+which is a list of all necessary cooling parameters.
+</p>
+
+
+</div>

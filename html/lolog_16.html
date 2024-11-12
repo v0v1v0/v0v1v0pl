@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gofit.lolog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Goodness of Fit Diagnostics for a LOLOG fit</h2>
+
+<h3>Description</h3>
+
+<p>Goodness of Fit Diagnostics for a LOLOG fit
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lolog'
+gofit(object, formula, nsim = 100, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>the object to evaluate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula specifying the statistics on which to evaluate the fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of simulated statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(network)
+data(ukFaculty)
+
+# Delete vertices missing group
+delete.vertices(ukFaculty, which(is.na(ukFaculty %v% "Group")))
+
+# A dyad independent model
+fitind &lt;- lolog(ukFaculty ~ edges() + nodeMatch("GroupC") + nodeCov("GroupC"))
+summary(fitind)
+
+# Check gof on degree distribution (bad!)
+gind &lt;- gofit(fitind, ukFaculty ~ degree(0:50))
+gind
+plot(gind)
+
+#check gof on esp distribution (bad!)
+gind &lt;- gofit(fitind, ukFaculty ~ esp(0:25))
+gind
+plot(gind)
+
+## Not run: 
+
+#include triangles and 2-stars (in and out)
+fitdep &lt;- lolog(ukFaculty ~ edges() + nodeMatch("GroupC") + nodeCov("GroupC") + 
+                triangles + star(2, direction="in") + star(2, direction="out"), nsamp=1500)
+summary(fitdep)
+
+# Check gof on (in + out) degree distribution (good!)
+gdep &lt;- gofit(fitdep, ukFaculty ~ degree(0:50))
+gdep
+plot(gdep)
+
+#check gof on esp distribution (good!)
+gdep &lt;- gofit(fitdep, ukFaculty ~ esp(0:25))
+gdep
+plot(gdep)
+
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

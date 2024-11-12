@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>h2o_explainer</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>DALEX Explainer for H2O</h2>
+
+<h3>Description</h3>
+
+<p>DALEX helper function to create an <code>explainer</code> object using
+a <code>h2o</code> trained model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">h2o_explainer(df, model, y = "tag", ignore = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Dataframe. Must contain all columns and predictions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model object (H2O)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Character or Variable name. Variable's column name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore</code></td>
+<td>
+<p>Character vector. Which columns should be ignored?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters to pass to <code>h2o_predict_model</code> or
+<code>h2o_predict_MOJO</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List; explainer. Containing the model, data, y, predict_function,
+y_hat, residuals, class, label, model_info, residual_function, and weights.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Interpretability: 
+<code>dalex_local()</code>,
+<code>dalex_residuals()</code>,
+<code>dalex_variable()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># You must have "DALEX" library to use this auxiliary function:
+## Not run: 
+data(dft) # Titanic dataset
+
+# TRAIN A SIMPLE MODEL
+dfm &lt;- h2o_automl(dft,
+  y = "Survived",
+  ignore = c("Ticket", "PassengerId", "Cabin"),
+  max_models = 1
+)
+
+# EXPLAINER
+explainer &lt;- h2o_explainer(df = dfm$datasets$test, model = dfm$model, y = "Survived")
+explainer$data &lt;- na.omit(explainer$data)
+
+# CATEGORICAL EXAMPLE
+class &lt;- dalex_variable(explainer, vars = c("Pclass", "Sex"))
+class$plot
+
+# NUMERICAL EXAMPLE
+num &lt;- dalex_variable(explainer, vars = c("Fare", "Age"))
+num$plot
+
+# LOCAL EXAMPLE
+local &lt;- dalex_local(explainer, row = 1)
+# OR YOU COULD MANUALLY INPUT THE OBSERVATION
+local &lt;- dalex_local(explainer, observation = explainer$data[1, ])
+local$plot
+
+# xai2shiny's UI (needs to be installed from ModelOriented/xai2shiny)
+xai2shiny(explainer, run = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

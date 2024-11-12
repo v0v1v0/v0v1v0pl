@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmom2pwm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L-moments to Probability-Weighted Moments</h2>
+
+<h3>Description</h3>
+
+<p>Converts the L-moments to the probability-weighted moments (PWMs) given the L-moments. The conversion is linear so procedures based on L-moments are identical to those based on PWMs. The expression linking PWMs to L-moments is
+</p>
+<p style="text-align: center;"><code class="reqn">
+\lambda_{r+1} = \sum_{k=0}^r (-1)^{r-k} {r \choose k}{r+k \choose k}\beta_k\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">\lambda_{r+1}</code> are the L-moments, <code class="reqn">\beta_r</code> are the PWMs, and <code class="reqn">r \ge 0</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmom2pwm(lmom)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p> An L-moment object created by <code>lmoms</code>, <code>lmom.ub</code>, or <code>vec2lmom</code>. The function also supports <code>lmom</code> as a vector of L-moments (<code class="reqn">\lambda_1</code>, <code class="reqn">\lambda_2</code>, <code class="reqn">\tau_3</code>, <code class="reqn">\tau_4</code>, and <code class="reqn">\tau_5</code>).</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>PWMs are linear combinations of the L-moments and therefore contain the same statistical information of the data as the L-moments. However, the PWMs are harder to interpret as measures of probability distributions. The PWMs are included in <span class="pkg">lmomco</span> for theoretical completeness and are not intended for use with the majority of the other functions implementing the various probability distributions. The relations between L-moments (<code class="reqn">\lambda_r</code>) and PWMs (<code class="reqn">\beta_{r-1}</code>) for <code class="reqn">1 \le r \le 5</code> order are
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_1 = \beta_0 \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_2 = 2\beta_1 - \beta_0 \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_3 = 6\beta_2 - 6\beta_1 + \beta_0 \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_4 = 20\beta_3 - 30\beta_2 + 12\beta_1 - \beta_0\mbox{, and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_5 = 70\beta_4  - 140\beta_3 + 90\beta_2 - 20\beta_1 + \beta_0\mbox{.}</code>
+</p>
+
+<p>The linearity between L-moments and PWMs means that procedures based on one are equivalent to the other. This function only accomodates the first five L-moments and PWMs. Therefore, at least five L-moments are required in the passed argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betas</code></td>
+<td>
+<p>The PWMs. Note that convention is the have a <code class="reqn">\beta_0</code>, but this is placed in the first index <code>i=1</code> of the <code>betas</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Source of the PWMs: “pwm”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith </p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+<p>Greenwood, J.A., Landwehr, J.M., Matalas, N.C., and Wallis, J.R., 1979, Probability weighted moments—Definition and relation to parameters of several distributions expressable in inverse form: Water Resources Research, v. 15, pp. 1,049–1,054.
+</p>
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmom.ub</code>, <code>lmoms</code>, <code>pwm.ub</code>, <code>pwm2lmom</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">pwm &lt;- lmom2pwm(lmoms(c(123,34,4,654,37,78)))
+lmom2pwm(lmom.ub(rnorm(100)))
+lmom2pwm(lmoms(rnorm(100)))
+
+lmomvec1 &lt;- c(1000,1300,0.4,0.3,0.2,0.1)
+pwmvec   &lt;- lmom2pwm(lmomvec1)
+print(pwmvec)
+#$betas
+#[1] 1000.0000 1150.0000 1070.0000  984.5000  911.2857
+#
+#$source
+#[1] "lmom2pwm"
+
+lmomvec2 &lt;- pwm2lmom(pwmvec)
+print(lmomvec2)
+#$lambdas
+#[1] 1000 1300  520  390  260
+#
+#$ratios
+#[1]  NA 1.3 0.4 0.3 0.2
+#
+#$source
+#[1] "pwm2lmom"
+
+pwm2lmom(lmom2pwm(list(L1=25, L2=20, TAU3=.45, TAU4=0.2, TAU5=0.1)))
+</code></pre>
+
+
+</div>

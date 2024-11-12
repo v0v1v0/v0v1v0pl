@@ -1,0 +1,415 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logcon</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute Log-Concave MLE Based on Censored or Exact Data
+</h2>
+
+<h3>Description</h3>
+
+<p>Based on independent intervals <code class="reqn">X_i = [L_i,R_i]</code>, where <code class="reqn">-\infty &lt; L_i \leq R_i \leq \infty</code>, compute the maximum likelihood estimator of a (sub)probability density <code class="reqn">\phi</code> and the remaining mass <code class="reqn">p_0</code> at infinity (also known as <em>cure parameter</em>) under the assumption that the former is log-concave. Computation is based on an EM algorithm. For further information see Duembgen, Rufibach, and Schuhmacher (2013, preprint).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logcon(x, adapt.p0=FALSE, p0=0, knot.prec=IQR(x[x&lt;Inf])/75, reduce=TRUE,
+            control=lc.control())
+
+logConCens(x, adapt.p0=FALSE, p0=0, knot.prec=IQR(x[x&lt;Inf])/75, reduce=TRUE,
+                control=lc.control())
+
+logconcure(x, p0=0, knot.prec=IQR(x[x&lt;Inf])/75, reduce=TRUE, control=lc.control())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>a two-column matrix of <code class="reqn">n \geq 2</code> rows containing the data intervals, or a vector of length
+<code class="reqn">n \geq 2</code> containing the exact data points.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adapt.p0</code></td>
+<td>
+
+<p><code>logical</code>. Should the algorithm be allowed to adapt <code class="reqn">p_0</code>? In this case an alternating maximization procedure is used that is <em>believed</em> to always yield a joint maximizer <code class="reqn">(\hat{\phi},\hat{p_0})</code>. For the much slower (but maybe safer) profile likelihood maximization method, see the function <code>cure.profile</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p0</code></td>
+<td>
+
+<p>a number from 0 to 1 specifying the mass at infinity. 
+If the algorithm is allowed to adapt <code class="reqn">p_0</code>, this argument only specifies the starting value.
+Otherwise it is assumed that the true cure parameter <code class="reqn">p_0</code> is equal to this number. In particular,
+for the default setting of 0, a proper probability density <code class="reqn">\phi</code> is estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knot.prec</code></td>
+<td>
+
+<p>the maximal distance between two consecutive grid points, where knots (points at which the resulting
+log-subdensity <code class="reqn">\phi</code> may change slope) can be positioned. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduce</code></td>
+<td>
+
+<p><code>logical</code>. Should the domain of the (sub)density be reduced whenever the mass at the left or the right boundary becomes too small?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>a list of control parameters for the more technical aspects of the algorithm; usually the result of a call
+to <code>lc.control</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Based on the data intervals <code class="reqn">X_i = [L_i,R_i]</code> described above, function <code>logcon</code> computes a concave, piecewise linear function <code class="reqn">\phi</code> and a probability <code class="reqn">p_0</code> which satisfy <code class="reqn">\int \exp \phi(x) \, dx = 1-p_0</code> and jointly maximize the (normalized) log-likelihood.
+</p>
+<p style="text-align: center;"><code class="reqn">\ell(\phi, p_0) = \frac{1}{n} \sum_{i=1}^n \biggl[ 1\{L_i = R_i\} \phi(X_i) + 1\{L_i &lt; R_i\}
+   \log \biggl( \int_{L_i}^{R_i} \exp \phi(x) \; dx + 1\{R_i = \infty\} p_0 \biggr) \ \biggr],</code>
+</p>
+
+<p>If <code>x</code> is a two-column matrix, it is assumed to contain the left and right interval endpoints in the correct order. Intervals may have length zero (both endpoints equal) or be unbounded to the right (right endpoint is <code>Inf</code>). Computation is based on an EM algorithm, where the M-step uses an active set algorithm for computing the log-concave MLE for exact data with weights. The active set algorithm was described in Duembgen, Huesler, and Rufibach (2007) and Duembgen and Rufibach (2011) and is available in the R package <code>logcondens</code>. It has been re-implemented in C for the current package because of speed requirements. The whole algorithm for censored data has been indicated in Duembgen, Huesler, and Rufibach (2007) and was elaborated in Duembgen, Schuhmacher, and Rufibach (2013, preprint).
+</p>
+<p>If <code>x</code> is a vector argument, it is assumed to contain the exact data points. In this case the active set algorithm is accessed directly.
+</p>
+<p>In order to obtain a finite dimensional optimization problem the (supposed) domain of <code class="reqn">\phi</code> is subdivided by a grid. Stretches between interval endpoints where for theoretical reasons no knots (points where the slope of <code class="reqn">\phi</code> changes) can lie are left out. The argument <code>kink.prec</code> gives the maximal distance we allow between consecutive grid points in stretches where knots can lie. Say <code>plotint(x)</code> to see the grid.
+</p>
+<p>The EM algorithm works only for fixed dimensionality of the problem, but the domain of the function <code class="reqn">\phi</code> is not a priori known. Therefore there is an outer loop starting with the largest possible domain, given by the minimal and maximal endpoints of all the intervals, and decreasing the domain as soon as the EM steps let <code class="reqn">\phi</code> become very small towards the boundary. “Very small” means that the integral of <code class="reqn">\exp \circ \, \phi</code> over the first or last stretch between interval endpoints within the current domain falls below a certain threshold <code>red.thresh</code>, which can be controlled via <code>lc.control</code>.
+</p>
+<p>Domain reduction tends to be rather conservative. If the computed solution has a suspiciously steep slope at any of the domain boundaries, the recommended strategy is to enforce a smaller domain by increasing the parameters <code>domind1l</code> and/or <code>domind2r</code> via <code>lc.control</code>. The function <code>loglike</code> may be used to compare the (normalized) log-likelihoods of the results.
+</p>
+<p><code>logConCens</code> is  an alias for <code>logcon</code>. It is introduced to provide unified naming with the main functions in the packages <code>logcondens</code> and <code>logcondiscr</code>. 
+</p>
+<p><code>logconcure</code> is the same as <code>logcon</code> with <code>adapt.p0 = TRUE</code> fixed. 
+
+
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>lcdensity</code> for which reasonable <code>plot</code>, <code>print</code>, and <code>summary</code> methods are available.
+</p>
+<p>If the argument <code>x</code> is a two-column matrix (censored data case), such an object has the following components. 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>basedOn </code></td>
+<td>
+<p>the string <code>"censored"</code> for the type of data the solution is based on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status </code></td>
+<td>
+<p>currently only <code>0</code> if the algorithm converged; and <code>1</code> otherwise. 
+Note that in most cases even with status <code>1</code> the returned solution is very close to the truth.
+The <code>1</code> is often due to the fact that the termination criterion is not so well balanced yet.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x </code></td>
+<td>
+<p>the data entered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau </code></td>
+<td>
+<p>the ordered vector of different interval endpoints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domind1, domind2</code></td>
+<td>
+<p>the indices of the <code>tau</code>-element at which the domain of the MLE <code class="reqn">\phi</code>
+starts/ends.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tplus</code></td>
+<td>
+<p>the grid vector. <code>tau[domind1:domind2]</code> augmented by points of subdivision.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isKnot</code></td>
+<td>
+<p><code>0</code>-<code>1</code> value. For the finite elements of <code>tplus</code> a <code>1</code> if <code class="reqn">\phi</code> has a knot at this position, <code>0</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>the vector of <code class="reqn">\phi</code>-values at the finite elements of <code>tplus</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phislr</code></td>
+<td>
+<p>if <code class="reqn">\sup({\rm dom}(\phi)) = \infty</code>, the slope of <code class="reqn">\phi</code> after the last knot. Otherwise <code class="reqn">-\infty</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phislr.range</code></td>
+<td>
+<p>a vector of length 2 specifying a range of possible values for <code>phislr</code>. This is for the (rather rare) situations that mass may be shifted between the interval from the rightmost tau-point to infinity and the cure parameter without changing the likelihood. Otherwise <code>phislr.range</code> is <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cure</code></td>
+<td>
+<p>the cure parameter. Either the original argument <code>p0</code> if <code>adapt.p0</code> was <code>FALSE</code>, otheriwse the estimated cure parameter obtained by the alternating maximization procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cure.range</code></td>
+<td>
+<p>a vector of length 2 specifying a range of possible values for <code>cure</code> or <code>NA</code>. See <code>phislr.range</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fhat</code></td>
+<td>
+<p>the vector of values of the distribution function <code class="reqn">F</code> of <code class="reqn">\exp \circ \, \phi</code> at the finite elements of <code>tplus</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fhatfin</code></td>
+<td>
+<p>the computed value of <code class="reqn">\lim_{t \to \infty} F(t)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If <code>x</code> is a vector, this function does the same as the function <code>logConDens</code> in the package
+<code>logcondens</code>. The latter package offers additional features such as grid-based computation with weights
+(for high numerical stability) and
+smoothing of the estimator, as well as nicer plotting. <strong>For exact data</strong> we recommend using
+<code>logConDens</code> for
+everyday data analysis. <code>logcon</code> with a vector argument is to be preferred if time is of the essence (for
+data sets with several thousands of points or repeated optimization in iterative algorithms) or
+if an additional slope functionality is required. 
+</p>
+<p>Two other helpful packages for log-concave density estimation based on exact data are <code>logcondiscr</code> for estimating a discrete distribution and <code>LogConcDEAD</code> for estimating a multivariate continuous distribution.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dominic Schuhmacher <a href="mailto:dominic.schuhmacher@mathematik.uni-goettingen.de">dominic.schuhmacher@mathematik.uni-goettingen.de</a><br>
+Kaspar Rufibach <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a><br>
+Lutz Duembgen <a href="mailto:duembgen@stat.unibe.ch">duembgen@stat.unibe.ch</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Duembgen, L., Huesler, A., and Rufibach, K. (2007). Active set and EM algorithms for log-concave densities based on complete and censored data. Technical Report 61. IMSV, University of Bern. <a href="https://arxiv.org/abs/0707.4643">https://arxiv.org/abs/0707.4643</a>
+</p>
+<p>Duembgen, L. and Rufibach, K., (2011). logcondens: Computations Related to Univariate Log-Concave Density Estimation. Journal of Statistical Software, 39(6), 1-28. <a href="https://doi.org/10.18637/jss.v039.i06">doi:10.18637/jss.v039.i06</a>
+</p>
+<p>Duembgen, L., Rufibach, K., and Schuhmacher, D. (2014). Maximum-likelihood estimation of a log-concave density based on censored data. Electronic Journal of Statistics, 8(1), 1405-1437. <a href="https://doi.org/10.1214/14-EJS930">doi:10.1214/14-EJS930</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lc.control</code>, <code>lcdensity-methods</code>, <code>loglike</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A function for artificially censoring exact data
+censor &lt;- function(y, timemat) {
+  tm &lt;- cbind(0,timemat,Inf)
+  n &lt;- length(y)
+  res &lt;- sapply(1:n, function(i){
+            return( c( max(tm[i,][tm[i,] &lt; y[i]]), min(tm[i,][tm[i,] &gt;= y[i]]) ) ) } )
+  return(t(res))
+}
+
+
+
+# ------------------------
+#  interval censored data
+# ------------------------
+
+set.seed(20)
+n &lt;- 100
+# generate exact data:
+y &lt;- rgamma(n,3)
+# generate matrix of inspection times:
+itimes &lt;- matrix(rexp(10*n),n,10)
+itimes &lt;- t(apply(itimes,1,cumsum))
+# transform exact data to interval data
+x &lt;- censor(y, itimes)
+# plot both
+plotint(x, imarks=y)
+
+# Compute censored log-concave MLE
+# (assuming only the censored data is available to us)
+res &lt;- logcon(x)
+plot(res)
+
+# Compare it to the log-concave MLE for the exact data
+# and to the true Gamma(3,1) log-density
+res.ex &lt;- logcon(y)
+lines(res.ex$x, res.ex$phi, lwd=2.5, lty=2)
+xi &lt;- seq(0,14,0.05)
+lines(xi,log(dgamma(xi,3,1)), col=3, lwd=2)
+
+
+
+# -------------------------
+#  censored data with cure
+# -------------------------
+
+## Not run: 
+set.seed(21)
+n &lt;- 100
+# generate exact data:
+y &lt;- rgamma(n,3)
+cured &lt;- as.logical(rbinom(n,1,0.3))
+y[cured] &lt;- Inf
+
+# generate matrix of inspection times:
+itimes &lt;- matrix(rexp(6*n),n,6)
+itimes &lt;- t(apply(itimes,1,cumsum))
+# transform exact data to interval data
+x &lt;- censor(y, itimes)
+# plot both
+plotint(x, imarks=y)
+
+# Compute censored log-concave MLE including cure parameter
+# (assuming only the censored data is available to us)
+res &lt;- logcon(x, adapt.p0=TRUE)
+plot(res)
+# There is a trade-off between right-hand slope and cure parameter here
+# (seen by the grey area on the right), but the margin is very small:
+res$cure.range
+
+# Compare the corresponding CDF to the true CDF
+plot(res, type="CDF")
+xi &lt;- seq(0,14,0.05)
+lines(xi,0.7*pgamma(xi,3,1), col=3, lwd=2)
+# Note that the trade-off for the right-hand slope is not visible anymore 
+# (in terms of the CDF the effect is too small)
+
+## End(Not run)
+
+
+
+# ------------------------------------
+#  real right censored data with cure
+# ------------------------------------
+
+# Look at data set ovarian from package survival
+# Gives survival times in days for 26 patients with advanced ovarian carcinoma,
+# ignoring the covariates
+
+# Bring data to right format and plot it
+## Not run: 
+library(survival)
+data(ovarian)
+sobj &lt;- Surv(ovarian$futime, ovarian$fustat)
+x &lt;- cbind(sobj[,1], ifelse(as.logical(sobj[,2]),sobj[,1],Inf))
+plotint(x)
+
+# Compute censored log-concave MLE including cure parameter
+res &lt;- logcon(x, adapt.p0=TRUE)
+
+# Compare the corresponding survival function to the Kaplan-Meier estimator
+plot(res, type="survival")
+res.km &lt;- survfit(sobj ~ 1)
+lines(res.km, lwd=1.5)
+## End(Not run)
+
+
+
+# ----------------------
+#  current status data
+# ----------------------
+
+## Not run: 
+set.seed(22)
+n &lt;- 200
+# generate exact data
+y &lt;- rweibull(n,2,1)
+# generate vector of inspection times
+itime &lt;- matrix(rexp(n),n,1)
+# transform exact data to interval data
+x &lt;- censor(y, itime)
+# plot both
+plotint(x, imarks=y)
+
+# Compute censored log-concave MLE
+# (assuming only the censored data is available to us)
+res &lt;- logcon(x)
+plot(res, type="CDF")
+
+# Compare it to the true Weibull(2,1) c.d.f.
+xi &lt;- seq(0,3,0.05)
+lines(xi,pweibull(xi,2,1), col=3, lwd=2)
+## End(Not run)
+
+
+
+# ----------------------
+#  rounded/binned data
+# ----------------------
+
+## Not run: 
+set.seed(23)
+n &lt;- 100
+# generate data in [0,1] rounded to one digit
+y &lt;- round(rbeta(n,2,3),1)
+# bring data to right format and plot it
+x &lt;- cbind(y-0.05,y+0.05)
+plotint(x)
+
+# Compute censored log-concave MLE
+res &lt;- logcon(x)
+plot(res, type="density", xlim=c(0,1))
+
+# Compare it to the true Beta(2,3) density
+xi &lt;- seq(0,1,0.005)
+lines(xi,dbeta(xi,2,3), col=3, lwd=2)
+# The peaks in the estimated density are often considered unsatisfactory
+# However, they are barely noticeable in the c.d.f.
+plot(res, type="CDF", xlim=c(0,1))
+lines(xi,pbeta(xi,2,3), col=3, lwd=2)
+
+# To get rid of them in the density apply the smoothing
+# proposed in the package logcondens (to be implemented here)
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_lM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add Matrices to lefkoMat Object</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>add_lM()</code> adds matrices to lefkoMat objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_lM(
+  lM,
+  Amats = NA,
+  Umats = NA,
+  Fmats = NA,
+  UFdecomp = FALSE,
+  entrystage = 1,
+  pop = NA,
+  patch = NA,
+  year = NA
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lM</code></td>
+<td>
+<p>The lefkoMat object to add matrices to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Amats</code></td>
+<td>
+<p>Either a single <code>A</code> matrix, or a list of <code>A</code> matrices.
+Not necessary if <code>Umats</code> and <code>Fmats</code> are both provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Umats</code></td>
+<td>
+<p>Either a single <code>U</code> matrix, or a list of <code>U</code> matrices.
+Not necessary if <code>Amats</code> and <code>Fmats</code> are both provided, or if
+<code>UFdecomp = TRUE</code> and <code>entrystage</code> is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Fmats</code></td>
+<td>
+<p>Either a single <code>F</code> matrix, or a list of <code>U</code> matrices.
+Not necessary if <code>Amats</code> and <code>Umats</code> are both provided, or if
+<code>UFdecomp = TRUE</code> and <code>entrystage</code> is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UFdecomp</code></td>
+<td>
+<p>A logical value indicating whether U and F matrices should be
+inferred from A matrices and the given <code>entrystage</code>. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entrystage</code></td>
+<td>
+<p>The stage or stages produced by reproductive individuals.
+Used to determine which transitions are reproductive for U-F decomposition.
+Defaults to <code>1</code>, which corresponds to the first stage in the stageframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>The population designation for each matrix. If object <code>lM</code>
+includes only a single population, then defaults to that designation.
+Otherwise requires a designation as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch</code></td>
+<td>
+<p>The patch designation for each matrix. If object <code>lM</code>
+includes only a single patch, then defaults to that designation. Otherwise
+requires a designation as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>The designation for occasion at time <em>t</em> corresponding to
+each matrix. Cannot be left empty.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>lefkoMat</code> object incorporating the new matrices within the
+object input in <code>lM</code>.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>This function will not allow matrices of different dimension from those input
+in object <code>lM</code> to be added to that object.
+</p>
+<p>Two of <code>Amats</code>, <code>Umats</code>, and <code>Fmats</code> must be provided for this
+function to proceed. Also, if <code>Amats</code>, <code>Umats</code>, and <code>Fmats</code>
+are all provided, then this function will default to replacing <code>Amats</code>
+with the sum of the respective <code>Umats</code> and <code>Fmats</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>create_lM()</code>
+</p>
+<p><code>delete_lM()</code>
+</p>
+<p><code>subset_lM()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># These matrices are of 9 populations of the plant species Anthyllis
+# vulneraria, and were originally published in Davison et al. (2010) Journal
+# of Ecology 98:255-267 (doi: 10.1111/j.1365-2745.2009.01611.x).
+
+sizevector &lt;- c(1, 1, 2, 3) # These sizes are not from the original paper
+stagevector &lt;- c("Sdl", "Veg", "SmFlo", "LFlo")
+repvector &lt;- c(0, 0, 1, 1)
+obsvector &lt;- c(1, 1, 1, 1)
+matvector &lt;- c(0, 1, 1, 1)
+immvector &lt;- c(1, 0, 0, 0)
+propvector &lt;- c(0, 0, 0, 0)
+indataset &lt;- c(1, 1, 1, 1)
+binvec &lt;- c(0.5, 0.5, 0.5, 0.5)
+
+anthframe &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec,
+  propstatus = propvector)
+
+# POPN C 2003-2004
+XC3 &lt;- matrix(c(0, 0, 1.74, 1.74,
+0.208333333, 0, 0, 0.057142857,
+0.041666667, 0.076923077, 0, 0,
+0.083333333, 0.076923077, 0.066666667, 0.028571429), 4, 4, byrow = TRUE)
+
+# 2004-2005
+XC4 &lt;- matrix(c(0, 0, 0.3, 0.6,
+0.32183908, 0.142857143, 0, 0,
+0.16091954, 0.285714286, 0, 0,
+0.252873563, 0.285714286, 0.5, 0.6), 4, 4, byrow = TRUE)
+
+# 2005-2006
+XC5 &lt;- matrix(c(0, 0, 0.50625, 0.675,
+0, 0, 0, 0.035714286,
+0.1, 0.068965517, 0.0625, 0.107142857,
+0.3, 0.137931034, 0, 0.071428571), 4, 4, byrow = TRUE)
+
+# POPN E 2003-2004
+XE3 &lt;- matrix(c(0, 0, 2.44, 6.569230769,
+0.196428571, 0, 0, 0,
+0.125, 0.5, 0, 0,
+0.160714286, 0.5, 0.133333333, 0.076923077), 4, 4, byrow = TRUE)
+
+XE4 &lt;- matrix(c(0, 0, 0.45, 0.646153846,
+0.06557377, 0.090909091, 0.125, 0,
+0.032786885, 0, 0.125, 0.076923077,
+0.049180328, 0, 0.125, 0.230769231), 4, 4, byrow = TRUE)
+
+XE5 &lt;- matrix(c(0, 0, 2.85, 3.99,
+0.083333333, 0, 0, 0,
+0, 0, 0, 0,
+0.416666667, 0.1, 0, 0.1), 4, 4, byrow = TRUE)
+
+mats_list &lt;- list(XC3, XC4, XC5, XE3, XE4, XE5)
+yr_ord &lt;- c(1, 2, 3, 1, 2, 3)
+pch_ord &lt;- c(1, 1, 1, 2, 2, 2)
+
+anth_lefkoMat &lt;- create_lM(mats_list, anthframe, hstages = NA,
+  historical = FALSE, poporder = 1, patchorder = pch_ord, yearorder = yr_ord)
+  
+XH3 &lt;- matrix(c(0, 0, 0.1125, 1.05,
+0.2, 0, 0, 0,
+0, 0.5, 0, 0,
+0.2, 0.5, 0, 0), 4, 4, byrow = TRUE)
+
+XH3u &lt;- matrix(c(0, 0, 0, 0,
+0.2, 0, 0, 0,
+0, 0.5, 0, 0,
+0.2, 0.5, 0, 0), 4, 4, byrow = TRUE)
+
+XH4 &lt;- matrix(c(0, 0, 0, 0,
+0, 0, 0.5, 0,
+0.8, 0.5, 0.25, 0.25,
+0.2, 0, 0, 0.75), 4, 4, byrow = TRUE)
+
+XH4u &lt;- matrix(c(0, 0, 0, 0,
+0, 0, 0.5, 0,
+0.8, 0.5, 0.25, 0.25,
+0.2, 0, 0, 0.75), 4, 4, byrow = TRUE)
+
+XH5 &lt;- matrix(c(0, 0, 0.2, 1.05,
+0, 0, 0, 0,
+0.001, 0.001, 0.333333333, 0,
+0.001, 0, 0, 0), 4, 4, byrow = TRUE)
+
+XH5u &lt;- matrix(c(0, 0, 0, 0,
+0, 0, 0, 0,
+0.001, 0.001, 0.333333333, 0,
+0.001, 0, 0, 0), 4, 4, byrow = TRUE)
+
+anth_lefkoMat &lt;- add_lM(anth_lefkoMat, Amats = list(XH3, XH4, XH5),
+  Umats = list(XH3u, XH4u, XH5u), patch = c(3, 3, 3), year = c(1, 2, 3))
+  
+</code></pre>
+
+
+</div>

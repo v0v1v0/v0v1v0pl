@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>svygnm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Generalized Nonlinear Models With Complex Survey Data</h2>
+
+<h3>Description</h3>
+
+<p>Fit association models to data from a complex survey
+design, with inverse-probability weighting and (optionally)
+standard errors based on replicate weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">svygnm(formula, design, ...) 
+## S3 method for class 'svyrep.design'
+svygnm(formula, design,
+    subset = NULL, data.fun = NULL, rescale = NULL, rho = NULL,
+    return.replicates = FALSE, keep.weights = FALSE, na.action, 
+    eliminate, ncpus = getOption("boot.ncpus"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the nonlinear predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>a survey object; if <code>se == "replicate"</code>, must be of class
+<code>svrepdesign</code> (see “Details” below).
+Must contain all variables in the formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>expression to select a subpopulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.fun</code></td>
+<td>
+<p>function called on each replicate to generate the <code>data</code> argument
+passed to <code>gnm</code>. If not <code>NULL</code>,
+it will be passed <code>design</code> and <code>...</code> as arguments, and must
+return a <code>data.frame</code> object. This is primarily useful to compute a
+frequency table and fit log-linear models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>Rescaling of weights, to improve numerical stability. The default rescales                       weights to sum to the sample size. Use <code>FALSE</code> to not rescale weights.
+For replicate-weight designs, use <code>TRUE</code> to rescale weights to sum to 1, as
+was the case before version 0.7.0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>For replicate BRR designs, to specify the parameter for
+Fay's variance method, giving weights of <code>rho</code> and <code>2-rho</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.replicates</code></td>
+<td>
+<p>return the replicates as a component of the result?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.weights</code></td>
+<td>
+<p>whether to save the weights in the <code>survey.design$pweights</code>
+component of the result; note this typically uses a lot of memory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>handling of NAs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eliminate</code></td>
+<td>
+<p>a factor to be included as the first term in the model.
+<code>gnm</code> will exploit the structure of this factor to improve
+computational efficiency. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p>the number of CPU cores to use to run replicates. Pass <code>NULL</code> to use the actual
+number of cores with an upper limit of 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>more arguments to be passed to <code>gnm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used in a similar way as <code>svyglm</code>,
+but for generalized nonlinear models. It computes standard errors
+using replicates only (i.e. no asymptotic standard errors). If your
+data does not come with replicate weights, use
+<code>as.svrepdesign</code> to create them first, and pass
+the resulting <code>svrepdesign</code> object via the
+<code>design</code> argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>svygnm</code> object.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Note that printed fit statistics and degrees of freedom rely on the
+iid assumption. This is also the case of the variance-covariance matrix
+returned by the <code>vcov.gnm</code> function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat, based on the <code>svyglm</code> function by Thomas Lumley
+</p>
+
+
+<h3>References</h3>
+
+<p>Rao, J.N.K., Scott, A.J. (1984). On Chi-squared Tests For Multiway
+Contingency Tables with Proportions Estimated From Survey Data.
+<em>Annals of Statistics</em> 12, 46-60.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gnm</code>, <code>svyglm</code>, <code>as.svrepdesign</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  library(survey)
+  data(api)
+  dstrat&lt;-svydesign(id=~1,strata=~stype, weights=~pw, data=apistrat, fpc=~fpc)
+  rstrat&lt;-as.svrepdesign(dstrat)
+  glm.mod &lt;- svyglm(api00~ell+meals+mobility, design=rstrat)
+  gnm.mod &lt;- svygnm(api00~ell+meals+mobility, design=rstrat, ncpus=1)
+  # Both functions give the same result for GLMs
+  summary(glm.mod)
+  summary(gnm.mod)
+  
+
+  # GNM, can only be fitted with svygnm()
+  summary(svygnm(api00~ell+meals+mobility, design=rstrat, family=poisson, ncpus=1))
+</code></pre>
+
+
+</div>

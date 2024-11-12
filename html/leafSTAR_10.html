@@ -1,0 +1,235 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simu.star</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate simulated silhouette to area ratios</h2>
+
+<h3>Description</h3>
+
+<p>Recalculate the percentage of potential exposure of flat, tilted surfaces to direct solar radiation with different custom settings of location and time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simu.star(x, lat = NULL, long = NULL, local.time = NULL, tz = NULL,
+  Ahmes = F, ID = NULL, pitch, roll, tilt.ang = NULL, horiz = T, course,
+  date = NULL, o.format = NULL, c.hour = NULL, c.date = NULL,
+  c.long = NULL, c.lat = NULL, c.tz = NULL, LA = NULL, details = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A dataframe with observations in the rows and at least two spatial position angles in the columns (see Details). Data can come either from 'Ahmes' 1.0 or from measurements performed with traditional instrumentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>A vector with the latitude of each observation in decimal format. If all observations correspond to the same latitude, <code>lat</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>A vector with the longitude of each observation in decimal format. If all observations correspond to the same longitude, <code>long</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>local.time</code></td>
+<td>
+<p>A numeric vector with the local time of each observation in decimal format. Hours from 00 to 24. Minutes in decimal format, from 0 to 99. E.g., 12:30 should be written as 12.50. If available, seconds should also be specified in decimal format. See <code>fixhour</code>. If all observations correspond to the same local time, <code>local.time</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>A vector with the time zone of each observation. If all observations correspond to the same time zone, <code>tz</code> can be introduced directly as a single number. Time zones located at the West of Greenwich are negative, and at the East are positive; e.g., for Colombia, <code>tz</code> = -5; for Reunion Island, <code>tz</code> = 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ahmes</code></td>
+<td>
+<p>Logical. Do data come from 'Ahmes' 1.0? Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>An optional vector with the labels of the observations. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pitch</code></td>
+<td>
+<p>A vector with pitch angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll</code></td>
+<td>
+<p>A vector with roll rotation angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tilt.ang</code></td>
+<td>
+<p>A vector with tilt angles in degrees. Tilt is calculated from pitch and roll angles. This argument allows to specify tilt directly if available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horiz</code></td>
+<td>
+<p>Logical. Set the position of the start (zero, 0) of pitch, roll and tilt angle data. <code>horiz = F</code> indicates the zero is located at zenith. This is the reference system used by Ahmes. <code>horiz = T</code> indicates the start is at the horizon. To use tilt in further calculations (<code>star</code>, <code>sal</code>...), angle data should be expressed in the horizontal reference system (0 = horizon). Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>course</code></td>
+<td>
+<p>A vector with course angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date</code></td>
+<td>
+<p>A vector containing the date(s) when observations were made. If input data do not come from 'Ahmes', <code>o.format</code> needs to be specified. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>o.format</code></td>
+<td>
+<p>A character indicating the date format in the input data. It is similar to the argument <code>format</code> in the function <code>as.Date{base}</code>. Defaults to <code>NULL</code>. See details and examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hour</code></td>
+<td>
+<p>A vector of custom hours of length equal to or greater than 1. Hours in decimal format, from 0 to 24. Minutes in decimal format, from 0 to 99. E.g., 12:30 should be written as 12.50. If available, seconds should also be specified in decimal format. See <code>fixhour</code>. If all observations correspond to the same local time, <code>local.time</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.date</code></td>
+<td>
+<p>A vector of custom dates of length equal to or greater than 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.long</code></td>
+<td>
+<p>A vector of custom longitude coordinates in decimal format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.lat</code></td>
+<td>
+<p>A vector of custom latitude coordinates in decimal format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.tz</code></td>
+<td>
+<p>A vector of custom time zone/s. Time zones located at the West of Greenwich are negative; e.g., for Colombia, <code>c.tz</code> = -5; for Reunion Island, <code>c.tz</code> = 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LA</code></td>
+<td>
+<p>Indicates whether leaf area data needs to be replicated to match the dimensions of the dataframe corresponding to the custom factors (see 'custom settings' in Details). When <code>LA</code> is specified, all the five custom factors (<code>c.hour</code>, <code>c.date</code>, <code>c.lat</code>, <code>c.long</code>, <code>c.tz</code>) need to be specified (i.e., they should be different from <code>NULL</code>). Defaults to <code>NULL</code>. <code>LA</code> does not affect the calculation of STAR. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+<p>Logical. If (<code>details =FALSE</code>) the output of <code>simu.star()</code> is a vector with STAR values. If <code>details = TRUE</code> the output is the complete dataset plus a column with STAR values. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>x</code> may also content geographical coordinates and hour and date information.
+</p>
+<p><code>date</code> Internally the function uses Julian dates. Julian date is the recommended input format. Conversion tables are available at <a href="https://landweb.nascom.nasa.gov/browse/calendar.html">https://landweb.nascom.nasa.gov/browse/calendar.html</a> for leap and regular years.
+</p>
+<p><code>o.format</code> Needs to be specified if <code>Ahmes = FALSE</code> AND input data format is other than Julian or the default formats handled by <code>as.Date{base}</code> ("%Y/%m/%d" and "%Y-%m-%d"). When <code>Ahmes = TRUE</code>, <code>o.format</code> is not needed because functions from the <code>Ahmes</code> family solve date issues internally.
+</p>
+<p><code>pitch</code> values span from 0 to 180 degrees. If <code>horiz = TRUE</code> (default) 0 and 180 refer to the flat horizontal surface and 90 refers to the flat vertical surface. If <code>horiz = FALSE</code> 0 and 180 refer to the flat vertical surface and 90 refers to the flat horizontal surface.
+</p>
+<p><code>roll</code> values span from 0 to 180 degrees.
+</p>
+<p><code>course</code> values span from 0 (North) to 360 degrees, clockwise. Course is the angle between north and the horizontal projection of a normal vector to the surface.
+</p>
+<p>For a graphical explanation, see Fig. 2 in Escribano-Rocafort et al. (2014).
+</p>
+<p>Custom settings. In the functions of the <code>simu</code> family, the original dataframe is repeated as a block times the number of levels of the custom arguments specified (<code>c.hour</code>, <code>c.date</code>, <code>c.lat</code>, <code>c.long</code>, and <code>c.tz</code>). E.g., if a dataset with 10 observations is to be recalculated at two days of the year, the function will create a new dataframe with 20 rows (10 observation X 2 days). For this reason, <code>LA</code> needs to be specified if the user intends to calculate SAL using the output of <code>simu.star()</code>. In addition, the argument <code>details</code> allows the user to visualize the new dataframe created by the function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Agustina Ventre-Lespiaucq and Silvia Santamaria Bueno.
+</p>
+
+
+<h3>References</h3>
+
+<p><strong>Escribano-Rocafort, A.G., Ventre-Lespiaucq, A.B., Granado-Yela, C., Lopez-Pintor, A., Delgado, J.A., Munoz, V., Dorado, G.A., Balaguer, L. (2014).</strong> Simplifying data acquisition in plant canopies- Measurements of leaf angles with a cell phone. Methods in Ecology and Evolution 5:132-140. doi:10.1111/2041-210X.12141.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>simu.star.app</code>, <code>star</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># With custom vectors from outside of the dataframe
+ data(guava)
+  myhours&lt;-seq(8,16,0.25) # Create a vector of hours from 8:00 to 16:00 every 15 minutes.
+  mydates&lt;-seq(1,365,60) # Create a vector of days from January 1st to December 31st, 
+                         # every 60 days.
+  myguava&lt;-simu.star(guava,lat=40.8,long=-4.2,local.time=6,tz=1,
+           Ahmes=FALSE,ID=NULL,pitch=guava$pitch,roll=guava$roll,
+           horiz=FALSE,course=guava$course,date=30,o.format=NULL,
+           c.hour=myhours,c.date=mydates,c.long=NULL,c.lat=NULL, 
+           c.tz=NULL, LA=NULL)
+
+ # LA is not NULL
+  wrong&lt;-simu.star(guava,lat=40.8,long=-4.2,local.time=6,tz=1,
+         Ahmes=FALSE,ID=NULL,pitch=guava$pitch,roll=guava$roll,
+         horiz=FALSE,course=guava$course,date=30,o.format=NULL,
+         c.hour=c(7,9.5,12),c.date=c(0,180),LA=guava$LA.cm2,details=TRUE)
+     # Some custom settings are missing. STAR is retrieved as if LA = NULL, 
+     # meaning LA data will not be readily available for calculating SAL. 
+
+  correct&lt;-simu.star(guava,lat=40.8,long=-4.2,local.time=6,tz=1,
+           Ahmes=FALSE,ID=NULL,pitch=guava$pitch,roll=guava$roll,
+           horiz=FALSE,course=guava$course,date=30,o.format=NULL,
+           c.hour=c(7,9.5,12),c.date=c(0,180),c.lat=40.8,c.long=-4.2, 
+           c.tz=1, LA=guava$LA.cm2,details=TRUE)
+     # Returns LA and STAR
+
+ # LA is NULL
+  correct1&lt;-simu.star(guava,lat=40.8,long=-4.2,local.time=6,tz=1,
+            Ahmes=FALSE,ID=NULL,pitch=guava$pitch,roll=guava$roll,
+            horiz=FALSE,course=guava$course,date=30,o.format=NULL,
+            c.hour=c(7,9.5,12),c.date=c(0,180),c.long=NULL,c.lat=NULL, 
+            c.tz=NULL, LA=NULL,details=TRUE)
+          # Is the same as
+  correct2&lt;-simu.star(guava,lat=40.8,long=-4.2,local.time=6,tz=1,
+            Ahmes=FALSE,ID=NULL,pitch=guava$pitch,roll=guava$roll,
+            horiz=FALSE,course=guava$course,date=30,o.format=NULL,
+            c.hour=c(7,9.5,12),c.date=c(0,180),details=TRUE)
+#simu.star() 
+</code></pre>
+
+
+</div>

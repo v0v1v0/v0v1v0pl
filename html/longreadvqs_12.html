@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vqscustompct</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sequencing error and noise minimization with customized % cut-off at particular nucleotide region, read down-sampling, and data preparation for viral quasispecies comparison</h2>
+
+<h3>Description</h3>
+
+<p>Minimizes potential long-read sequencing error and noise based on the specified cut-off percentages of low frequency nucleotide base and down-samples read for further comparison with other samples. In this function, the cut-off percentage can be specifically adjusted for different ranges of nucleotide positions which is very useful when sequencing error heavily occurs in a particular part of reads. The output of this function is a list of several objects representing diversity of each sample that must be used as an input for other functions such as "snvcompare" or "vqscompare".
+</p>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fasta</code></td>
+<td>
+<p>Input as a read alignment in FASTA format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Sequencing error and noise minimization methods that replace low frequency nucleotide base (less than the "pct" cut-off) with consensus base of that position ("conbase": default) or with base of the dominant haplotype ("domhapbase").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samplingfirst</code></td>
+<td>
+<p>Downsampling before (TRUE) or after (FALSE: default) the noise minimization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pct</code></td>
+<td>
+<p>Percent cut-off defining low frequency nucleotide base that will be replaced (must be specified).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brkpos</code></td>
+<td>
+<p>Ranges of nucleotide positions with different % cut-off specified in "lspct" for example c("1:50","51:1112") meaning that the first and the second ranges are nucleotide positions 1 to 50 and 51 to 1112, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lspct</code></td>
+<td>
+<p>List of customized % cut-off applied to nucleotide ranges set in "brkpos" for example c(15,8) meaning that 15% and 8% cut-offs will be applied to the first and the second ranges, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gappct</code></td>
+<td>
+<p>The percent cut-off particularly specified for gap (-). If it is not specified or less than "pct", "gappct" will be equal to "pct" (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignoregappositions</code></td>
+<td>
+<p>Replace all nucleotides in the positions in the alignment containing gap(s) with gap. This will make such positions no longer single nucleotide variant (SNV). The default is "FALSE".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>samsize</code></td>
+<td>
+<p>Sample size (number of reads) after down-sampling. If it is not specified or more than number of reads in the original alignment, down-sampling will not be performed (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>String within quotation marks indicating name of read alignment (optional). Please don't use underscore (_) in the label.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of 1) "dat": viral quasispecies diversity metrics calculated by QSutils package (similar to "vqssub" function's output), 2) "snvhap": SNV profile of each haplotype with frequency and new label for "vqscompare" function, 3) "snv": plot of SNV frequency for "snvcompare" function, 4) "hapre": DNAStringSet of read alignment of each haplotype for "vqscompare" function, 5) "lab": name of sample or read alignment
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Locate input FASTA file------------------------------------------------------------------------
+fastafilepath &lt;- system.file("extdata", "badend.fasta", package = "longreadvqs")
+
+## Prepare data for viral quasispecies comparison using 10% cut-off across all positions----------
+nocustom &lt;- vqsassess(fastafilepath, pct = 10, label = "nocustom")
+
+## Prepare data using 10% cut-off for the first 74 positions and 30% cut-off for the rest---------
+custom &lt;- vqscustompct(fastafilepath, pct = 10,
+                       brkpos = c("1:74","75:84"), lspct = c(10,30), label = "custom")
+
+## Use "snvcompare" function to check whether SNV profile looks better or not---------------------
+snvcompare(samplelist = list(nocustom, custom), ncol = 1)
+
+</code></pre>
+
+
+</div>

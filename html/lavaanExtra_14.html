@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nice_tidySEM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Make a quick <code>tidySEM</code> plot</h2>
+
+<h3>Description</h3>
+
+<p>Make a quick and decent-looking <code>tidySEM</code> plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nice_tidySEM(
+  fit,
+  layout = NULL,
+  hide_nonsig_edges = FALSE,
+  hide_var = TRUE,
+  hide_cov = FALSE,
+  hide_mean = TRUE,
+  est_std = TRUE,
+  label,
+  label_location = NULL,
+  reduce_items = NULL,
+  plot = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>SEM or CFA model fit to plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layout</code></td>
+<td>
+<p>A matrix (or data.frame) that describes the structure; see
+tidySEM::get_layout. If a named list is provided,
+with names "IV" (independent variables), "M" (mediator), and
+"DV" (dependent variables), <code>nice_tidySEM</code> attempts to write
+the layout matrix automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide_nonsig_edges</code></td>
+<td>
+<p>Logical, hides non-significant edges.
+Defaults to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide_var</code></td>
+<td>
+<p>Logical, hides variances. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide_cov</code></td>
+<td>
+<p>Logical, hides co-variances. Defaults to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hide_mean</code></td>
+<td>
+<p>Logical, hides means/node labels. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est_std</code></td>
+<td>
+<p>Logical, whether to use the standardized coefficients.
+Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Labels to be used on the plot. As elsewhere in
+<code>lavaanExtra</code>, it is provided as a named list with
+format <code>(colname = "label")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label_location</code></td>
+<td>
+<p>Location of label along the path, as a percentage
+(defaults to middle, 0.5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduce_items</code></td>
+<td>
+<p>A numeric vector of length 1 (x) or 2 (x &amp; y) defining
+how much space to trim from the nodes (boxes) of the
+items defining the latent variables. Can be provided
+either as <code>reduce_items = 0.4</code> (will only affect
+horizontal space, x), or
+<code>reduce_items = c(x = 0.4, y = 0.2)</code> (will affect
+both horizontal x and vertical y).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Logical, whether to plot the result (default). If <code>FALSE</code>,
+returns the <code>tidy_sem</code> object, which can be further edited
+as needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments to be passed to tidySEM::prepare_graph.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A tidySEM plot, of class ggplot, representing the specified
+<code>lavaan</code> model.
+</p>
+
+
+<h3>Illustrations</h3>
+
+<p><img src="../help/figures/nice_tidySEM.png" width="400" alt="nice_tidySEM.png"></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Calculate scale averages
+library(lavaan)
+data &lt;- HolzingerSwineford1939
+data$visual &lt;- rowMeans(data[paste0("x", 1:3)])
+data$textual &lt;- rowMeans(data[paste0("x", 4:6)])
+data$speed &lt;- rowMeans(data[paste0("x", 7:9)])
+
+# Define our variables
+IV &lt;- c("sex", "ageyr", "agemo", "school")
+M &lt;- c("visual", "grade")
+DV &lt;- c("speed", "textual")
+
+# Define our lavaan lists
+mediation &lt;- list(speed = M, textual = M, visual = IV, grade = IV)
+
+# Define indirect object
+structure &lt;- list(IV = IV, M = M, DV = DV)
+
+# Write the model, and check it
+model &lt;- write_lavaan(mediation, indirect = structure, label = TRUE)
+cat(model)
+
+# Fit model
+fit &lt;- sem(model, data)
+
+# Plot model
+
+nice_tidySEM(fit, layout = structure)
+
+
+</code></pre>
+
+
+</div>

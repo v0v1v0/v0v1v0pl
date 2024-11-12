@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>track_sensor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reconstruct the trajectory of the LiDAR sensor using multiple returns</h2>
+
+<h3>Description</h3>
+
+<p>Use multiple returns to estimate the positioning of the sensor by computing the intersection in
+space of the line passing through the first and last returns. To work, this function requires a
+dataset where the 'gpstime', 'ReturnNumber', 'NumberOfReturns' and 'PointSourceID' attributes are
+properly populated, otherwise the output may be incorrect or weird. For LAScatalog processing
+it is recommended to use large chunks and large buffers (e.g. a swath width). The point cloud must
+not be normalized.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">track_sensor(
+  las,
+  algorithm,
+  extra_check = TRUE,
+  thin_pulse_with_time = 0.001,
+  multi_pulse = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>function. An algorithm to compute sensor tracking. <code>lidR</code> implements
+Roussel2020 and  Gatziolis2019 (see respective documentation and examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>extra_check</code></td>
+<td>
+<p>boolean. Datasets are rarely perfectly populated, leading to unexpected errors.
+Time-consuming checks of data integrity are performed. These checks can be skipped as they account
+for an significant proportion of the computation time. See also section 'Tests of data integrity'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thin_pulse_with_time</code></td>
+<td>
+<p>numeric. In practice, it is not useful to compute the position using all
+multiple returns. It is more computationally demanding but not necessarily more accurate. This keeps
+only one pulse every x seconds. Set to 0 to use all multiple returns. Use 0 if the file has already
+been read with <code>filter = "-thin_pulses_with_time 0.001"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi_pulse</code></td>
+<td>
+<p>logical. TRUE only for systems with multiple pulses. Pulse ID must be recorded
+in the UserData attribute.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An sf object with POINT Z geometries. Information about the time interval and the score of
+the positioning (according to the method used) are also in the table of attributes.
+</p>
+
+
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option 'select' is not supported and not respected  because it is internally known what is the
+best to select<br>
+The option 'output_files' is not supported and not respected because the output must be post-processed
+as a whole
+</p>
+
+
+<h3>Test of data integrity</h3>
+
+<p>In theory, sensor tracking is a simple problem to solve as long as each pulse is properly
+identified from a well-populated dataset. In practice, many problems may arise from datasets that are populated
+incorrectly. Here is a list of problems that may happen. Those with a * denote problems already encountered and
+internally checked to remove weird points:
+</p>
+
+<ul>
+<li>
+<p> 'gpstime' does not record the time at which pulses were emitted and thus pulses are not identifiable
+</p>
+</li>
+<li>
+<p> *A pulse (two or more points that share the same gpstime) is made of points from different
+flightlines (different PointSourceID). This is impossible and denotes an improperly populated PointSourceID
+attribute.
+</p>
+</li>
+<li>
+<p> 'ReturnNumber' and 'NumberOfReturns' are wrongly populated with either some ReturnNumber &gt; NumberOfReturn
+or several first returns by pulses
+</p>
+</li>
+</ul>
+<p>For a given time interval, when weird points are not filtered, the position is not computed for this
+interval.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jean-Francois Bourdon &amp; Jean-Romain Roussel
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A valid file properly populated
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las = readLAS(LASfile)
+#plot(las)
+
+# pmin = 15 because it is an extremely small file
+# strongly decimated to reduce its size. There are
+# actually few multiple returns
+flightlines &lt;- track_sensor(las, Roussel2020(pmin = 15))
+
+plot(las@header)
+plot(sf::st_geometry(flightlines), add = TRUE)
+
+#plot(las) |&gt; add_flightlines3d(flightlines, radius = 10)
+
+## Not run: 
+# With a LAScatalog "-drop_single" and "-thin_pulses_with_time"
+# are used by default
+ctg = readLAScatalog("folder/")
+flightlines &lt;- track_sensor(ctg,  Roussel2020(pmin = 15))
+plot(flightlines)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

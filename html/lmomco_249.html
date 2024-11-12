@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pars2x</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Quantiles from an Ensemble of Parameters</h2>
+
+<h3>Description</h3>
+
+<p>This function acts as a frontend to estimate quantiles from an ensemble of parameters from the methods of L-moments (<code>lmr2par</code>), maximum likelihood (MLE, <code>mle2par</code>), and maximum product of spacings (MPS, <code>mps2par</code>) for nonexceedance probabilities. The mean, standard deviation, and number of unique quantiles for each nonexceedance probability are computed too. The unique quantiles are used because the MLE and MPS methods could fall back to L-moments or other and thus it should be considered that one of the methods might have failed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pars2x(f, paras, na.rm=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paras</code></td>
+<td>
+<p>An ensemble of parameters from <code>x2pars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>A logical to pass to the mean and standard deviation computations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The additional arguments, if ever used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> having, if at least one of the parameter estimation methods is not <code>NULL</code>, the following columns in addition to attributes that are demonstrated in the <b>Examples</b> section:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmr</code></td>
+<td>
+<p>Quantiles based on parameters from method of L-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle</code></td>
+<td>
+<p>Quantiles based on parameters from MLE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mps</code></td>
+<td>
+<p>Quantiles based on parameters from MPS.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>The nonexceedance probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>The mean of the unique quantiles (usually three) seen for each probability. Results can be affected by <code>na.rm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd</code></td>
+<td>
+<p>The standard deviation of the unique quantiles (usually three) seen for each probability. Results can be affected by <code>na.rm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of unique quantiles (usually three) seen for each probability and quantiles computed as <code>NA</code> are not counted.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>x2pars</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Simulate from GLO and refit it. Occasionally, the simulated data
+# will result in MLE or MPS failing to converge, just a note to users.
+# This example also shows the use of the attributes of the Results.
+set.seed(3237)
+x &lt;- rlmomco(32, vec2par(c(2.5, 0.7, -0.39), type="glo"))
+three.para.est &lt;- x2pars(x, type="glo")
+FF &lt;- nonexceeds() # a range in nonexceedance probabilities
+# In the event of MLE or MPS failure, one will see NA's in the Results.
+Results &lt;- pars2x(FF, three.para.est, na.rm=FALSE)
+sum &lt;- attr(Results, "all.summary")
+plot(pp(x), sort(x), type="n", ylim=range(sum), log="y")
+polygon(attr(Results, "f.poly"), attr(Results, "x.poly"), col=8, lty=0)
+points(pp(x), sort(x), col=3)
+lines(Results$f, Results$lmr,  col=1) # black line
+lines(Results$f, Results$mle,  col=2) # red   line
+lines(Results$f, Results$mps,  col=4) # blue  line
+lines(Results$f, Results$mean, col=6, lty=2, lwd=2) # purple mean # 
+## End(Not run)
+</code></pre>
+
+
+</div>

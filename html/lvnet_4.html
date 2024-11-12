@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lav2lvnet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Convert lavaan model to lvnet model matrices
+</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to easily generate input matrices for lvnet based on a lavaan model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lav2lvnet(model, data, std.lv = TRUE, lavaanifyOps = list(auto = TRUE, std.lv = std.lv))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>Lavaan model syntax
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The dataset. Only used to extract order of variables names from the columnnames.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>std.lv</code></td>
+<td>
+
+<p>Should the model be identified by constraining latent variable variance to 1. Defaults to <code>TRUE</code> unlike lavaan! This is because the starting values work better for this identification.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lavaanifyOps</code></td>
+<td>
+
+<p>A list with other options sent to <code>lavaanify</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the model matrices for <code>lambda</code>, <code>psi</code>, <code>theta</code> and  <code>beta</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sacha Epskamp &lt;mail@sachaepskamp.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library("lavaan")
+
+# Load dataset:
+data(HolzingerSwineford1939)
+Data &lt;- HolzingerSwineford1939[,7:15]
+
+# lavaan model
+HS.model &lt;- '
+visual  =~ x1 + x2 + x3
+textual =~ x4 + x5 + x6
+speed   =~ x7 + x8 + x9 '
+
+# fit via lavaan:
+lavFit &lt;- cfa(HS.model, HolzingerSwineford1939[7:15],std.lv=TRUE)
+
+# Fit via lvnet:
+mod &lt;- lav2lvnet(HS.model, HolzingerSwineford1939[7:15])
+lvnetFit &lt;- lvnet(Data, lambda = mod$lambda, psi = mod$psi)
+
+# Compare:
+Compare &lt;- data.frame(
+  lvnet = round(unlist(lvnetFit$fitMeasures)[c("npar","df","chisq","fmin","aic","bic",
+                                              "rmsea","cfi","tli","nfi","logl")],3),
+  lavaan = round(fitMeasures(lavFit)[c("npar","df","chisq","fmin","aic","bic","rmsea",
+                                      "cfi","tli","nfi","logl")],3))
+
+Compare
+
+## End(Not run)
+</code></pre>
+
+
+</div>

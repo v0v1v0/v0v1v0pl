@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>barroso_lighting_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Circadian lighting metrics from Barroso et al. (2014)</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the metrics proposed by Barroso et al. (2014)
+for light-dosimetry in the context of research on the non-visual effects of light.
+The following metrics are calculated:
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">barroso_lighting_metrics(
+  Light.vector,
+  Time.vector,
+  epoch = "dominant.epoch",
+  loop = FALSE,
+  na.rm = FALSE,
+  as.df = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Light.vector</code></td>
+<td>
+<p>Numeric vector containing the light data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time.vector</code></td>
+<td>
+<p>Vector containing the time data. Can be POSIXct, hms,
+duration, or difftime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch at which the data was sampled. Can be either a
+duration or a string. If it is a string, it needs to be
+either <code>"dominant.epoch"</code> (the default) for a guess based on the data, or a valid
+duration string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loop</code></td>
+<td>
+<p>Logical. Should the data be looped? Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical. Should missing values (NA) be removed for the calculation?
+Defaults to <code>FALSE</code>. If <code>TRUE</code>, for the calculation of <code>bright_cluster</code> and
+<code>dark_cluster</code>, missing values will be replaced by 0
+(see <code>period_above_threshold</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.df</code></td>
+<td>
+<p>Logical. Should a data frame be returned? If <code>TRUE</code>, a data
+frame with seven columns will be returned. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt><code>bright_threshold</code></dt>
+<dd>
+<p>The maximum light intensity for which at least six
+hours of measurements are at the same or higher level.</p>
+</dd>
+<dt><code>dark_threshold</code></dt>
+<dd>
+<p>The minimum light intensity for which at least eight
+hours of measurements are at the same or lower level.</p>
+</dd>
+<dt><code>bright_mean_level</code></dt>
+<dd>
+<p>The 20% trimmed mean of all light intensity measurements
+equal or above the <code>bright_threshold</code>.</p>
+</dd>
+<dt><code>dark_mean_level</code></dt>
+<dd>
+<p>The 20% trimmed mean of all light intensity measurements
+equal or below the <code>dark_threshold</code>.</p>
+</dd>
+<dt><code>bright_cluster</code></dt>
+<dd>
+<p>The longest continuous time interval above the <code>bright_threshold</code>.</p>
+</dd>
+<dt><code>dark_cluster</code></dt>
+<dd>
+<p>The longest continuous time interval below the <code>dark_threshold</code>.</p>
+</dd>
+<dt><code>circadian_variation</code></dt>
+<dd>
+<p>A measure of periodicity of the daily lighting
+schedule over a given set of days. Calculated as the coefficient of variation
+of input light data.
+</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>List or dataframe with the seven values: <code>bright_threshold</code>, <code>dark_threshold</code>,
+<code>bright_mean_level</code>, <code>dark_mean_level</code>, <code>bright_cluster</code>, <code>dark_cluster</code>,
+<code>circadian_variation</code>. The output type of <code>bright_cluster</code>, <code>dark_cluster</code>,
+is a duration object.
+</p>
+
+
+<h3>References</h3>
+
+<p>Barroso, A., Simons, K., &amp; Jager, P. de. (2014). Metrics of circadian
+lighting for clinical investigations. <em>Lighting Research &amp; Technology</em>,
+46(6), 637–649. <a href="https://doi.org/10.1177/1477153513502664">doi:10.1177/1477153513502664</a>
+</p>
+<p>Hartmeyer, S.L., Andersen, M. (2023). Towards a framework for light-dosimetry studies:
+Quantification metrics. <em>Lighting Research &amp; Technology</em>.
+<a href="https://doi.org/10.1177/14771535231170500">doi:10.1177/14771535231170500</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+dataset1 &lt;-
+  tibble::tibble(
+    Id = rep("B", 60 * 24),
+    Datetime = lubridate::as_datetime(0) + lubridate::minutes(0:(60*24-1)),
+    MEDI = c(rep(sample(seq(0,1,0.1), 60*8, replace = TRUE)), 
+             rep(sample(1:1000, 16, replace = TRUE), each = 60))
+  )
+
+dataset1 %&gt;%
+  dplyr::reframe(barroso_lighting_metrics(MEDI, Datetime, as.df = TRUE))
+  
+</code></pre>
+
+
+</div>

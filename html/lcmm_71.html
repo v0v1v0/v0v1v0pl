@@ -1,0 +1,788 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multlcmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of multivariate mixed-effect models and multivariate latent class
+mixed-effect models for multivariate longitudinal outcomes of possibly
+multiple types (continuous Gaussian, continuous non-Gaussian/curvilinear, ordinal)
+that measure the same underlying latent process.</h2>
+
+<h3>Description</h3>
+
+<p>This function constitutes a multivariate extension of function <code>lcmm</code>.
+It fits multivariate mixed models and multivariate latent class mixed models
+for multivariate longitudinal outcomes of different types. It handles
+continuous longitudinal outcomes (Gaussian or non-Gaussian, curvilinear) as
+well as ordinal longitudinal outcomes (with cumulative probit measurement model). 
+The model assumes that all the outcomes measure the same underlying latent process
+defined as their common factor, and each outcome is related to this latent common
+factor by a specific parameterized link function. At the latent process level, the
+model estimates a standard linear mixed model or a latent class linear mixed
+model when heterogeneity in the population is investigated (in the same way
+as in functions <code>hlme</code> and <code>lcmm</code>). Parameters of the nonlinear link 
+functions and of the latent process mixed model are estimated simultaneously 
+using a maximum likelihood method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multlcmm(
+  fixed,
+  mixture,
+  random,
+  subject,
+  classmb,
+  ng = 1,
+  idiag = FALSE,
+  nwg = FALSE,
+  randomY = FALSE,
+  link = "linear",
+  intnodes = NULL,
+  epsY = 0.5,
+  cor = NULL,
+  data,
+  B,
+  convB = 1e-04,
+  convL = 1e-04,
+  convG = 1e-04,
+  maxiter = 100,
+  nsim = 100,
+  prior,
+  pprior = NULL,
+  range = NULL,
+  subset = NULL,
+  na.action = 1,
+  posfix = NULL,
+  partialH = FALSE,
+  verbose = FALSE,
+  returndata = FALSE,
+  methInteg = "QMC",
+  nMC = NULL,
+  var.time = NULL,
+  nproc = 1,
+  clustertype = NULL
+)
+
+mlcmm(
+  fixed,
+  mixture,
+  random,
+  subject,
+  classmb,
+  ng = 1,
+  idiag = FALSE,
+  nwg = FALSE,
+  randomY = FALSE,
+  link = "linear",
+  intnodes = NULL,
+  epsY = 0.5,
+  cor = NULL,
+  data,
+  B,
+  convB = 1e-04,
+  convL = 1e-04,
+  convG = 1e-04,
+  maxiter = 100,
+  nsim = 100,
+  prior,
+  pprior = NULL,
+  range = NULL,
+  subset = NULL,
+  na.action = 1,
+  posfix = NULL,
+  partialH = FALSE,
+  verbose = FALSE,
+  returndata = FALSE,
+  methInteg = "QMC",
+  nMC = NULL,
+  var.time = NULL,
+  nproc = 1,
+  clustertype = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>a two-sided linear formula object for specifying the
+fixed-effects in the linear mixed model at the latent process level. The
+response outcomes are separated by <code>+</code> on the left of <code>~</code> and the
+covariates are separated by <code>+</code> on the right of the <code>~</code>. For
+identifiability purposes, the intercept specified by default should not be
+removed by a <code>-1</code>. Variables on which a contrast above the different
+outcomes should also be estimated are included with <code>contrast()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture</code></td>
+<td>
+<p>a one-sided formula object for the class-specific fixed
+effects in the latent process mixed model (to specify only for a number of
+latent classes greater than 1). Among the list of covariates included in
+<code>fixed</code>, the covariates with class-specific regression parameters are
+entered in <code>mixture</code> separated by <code>+</code>. By default, an intercept is
+included. If no intercept, <code>-1</code> should be the first term included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>an optional one-sided formula for the random-effects in the
+latent process mixed model. At least one random effect should be included
+for identifiability purposes. Covariates with a random-effect are separated
+by <code>+</code>. By default, an intercept is included. If no intercept,
+<code>-1</code> should be the first term included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>name of the covariate representing the grouping structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmb</code></td>
+<td>
+<p>an optional one-sided formula describing the covariates in
+the class-membership multinomial logistic model. Covariates included are
+separated by <code>+</code>. No intercept should be included in this formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>number of latent classes considered. If <code>ng=1</code> no
+<code>mixture</code> nor <code>classmb</code> should be specified. If <code>ng&gt;1</code>,
+<code>mixture</code> is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idiag</code></td>
+<td>
+<p>optional logical for the variance-covariance structure of the
+random-effects. If <code>FALSE</code>, a non structured matrix of
+variance-covariance is considered (by default). If <code>TRUE</code> a diagonal
+matrix of variance-covariance is considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nwg</code></td>
+<td>
+<p>optional logical of class-specific variance-covariance of the
+random-effects. If <code>FALSE</code> the variance-covariance matrix is common
+over latent classes (by default). If <code>TRUE</code> a class-specific
+proportional parameter multiplies the variance-covariance matrix in each
+class (the proportional parameter in the last latent class equals 1 to
+ensure identifiability).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomY</code></td>
+<td>
+<p>optional logical for including an outcome-specific random
+intercept. If <code>FALSE</code> no outcome-specific random intercept is added
+(default). If <code>TRUE</code> independent outcome-specific random intercepts
+with parameterized variance are included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>optional vector of families of parameterized link functions to
+estimate (one by outcome). Option "linear" (by default) specifies a linear
+link function. Other possibilities include "beta" for estimating a link
+function from the family of Beta cumulative distribution functions,
+"thresholds" for using a threshold model to describe the correspondence
+between each level of an ordinal outcome and the underlying latent process and
+"Splines" for approximating the link function by I-splines. For this latter
+case, the number of nodes and the nodes location should be also specified.
+The number of nodes is first entered followed by <code>-</code>, then the location
+is specified with "equi", "quant" or "manual" for respectively equidistant
+nodes, nodes at quantiles of the marker distribution or interior nodes
+entered manually in argument <code>intnodes</code>. It is followed by <code>-</code> and
+finally "splines" is indicated.  For example, "7-equi-splines" means
+I-splines with 7 equidistant nodes, "6-quant-splines" means I-splines with 6
+nodes located at the quantiles of the marker distribution and
+"9-manual-splines" means I-splines with 9 nodes, the vector of 7 interior
+nodes being entered in the argument <code>intnodes</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intnodes</code></td>
+<td>
+<p>optional vector of interior nodes. This argument is only
+required for a I-splines link function with nodes entered manually.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsY</code></td>
+<td>
+<p>optional definite positive real used to rescale the marker in
+(0,1) when the beta link function is used. By default, epsY=0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>optional indicator for inclusion of an autocorrelated Gaussian
+process in the latent process linear (latent process) mixed model. Option
+"BM" indicates a brownian motion with parameterized variance. Option "AR"
+specifies an autoregressive process of order 1 with parameterized variance
+and correlation intensity. Each option should be followed by the time
+variable in brackets as <code>cor=BM(time)</code>. By default, no autocorrelated
+Gaussian process is added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame containing the variables named in <code>fixed</code>,
+<code>mixture</code>, <code>random</code>, <code>classmb</code> and <code>subject</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>optional specification for the initial values for the parameters.
+Three options are allowed: (1) a vector of initial values is entered (the
+order in which the parameters are included is detailed in <code>details</code>
+section).  (2) nothing is specified. A preliminary analysis involving the
+estimation of a standard linear mixed model is performed to choose initial
+values.  (3) when ng&gt;1, a multlcmm object is entered. It should correspond
+to the exact same structure of model but with ng=1. The program will
+automatically generate initial values from this model. This specification
+avoids the preliminary analysis indicated in (2) Note that due to possible
+local maxima, the <code>B</code> vector should be specified and several different
+starting points should be tried.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convB</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+parameter stability. By default, convB=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convL</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+log-likelihood stability. By default, convL=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convG</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+derivatives. By default, convG=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>optional maximum number of iterations for the Marquardt
+iterative algorithm. By default, maxiter=100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>number of points used to plot the estimated link functions. By
+default, nsim=100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>name of the covariate containing the prior on the latent class
+membership. The covariate should be an integer with values in 0,1,...,ng.
+When there is no prior, the value should be 0. When there is a prior for the
+subject, the value should be the number of the latent class (in 1,...,ng).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pprior</code></td>
+<td>
+<p>optional vector specifying the names of the covariates containing the
+prior probabilities to belong to each latent class. These probabilities should be
+between 0 and 1 and should sum up to 1 for each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+<p>optional vector indicating the range of the outcomes (that is
+the minimum and maximum). By default, the range is defined according to the
+minimum and maximum observed values of the outcome. The option should be
+used only for Beta and Splines transformations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>optional vector giving the subset of observations in
+<code>data</code> to use. By default, all lines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>Integer indicating how NAs are managed. The default is 1
+for 'na.omit'. The alternative is 2 for 'na.fail'. Other options such as
+'na.pass' or 'na.exclude' are not implemented in the current version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posfix</code></td>
+<td>
+<p>Optional vector giving the indices in vector B of the
+parameters that should not be estimated. Default to NULL, all parameters are
+estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partialH</code></td>
+<td>
+<p>optional logical for Splines link functions only.
+Indicates whether the parameters of the link functions can be dropped from
+the Hessian matrix to define convergence criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating if information about computation should be
+reported. Default to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>logical indicating if data used for computation should be
+returned. Default to FALSE, data are not returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methInteg</code></td>
+<td>
+<p>character indicating the type of integration if ordinal outcomes
+are considered. 'MCO' for ordinary Monte Carlo, 'MCA' for antithetic Monte Carlo,
+'QMC' for quasi Monte Carlo. Default to "QMC".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nMC</code></td>
+<td>
+<p>integer, number of Monte Carlo simulations. By default, 1000 points are used
+if at least one threshold link is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.time</code></td>
+<td>
+<p>optional character indicating the name of the time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproc</code></td>
+<td>
+<p>the number cores for parallel computation.
+Default to 1 (sequential mode).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustertype</code></td>
+<td>
+<p>optional character indicating the type of cluster for parallel computation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A. THE PARAMETERIZED LINK FUNCTIONS
+</p>
+<p><code>multlcmm</code> function estimates multivariate latent class mixed models
+for different types of outcomes by assuming a parameterized link function
+for linking each outcome Y_k(t) with the underlying latent common factor
+L(t) they measure. To fix the latent process dimension, we chose to
+constrain at the latent process level the (first) intercept of the latent
+class mixed model at 0 and the standard error of the first random effect at
+1.
+</p>
+<p>1. With the "linear" link function, 2 parameters are required for the
+following transformation (Y(t) - b1)/b2
+</p>
+<p>2. With the "beta" link function, 4 parameters are required for the
+following transformation: [ h(Y(t)',b1,b2) - b3]/b4 where h is the Beta CDF
+with canonical parameters c1 and c2 that can be derived from b1 and b2 as
+c1=exp(b1)/[exp(b2)*(1+exp(b1))] and c2=1/[exp(b2)*(1+exp(b1))], and Y(t)'
+is the rescaled outcome i.e. Y(t)'= [ Y(t) - min(Y(t)) + epsY ] / [
+max(Y(t)) - min(Y(t)) +2*epsY ].
+</p>
+<p>3. With the "splines" link function, n+2 parameters are required for the
+following transformation b_1 + b_2*I_1(Y(t)) + ... + b_n+2 I_n+1(Y(t)),
+where I_1,...,I_n+1 is the basis of quadratic I-splines. To constraint the
+parameters to be positive, except for b_1, the program estimates b_k^* (for
+k=2,...,n+2) so that b_k=(b_k^*)^2. This parameterization may lead in some
+cases to problems of convergence that we are currently addressing.
+</p>
+<p>4. With the "thresholds" link function for an ordinal outcome with levels
+0,...,C, C-1 parameters are required for the following transformation:
+Y(t)=c &lt;=&gt; b_c &lt; L(t) &lt;= b_c+1 with b_0 = - infinity and b_C+1=+infinity.
+To constraint the parameters to be increasing, except for the first
+parameter b_1, the program estimates b_k^* (for k=2,...C-1) so that
+b_k=b_k-1+(b_k^*)^2.
+</p>
+<p>Details of these parameterized link functions can be found in the papers:
+Proust-Lima et al. (Biometrics 2006), Proust-Lima et al. (BJMSP 2013),
+Proust-Lima et al. (arxiv 2021 - https://arxiv.org/abs/2109.13064)
+</p>
+<p>B. THE VECTOR OF PARAMETERS B
+</p>
+<p>The parameters in the vector of initial values <code>B</code> or in the vector of
+maximum likelihood estimates <code>best</code> are included in the following
+order: (1) ng-1 parameters are required for intercepts in the latent class
+membership model, and if covariates are included in <code>classmb</code>, ng-1
+paramaters should be entered for each one; (2) for all covariates in
+<code>fixed</code>, one parameter is required if the covariate is not in
+<code>mixture</code>, ng paramaters are required if the covariate is also in
+<code>mixture</code>; When ng=1, the intercept is not estimated and no parameter
+should be specified in <code>B</code>. When ng&gt;1, the first intercept is not
+estimated and only ng-1 parameters should be specified in <code>B</code>; (3) for
+all covariates included with <code>contrast()</code> in <code>fixed</code>, one
+supplementary parameter per outcome is required excepted for the last
+outcome for which the parameter is not estimated but deduced from the
+others; (4) if <code>idiag=TRUE</code>, the variance of each random-effect
+specified in <code>random</code> is required excepted the first one (usually the
+intercept) which is constrained to 1. (5) if <code>idiag=FALSE</code>, the
+inferior triangular variance-covariance matrix of all the random-effects is
+required excepted the first variance (usually the intercept) which is
+constrained to 1. (5) only if <code>nwg=TRUE</code> and <code>ng</code>&gt;1, ng-1
+parameters for class-specific proportional coefficients for the variance
+covariance matrix of the random-effects; (6) if <code>cor</code> is specified, the
+standard error of the Brownian motion or the standard error and the
+correlation parameter of the autoregressive process; (7) the standard error
+of the outcome-specific Gaussian errors (one per outcome); (8) if
+<code>randomY=TRUE</code>, the standard error of the outcome-specific random
+intercept (one per outcome); (9) the parameters of each parameterized link
+function: 2 for "linear", 4 for "beta", n+2 for "splines" with n nodes.
+</p>
+<p>C. CAUTIONS REGARDING THE USE OF THE PROGRAM
+</p>
+<p>Some caution should be made when using the program. Convergence criteria are
+very strict as they are based on the derivatives of the log-likelihood in
+addition to the parameter and log-likelihood stability. In some cases, the
+program may not converge and reach the maximum number of iterations fixed at
+100. In this case, the user should check that parameter estimates at the
+last iteration are not on the boundaries of the parameter space.
+</p>
+<p>If the parameters are on the boundaries of the parameter space, the
+identifiability of the model is critical. This may happen especially with
+splines parameters that may be too close to 0 (lower boundary) or classmb
+parameters that are too high or low (perfect classification). When
+identifiability of some parameters is suspected, the program can be run
+again from the former estimates by fixing the suspected parameters to their
+value with option posfix. This usually solves the problem. An alternative is
+to remove the parameters of the Beta or Splines link function from the
+inverse of the Hessian with option partialH.
+</p>
+<p>If not, the program should be run again with other initial values, with a
+higher maximum number of iterations or less strict convergence tolerances.
+</p>
+<p>Specifically when investigating heterogeneity (that is with ng&gt;1): (1) As
+the log-likelihood of a latent class model can have multiple maxima, a
+careful choice of the initial values is crucial for ensuring convergence
+toward the global maximum. The program can be run without entering the
+vector of initial values (see point 2). However, we recommend to
+systematically enter initial values in <code>B</code> and try different sets of
+initial values. (2) The automatic choice of initial values we provide
+requires the estimation of a preliminary linear mixed model. The user should
+be aware that first, this preliminary analysis can take time for large
+datatsets and second, that the generated initial values can be very not
+likely and even may converge slowly to a local maximum. This is the reason
+why several alternatives exist. The vector of initial values can be directly
+specified in <code>B</code> the initial values can be generated (automatically or
+randomly) from a model with <code>ng=</code>. Finally, function <code>gridsearch</code>
+performs an automatic grid search.
+</p>
+<p>D. NUMERICAL INTEGRATION WITH THE THRESHOLD LINK FUNCTION
+</p>
+<p>When dealing only with continuous outcomes, the computation of the likelihood does not
+require any numerical integration over the random-effects, so that the estimation
+procedure is relatively fast.
+When at least one ordinal outcome is modeled, a numerical integration over the
+random-effects is required in each computation of the individual contribution to the
+likelihood. This achieved using a Monte-Carlo procedure. We allow three options:
+the standard Monte-Carlo simulations, as well as antithetic Monte-Carlo and quasi
+Monte-Carlo methods as proposed in Philipson et al (2020).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The list returned is: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ns</code></td>
+<td>
+<p>number of grouping units in the
+dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>number of latent classes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>log-likelihood of
+the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>vector of parameter estimates in the same order as
+specified in <code>B</code> and detailed in section <code>details</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>if the model converged (conv=1 or 3), vector containing the upper triangle
+matrix of variance-covariance estimates of <code>Best</code> with exception for
+variance-covariance parameters of the random-effects for which <code>V</code> contains the
+variance-covariance estimates of the Cholesky transformed parameters displayed in
+<code>cholesky</code>. If conv=2, <code>V</code> contains the second derivatives of the
+log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gconv</code></td>
+<td>
+<p>vector of convergence criteria: 1. on the
+parameters, 2. on the likelihood, 3. on the derivatives</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>status
+of convergence: =1 if the convergence criteria were satisfied, =2 if the
+maximum number of iterations was reached, =4 or 5 if a problem occured
+during optimisation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>number of
+Marquardt iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>internal information used in related
+functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idiag</code></td>
+<td>
+<p>internal information used in related functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>table of individual predictions and residuals in the underlying
+latent process scale; it includes marginal predictions (pred_m), marginal
+residuals (resid_m), subject-specific predictions (pred_ss) and
+subject-specific residuals (resid_ss) averaged over classes, the transformed
+observations in the latent process scale (obs) and finally the
+class-specific marginal and subject-specific predictions (with the number of
+the latent class: pred_m_1,pred_m_2,...,pred_ss_1,pred_ss_2,...). If <code>var.time</code>
+is specified, the corresponding measurement time is also included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pprob</code></td>
+<td>
+<p>table of posterior classification and posterior individual
+class-membership probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xnames</code></td>
+<td>
+<p>list of covariates included in
+the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predRE</code></td>
+<td>
+<p>table containing individual predictions of the
+random-effects : a column per random-effect, a line per subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cholesky</code></td>
+<td>
+<p>vector containing the estimates of the Cholesky transformed
+parameters of the variance-covariance matrix of the random-effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimlink</code></td>
+<td>
+<p>table containing the simulated values of each outcome and
+the corresponding estimated link function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsY</code></td>
+<td>
+<p>definite positive
+reals used to rescale the markers in (0,1) when the beta link function is
+used. By default, epsY=0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linktype</code></td>
+<td>
+<p>indicators of link function
+types: 0 for linear, 1 for beta, 2 for splines and 3 for thresholds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linknodes</code></td>
+<td>
+<p>vector of nodes useful only for the 'splines' link
+functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the original data set (if returndata is TRUE)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima and Viviane Philipps
+</p>
+<p><a href="mailto:cecile.proust-lima@inserm.fr">cecile.proust-lima@inserm.fr</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Proust-Lima C, Philipps V, Liquet B (2017). Estimation of Extended Mixed 
+Models Using Latent Classes and Latent Processes: The R Package lcmm. 
+Journal of Statistical Software, 78(2), 1-56. doi:10.18637/jss.v078.i02
+</p>
+<p>Proust and Jacqmin-Gadda (2005). Estimation of linear mixed models with a
+mixture of distribution for the random-effects. Comput Methods Programs
+Biomed 78: 165-73.
+</p>
+<p>Proust, Jacqmin-Gadda, Taylor, Ganiayre, and Commenges (2006). A nonlinear
+model with latent process for cognitive evolution using multivariate
+longitudinal data. Biometrics 62, 1014-24.
+</p>
+<p>Proust-Lima, Dartigues and Jacqmin-Gadda (2011). Misuse of the linear mixed
+model when evaluating risk factors of cognitive decline. Amer J Epidemiol
+174(9): 1077-88.
+</p>
+<p>Proust-Lima, Amieva, Jacqmin-Gadda (2013). Analysis of multivariate mixed
+longitudinal data: A flexible latent process approach. Br J Math Stat
+Psychol 66(3): 470-87.
+</p>
+<p>Commenges, Proust-Lima, Samieri, Liquet (2012). A universal approximate
+cross-validation criterion and its asymptotic distribution, Arxiv.
+</p>
+<p>Philipson, Hickey, Crowther, Kolamunnage-Dona (2020). Faster Monte Carlo estimation
+of semiparametric joint models of time-to-event and multivariate longitudinal data.
+Computational Statistics &amp; Data Analysis 151.
+</p>
+<p>Proust-Lima, Philipps, Perrot, Blanchin, Sebille (2021). Modeling repeated 
+self-reported outcome data: a continuous-time longitudinal Item Response 
+Theory model. https://arxiv.org/abs/2109.13064
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>postprob</code>, <code>plot.multlcmm</code>, <code>predictL</code>,
+<code>predictY</code> <code>lcmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+# Latent process mixed model for two curvilinear outcomes. Link functions are 
+# aproximated by I-splines, the first one has 3 nodes (i.e. 1 internal node 8),
+# the second one has 4 nodes (i.e. 2 internal nodes 12,25)
+
+m1 &lt;- multlcmm(Ydep1+Ydep2~1+Time*X2+contrast(X2),random=~1+Time,
+subject="ID",randomY=TRUE,link=c("4-manual-splines","3-manual-splines"),
+intnodes=c(8,12,25),data=data_lcmm)
+
+# to reduce the computation time, the same model is estimated using 
+# a vector of initial values
+m1 &lt;- multlcmm(Ydep1+Ydep2~1+Time*X2+contrast(X2),random=~1+Time,
+subject="ID",randomY=TRUE,link=c("4-manual-splines","3-manual-splines"),
+intnodes=c(8,12,25),data=data_lcmm, 
+B=c(-1.071, -0.192,  0.106, -0.005, -0.193,  1.012,  0.870,  0.881,
+  0.000,  0.000, -7.520,  1.401,  1.607 , 1.908,  1.431,  1.082,
+ -7.528,  1.135 , 1.454 , 2.328, 1.052))
+
+
+# output of the model
+summary(m1)
+# estimated link functions
+plot(m1,which="linkfunction")
+# variation percentages explained by linear mixed regression
+VarExpl(m1,data.frame(Time=0))
+
+#### Heterogeneous latent process mixed model with linear link functions 
+#### and 2 latent classes of trajectory 
+m2 &lt;- multlcmm(Ydep1+Ydep2~1+Time*X2,random=~1+Time,subject="ID",
+link="linear",ng=2,mixture=~1+Time,classmb=~1+X1,data=data_lcmm,
+B=c( 18,-20.77,1.16,-1.41,-1.39,-0.32,0.16,-0.26,1.69,1.12,1.1,10.8,
+1.24,24.88,1.89))
+# summary of the estimation
+summary(m2)
+# posterior classification
+postprob(m2)
+# longitudinal predictions in the outcomes scales for a given profile of covariates 
+newdata &lt;- data.frame(Time=seq(0,5,length=100),X1=0,X2=0,X3=0)
+predGH &lt;- predictY(m2,newdata,var.time="Time",methInteg=0,nsim=20) 
+head(predGH)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

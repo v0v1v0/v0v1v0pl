@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bernoulli</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inference for the Bernoulli distribution</h2>
+
+<h3>Description</h3>
+
+<p>Functions involved in making inferences about the probability of success
+in a Bernoulli distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_bernoulli(data)
+
+## S3 method for class 'bernoulli'
+logLikVec(object, pars = NULL, ...)
+
+## S3 method for class 'bernoulli'
+nobs(object, ...)
+
+## S3 method for class 'bernoulli'
+coef(object, ...)
+
+## S3 method for class 'bernoulli'
+vcov(object, ...)
+
+## S3 method for class 'bernoulli'
+logLik(object, ...)
+
+## S3 method for class 'bernoulli'
+alogLik(x, cluster = NULL, use_vcov = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A numeric vector of outcomes from Bernoulli trials: 0 for a
+failure, 1 for a success.  Alternatively, a logical vector with FALSE
+for a failure and TRUE for a success.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>A numeric parameter vector of length 1 containing the value of
+the Bernoulli success probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to the functions in the
+sandwich package <code>meat</code> (if <code>cluster = NULL</code>),
+or <code>meatCL</code> (if <code>cluster</code> is not
+<code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x, object</code></td>
+<td>
+<p>A fitted model object returned from <code>fit_bernoulli()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A vector or factor indicating from which cluster each
+observation in <code>data</code> originates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_vcov</code></td>
+<td>
+<p>A logical scalar.  Should we use the <code>vcov</code> S3 method
+for <code>x</code> (if this exists) to estimate the Hessian of the independence
+loglikelihood to be passed as the argument <code>H</code> to
+<code>adjust_loglik</code>?
+Otherwise, <code>H</code> is estimated inside
+<code>adjust_loglik</code> using
+<code>optimHess</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fit_bernoulli</code>: fit a Bernoulli distribution
+</p>
+<p><code>logLikVec.bernoulli</code>: calculates contributions to a loglikelihood based
+on the Bernoulli distribution.  The loglikelihood is calculated up to an
+additive constant.
+</p>
+<p><code>nobs, coef, vcov</code> and <code>logLik</code> methods are provided.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fit_bernoulli</code> returns an object of class <code>"bernoulli"</code>, a list
+with components: <code>logLik, mle, nobs, vcov, data, obs_data</code>, where
+<code>data</code> are the input data and <code>obs_data</code> are the input data after
+any missing values have been removed, using
+<code>na.omit</code>.
+</p>
+<p><code>logLikVec.bernoulli</code> returns an object of class <code>"logLikVec"</code>, a
+vector length <code>length(data)</code> containing the likelihood contributions
+from the individual observations in <code>data</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Binomial</code>.  The Bernoulli distribution is the
+special case where <code>size = 1</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up data
+x &lt;- exdex::newlyn
+u &lt;- quantile(x, probs = 0.9)
+exc &lt;- x &gt; u
+
+# Fit a Bernoulli distribution
+fit &lt;- fit_bernoulli(exc)
+
+# Calculate the loglikelihood at the MLE
+res &lt;- logLikVec(fit)
+
+# The logLik method sums the individual loglikelihood contributions.
+logLik(res)
+
+# nobs, coef, vcov, logLik methods for objects returned from fit_bernoulli()
+nobs(fit)
+coef(fit)
+vcov(fit)
+logLik(fit)
+
+# Adjusted loglikelihood
+# Create 5 clusters each corresponding approximately to 1 year of data
+cluster &lt;- rep(1:5, each = 579)[-1]
+afit &lt;- alogLik(fit, cluster = cluster, cadjust = FALSE)
+summary(afit)
+</code></pre>
+
+
+</div>

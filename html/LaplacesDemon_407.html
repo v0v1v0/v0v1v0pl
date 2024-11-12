@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dist.Wishart.Cholesky</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wishart Distribution: Cholesky Parameterization</h2>
+
+<h3>Description</h3>
+
+<p>These functions provide the density and random number generation
+for the Wishart distribution with the Cholesky parameterization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   dwishartc(U, nu, S, log=FALSE)
+   rwishartc(nu, S)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>This is the upper-triangular <code class="reqn">k \times k</code> matrix
+for the Cholesky factor <code class="reqn">\textbf{U}</code> of precision matrix
+<code class="reqn">\Omega</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>This is the scalar degrees of freedom <code class="reqn">\nu</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>This is the symmetric, positive-semidefinite, <code class="reqn">k \times
+      k</code> scale matrix <code class="reqn">\textbf{S}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>Logical. If <code>log=TRUE</code>, then the logarithm of the
+density is returned.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> Application: Continuous Multivariate
+</p>
+</li>
+<li>
+<p> Density: <code class="reqn">p(\theta) = (2^{\nu k/2} \pi^{k(k-1)/4}
+      \prod^k_{i=1} \Gamma(\frac{\nu+1-i}{2}))^{-1} |\textbf{S}|^{-nu/2}
+      |\Omega|^{(nu-k-1)/2} \exp(-\frac{1}{2} tr(\textbf{S}^{-1}
+      \Omega))</code>
+</p>
+</li>
+<li>
+<p> Inventor: John Wishart (1928)
+</p>
+</li>
+<li>
+<p> Notation 1: <code class="reqn">\Omega \sim
+      \mathcal{W}_{\nu}(\textbf{S})</code>
+</p>
+</li>
+<li>
+<p> Notation 2: <code class="reqn">p(\Omega) = \mathcal{W}_{\nu}(\Omega |
+      \textbf{S})</code>
+</p>
+</li>
+<li>
+<p> Parameter 1: degrees of freedom <code class="reqn">\nu \ge k</code>
+</p>
+</li>
+<li>
+<p> Parameter 2: symmetric, positive-semidefinite
+<code class="reqn">k \times k</code> scale matrix <code class="reqn">\textbf{S}</code>
+</p>
+</li>
+<li>
+<p> Mean: <code class="reqn">E(\Omega) = \nu \textbf{S}</code>
+</p>
+</li>
+<li>
+<p> Variance: <code class="reqn">var(\Omega) = \nu (\textbf{S}^2_{i,j} +
+      \textbf{S}_{i,i} \textbf{S}_{j,j})</code>
+</p>
+</li>
+<li>
+<p> Mode: <code class="reqn">mode(\Omega) = (\nu - k - 1)
+      \textbf{S}</code>, for <code class="reqn">\nu \ge k + 1</code>
+</p>
+</li>
+</ul>
+<p>The Wishart distribution is a generalization to multiple dimensions of
+the chi-square distribution, or, in the case of non-integer degrees of
+freedom, of the gamma distribution. However, the Wishart distribution is
+not called the multivariate chi-squared distribution because the
+marginal distribution of the off-diagonal elements is not chi-squared.
+</p>
+<p>The Wishart is the conjugate prior distribution for the precision matrix
+<code class="reqn">\Omega</code>, the inverse of which (covariance matrix
+<code class="reqn">\Sigma</code>) is used in a multivariate normal distribution. In
+this parameterization, <code class="reqn">\Omega</code> has been decomposed to the
+upper-triangular Cholesky factor <code class="reqn">\textbf{U}</code>, as per
+<code>chol</code>.
+</p>
+<p>The integral is finite when <code class="reqn">\nu \ge k</code>, where
+<code class="reqn">\nu</code> is the scalar degrees of freedom parameter, and <code class="reqn">k</code> is
+the dimension of scale matrix <code class="reqn">\textbf{S}</code>. The density is finite
+when <code class="reqn">\nu ge k + 1</code>, which is recommended.
+</p>
+<p>The degrees of freedom, <code class="reqn">\nu</code>, is equivalent to specifying a
+prior sample size, indicating the confidence in <code class="reqn">\textbf{S}</code>,
+where <code class="reqn">\textbf{S}</code> is a prior guess at the order of covariance
+matrix <code class="reqn">\Sigma</code>. A flat prior distribution is
+obtained as <code class="reqn">\nu \rightarrow 0</code>.
+</p>
+<p>In practice, <code class="reqn">\textbf{U}</code> is fully unconstrained for proposals
+when its diagonal is log-transformed. The diagonal is exponentiated
+after a proposal and before other calculations. Overall, the
+Cholesky parameterization is faster than the traditional
+parameterization. Compared with <code>dwishart</code>, <code>dwishartc</code>
+must additionally matrix-multiply the Cholesky back to the precision
+matrix, but it does not have to check for or correct the precision
+matrix to positive-semidefiniteness, which overall is slower. Compared
+with <code>rwishart</code>, <code>rwishartc</code> must additionally
+calculate a Cholesky decomposition, and is therefore slower.
+</p>
+<p>The Wishart prior lacks flexibility, having only one parameter,
+<code class="reqn">\nu</code>, to control the variability for all <code class="reqn">k(k + 1)/2</code>
+elements. Popular choices for the scale matrix <code class="reqn">\textbf{S}</code>
+include an identity matrix or sample covariance matrix. When the model
+sample size is small, the specification of the scale matrix can be
+influential.
+</p>
+<p>Although the related inverse Wishart distribution has a dependency
+between variance and correlation, the Wishart distribution does not
+have this dependency.
+</p>
+<p>The matrix gamma (<code>dmatrixgamma</code>) distribution is a more
+general version of the Wishart distribution, and the Yang-Berger
+(<code>dyangberger</code>) distribution is an alterative that is a
+least informative prior (LIP).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>dwishartc</code> gives the density and
+<code>rwishartc</code> generates random deviates.
+</p>
+
+
+<h3>References</h3>
+
+<p>Wishart, J. (1928). "The Generalised Product Moment Distribution in
+Samples from a Normal Multivariate Population". <em>Biometrika</em>,
+20A(1-2), p. 32–52.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>chol</code>,
+<code>dchisq</code>,
+<code>dgamma</code>,
+<code>dinvwishart</code>,
+<code>dinvwishartc</code>,
+<code>dmatrixgamma</code>,
+<code>dmvnp</code>,
+<code>dmvnpc</code>,
+<code>Prec2Cov</code>, and
+<code>dyangbergerc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+Omega &lt;- matrix(c(2,-.3,-.3,4),2,2)
+U &lt;- chol(Omega)
+x &lt;- dwishartc(U, 3, matrix(c(1,.1,.1,1),2,2))
+x &lt;- rwishartc(3, matrix(c(1,.1,.1,1),2,2))
+</code></pre>
+
+
+</div>

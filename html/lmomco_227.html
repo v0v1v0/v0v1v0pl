@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pargep</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Generalized Exponential Poisson Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Generalized Exponential Poisson distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The relations between distribution parameters and L-moments are seen under <code>lmomgep</code>. However, the expectations of order statistic extrema are computed through numerical integration of the quantile function and the fundamental definition of L-moments (<code>theoLmoms.max.ostat</code>). The mean must be <code class="reqn">\lambda_1 &gt; 0</code>. The implementation here fits the first three L-moments. A distribution having two scale parameters produces more than one solution.  The higher L-moments are not consulted as yet in an effort to further enhance functionality. This function has deterministic starting points but on subsequent iterations the starting points do change. If a solution is not forthcoming, try running the whole function again.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pargep(lmom, checklmom=TRUE, checkdomain=TRUE, maxit=10, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkdomain</code></td>
+<td>
+<p>A logical controlling whether the empirically derived (approximated) boundaries of the GEP in the <code class="reqn">\tau_2</code> and <code class="reqn">\tau_3</code> domain are used for early exiting if the <code>lmom</code> do not appear compatible with the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>The maximum number of iterations. The default should be about twice as big as necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical controlling intermediate results, which is useful given the experimental nature of GEP parameter estimation and if the user is evaluating results at each iteration. The verbosity is subject to change.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>gep</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>A numeric code on covergence, a value of 0 means solution looks ok.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p>Sum of relative error: <code class="reqn">\epsilon = |(\lambda'_2 - \hat\lambda'_2)/\hat\lambda'_2|</code> <code class="reqn">+</code> <code class="reqn">|(\lambda_3 - \hat\lambda_3)/\hat\lambda_3|</code> for the fitted (prime) and sample (hat, given in <code>lmom</code>) 2nd and 3rd L-moments. A value of 10 means that the <code class="reqn">\tau_2</code> and <code class="reqn">\tau_3</code> values are outside the domain of the distribution as determined by brute force computations and custom polynomial fits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>its</code></td>
+<td>
+<p>Iteration count.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “pargep”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>There are various inequalities and polynomials demarcating the <code class="reqn">\tau_2</code> and <code class="reqn">\tau_3</code> of the distribution. These were developed during a protracted period of investigation into the numerical limits of the distribution with a specific implementation in <span class="pkg">lmomco</span>. Some of these bounds may or may not be optimal as empirically-arrived estimates of theoretical bounds. The polynomials where carefully assembled however. The straight inequalities are a bit more ad hoc following supervision of domain exploration.  More research is needed but the domain constraint provided should generally produce parameter solutions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomgep</code>, <code>cdfgep</code>, <code>pdfgep</code>, <code>quagep</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Two examples well inside the domain but known to produce difficulty in
+# the optimization process; pargep() engineered with flexibility to usually
+# hit the proper solutions.
+mygepA &lt;- pargep(vec2lmom(c(1,0.305,0.270), lscale=FALSE))
+mygepB &lt;- pargep(vec2lmom(c(1,0.280,0.320), lscale=FALSE))
+
+## End(Not run)
+## Not run: 
+gep1 &lt;- vec2par(c(2708, 3, 52), type="gep")
+ lmr &lt;- lmomgep(gep1);  print(lmr$lambdas)
+gep2 &lt;- pargep(lmr);    print(lmomgep(gep2)$lambdas)
+# Note that we are close on matching the L-moments but we do
+# not recover the parameters given because to shape parameters.
+gep3 &lt;- pargep(lmr, nk=1, nh=2);
+x &lt;- quagep(nonexceeds(), gep1)
+x &lt;- sort(c(x, quagep(nonexceeds(), gep2)))
+plot(x, pdfgep(x, gep1), type="l", lwd=2)
+lines(x, pdfgep(x, gep2), lwd=3, col=2)
+lines(x, pdfgep(x, gep3), lwd=2, col=3)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

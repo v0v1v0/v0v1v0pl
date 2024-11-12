@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rboTopics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pairwise RBO Similarities</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the similarity of all pairwise topic combinations using the
+rank-biased overlap (RBO) Similarity.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rboTopics(topics, k, p, progress = TRUE, pm.backend, ncpus)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>topics</code></td>
+<td>
+<p>[<code>named matrix</code>]<br>
+The counts of vocabularies/words (row wise) in topics (column wise).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>[<code>integer(1)</code>]<br>
+Maximum depth for evaluation. Words down to this rank are considered for the calculation of similarities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>[0,1]<br>
+Weighting parameter. Lower values emphasizes top ranked words while values
+that go towards 1 correspond to equal weights for each evaluation depth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Should a nice progress bar be shown? Turning it off, could lead to significantly
+faster calculation. Default is <code>TRUE</code>.
+If <code>pm.backend</code> is set, parallelization is done and no progress bar will be shown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pm.backend</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+One of "multicore", "socket" or "mpi".
+If <code>pm.backend</code> is set, <code>parallelStart</code> is
+called before computation is started and <code>parallelStop</code>
+is called after.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p>[<code>integer(1)</code>]<br>
+Number of (physical) CPUs to use. If <code>pm.backend</code> is passed,
+default is determined by <code>availableCores</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The RBO Similarity for two topics <code class="reqn">\bm z_{i}</code> and <code class="reqn">\bm z_{j}</code>
+is calculated by
+</p>
+<p style="text-align: center;"><code class="reqn">RBO(\bm z_{i}, \bm z_{j} \mid k, p) = 2p^k\frac{\left|Z_{i}^{(k)} \cap Z_{j}^{(k)}\right|}{\left|Z_{i}^{(k)}\right| + \left|Z_{j}^{(k)}\right|} + \frac{1-p}{p} \sum_{d=1}^k 2 p^d\frac{\left|Z_{i}^{(d)} \cap Z_{j}^{(d)}\right|}{\left|Z_{i}^{(d)}\right| + \left|Z_{j}^{(d)}\right|}</code>
+</p>
+
+<p>with <code class="reqn">Z_{i}^{(d)}</code> is the vocabulary set of topic <code class="reqn">\bm z_{i}</code> down to
+rank <code class="reqn">d</code>. Ties in ranks are resolved by taking the minimum.
+</p>
+<p>The value <code>wordsconsidered</code> describes the number of words per topic
+ranked at rank <code class="reqn">k</code> or above.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[<code>named list</code>] with entries
+</p>
+
+<dl>
+<dt><code>sims</code></dt>
+<dd>
+<p>[<code>lower triangular named matrix</code>] with all pairwise
+similarities of the given topics.</p>
+</dd>
+<dt><code>wordslimit</code></dt>
+<dd>
+<p>[<code>integer</code>] = vocabulary size. See
+<code>jaccardTopics</code> for original purpose.</p>
+</dd>
+<dt><code>wordsconsidered</code></dt>
+<dd>
+<p>[<code>integer</code>] = vocabulary size. See
+<code>jaccardTopics</code> for original purpose.</p>
+</dd>
+<dt><code>param</code></dt>
+<dd>
+<p>[<code>named list</code>] with parameter
+<code>type</code> [<code>character(1)</code>] <code>= "RBO Similarity"</code>,
+<code>k</code> [<code>integer(1)</code>] and <code>p</code> [0,1]. See above for explanation.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Webber, William, Alistair Moffat and Justin Zobel (2010).
+"A similarity measure for indefinite rankings".
+In: <em>ACM Transations on Information Systems</em> 28(4), p.20:1–-20:38,
+DOI 10.1145/1852102.1852106,
+URL <a href="https://doi.acm.org/10.1145/1852102.1852106">https://doi.acm.org/10.1145/1852102.1852106</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other TopicSimilarity functions: 
+<code>cosineTopics()</code>,
+<code>dendTopics()</code>,
+<code>getSimilarity()</code>,
+<code>jaccardTopics()</code>,
+<code>jsTopics()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">res = LDARep(docs = reuters_docs, vocab = reuters_vocab, n = 4, K = 10, num.iterations = 30)
+topics = mergeTopics(res, vocab = reuters_vocab)
+rbo = rboTopics(topics, k = 12, p = 0.9)
+rbo
+
+sim = getSimilarity(rbo)
+dim(sim)
+
+</code></pre>
+
+
+</div>

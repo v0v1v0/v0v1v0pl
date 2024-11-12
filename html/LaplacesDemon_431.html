@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>WAIC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Widely Applicable Information Criterion</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the Widely Applicable Information Criterion
+(WAIC), also known as the Widely Available Information Criterion or
+the Watanable-Akaike, of Watanabe (2010).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">WAIC(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument accepts a <code class="reqn">N \times S</code>
+matrix of log-likelihood (LL) for <code class="reqn">N</code> records and <code class="reqn">S</code>
+samples.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>WAIC is an extension of the Akaike Information Criterion (AIC) that is
+more fully Bayesian than the Deviance Information Criterion (DIC).
+</p>
+<p>Like DIC, WAIC estimates the effective number of parameters to adjust
+for overfitting. Two adjustments have been proposed. pWAIC1 is similar
+to pD in the original DIC. In contrast, pWAIC2 is calculated with
+variance more similarly to pV, which Gelman proposed for DIC. Gelman
+et al. (2014, p.174) recommends pWAIC2 because its results are closer
+in practice to the results of leave-one-out cross-validation
+(LOO-CV). pWAIC is considered an approximation to the number of
+unconstrained and uninformed parameters, where a parameter counts as 1
+when estimated without contraint or any prior information, 0 if fully
+constrained or all information comes from the prior distribution, or
+an intermediate number if both the data and prior are informative,
+which is usually the case.
+</p>
+<p>Gelman et al. (2014, p. 174) scale the WAIC of Watanabe (2010) by a
+factor of 2 so that it is comparable to AIC and DIC. WAIC is then
+reported as <code class="reqn">-2(lppd - pWAIC)</code>. Gelman et al. (2014) prefer WAIC
+to AIC or DIC when feasible, which is less often than AIC or DIC.
+The <code>LaplacesDemon</code> function requires the model
+specification function to return the model-level deviance, which is
+<code class="reqn">-2(LL)</code>, where <code class="reqn">LL</code> is the sum of the record-level
+log-likelihood. Therefore, if the user desires to calculate WAIC, then
+the record-level log-likelihood must be monitored.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>WAIC</code> argument returns a list with four components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>WAIC</code></td>
+<td>
+<p>This is the Widely Applicable Information Criterion
+(WAIC), which is <code class="reqn">-2(lppd - pWAIC)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lppd</code></td>
+<td>
+<p>This is the log pointwise predictive density. For more
+information, see Gelman et al. (2014, p. 168).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pWAIC</code></td>
+<td>
+<p>This is the effective number of parameters preferred by
+Gelman et al. (2014).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pWAIC1</code></td>
+<td>
+<p>This is the effective number of parameters, is
+calculated with an alternate method, and is included here for
+completeness. It is not used to calculate WAIC in the <code>WAIC</code>
+function.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Gelman, A., Carlin, J.B., Stern, H.S., Dunson, D.B., Vehtari, A., and
+Rubin, D.B. (2014). "Bayesian Data Analysis, 3rd ed.". CRC Press:
+Boca Raton, FL.
+</p>
+<p>Watanabe, S. (2010). "Asymptotic Equivalence of Bayes Cross Validation
+and Widely Applicable Information Criterion in Singular Learning
+Theory". <em>Journal of Machine Learning Research</em>, 11,
+p. 3571–3594.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LaplacesDemon</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#library(LaplacesDemon)
+#N &lt;- 10 #Number of records
+#S &lt;- 1000 #Number of samples
+#LL &lt;- t(rmvn(S, -70+rnorm(N),
+#     as.positive.definite(matrix(rnorm(N*N),N,N))))
+#WAIC(LL)
+### Compare with DIC:
+#Dev &lt;- -2*colSums(LL)
+#DIC &lt;- list(DIC=mean(Dev) + var(Dev)/2, Dbar=mean(Dev), pV=var(Dev)/2)
+#DIC
+</code></pre>
+
+
+</div>

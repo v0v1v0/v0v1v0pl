@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a model explanation function based on training data</h2>
+
+<h3>Description</h3>
+
+<p>This is the main function of the <code>lime</code> package. It is a factory function
+that returns a new function that can be used to explain the predictions made
+by black box models. This is a generic with methods for the different data
+types supported by lime.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'data.frame'
+lime(
+  x,
+  model,
+  preprocess = NULL,
+  bin_continuous = TRUE,
+  n_bins = 4,
+  quantile_bins = TRUE,
+  use_density = TRUE,
+  ...
+)
+
+## S3 method for class 'character'
+lime(
+  x,
+  model,
+  preprocess = NULL,
+  tokenization = default_tokenize,
+  keep_word_position = FALSE,
+  ...
+)
+
+## S3 method for class 'imagefile'
+lime(x, model, preprocess = NULL, ...)
+
+lime(x, model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The training data used for training the model that should be
+explained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model whose output should be explained</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preprocess</code></td>
+<td>
+<p>Function to transform a <code>character</code> vector to the format
+expected from the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bin_continuous</code></td>
+<td>
+<p>Should continuous variables be binned when making the explanation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_bins</code></td>
+<td>
+<p>The number of bins for continuous variables if <code>bin_continuous = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile_bins</code></td>
+<td>
+<p>Should the bins be based on <code>n_bins</code> quantiles or spread evenly over the range of the training data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_density</code></td>
+<td>
+<p>If <code>bin_continuous = FALSE</code> should continuous data be sampled using a kernel density estimation. If not, continuous features are expected to follow a normal distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tokenization</code></td>
+<td>
+<p>function used to tokenize text for the permutations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_word_position</code></td>
+<td>
+<p>set to <code>TRUE</code> if to keep order of words. Warning:
+each word will be replaced by <code>word_position</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Return an explainer which can be used together with <code>explain()</code> to
+explain model predictions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Explaining a model based on tabular data
+library(MASS)
+iris_test &lt;- iris[1, 1:4]
+iris_train &lt;- iris[-1, 1:4]
+iris_lab &lt;- iris[[5]][-1]
+# Create linear discriminant model on iris data
+model &lt;- lda(iris_train, iris_lab)
+# Create explanation object
+explanation &lt;- lime(iris_train, model)
+
+# This can now be used together with the explain method
+explain(iris_test, explanation, n_labels = 1, n_features = 2)
+
+## Not run: 
+# Explaining a model based on text data
+
+# Purpose is to classify sentences from scientific publications
+# and find those where the team writes about their own work
+# (category OWNX in the provided dataset).
+
+library(text2vec)
+library(xgboost)
+
+data(train_sentences)
+data(test_sentences)
+
+get_matrix &lt;- function(text) {
+  it &lt;- itoken(text, progressbar = FALSE)
+  create_dtm(it, vectorizer = hash_vectorizer())
+}
+
+dtm_train = get_matrix(train_sentences$text)
+
+xgb_model &lt;- xgb.train(list(max_depth = 7, eta = 0.1, objective = "binary:logistic",
+                 eval_metric = "error", nthread = 1),
+                 xgb.DMatrix(dtm_train, label = train_sentences$class.text == "OWNX"),
+                 nrounds = 50)
+
+sentences &lt;- head(test_sentences[test_sentences$class.text == "OWNX", "text"], 1)
+explainer &lt;- lime(train_sentences$text, xgb_model, get_matrix)
+explanations &lt;- explain(sentences, explainer, n_labels = 1, n_features = 2)
+
+# We can see that many explanations are based
+# on the presence of the word `we` in the sentences
+# which makes sense regarding the task.
+print(explanations)
+
+## End(Not run)
+## Not run: 
+library(keras)
+library(abind)
+# get some image
+img_path &lt;- system.file('extdata', 'produce.png', package = 'lime')
+# load a predefined image classifier
+model &lt;- application_vgg16(
+  weights = "imagenet",
+  include_top = TRUE
+)
+
+# create a function that prepare images for the model
+img_preprocess &lt;- function(x) {
+  arrays &lt;- lapply(x, function(path) {
+    img &lt;- image_load(path, target_size = c(224,224))
+    x &lt;- image_to_array(img)
+    x &lt;- array_reshape(x, c(1, dim(x)))
+    x &lt;- imagenet_preprocess_input(x)
+  })
+  do.call(abind, c(arrays, list(along = 1)))
+}
+
+# Create an explainer (lime recognise the path as an image)
+explainer &lt;- lime(img_path, as_classifier(model, unlist(labels)), img_preprocess)
+
+# Explain the model (can take a long time depending on your system)
+explanation &lt;- explain(img_path, explainer, n_labels = 2, n_features = 10, n_superpixels = 70)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

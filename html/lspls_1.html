@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lspls-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+LS-PLS Models
+</h2>
+
+<h3>Description</h3>
+
+<p>Implements the LS-PLS (least squares - partial least squares)
+method described in for instance Jørgensen, K., Segtnan, V. H., Thyholt, K.,
+Næs, T. (2004)  "A Comparison of Methods for Analysing Regression Models with
+Both Spectral and Designed Variables"
+Journal of Chemometrics, 18(10), 451–464, &lt;doi:10.1002/cem.890&gt;.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The DESCRIPTION file:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+Package: </td>
+<td style="text-align: left;"> lspls</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Title: </td>
+<td style="text-align: left;"> LS-PLS Models</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Version: </td>
+<td style="text-align: left;"> 0.2-2</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Date: </td>
+<td style="text-align: left;"> 2018-07-26</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Authors@R: </td>
+<td style="text-align: left;"> c(person("Bjørn-Helge", "Mevik", role = c("aut", "cre"),
+                     email = "b-h@mevik.net"))</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Author: </td>
+<td style="text-align: left;"> Bjørn-Helge Mevik [aut, cre]</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Maintainer: </td>
+<td style="text-align: left;"> Bjørn-Helge Mevik &lt;b-h@mevik.net&gt;</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Encoding: </td>
+<td style="text-align: left;"> UTF-8</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Depends: </td>
+<td style="text-align: left;"> pls (&gt;= 2.2.0)</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Imports: </td>
+<td style="text-align: left;"> grDevices, graphics, methods, stats</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+Description: </td>
+<td style="text-align: left;"> Implements the LS-PLS (least squares - partial least squares)
+  method described in for instance Jørgensen, K., Segtnan, V. H., Thyholt, K.,
+  Næs, T. (2004)  "A Comparison of Methods for Analysing Regression Models with
+  Both Spectral and Designed Variables"
+  Journal of Chemometrics, 18(10), 451--464, &lt;doi:10.1002/cem.890&gt;.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+License: </td>
+<td style="text-align: left;"> GPL-2</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+URL: </td>
+<td style="text-align: left;"> http://mevik.net/work/software/lspls.html, https://github.com/bhmevik/lspls</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+BugReports: </td>
+<td style="text-align: left;"> https://github.com/bhmevik/lspls/issues</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>Index of help topics:
+</p>
+<pre>
+MSEP.lsplsCv            MSEP, RMSEP and R^2 for LS-PLS
+lspls                   Fit LS-PLS Models
+lspls-package           LS-PLS Models
+lsplsCv                 Cross-Validate LS-PLS Models
+orthlspls.fit           Underlying LS-PLS Fit Function
+orthlsplsCv             Low Level Cross-Validation Function
+plot.lspls              Plots of LS-PLS Models
+plot.lsplsCv            Plot Method for Cross-Validations
+predict.lspls           Predict Method for LS-PLS Models
+project                 Projection and Orthogonalisation
+</pre>
+<p>LS-PLS (least squares–partial least squares) models are written on the form
+</p>
+<p style="text-align: center;"><code class="reqn">Y = X\beta + T_1\gamma_1 + \cdots + T_k\gamma_k + E,</code>
+</p>
+
+<p>where the terms <code class="reqn">T_i</code> are one or more matrices <code class="reqn">Z_{i,j}</code>
+separated by a colon (:), i.e., <code class="reqn">Z_{i,1} \colon Z_{i,2}\colon \cdots
+  \colon Z_{i,l_i}</code>.  Multi-response models are
+possible, in wich case <code class="reqn">Y</code> should be a matrix.
+</p>
+<p>The model is fitted from left to right.  First <code class="reqn">Y</code> is fitted to
+<code class="reqn">X</code> using least squares (LS) regression and the residuals
+calculated.
+For each <code class="reqn">i</code>, the matrices <code class="reqn">Z_{i,1}</code>, ..., <code class="reqn">Z_{i,l_i}</code>
+are orthogonalised against the variables used in the regression sofar
+(when <code class="reqn">i = 1</code>, this means <code class="reqn">X</code>).
+The residuals from the LS regression are used as the response in PLS
+regressions with the orthogonalised matrices as predictors (one PLS
+regression for each matrix), and the desired number of PLS components
+from each matrix are included among the LS prediction variables.
+The LS regression is then refit with the new variables, and new
+residuals calculated.
+</p>
+<p>The function to fit LS-PLS models is <code>lspls</code>.  A typical
+usage to fit the model
+</p>
+<p style="text-align: center;"><code class="reqn">y = X\beta + Z \gamma + V_1 \colon V_2 \eta
+  + W \theta + E</code>
+</p>
+
+<p>would be
+</p>
+<pre>
+  mod &lt;- lspls(y ~ X + Z + V1:V2 + W, ncomp = list(3, c(2,1), 2),
+               data = mydata)
+</pre>
+<p>The first argument is the formula describing the model.
+<code>X</code> is fit first, using LS.  Then PLS scores from <code>Z</code>
+(orthogonalised) are added.  Then PLS scores from <code>V1</code> and
+<code>V2</code> are added (simultaneously), and finally PLS scores from
+<code>W</code>.  The next argument, <code>ncomp</code>, specifies the number of
+components to use from each PLS: 3 <code>Z</code> score vectors, 2 <code>V1</code>
+score vectors, 1 <code>V2</code> score vector and 2 <code>W</code> score vectors.
+Finally, <code>mydata</code> should be a data frame with matrices <code>y</code>,
+<code>X</code>, <code>Z</code>, <code>V1</code>, <code>V2</code> and <code>W</code> (for
+single-response models, <code>y</code> can be a vector).
+</p>
+<p>Currently, score plots and loading plots of fitted models are
+implemented.  <code>plot(mod, "scores")</code> gives score plots for each PLS
+regression, and <code>plot(mod, "loadings")</code> gives loading plots.
+</p>
+<p>There is a <code>predict</code> method to predict response or score values
+from new data
+</p>
+<pre>
+  predict(mod, newdata = mynewdata)
+</pre>
+<p>(This predicts response values.  Use <code>type = "scores"</code> to get
+scores.)  Also, the standard functions <code>resid</code> and <code>fitted</code>
+can be used to extract the residuals and fitted values.
+</p>
+<p>In order to determine the number of components to use from each matrix,
+one can use cross-validation:
+</p>
+<pre>
+  cvmod &lt;- lsplsCv(y ~ X + Z + V1:V2 + W, ncomp = list(4, c(3,4), 3),
+                   segments = 12, data = mydata)
+</pre>
+<p>In <code>lsplsCv</code>, <code>ncomp</code> gives the maximal number of components to
+test.  The argument <code>segments</code> specifies the number of segments to
+use.  One can specify the type of segments to use (random (default),
+consequtive or interleaved) with the argument <code>segment.type</code>.
+Alternatively, one can supply the segments explicitly with
+<code>segments</code>.  See <code>lsplsCv</code> for details.
+</p>
+<p>One can plot cross-validated RMSEP values with <code>plot(cvmod)</code>.
+(Similarly, <code>plot(cvmod, "MSEP")</code> plots MSEP values.)  This makes
+it easier to determine the optimal number of components for each PLS.
+See <code>plot.lsplsCv</code> for details.  To calculate the RMSEP or
+MSEP values explicitly, one can use the function <code>RMSEP</code> or
+<code>MSEP</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bjørn-Helge Mevik [aut, cre]
+</p>
+<p>Maintainer: Bjørn-Helge Mevik &lt;b-h@mevik.net&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Jørgensen, K., Segtnan, V. H., Thyholt, K., Næs, T. (2004)  A
+Comparison of Methods for Analysing Regression Models with Both
+Spectral and Designed Variables.
+<em>Journal of Chemometrics</em>, <b>18</b>(10), 451–464.
+</p>
+<p>Jørgensen, K., Mevik, B.-H., Næs, T.  Combining Designed Experiments
+with Several Blocks of Spectroscopic Data.
+(Submitted)
+</p>
+<p>Mevik, B.-H., Jørgensen, K., Måge, I., Næs, T.  LS-PLS: Combining
+Categorical Design Variables with Blocks of Spectroscopic
+Measurements.
+(Submitted)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lspls</code>, <code>lsplsCv</code>, <code>plot.lspls</code>,
+<code>plot.lsplsCv</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## FIXME
+</code></pre>
+
+
+</div>

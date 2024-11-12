@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_LFI</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate community indicators</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the Large Fish Indicator (LFI), Typical Length (TyL) or Length Quantile (LQ) for the community or a subset of the species.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_LFI(wgt, N, bry, prop)
+
+calc_LQ(wgt, u_bound, N, prob)
+
+calc_TyL(wgt, mid, N)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>wgt</code></td>
+<td>
+<p>A matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the weight of each species in each length class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>A matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the number of individuals in each length class for the current time step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bry</code></td>
+<td>
+<p>A numeric vector representing the length classes that are larger than <code>length_LFI</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop</code></td>
+<td>
+<p>A numeric value between 0 and 1 representing how far along, as a proportion, the value of the large indicator threshold is in the length class that contains it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_bound</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the upper bounds of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>A numeric value or vector between 0 and 1 denoting the LQ to be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mid</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the mid-point of the length classes in the model.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>calc_LFI</code> returns a numeric value or vector representing the proportion of the biomass in the length classes above <code>bry</code> and in <code>prop</code> of the biomass in the length class <code>bry</code>.
+</p>
+<p><code>calc_TYL</code> returns a numeric value or vector representing the biomass-weighted geometric mean length of the community.
+</p>
+<p><code>calc_LQ</code> returns a numeric value or vector representing the length at which biomass exceeds a given proportion <code>prob</code> of the total biomass.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_indicators</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up and run the model
+NS_params &lt;- LeMansParam(NS_par, tau=NS_tau, eta=rep(0.25, 21), L50=NS_par$Lmat, other=1e11)
+effort &lt;- matrix(0.5, 10, dim(NS_params@Qs)[3])
+model_run &lt;- run_LeMans(NS_params, years=10, effort=effort)
+
+# Calculate the LFI for 40cm
+bry &lt;- which(NS_params@l_bound&lt;=40 &amp; NS_params@u_bound&gt;40)
+length_LFI &lt;- 40
+prop &lt;- (length_LFI-NS_params@l_bound[bry])/(NS_params@u_bound[bry]-NS_params@l_bound[bry])
+LFI &lt;- calc_LFI(model_run@N[,,101], NS_params@wgt, bry, prop)
+
+# Calculate TyL for the final time step
+calc_TyL(wgt=NS_params@wgt, mid=NS_params@mid, N=model_run@N[,,101])
+
+# Calculate the LQ for the final time step
+calc_LQ(wgt=NS_params@wgt, u_bound=NS_params@u_bound, N=model_run@N[,,101], prob=0.5)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>import_Statechanges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Import data that contain <code>Datetimes</code> of <code>Statechanges</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Auxiliary data greatly enhances data analysis. This function allows the
+import of files that contain <code>Statechanges</code>, i.e., specific time points of
+when a <code>State</code> (like <code>sleep</code> or <code>wake</code>) starts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">import_Statechanges(
+  filename,
+  path = NULL,
+  sep = ",",
+  dec = ".",
+  structure = c("wide", "long"),
+  Datetime.format = "ymdHMS",
+  tz = "UTC",
+  State.colnames,
+  State.encoding = State.colnames,
+  Datetime.column = Datetime,
+  Id.colname,
+  State.newname = State,
+  Id.newname = Id,
+  keep.all = FALSE,
+  silent = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Filename(s) for the Dataset. Can also contain the filepath,
+but <code>path</code> must then be <code>NULL</code>. Expects a <code>character</code>. If the vector is
+longer than <code>1</code>, multiple files will be read in into one Tibble.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Optional path for the dataset(s). <code>NULL</code> is the default. Expects
+a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>String that separates columns in the import file. Defaults to
+<code>","</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec</code></td>
+<td>
+<p>String that indicates a decimal separator in the import file.
+Defaults to <code>"."</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>structure</code></td>
+<td>
+<p>String that specifies whether the import file is in the
+<code>long</code> or <code>wide</code> format. Defaults to <code>"wide"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.format</code></td>
+<td>
+<p>String that specifies the format of the <code>Datetimes</code> in
+the file. The default <code>"ymdHMS"</code> specifies a format like "2023-07-10
+10:00:00". In the function, <code>lubridate::parse_date_time()</code> does the actual
+conversion - the documentation can be searched for valid inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>Timezone of the data. <code>"UTC"</code> is the default. Expects a
+<code>character</code>. You can look up the supported timezones with <code>OlsonNames()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>State.colnames</code></td>
+<td>
+<p>Column name or vector of column names (the latter only
+in the <code>wide</code> format). Expects a <code>character</code>.
+</p>
+
+<ul>
+<li>
+<p> In the <code>wide</code> format, the column names indicate the <code>State</code> and must contain <code>Datetimes</code>. The columns will be pivoted to the columns specified in <code>Datetime.column</code> and <code>State.newname</code>.
+</p>
+</li>
+<li>
+<p> In the <code>long</code> format, the column contains the <code>State</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>State.encoding</code></td>
+<td>
+<p>In the <code>wide</code> format, this enables recoding the column
+names to state names, if there are any differences. The default uses the
+<code>State.colnames</code> argument. Expects a <code>character</code> (vector) with the same
+length as <code>State.colnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.column</code></td>
+<td>
+<p>Symbol of the <code>Datetime</code> column (which is also the
+default).
+</p>
+
+<ul>
+<li>
+<p> In the <code>wide</code> format, this is the newly created column from the <code>Datetimes</code> in the <code>State.colnames</code>.
+</p>
+</li>
+<li>
+<p> In the <code>long</code> format, this is the existing column that contains the <code>Datetimes</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Id.colname</code></td>
+<td>
+<p>Symbol of the column that contains the <code>ID</code> of the subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>State.newname</code></td>
+<td>
+<p>Symbol of the column that will contain the <code>State</code> of
+the subject. In the <code>wide</code> format, this is the newly created column from
+the <code>State.colnames</code>. In the <code>long</code> format, this argument is used to rename
+the <code>State</code> column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Id.newname</code></td>
+<td>
+<p>Column name used for renaming the <code>Id.colname</code> column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.all</code></td>
+<td>
+<p>Logical that specifies whether all columns should be
+kept in the output. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>Logical that specifies whether a summary of the
+imported data should be shown. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Data can be present in the long or wide format.
+</p>
+
+<ul>
+<li>
+<p> In the <code>wide</code> format, multiple <code>Datetime</code> columns indicate the state through the column name. These get pivoted to the <code>long</code> format and can be recoded through the <code>State.encoding</code> argument.
+</p>
+</li>
+<li>
+<p> In the <code>long</code> format, one column indicates the <code>State</code>, while the other gives the <code>Datetime</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>a dataset with the <code>ID</code>, <code>State</code>, and <code>Datetime</code> columns. May contain
+additional columns if <code>keep.all</code> is <code>TRUE</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#get the example file from within the package
+path &lt;- system.file("extdata/",
+package = "LightLogR")
+file.sleep &lt;- "205_sleepdiary_all_20230904.csv"
+
+#import Data in the wide format (sleep/wake times)
+import_Statechanges(file.sleep, path,
+Datetime.format = "dmyHM",
+State.colnames = c("sleep", "offset"),
+State.encoding = c("sleep", "wake"),
+Id.colname = record_id,
+sep = ";",
+dec = ",")
+
+#import in the long format (Comments on sleep)
+import_Statechanges(file.sleep, path,
+                   Datetime.format = "dmyHM",
+                   State.colnames = "comments",
+                   Datetime.column = sleep,
+                   Id.colname = record_id,
+                   sep = ";",
+                   dec = ",", structure = "long")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcMethodFunction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Specify a custom method based on a function</h2>
+
+<h3>Description</h3>
+
+<p>Specify a custom method based on a function
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcMethodFunction(
+  response,
+  fun,
+  center = meanNA,
+  time = getOption("latrend.time"),
+  id = getOption("latrend.id"),
+  name = "custom"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>The name of the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>The cluster <code>function</code> with signature <code style="white-space: pre;">⁠(method, data)⁠</code> that returns a <code>lcModel</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>Optional <code>function</code> for computing the longitudinal cluster centers, with signature <code>(x)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the trajectory identification variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The name of the method.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>Other lcMethod implementations: 
+<code>getArgumentDefaults()</code>,
+<code>getArgumentExclusions()</code>,
+<code>lcMethod-class</code>,
+<code>lcMethodAkmedoids</code>,
+<code>lcMethodCrimCV</code>,
+<code>lcMethodDtwclust</code>,
+<code>lcMethodFeature</code>,
+<code>lcMethodFunFEM</code>,
+<code>lcMethodGCKM</code>,
+<code>lcMethodKML</code>,
+<code>lcMethodLMKM</code>,
+<code>lcMethodLcmmGBTM</code>,
+<code>lcMethodLcmmGMM</code>,
+<code>lcMethodMclustLLPA</code>,
+<code>lcMethodMixAK_GLMM</code>,
+<code>lcMethodMixtoolsGMM</code>,
+<code>lcMethodMixtoolsNPRM</code>,
+<code>lcMethodRandom</code>,
+<code>lcMethodStratify</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(latrendData)
+# Stratification based on the mean response level
+clusfun &lt;- function(data, response, id, time, ...) {
+  clusters &lt;- data.table::as.data.table(data)[, mean(Y) &gt; 0, by = Id]$V1
+  lcModelPartition(
+    data = data,
+    trajectoryAssignments = factor(
+      clusters,
+      levels = c(FALSE, TRUE),
+      labels = c("Low", "High")
+    ),
+    response = response,
+    time = time,
+    id = id
+  )
+}
+method &lt;- lcMethodFunction(response = "Y", fun = clusfun, id = "Id", time = "Time")
+model &lt;- latrend(method, data = latrendData)
+</code></pre>
+
+
+</div>

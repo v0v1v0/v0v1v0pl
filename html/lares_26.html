@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clusterKmeans</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automated K-Means Clustering + PCA/t-SNE</h2>
+
+<h3>Description</h3>
+
+<p>This function lets the user cluster a whole data.frame automatically.
+As you might know, the goal of kmeans is to group data points into
+distinct non-overlapping subgroups. If needed, one hot encoding will
+be applied to categorical values automatically with this function.
+For consideration: Scale/standardize the data when applying kmeans.
+Also, kmeans assumes spherical shapes of clusters and does not work well
+when clusters are in different shapes such as elliptical clusters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clusterKmeans(
+  df,
+  k = NULL,
+  wss_var = 0,
+  limit = 15,
+  drop_na = TRUE,
+  ignore = NULL,
+  ohse = TRUE,
+  norm = TRUE,
+  algorithm = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"),
+  dim_red = "PCA",
+  comb = c(1, 2),
+  seed = 123,
+  quiet = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Dataframe</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer. Number of clusters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wss_var</code></td>
+<td>
+<p>Numeric. Used to pick automatic <code>k</code> value,
+when <code>k</code> is <code>NULL</code> based on WSS variance while considering
+<code>limit</code> clusters. Values between (0, 1). Default value could be
+0.05 to consider convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>Integer. How many clusters should be considered?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop_na</code></td>
+<td>
+<p>Boolean. Should NA rows be removed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore</code></td>
+<td>
+<p>Character vector. Names of columns to ignore.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ohse</code></td>
+<td>
+<p>Boolean. Do you wish to automatically run one hot
+encoding to non-numerical columns?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>Boolean. Should the data be normalized?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>character: may be abbreviated.  Note that
+<code>"Lloyd"</code> and <code>"Forgy"</code> are alternative names for one
+algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim_red</code></td>
+<td>
+<p>Character. Select dimensionality reduction technique.
+Pass any of: <code>c("PCA", "tSNE", "all", "none")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comb</code></td>
+<td>
+<p>Vector. Which columns do you wish to plot? Select which
+two variables by name or column position.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Numeric. Seed for reproducibility</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Boolean. Keep quiet? If not, print messages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters to pass sub-functions.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List. If no <code>k</code> is provided, contains <code>nclusters</code> and
+<code>nclusters_plot</code> to determine optimal <code>k</code> given their WSS (Within
+Groups Sum of Squares). If <code>k</code> is provided, additionally we get:
+</p>
+
+<ul>
+<li> <p><code>df</code> data.frame with original <code>df</code> plus <code>cluster</code> column
+</p>
+</li>
+<li> <p><code>clusters</code> integer which is the same as <code>k</code>
+</p>
+</li>
+<li> <p><code>fit</code> kmeans object used to fit clusters
+</p>
+</li>
+<li> <p><code>means</code> data.frame with means and counts for each cluster
+</p>
+</li>
+<li> <p><code>correlations</code> plot with correlations grouped by clusters
+</p>
+</li>
+<li> <p><code>PCA</code> list with PCA results (when <code>dim_red="PCA"</code>)
+</p>
+</li>
+<li> <p><code>tSNE</code> list with t-SNE results (when <code>dim_red="tSNE"</code>)
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other Clusters: 
+<code>clusterOptimalK()</code>,
+<code>clusterVisualK()</code>,
+<code>reduce_pca()</code>,
+<code>reduce_tsne()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Sys.unsetenv("LARES_FONT") # Temporal
+data("iris")
+df &lt;- subset(iris, select = c(-Species))
+
+# If dataset has +5 columns, feel free to reduce dimenstionalities
+# with reduce_pca() or reduce_tsne() first
+
+# Find optimal k
+check_k &lt;- clusterKmeans(df, limit = 10)
+check_k$nclusters_plot
+# Or pick k automatically based on WSS variance
+check_k &lt;- clusterKmeans(df, wss_var = 0.05, limit = 10)
+# You can also use our other functions:
+# clusterOptimalK(df) and clusterVisualK(df)
+
+# Run with selected k
+clusters &lt;- clusterKmeans(df, k = 3)
+names(clusters)
+
+# Cross-Correlations for each cluster
+plot(clusters$correlations)
+
+# PCA Results (when dim_red = "PCA")
+plot(clusters$PCA$plot_explained)
+plot(clusters$PCA$plot)
+</code></pre>
+
+
+</div>

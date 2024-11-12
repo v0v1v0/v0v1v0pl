@@ -1,0 +1,528 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>anneal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform Simulated Annealing for Maximum Likelihood Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Performs simulated annealing - a global optimization algorithm - for
+maximum likelihood estimation of model parameters.  Bounded, unbounded, and
+mixed searches can all be performed. See the 
+Simulated Annealing Algorithm help page for more on how simulated
+annealing is actually performed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">anneal(model, par, var, source_data, par_lo = NULL, par_hi = NULL, pdf, 
+dep_var, initial_temp = 3, temp_red = 0.95, ns = 20, nt = 100, 
+max_iter = 50000, min_change = 0, min_drops = 100, hessian = TRUE, 
+delta = 100, slimit = 2, c = 2, note = "", show_display = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Scientific model for whose parameters <code>anneal</code> will find
+maximum likelihood estimates. This is an R function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>List object of parameters for which to find maximum likelihood 
+estimates using simulated annealing. The name of each component in <code>par</code>
+matches the name of an argument in one of the functions passed to
+<code>anneal</code> (either <code>model</code>, <code>pdf</code>, or any other function that
+you pass in).  The value of each component is the initial value. All
+components in <code>par</code> must be numeric vectors.  Vectors of length greater
+than one have each of their elements treated separately as individual
+parameters to estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>List object with the source for all other arguments and
+data used by <code>model</code>, <code>pdf</code>, and any other functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_data</code></td>
+<td>
+<p>Data frame containing any needed source data. You can 
+reference the data frame columns by name to <code>anneal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_lo</code></td>
+<td>
+<p>List object with the lower search bounds for each parameter to
+estimate.  The list component names and sizes should each match a component
+in <code>par</code>. Any individual component (up to and including the entire
+<code>par_lo</code> argument) is optional. For any component of <code>par</code> that is
+omitted, the lower search bound for that parameter is assumed to be negative
+infinity. (Infinity isn't quite infinity - see details section for more.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_hi</code></td>
+<td>
+<p>List object with the upper search bounds for each parameter to
+estimate.  The list component names and sizes should each match a component
+in <code>par</code>. Any individual component (up to and including the entire
+<code>par_hi</code> argument) is optional.  For any component of <code>par</code> that is
+omitted, the upper search bound for that parameter is assumed to be infinity.
+(Infinity isn't quite infinity - see details section for more.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>Probability density function to use in likelihood calculations.
+<code>anneal</code> depends on a log likelihood value, so you must instruct
+<code>pdf</code> to calculate the log of its result.  This is an option with all of
+R's built-in PDFs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dep_var</code></td>
+<td>
+<p>The name of the column in <code>source_data</code>, as a string, that
+contains the dependent variable (the “observed” value).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial_temp</code></td>
+<td>
+<p>The temperature at which to start the annealing process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>temp_red</code></td>
+<td>
+<p>The rate of temperature reduction (a fractional number less
+than 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ns</code></td>
+<td>
+<p>Number of iterations between changes in parameter search ranges. One
+iteration varies all parameters one time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nt</code></td>
+<td>
+<p>Controls number of iterations between drops in temperature. Temperature
+drops occur at nt * ns iterations. One iteration varies all parameters one time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations to perform. One iteration varies
+all parameters one time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_change</code></td>
+<td>
+<p>An alternate (and optional) way to specify quitting
+conditions for the run. This is the minimum amount of change in likelihood
+in <code>min_drop</code> number of temperature drops.  If the change is less than
+<code>min_change</code>, execution stops even if <code>max_iter</code> number of
+iterations have not been performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_drops</code></td>
+<td>
+<p>The companion to <code>min_change</code> for alternate quitting
+conditions.  This is the number of temperature drops over which the
+likelihood must have changed more than <code>min_change</code> for execution to
+continue.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>if TRUE, the Hessian matrix is used to calculate the standard
+error for each parameter and the parameter variance-covariance matrix. These
+are included in the output.  If FALSE, this step is skipped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>The number by which to divide each parameter maximum likelihood   
+estimate value when searching for support limits. The bigger the number, the 
+finer the search. See <code>support_limits</code> for more on how support
+limits are calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slimit</code></td>
+<td>
+<p>When calculating support limits for the parameter maximum
+likelihood estimates, this is the number of likelihood units less than the
+optimum likelihood for which to search the parameter ranges. 2 units is 
+standard.  1.92 units corresponds roughly to a 95 percent confidence 
+interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>Controls the reduction in parameter search range. A value of 0 would
+keep the search range permanently between the values set in <code>par_lo</code> and
+<code>par_hi</code>. A higher value will restrict the search more when range
+adjustments are made. A value of 2 is recommended by Goffe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>note</code></td>
+<td>
+<p>A note about the run.  This can be any character string.  This 
+will be written to output files by <code>write_results</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_display</code></td>
+<td>
+<p>Whether or not to show the progress display.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any other data needed by <code>model</code>, <code>pdf</code>, or any other
+function to be called by <code>anneal</code>.  This is an alternative to providing
+the data in <code>var</code>; however, passing all values in <code>var</code> is strongly
+recommended.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Simulated annealing is a search algorithm that attempts to find the global
+maximum of the likelihood surface produced by all possible values of the
+parameters being estimated.  The value of the maximum that <code>anneal</code> finds
+is the maximum likelihood value, and the value of the parameters that produced
+it are their maximum likelihood estimates.  See the
+Simulated Annealing Algorithm page for details on how the search is
+performed. See the Likelihood Calculation page for details on how
+likelihood is calculated.  Simulated annealing is an algorithm that can 
+search any function; but <code>anneal</code> specifically searches likelihood.
+</p>
+<p>The <code>model</code> function is the scientific model, which generally takes as
+arguments the parameters for which to estimate maximum likelihood.  It 
+returns a predicted value of the dependent variable for each record in the
+<code>source_data</code> dataset, which is compared to the actual (observed) value
+when likelihood is calculated.  Write <code>model</code> so that it returns a
+vector of numeric values, one for each record in the dataset.
+</p>
+<p>The probability density function calculates the likelihood using the
+predicted and observed values of the dependent variable.  You can provide 
+your own function, but R has many built-in functions that you can use.  You 
+can read more about R's probability density functions in the help file
+“An Introduction to R”, but here is a brief list: <code>dbeta</code>
+(beta), <code>dexp</code> (exponential), <code>dgamma</code> (gamma),
+<code>dlnorm</code> (lognormal), <code>dnbinom</code> (negative binomial),
+<code>dnorm</code> (normal), and <code>dpois</code> (poisson).  These all
+take a <code>log</code> argument which you should set to TRUE in <code>var</code> in
+order to calculate the log likelihood.  If you write your own probability
+density function, it should return a vector of values, one for each record
+in the dataset.
+</p>
+<p>If you wish, some of the arguments passed to <code>model</code> or <code>pdf</code> by
+<code>anneal</code> can be the results of other functions.  <code>anneal</code>
+will make sure these functions are evaluated at each search iteration.
+</p>
+<p><code>anneal</code> handles all function calls and data.  You tell <code>anneal</code>
+how to use your functions and data using <code>par</code> and <code>var</code>.
+Use <code>par</code> to give <code>anneal</code> the list of parameters for which to
+find maximum likelihood estimates.  All values must be numeric vectors.  The
+name of each list component must match the function argument where the
+value should go.  For example, if your model function takes an argument 
+called “a”, and you want the maximum likelihood estimate for a, there 
+should be a <code>par$a</code>.  If any component of <code>par</code> is a vector of 
+length greater than one, each value is treated as a separate parameter to 
+estimate.  This is useful if, for example, you wish to estimate a parameter 
+that has a different value for different sites or species.
+</p>
+<p>Use <code>var</code> to tell <code>anneal</code> where all other functions and data come
+from.  <code>var</code> is a list, and each component's name matches the function
+argument it should be used for (as with <code>par</code>).  The value can be of any
+data type that makes sense to the function.  To indicate that the source of a
+function argument is a column of data from a dataset, set that value of
+<code>var</code> to the name of the data frame's column, as a character string (for
+example, <code>var$dbh&lt;-"DBH"</code>).  Case matters!  You will get the best
+results if all function arguments and column names are unique, so that there
+is no ambiguity. You are also free to reference values directly from the global environment in your functions if you prefer.
+</p>
+<p>The reserved character string “predicted”, used in <code>var</code>, means
+the predicted value of the dependent variable, as calculated by <code>model</code>.
+</p>
+<p>If you want <code>anneal</code> to pass the results of another function as an
+argument to the <code>model</code> or <code>pdf</code> functions, define the function
+and then set the appropriate argument in <code>var</code> to the name of the
+function.  Then provide all arguments to the sub-function in <code>var</code> as
+well.  For instance, if your model function takes an argument called
+<code>x</code>, and you wish <code>x</code> to be the result of function <code>fun1</code>,
+then set <code>var$x &lt;- fun1</code>, and add any arguments to <code>fun1</code> to
+<code>var</code>.  <code>anneal</code> will ensure that all functions are evaluated in 
+the proper order.
+</p>
+<p>If the likelihood is calculated as infinity or NaN (which can easily
+happen), the likelihood is arbitrarily set to -1000000 to preserve the
+ability to graph results and compare values.  If your best likelihood is 
+-1000000, it is possible that no valid likelihood value was found.
+</p>
+<p>The search ranges for parameters can be set to (or allowed to default to)
+negative and positive infinity. In practice, the search is bounded by the
+largest and smallest values the computer can work with.  To find out what the
+actual limits are on your computer, use <code>.Machine$double.xmax</code>.
+</p>
+<p>When looking at the examples provided in the demos that come with this
+package, check those for <code>likeli</code> as well, since the parameter setup
+techniques are the same.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list object with information on the annealing run.  If you stop the run by
+pressing Esc, you will get this data structure with the results of the run at
+the point where you stopped it.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>best_pars</code></td>
+<td>
+<p>The maximum likelihood estimates for each value in
+<code>par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>A copy of the <code>var</code> argument, to help you keep track of your
+analysis. To save space, any data frames are removed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_data</code></td>
+<td>
+<p>A copy of the <code>source_data</code> data frame, with a column
+added for the predicted values calculated by <code>model</code> using the maximum
+likelihood estimates of the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>The name of the <code>pdf</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The name of the <code>model</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>The number of annealing iterations completed.  One iteration
+varies all parameters one time.  If the run does not complete, this may not
+be an integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_likeli</code></td>
+<td>
+<p>The maximum likelihood value found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic_corr</code></td>
+<td>
+<p>The value of Akaike's Information Criterion, “corrected”
+for small sample size. See the Simulated Annealing Algorithm help page
+for more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>The value of Akaike's Information Criterion. See the
+Simulated Annealing Algorithm help page for more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slope</code></td>
+<td>
+<p>Slope of observed values linearly regressed on those predicted by
+<code>model</code>, using the parameter maximum likelihood estimates. The intercept
+is forced at zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2</code></td>
+<td>
+<p>Proportion of variance explained by the model relative to that
+explained by the simple mean of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likeli_hist</code></td>
+<td>
+<p>Data frame with the history of likelihood change throughout
+the run. All changes in likelihood are recorded, along with regular periodic
+checkpoints. The columns are: “temp”, the temperature at that point,
+“iter”, the number of iterations completed, and “likeli”, the
+maximum likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_lo</code></td>
+<td>
+<p>List object with the lower bounds for each of the parameters. If
+any value was omitted in the original arguments, it is recorded here as a
+value that approximates negative infinity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_hi</code></td>
+<td>
+<p>List object with upper bounds for varying parameters. If
+any value was omitted in the original arguments, it is recorded here as a
+value that approximates infinity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_step</code></td>
+<td>
+<p>List object with final size of the search range for each
+parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>note</code></td>
+<td>
+<p>The value of the <code>note</code> argument, above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper_limits</code></td>
+<td>
+<p>List object with upper support limits for each parameter.
+For more on support limits, see the <code>support_limits</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower_limits</code></td>
+<td>
+<p>List object with lower support limits for each parameters.
+For more on support limits, see the <code>support_limits</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>std_errs</code></td>
+<td>
+<p>If <code>anneal</code> was run with <code>hessian = TRUE</code>, this is
+a list object with the standard errors for each parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_covar_mat</code></td>
+<td>
+<p>If <code>anneal</code> was run with <code>hessian = TRUE</code>, this
+is the parameter variance / covariance matrix.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Goffe, W.L., G.D. Ferrier, and J. Rogers. 1994.  Global optimization of
+statistical functions with simulated annealing.  Journal of Econometrics
+60:65-99.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##
+## Simulated annealing to maximize log
+## likelihood for the following:
+## Model: Radius = a + b * DBH
+## Dataset: included crown_rad dataset
+## We want to use simulated annealing to
+## find maximum likelihood estimates of
+## the parameters "a" and "b".
+##
+## Not run: 
+library(likelihood)
+
+## Set up our dataset
+data(crown_rad)
+dataset &lt;- crown_rad
+
+## Create our model function
+modelfun &lt;- function (a, b, DBH) {a + b * DBH}
+
+## Create the list for the parameters to estimate and
+## set initial values for a and b
+par &lt;- list(a = 0, b = 0)
+
+## Create a place to put all the other data needed by
+## the model and PDF, and indicate that DBH comes from 
+## the column marked "DBH" in the dataset
+var &lt;- list(DBH = "DBH")
+
+## Set bounds and initial search ranges within which to search for parameters
+par_lo &lt;- list(a = 0, b = 0)
+par_hi &lt;- list(a = 50, b = 50)
+
+## We'll use the normal probability density function -
+## add the options for it to our parameter list
+## "x" value in PDF is observed value
+var$x &lt;- "Radius"
+
+## Mean in normal PDF
+var$mean &lt;- "predicted"
+var$sd &lt;- 0.815585
+
+## Have it calculate log likelihood
+var$log &lt;- TRUE
+
+results&lt;-anneal(model = modelfun, par = par, var = var,
+  source_data = dataset, par_lo = par_lo, par_hi = par_hi,
+  pdf = dnorm, dep_var = "Radius", max_iter = 20000)
+
+## Alternately: reference crown_rad$DBH directly in the function without
+## using var
+modelfun &lt;- function (a, b) {a + b * crown_rad$DBH}
+var &lt;- list(x = "Radius",
+            mean = "predicted",
+            sd = 0.815585,
+            log = TRUE)
+results&lt;-anneal(model = modelfun, par = par, var = var,
+  source_data = dataset, par_lo = par_lo, par_hi = par_hi,
+  pdf = dnorm, dep_var = "Radius", max_iter = 20000)
+
+## End(Not run)  
+</code></pre>
+
+
+</div>

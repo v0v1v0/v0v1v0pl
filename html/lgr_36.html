@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>EventFilter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Event Filters</h2>
+
+<h3>Description</h3>
+
+<p>EventFilters specify arbitrarily complex logic for whether or
+not a LogEvent should be processed by a Logger or Appender. They are
+attached to Loggers/Appenders via their <code style="white-space: pre;">⁠$set_filter()⁠</code> or <code style="white-space: pre;">⁠$add_filter()⁠</code>
+methods. If any EventFilter evaluates to <code>FALSE</code> for a given event, that
+event is ignored - similarly to when it does not pass the objects'
+threshold.
+</p>
+<p>Usually you do not need to instantiate a formal <code>EventFilter</code> object as you
+can just use any <code>function</code> that has the single argument <code>event</code> instead.
+If you need to implement more complex filter logic - for example a filter
+that is dependent on a dataset - it might be desirable to subclass
+EventFilter, as R6::R6 objects can store data and functions together.
+</p>
+<p><code>.obj()</code> is a special function that can only be used within the
+<code style="white-space: pre;">⁠$filter()⁠</code> methods of EventFilters. It returns the Logger
+or Appender that the EventFilter is attached to.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">.obj()
+</code></pre>
+
+
+<h3>Modifying LogEvents with EventFilters</h3>
+
+<p>Since LogEvents are R6 objects with reference semantics, EventFilters can be
+abused to modify events before passing them on. lgr comes with a few
+preset filters that use this property: FilterInject (similar to
+<code>with_log_level()</code>) and FilterForceLevel (similar to <code>with_log_value()</code>).
+</p>
+<p><strong>NOTE:</strong> The base class for Filters is called <code>EventFilter</code> so that it
+doesn't conflict with <code>base::Filter()</code>. The recommended convention for
+Filter subclasses is to call them <code>FilterSomething</code> and leave out the
+<code>Event</code> prefix.
+</p>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-EventFilter-new"><code>EventFilter$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-EventFilter-clone"><code>EventFilter$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-EventFilter-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Initialize a new EventFilter
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>EventFilter$new(fun = function(event) TRUE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>fun</code></dt>
+<dd>
+<p>a <code>function</code> with a single argument <code>event</code> that must return
+either <code>TRUE</code> or <code>FALSE</code>. Any  non-<code>FALSE</code> will be interpreted as
+<code>TRUE</code> (= no filtering takes place) and a warning will be thrown.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-EventFilter-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>EventFilter$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>See Also</h3>
+
+<p><code>is_filter()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lg &lt;- get_logger("test")
+f &lt;- function(event) {
+  cat("via event$.logger:", event$.logger$threshold, "\n")  #  works for loggers only
+  cat("via .obj():      ",.obj()$threshold, "\n") # works for loggers and appenders
+  TRUE
+}
+lg$add_filter(f)
+lg$fatal("test")
+lg$config(NULL)
+</code></pre>
+
+
+</div>

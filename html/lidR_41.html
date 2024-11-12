@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>catalog_retile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Retile a LAScatalog</h2>
+
+<h3>Description</h3>
+
+<p>Splits or merges files to reshape the original files collection (.las or .laz) into smaller or larger
+files. It also enables the addition or removal of a buffer around the tiles. Internally, the
+function reads and writes the chunks defined by the internal processing options of a
+LAScatalog. Thus, the function is flexible and enables the user to retile
+the dataset, retile while adding or removing a buffer (negative buffers are allowed), or optionally
+to compress the data by retiling without changing the pattern but by changing
+the format (las/laz). <strong>This function is does not load the point cloud into R memory</strong> It streams
+from input file(s) to output file(s) and can be applied to large point-cloud with low memory
+computer.<br><br>
+Note that this function is not actually very useful because <code>lidR</code> manages everything
+(clipping, processing, buffering, ...) internally using the proper options. Thus, retiling may be
+useful for working in other software, for example, but not in <code>lidR</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">catalog_retile(ctg)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>ctg</code></td>
+<td>
+<p>A LAScatalog object</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A new <code>LAScatalog</code> object
+</p>
+
+
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option <code>select</code> is not supported and not respected because it always preserves the file
+format and all the attributes. <code>select = "*"</code> is imposed internally.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+ctg = readLAScatalog(LASfile)
+plot(ctg)
+
+# Create a new set of 200 x 200 m.las files with first returns only
+opt_chunk_buffer(ctg) &lt;- 0
+opt_chunk_size(ctg) &lt;- 200
+opt_filter(ctg) &lt;- "-keep_first"
+opt_chunk_alignment(ctg) &lt;- c(275, 90)
+opt_output_files(ctg) &lt;- paste0(tempdir(), "/retile_{XLEFT}_{YBOTTOM}")
+
+# preview the chunk pattern
+plot(ctg, chunk = TRUE)
+
+newctg = catalog_retile(ctg)
+
+plot(newctg)
+
+# Create a new set of 200 x 200 m.las files
+# but extended with a 50 m buffer in the folder
+
+opt_chunk_buffer(ctg) &lt;- 25
+opt_chunk_size(ctg) &lt;- 200
+opt_filter(ctg) &lt;- ""
+opt_chunk_alignment(ctg) &lt;- c(275, 90)
+opt_output_files(ctg) &lt;- paste0(tempdir(), "/{XLEFT}_{YBOTTOM}_buffered")
+newctg = catalog_retile(ctg)
+
+plot(newctg)
+
+
+## Not run: 
+# Create a new set of compressed .laz file equivalent to the original, keeping only
+# first returns above 2 m
+
+opt_chunk_buffer(ctg) &lt;- 0
+opt_chunk_size(ctg) &lt;- 0
+opt_laz_compression(ctg) &lt;- TRUE
+opt_filter(ctg) &lt;- "-keep_first -drop_z_below 2"
+opt_output_files(ctg) &lt;- paste0(tempdir(), "/{ORIGINALFILENAME}_first_2m")
+newctg = catalog_retile(ctg)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

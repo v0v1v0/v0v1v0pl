@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>locCteWeights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Local Polynomial Weights </h2>
+
+<h3>Description</h3>
+
+<p>Local Constant and local Linear estimator with weight.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  locCteWeightsC(x, xeval, bw, kernel, weig = rep(1, length(x)))
+  locLinWeightsC(x, xeval, bw, kernel, weig = rep(1, length(x)))
+  locPolWeights(x, xeval, deg, bw, kernel, weig = rep(1, length(x)))
+  locWeightsEval(lpweig, y)
+  locWeightsEvalC(lpweig, y)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xeval</code></td>
+<td>
+<p> Vector with evaluation points. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p> Smoothing parameter, bandwidth. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p>  Local polynomial estimation degree (<code class="reqn">p</code>). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation, see <code>Kernels</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> Vector of weights for observations. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpweig</code></td>
+<td>
+<p> Local polynomial weights <code class="reqn">(X^TWX)^{-1}X^TW</code> evaluated at <code>xeval</code> matrix. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>locCteWeightsC</code> and <code>locLinWeightsC</code> computes local
+constant and local linear weights, say any of the entries of
+the vector <code class="reqn">(X^TWX)^{-1}X^TW</code> for <code class="reqn">p=0</code> and <code class="reqn">p=1</code> resp.
+<code>locWeightsEvalC</code> and <code>locWeightsEval</code> computes local
+the estimator for a given vector of responses <code>y</code>
+</p>
+
+
+
+
+
+
+<h3>Value</h3>
+
+<p><code>locCteWeightsC</code> and <code>locLinWeightsC</code> returns a list
+with two components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>den</code></td>
+<td>
+<p>Estimation of <code class="reqn">(n*h*f(x))^{p+1}</code> being <code class="reqn">h</code> the
+bandwidth <code>bw</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>locWeig</code></td>
+<td>
+<p><code class="reqn">(X^TWX)^{-1}X^TW</code> evaluated at <code>xeval</code> Matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Jorge Luis Ojeda Cabrera.</p>
+
+
+<h3>References</h3>
+
+<p>Fan, J. and Gijbels, I.
+<em> Local polynomial modelling and its applications\/</em>.
+Chapman &amp; Hall, London (1996).
+</p>
+<p>Wand, M.~P. and Jones, M.~C.
+<em> Kernel smoothing\/</em>.
+Chapman and Hall Ltd., London (1995).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Kernels</code>, locpol.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	size &lt;- 200
+	sigma &lt;- 0.25
+	deg &lt;- 1
+	kernel &lt;- EpaK
+	bw &lt;- .25
+	xeval &lt;- 0:100/100
+	regFun &lt;- function(x) x^3
+	x &lt;- runif(size)
+	y &lt;- regFun(x) + rnorm(x, sd = sigma)
+	d &lt;- data.frame(x, y)
+	lcw &lt;- locCteWeightsC(d$x, xeval, bw, kernel)$locWeig
+	lce &lt;- locWeightsEval(lcw, y)
+	lceB &lt;- locCteSmootherC(d$x, d$y, xeval, bw, kernel)$beta0
+	mean((lce-lceB)^2)
+    llw &lt;- locLinWeightsC(d$x, xeval, bw, kernel)$locWeig
+	lle &lt;- locWeightsEval(llw, y)
+	lleB &lt;- locLinSmootherC(d$x, d$y, xeval, bw, kernel)$beta0
+	mean((lle-lleB)^2)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ABB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Approximate Bayesian Bootstrap</h2>
+
+<h3>Description</h3>
+
+<p>This function performs multiple imputation (MI) with the Approximate
+Bayesian Bootstrap (ABB) of Rubin and Schenker (1986).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ABB(X, K=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>This is a vector or matrix of data that must include both
+observed and missing values. When <code>X</code> is a matrix, missing
+values must occur somewhere in the set, but are not required to
+occur in each variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>This is the number of imputations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Approximate Bayesian Bootstrap (ABB) is a modified form of the
+<code>BayesianBootstrap</code> (Rubin, 1981) that is used for
+multiple imputation (MI). Imputation is a family of statistical
+methods for replacing missing values with estimates. Introduced by
+Rubin and Schenker (1986) and Rubin (1987), MI is a family of
+imputation methods that includes multiple estimates, and therefore
+includes variability of the estimates.
+</p>
+<p>The data, <code class="reqn">\textbf{X}</code>, are assumed to be independent and
+identically distributed (IID), contain both observed and missing
+values, and its missing values are assumed to be ignorable (meaning
+enough information is available in the data that the missingness
+mechanism can be ignored, if the information is used properly) and
+Missing Completely At Random (MCAR). When <code>ABB</code> is used in
+conjunction with a propensity score (described below), missing values
+may be Missing At Random (MAR).
+</p>
+<p><code>ABB</code> does not add auxiliary information, but performs imputation
+with two sampling (with replacement) steps. First,
+<code class="reqn">\textbf{X}^\star_{obs}</code> is sampled from
+<code class="reqn">\textbf{X}_{obs}</code>. Then,
+<code class="reqn">\textbf{X}^\star_{mis}</code> is sampled from
+<code class="reqn">\textbf{X}^\star_{obs}</code>. The result is a sample of
+the posterior predictive distribution of
+<code class="reqn">(\textbf{X}_{mis}|\textbf{X}_{obs})</code>. The first
+sampling step is also known as hotdeck imputation, and the second
+sampling step changes the variance. Since auxiliary information is not
+included, <code>ABB</code> is appropriate for missing values that are
+ignorable and MCAR.
+</p>
+<p>Auxiliary information may be included in the process of imputation by
+introducing a propensity score (Rosenbaum and Rubin, 1983; Rosenbaum
+and Rubin, 1984), which is an estimate of the probability of
+missingness. The propensity score is often the result of a binary
+logit model, where missingness is predicted as a function of other
+variables. The propensity scores are discretized into quantile-based
+groups, usually quintiles. Each quintile must have both observed and
+missing values. <code>ABB</code> is applied to each quintile. This is called
+within-class imputation. It is assumed that the missing mechanism
+depends only on the variables used to estimate the propensity score.
+</p>
+<p>With <code class="reqn">K=1</code>, <code>ABB</code> may be used in MCMC, such as in
+<code>LaplacesDemon</code>, more commonly along with a propensity
+score for missingness. MI is performed, despite <code class="reqn">K=1</code>, because
+imputation occurs at each MCMC iteration. The practical advantage of
+this form of imputation is the ease with which it may be
+implemented. For example, full-likelihood imputation should perform
+better, but requires a chain to be updated for each missing value.
+</p>
+<p>An example of a limitation of <code>ABB</code> with propensity scores is to
+consider imputing missing values of income from age in a context where
+age and income have a positive relationship, and where the highest
+incomes are missing systematically. <code>ABB</code> with propensity scores
+should impute these highest missing incomes given the highest observed
+ages, but is unable to infer beyond the observed data.
+</p>
+<p>ABB has been extended (Parzen et al., 2005) to reduce bias, by
+introducing a correction factor that is applied to the MI variance
+estimate. This correction may be applied to output from <code>ABB</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns a list with <code class="reqn">K</code> components, one for each set
+of imputations. Each component contains a vector of imputations equal
+in length to the number of missing values in the data.
+</p>
+<p><code>ABB</code> does not currently return the mean of the imputations, or
+the between-imputation variance or within-imputation variance.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Parzen, M., Lipsitz, S.R., and Fitzmaurice, G.M. (2005). "A Note on
+Reducing the Bias of the Approximate Bayesian Bootstrap Imputation
+Variance Estimator". <em>Biometrika</em>, 92, 4, p. 971–974.
+</p>
+<p>Rosenbaum, P.R. and Rubin, D.B. (1983). "The Central Role of the
+Propensity Score in Observational Studies for Causal
+Effects". <em>Biometrika</em>, 70, p. 41–55.
+</p>
+<p>Rosenbaum, P.R. and Rubin, D.B. (1984). "Reducing Bias in
+Observational Studies Using Subclassification in the Propensity
+Score". <em>Journal of the American Statistical Association</em>, 79,
+p. 516–524.
+</p>
+<p>Rubin, D.B. (1981). "The Bayesian Bootstrap". <em>Annals of
+Statistics</em>, 9, p. 130–134.
+</p>
+<p>Rubin, D.B. (1987). "Multiple Imputation for Nonresponse in
+Surveys". John Wiley and Sons: New York, NY.
+</p>
+<p>Rubin, D.B. and Schenker, N. (1986). "Multiple Imputation for Interval
+Estimation from Simple Random Samples with Ignorable
+Nonresponse". <em>Journal of the American Statistical Association</em>,
+81, p. 366–374.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>BayesianBootstrap</code>,
+<code>LaplacesDemon</code>, and
+<code>MISS</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+
+### Create Data
+J &lt;- 10 #Number of variables
+m &lt;- 20 #Number of missings
+N &lt;- 50 #Number of records
+mu &lt;- runif(J, 0, 100)
+sigma &lt;- runif(J, 0, 100)
+X &lt;- matrix(0, N, J)
+for (j in 1:J) X[,j] &lt;- rnorm(N, mu[j], sigma[j])
+
+### Create Missing Values
+M1 &lt;- rep(0, N*J)
+M2 &lt;- sample(N*J, m)
+M1[M2] &lt;- 1
+M &lt;- matrix(M1, N, J)
+X &lt;- ifelse(M == 1, NA, X)
+
+### Approximate Bayesian Bootstrap
+imp &lt;- ABB(X, K=1)
+
+### Replace Missing Values in X (when K=1)
+X.imp &lt;- X
+X.imp[which(is.na(X.imp))] &lt;- unlist(imp)
+X.imp
+</code></pre>
+
+
+</div>

@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>L1centMDS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting a Target Plot</h2>
+
+<h3>Description</h3>
+
+<p><code>L1centMDS()</code> and <code>plot.L1centMDS()</code> are used together to draw a
+target plot, which is a target-shaped 2D plot that aids in the visual
+inspection of an undirected graph using the
+<i>L</i><sub>1</sub> centrality. See Kang
+and Oh (2024) for a formal definition of a target plot.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">L1centMDS(g, tol, maxiter, verbose)
+
+## S3 method for class 'igraph'
+L1centMDS(g, tol = 1e-05, maxiter = 1000, verbose = TRUE)
+
+## S3 method for class 'matrix'
+L1centMDS(g, tol = 1e-05, maxiter = 1000, verbose = TRUE)
+
+## S3 method for class 'L1centMDS'
+plot(x, zoom = 1, main = NULL, ...)
+
+## S3 method for class 'L1centMDS'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>An <code>igraph</code> graph object or a distance matrix. The graph must
+be undirected and connected. Equivalently, the distance matrix must be
+symmetric, and all entries must be finite.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A numerical tolerance. The gradient descent method terminates if
+the relative magnitude of the gradient falls below <code>tol</code> as in Kruskal
+(1964b). By default set to 10<sup>-5</sup>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>A number of maximum iteration allowances for the gradient descent
+algorithm. By default set to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A boolean.
+</p>
+
+<ul>
+<li> <p><code>TRUE</code> (the default): for each iteration, prints (1) current number of
+iterations, (2) current stress, and (3) relative magnitude of the gradient
+to the console. At the end, the final message is printed to the console; total
+number of iterations and final stress.
+</p>
+</li>
+<li> <p><code>FALSE</code>: suppress message to the console.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>L1centMDS</code> object, obtained as a result of the function
+<code>L1centMDS()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zoom</code></td>
+<td>
+<p>A numerical value on how much to zoom-in the plot. By default set
+to 1 (no zoom).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>Title of the plot. If set to <code>NULL</code> (the default), the title
+prints “Target plot / Stress = X”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods.
+</p>
+
+<ul>
+<li> <p><code>plot()</code> method: Further graphical parameters supplied to the internal
+<code>base::plot()</code> (for points) and <code>graphics::text()</code> (for labels) function.
+See <code>graphics::par()</code> document. To supply an argument to the former one,
+use the prefix ‘<code>plot.</code>’ and for the latter,
+‘<code>text.</code>’. For instance, <code>plot.cex = 1</code> sets the size of
+the point, whereas <code>text.cex = 1</code> sets the size of the label.
+</p>
+</li>
+<li> <p><code>print()</code> method: This argument is ignored.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Denoting the <i>L</i><sub>1</sub>
+centrality of vertex <code class="reqn">i</code> as <code class="reqn">c_i\in(0,1]</code>, a point representing that vertex is placed
+on a concentric circle with radius <code class="reqn">r_i =
+-\log(c_i)</code>. Representing each vertex as <code class="reqn">(r_i, \theta_i)</code> (in circular
+coordinates), the values of <code class="reqn">\theta_i</code> are derived using nonmetric
+multidimensional scaling proposed in Kruskal (1964a,b). The initial
+configuration is derived using classical multidimensional scaling
+(<code>stats::cmdscale()</code>). A gradient descent algorithm is employed in deriving
+optimal <code class="reqn">\theta_i</code>s.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>L1centMDS()</code> returns an object of class <code>L1centMDS</code>. It is a list
+consisting of three vectors:
+</p>
+
+<ul>
+<li> <p>‘radius’: Radius of a point representing each vertex in the
+target plot's circular coordinate system, i.e., <code class="reqn">-\log(L_1\text{
+ centrality})</code> for each vertex.
+</p>
+</li>
+<li> <p>‘theta’: Angle (in radians) of a point representing each vertex
+in the target plot's circular coordinate system.
+</p>
+</li>
+<li> <p>‘stress’: Stress measure defined in Kruskal (1964a).
+</p>
+</li>
+</ul>
+<p><code>plot.L1centMDS()</code> draws a target plot. Four concentric circles denote
+the 1st to 4th quartiles of the radius, and the values of the
+<i>L</i><sub>1</sub> centrality quartiles
+are shown in red text. Note that red texts denote the
+<i>L</i><sub>1</sub> centrality quartiles,
+<em>not</em> radius quartiles.
+</p>
+<p><code>print.L1centMDS()</code> prints number of iterations it took to fit a target plot.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The function <code>L1centMDS()</code> is valid only for undirected and connected
+graphs. Also, <code>L1centMDS()</code> only considers graphs with equal vertex
+multiplicities.
+</p>
+
+
+<h3>References</h3>
+
+<p>S. Kang and H.-S. Oh. On a notion of graph centrality based on
+<i>L</i><sub>1</sub> data depth.
+<em>arXiv preprint arXiv:2404.13233</em>, 2024.
+</p>
+<p>J. B. Kruskal. Multidimensional scaling by optimizing goodness of fit to a
+nonmetric hypothesis. <em>Psychometrika</em>, 29(1):1–27, 1964a.
+</p>
+<p>J. B. Kruskal. Nonmetric multidimensional scaling: a numerical method.
+<em>Psychometrika</em>, 29(2): 115–129, 1964b.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>L1cent()</code> for
+<i>L</i><sub>1</sub> centrality/prestige,
+<code>MASS::isoMDS()</code> and <code>stats::cmdscale()</code> for multidimensional scaling
+methods.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">parameters &lt;- L1centMDS(MCUmovie, verbose = FALSE)
+plot(parameters)
+</code></pre>
+
+
+</div>

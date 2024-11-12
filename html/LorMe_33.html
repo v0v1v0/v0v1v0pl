@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tax_summary</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Encapsulate meta file, feature tables and taxonomy annotation into tax summary object</h2>
+
+<h3>Description</h3>
+
+<p>The function packages meta file, feature tables and taxonomy annotation into tax summary object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tax_summary(
+  groupfile,
+  inputtable,
+  reads = TRUE,
+  taxonomytable,
+  into = "standard",
+  sep = ";",
+  outputtax = c("Phylum", "Genus")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>groupfile</code></td>
+<td>
+<p>A data frame containing treatment information</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputtable</code></td>
+<td>
+<p>OTU/ASV/species data frame with all numeric. Samples ID should be in column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reads</code></td>
+<td>
+<p>Logical.True for reads table and FALSE for percentage table. Default: TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxonomytable</code></td>
+<td>
+<p>Taxonomy annotation data frame,with first column OTU/ASV/TAX number ID and second column taxonomy annotation. See details in example.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>into</code></td>
+<td>
+<p>Names of separated taxonomy to create as character vector. Must select from c("Domain","Phylum","Class","Order","Family","Genus","Species").
+Shortcut input:1)By default."standard":c("Domain","Phylum","Class","Order","Family","Genus","Species"). Used for standard taxonomy annotation to OTU/ASV table.
+2)"complete":c("Domain","Kingdom","Phylum","Class","Order","Family","Genus","Species"). Used for complete taxonomy annotation to meta genomic table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>Separator of taxonomy table.Default: ";".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputtax</code></td>
+<td>
+<p>Names of output taxonomy level table. Default:c("Phylum","Genus"). Shortcut input is available with 'standard' and 'complete' same as above.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>One list containing taxonomy table data frame,containing reads and percentage table for each specified output. Full taxonomy annotation data frame is output in global environment.
+</p>
+
+
+<h3>Note</h3>
+
+<p>For taxonomy annotation with 'Kingdom' level, please set 'into' parameter as 'complete'!!!
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Wang Ningqi <a href="mailto:2434066068@qq.com">2434066068@qq.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">{
+  # Load data
+  data(testotu)
+
+  # Create group information data frame
+  groupinformation &lt;- data.frame(
+    group = c(rep("a", 10), rep("b", 10)),
+    factor1 = rnorm(10),
+    factor2 = rnorm(mean = 100, 10),
+    subject = factor(c(1:10, 1:10))
+  )
+
+  # Packaging data into a taxonomy summary object
+  test_object &lt;- tax_summary(
+    groupfile = groupinformation,
+    inputtable = testotu[, 2:21],
+    reads = TRUE,
+    taxonomytable = testotu[, c(1, 22)]
+  )
+
+  # Check integrated object
+  print(test_object)
+
+  # Extract genus relative abundance table
+  test_Genus &lt;- test_object$Genus_percent
+  head(test_Genus)
+
+  # Check corresponding taxonomy information of genus table
+  test_Genus_tax &lt;- test_object$Genus_taxonomy
+  head(test_Genus_tax)
+
+  # Summary base table into all taxonomy levels with standard output
+  test_object &lt;- tax_summary(
+    groupfile = groupinformation,
+    inputtable = testotu[, 2:21],
+    reads = TRUE,
+    taxonomytable = testotu[, c(1, 22)],
+    outputtax = "standard"
+  )
+  head(test_object$Species_percent)  # View first 10 rows of species percentage
+  head(test_object$Genus)  # View first 10 rows of genus table
+}
+</code></pre>
+
+
+</div>

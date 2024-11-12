@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>apply.seasonal</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Apply an aggregation function seasonally.
+</h2>
+
+<h3>Description</h3>
+
+<p>Similar to the functions <code>apply.daily</code>, <code>apply.monthly</code>, <code>apply.yearly</code> etc. from the <span class="pkg">xts</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">apply.seasonal(x, varying, fun = function(x) min(x, na.rm = TRUE),
+               aggregate = NULL, replace.inf = TRUE, origin = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>'xts'</code> or <code>'zoo'</code>. The time series which should get aggregated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varying</code></td>
+<td>
+<p>a character vector of length one of a possibly named vector of class  <code>'Date'</code> or coercible to  <code>'Date'</code>. Valid character vectors are <code>"daily"</code>, <code>"weekly"</code>, <code>"monthly"</code> or <code>"constant"</code>. If of class  <code>'Date'</code>, the elements are considered as start points of a season. See Examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun</code></td>
+<td>
+<p>the function used for aggregating all elements of a season.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aggregate</code></td>
+<td>
+<p>possibly a function used for aggregating per season.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace.inf</code></td>
+<td>
+<p>should non-finite values introduced by <code>fun</code> be omitted?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>The start of the hydrological year. If set to 1 (the default) aggregation is carried out using the calendar year.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a matrix with every (hydrological) year being a row and every column being a season.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> data(ngaruroro)
+ ng &lt;- as.xts(ngaruroro)
+
+ year &lt;- water_year(time(ng), origin = "Sept")
+ ng10 &lt;- ng[year %in% 1991:2000, ]
+
+ # computes the annual minima (AM)
+ apply.seasonal(ng10, varying = "yearly", origin = 9)
+
+ # computes the mean annual minima (MAM)
+ apply.seasonal(ng10, varying = "yearly", aggregate = mean, origin = 9)
+
+ # computes monthly minima (AM)
+ apply.seasonal(ng10, varying = "monthly", origin = 9)
+
+ # computes minima for summer and winter separately
+ # winter starts in September
+ seasons &lt;- as.Date(c("1999-09-01", "1999-11-04"))
+ names(seasons) &lt;- c("winter", "summer")
+ apply.seasonal(ng10$discharge, varying = seasons, origin = 9)
+</code></pre>
+
+
+</div>

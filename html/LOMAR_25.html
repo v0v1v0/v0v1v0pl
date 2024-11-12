@@ -1,0 +1,220 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>jrmpc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>jrmpc</h2>
+
+<h3>Description</h3>
+
+<p>Joint registration of multiple point sets
+See: G.  D.  Evangelidis,  D.  Kounades-Bastian,  R.  Horaud,  andE. Z. Psarakis. 
+A generative model for the joint registration of multiple point sets. 
+In European Conference on Computer Vision, pages 109–122. Springer, 2014
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">jrmpc(
+  V,
+  C = NULL,
+  K = NULL,
+  g = NULL,
+  initialPriors = NULL,
+  updatePriors = TRUE,
+  maxIter = 100,
+  fixedVarIter = 0,
+  tol = 0.01,
+  initializeBy = NULL,
+  model.selection = FALSE,
+  model.selection.threshold = NULL,
+  rotation.only = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>list of point sets as N x D matrices</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C</code></td>
+<td>
+<p>(optional) list of arrays of covariance matrices with C[[j]][,,i] the covariance matrix associated with point i of set j.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>(optional) number of components of the GMM, defaults to the average number of points in a set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>(optional) proportion of noisy points, defaults to 1/K. If set, priors will be initialized uniformly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialPriors</code></td>
+<td>
+<p>(optional) vector of length K of prior probabilities. Defaults to uniform distribution using g.
+If set, will determine g so it is an error to specify g with initialPriors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>updatePriors</code></td>
+<td>
+<p>logical, whether to update priors at each iteration (default: TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>maximum number of iterations to perform (default: 100).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedVarIter</code></td>
+<td>
+<p>number of iterations before starting variance updates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance for determining convergence (default: 1e-2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initializeBy</code></td>
+<td>
+<p>(optional) how to initialize the GMM means. Defaults to distributing the means on the surface of the sphere enclosing all (centred) sets.
+Currently supported values are:
+</p>
+
+<ul>
+<li>
+<p> 'sampling': sample from the data,
+</p>
+</li>
+<li>
+<p> a K x D matrix of points
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.selection</code></td>
+<td>
+<p>whether to perform model selection (default: FALSE). 
+If set to TRUE, GMM components with no support in the data are deleted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model.selection.threshold</code></td>
+<td>
+<p>value below which we consider a GMM component has no support, set to 1/K if not explicitly given</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotation.only</code></td>
+<td>
+<p>if set to TRUE, no translation is performed (default: FALSE)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list of 
+</p>
+
+<ul>
+<li>
+<p> Y: list of transformed point sets as N x d matrices,
+</p>
+</li>
+<li>
+<p> R: list of d x d rotation matrices, one for each point set in V,
+</p>
+</li>
+<li>
+<p> t: list of translation vectors, one for each point set in V,
+</p>
+</li>
+<li>
+<p> M: centres of the GMM,
+</p>
+</li>
+<li>
+<p> S: variances of the GMM.
+</p>
+</li>
+<li>
+<p> a: list of posterior probabilities as N x K matrices
+</p>
+</li>
+<li>
+<p> iter: number of iterations
+</p>
+</li>
+<li>
+<p> conv: error value used to evaluate convergence relative to tol
+</p>
+</li>
+<li>
+<p> z: support scores of the GMM components
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">X &lt;- read.csv(system.file("test_data", "parasaurolophusA.txt", package="LOMAR",
+ mustWork = TRUE), sep = "\t")
+Y &lt;- read.csv(system.file("test_data", "parasaurolophusB.txt", package="LOMAR",
+mustWork = TRUE), sep = "\t")
+Z &lt;- read.csv(system.file("test_data", "parasaurolophusC.txt", package="LOMAR",
+mustWork = TRUE), sep = "\t")
+PS &lt;- list(X, Y, Z)
+C &lt;- list()
+for(i in 1:3) {
+ cv &lt;- diag(0.1, ncol(PS[[i]])) + jitter(0.01, amount = 0.01)
+ cv &lt;- replicate(nrow(PS[[i]]), cv)
+ C[[i]] &lt;- cv
+}
+transformation &lt;- jrmpc(PS, C = C, K = 100, maxIter = 20, tol = 0.01, 
+model.selection = TRUE)
+## Not run: 
+# Visualize registration outcome
+library(rgl)
+colours &lt;- c("blue", "green", "magenta")
+Yt &lt;- transformation[['Y']]
+plot3d(Yt[[1]], col = colours[1])
+for(i in 2:length(Yt)) {
+ points3d(Yt[[i]], col = colours[i])
+}
+# Visualize GMM centres highlighting those with high variance
+GMM &lt;- as.data.frame(cbind(transformation[['M']], transformation[['S']]))
+colnames(GMM) &lt;- c("x", "y", "z", "S")
+colours &lt;- rep("blue", nrow(GMM))
+# Find high variance components
+threshold &lt;- quantile(transformation[['S']], 0.75)
+high.var.idx &lt;- which(transformation[['S']]&gt;threshold)
+colours[high.var.idx] &lt;- "red"
+plot3d(GMM[, c("x", "y", "z")], col = colours, type = 's', size = 2, box = FALSE, xlab = '', 
+      ylab = '', zlab = '', xlim = c(-0.15,0.15), ylim = c(-0.15, 0.15), 
+      zlim = c(-0.15, 0.15))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

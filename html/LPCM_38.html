@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Rc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Measuring goodness-of-fit for principal objects.
+</h2>
+
+<h3>Description</h3>
+
+<p>These functions compute the ‘coverage coefficient’ <code class="reqn">R_C</code>
+for local principal curves, local principal points
+(i.e., kernel density estimates obtained through iterated mean shift), and other principal objects.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Rc(x,...)
+
+## S3 method for class 'lpc'
+Rc(x,...)
+## S3 method for class 'lpc.spline'
+Rc(x,...)
+## S3 method for class 'ms'
+Rc(x,...)
+
+base.Rc(data,  closest.coords, type="curve")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> an object used to select a method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods (not
+needed yet).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closest.coords</code></td>
+<td>
+<p>A matrix of coordinates of the projected data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>For principal curves, don't modify. For principal points,
+set "points". </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>Rc</code> computes the coverage coefficient <code class="reqn">R_C</code>, a quantity which
+estimates the goodness-of-fit of a fitted principal object.   This
+quantity can be interpreted similar to the coefficient of determination in
+regression analysis: Values close to 1 indicate a good fit, while values
+close to 0 indicate a ‘bad’ fit (corresponding to linear PCA).
+</p>
+<p>For objects of type <code>lpc</code>, <code>lpc.spline</code>, and <code>ms</code>,  S3 methods are available which use the generic function
+<code>Rc</code>.  This, in turn, calls the base function <code>base.Rc</code>, which
+can also be used manually if the fitted object is of another class.
+In principle, function <code>base.Rc</code> can be used for assessing
+goodness-of-fit of any principal object provided that
+the coordinates (<code>closest.coords</code>) of the projected data are
+available. For instance, for HS principal curves fitted via
+<code>princurve</code>, this information is contained in component <code>$s</code>,
+and for a a k-means object, say <code>fitk</code>, this information can be
+obtained via <code>fitk$centers[fitk$cluster,]</code>. Set <code>type="points"</code> in
+the latter case.
+</p>
+<p>The function <code>Rc</code> attempts to compute all missing information, so
+computation will take the longer the less informative the given
+object <code>x</code> is. Note also,  <code>Rc</code> looks up the option <code>scaled</code> in the fitted
+object, and accounts for the scaling automatically. Important: If the data
+were scaled, then do NOT unscale the results by hand in order to feed
+the unscaled version into  <code>base.Rc</code>, this will give a wrong result.
+</p>
+<p>In terms of methodology, these functions compute  <code class="reqn">R_C</code> directly through the mean
+reduction of absolute residual length, rather than through the
+area above the coverage curve.
+</p>
+<p>These functions do currently not account for observation
+weights, i.e.  <code class="reqn">R_C</code> is computed through the unweighted mean
+reduction in absolute residual length (even if weights have been used for
+the curve fitting).  
+</p>
+<p>In the clustering context, a value of <code class="reqn">R_C=0.8</code> means that,
+after the clustering, the mean absolute residual length has been
+reduced by <code class="reqn">80\%</code> (compared to the distances to the overall mean).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. Einbeck.
+</p>
+
+
+<h3>References</h3>
+
+<p>Einbeck, Tutz, and Evers (2005). Local principal curves. Statistics and
+Computing 15, 301-313.
+</p>
+<p>Einbeck (2011).  Bandwidth selection for nonparametric unsupervised
+learning techniques – a unified approach via self-coverage. Journal of
+Pattern Recognition Research  6, 175-192. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lpc.spline</code>, <code>ms</code>, <code>coverage</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(calspeedflow)
+lpc1 &lt;- lpc.spline(lpc(calspeedflow[,3:4]), project=TRUE)
+Rc(lpc1)
+
+# is the same as:
+base.Rc(lpc1$lpcobject$data, lpc1$closest.coords)
+
+
+
+ms1 &lt;- ms(calspeedflow[,3:4], plot=FALSE)
+Rc(ms1)
+# is the same as:
+base.Rc(ms1$data, ms1$cluster.center[ms1$closest.label,], type="points")
+
+</code></pre>
+
+
+</div>

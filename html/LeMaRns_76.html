@@ -1,0 +1,375 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LeMansParam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A constructor for the <code>LeMansParam</code> class</h2>
+
+<h3>Description</h3>
+
+<p>A constructor for the <code>LeMansParam</code> class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LeMansParam(df, gdf, ...)
+
+## S4 method for signature 'ANY,ANY'
+LeMansParam(
+  df,
+  gdf,
+  nfish = nrow(df),
+  nsc = 32,
+  pred_mu = -2.25,
+  pred_sigma = 0.5,
+  other = 1e+12,
+  bounds = NULL,
+  calc_phi_min = FALSE,
+  phi_min = 0.1,
+  vary_growth = TRUE,
+  growth_eff = 0.5,
+  growth_eff_decay = 0.11,
+  eps = 1e-05,
+  force_mature = TRUE,
+  species_names = paste("species", 1:nfish, sep = "_"),
+  kappa = rep(10, nfish),
+  tau = matrix(1, nfish, nfish),
+  rec_fun = rep("hockey-stick", nfish),
+  recruit_params = list(a = 18.835 - 4.133 * df$Linf, b = rep(1000/nfish, nfish)),
+  natmort_opt = rep("std_RNM", nfish),
+  Nmort = rep(0.8, nfish),
+  prop = rep(3/4, nfish),
+  curve = rep("logistic", nfish),
+  catch_species = ((0:(length(curve) - 1))%%nfish) + 1,
+  max_catchability = rep(1, length(curve)),
+  gear_name = paste("gear_", 1:length(curve), sep = ""),
+  custom = NULL,
+  ...
+)
+
+## S4 method for signature 'missing,ANY'
+LeMansParam(
+  gdf,
+  nfish = length(Linf),
+  nsc = 32,
+  pred_mu = -2.25,
+  pred_sigma = 0.5,
+  other = 1e+12,
+  bounds = NULL,
+  calc_phi_min = FALSE,
+  phi_min = 0.1,
+  vary_growth = FALSE,
+  growth_eff = 0.5,
+  growth_eff_decay = 0.11,
+  eps = 1e-05,
+  force_mature = TRUE,
+  Linf,
+  k,
+  W_a,
+  W_b,
+  Lmat,
+  species_names = paste("species", 1:nfish, sep = "_"),
+  kappa = rep(10, nfish),
+  tau = matrix(1, nfish, nfish),
+  rec_fun = rep("hockey-stick", nfish),
+  recruit_params = list(a = 18.835 - 4.133 * Linf, b = rep(1000/nfish, nfish)),
+  natmort_opt = rep("std_RNM", nfish),
+  Nmort = rep(0.8, nfish),
+  prop = rep(3/4, nfish),
+  curve = rep("logistic", nfish),
+  catch_species = ((0:(length(curve) - 1))%%nfish) + 1,
+  max_catchability = rep(1, length(curve)),
+  gear_name = paste("gear_", 1:length(curve), sep = ""),
+  custom = NULL,
+  ...
+)
+
+## S4 method for signature 'missing,missing'
+LeMansParam(
+  df,
+  gdf,
+  nfish = length(Linf),
+  nsc = 32,
+  pred_mu = -2.25,
+  pred_sigma = 0.5,
+  other = 1e+12,
+  bounds = NULL,
+  calc_phi_min = TRUE,
+  phi_min = 0.1,
+  vary_growth = FALSE,
+  growth_eff = 0.5,
+  growth_eff_decay = 0.11,
+  eps = 1e-05,
+  force_mature = TRUE,
+  species_names = paste("species", 1:nfish, sep = "_"),
+  Linf,
+  k,
+  W_a,
+  W_b,
+  Lmat,
+  kappa = rep(10, nfish),
+  tau = matrix(1, nfish, nfish),
+  rec_fun = rep("hockey-stick", nfish),
+  recruit_params = list(a = 18.835 - 4.133 * Linf, b = rep(1000/nfish, nfish)),
+  natmort_opt = rep("std_RNM", nfish),
+  Nmort = rep(0.8, nfish),
+  prop = rep(3/4, nfish),
+  curve = rep("logistic", nfish),
+  catch_species = ((0:(length(curve) - 1))%%nfish) + 1,
+  max_catchability = rep(1, length(curve)),
+  gear_name = paste("gear_", 1:length(curve), sep = ""),
+  custom = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame with <code>nfish</code> rows and the following columns: <code>Linf</code>, <code>W_a</code>, <code>W_b</code>, <code>k</code> and <code>Lmat</code>. See below for definitions of each of these parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gdf</code></td>
+<td>
+<p>A data frame with <code>nfish</code> rows and the following columns: <code>curve</code>, <code>catch_species</code>, <code>max_catchability</code>, <code>k</code> and <code>gear_name</code>. See below for definitions of each of these parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for calculating catchability curves. See <code>calc_Q</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfish</code></td>
+<td>
+<p>A numeric value representing the number of fish species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsc</code></td>
+<td>
+<p>A numeric value representing the number of length classes in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_mu</code></td>
+<td>
+<p>A numeric value representing the preferred predator-prey mass ratio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred_sigma</code></td>
+<td>
+<p>A numeric value representing the width of the weight preference function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other</code></td>
+<td>
+<p>A numeric value representing the amount of other food (g) available from prey that is not explicitly represented in the model. The default is <code>1e12</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>An optional argument specifying the bounds of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calc_phi_min</code></td>
+<td>
+<p>A logical statement indicating whether <code>phi_min</code> should be calculated within the function. The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi_min</code></td>
+<td>
+<p>A fixed numeric value of <code>phi_min</code>, which represents the time step of the model. This parameter is only required if <code>calc_phi_min=FALSE</code>. The default is <code>0.1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vary_growth</code></td>
+<td>
+<p>A logical statement indicating whether growth efficiency should vary for each species (<code>vary_growth=TRUE</code>) or be fixed at the value given by <code>fixed_growth</code> (<code>vary_growth=FALSE</code>). The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth_eff</code></td>
+<td>
+<p>If <code>vary_growth==TRUE</code>, <code>growth_eff</code> is a numeric representing the growth efficiencies of a fish of length 0. If <code>vary_growth==FALSE</code>, <code>growth_eff</code> is a numeric value of length <code>1</code> representing a fixed growth efficiency for all fish. The default is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth_eff_decay</code></td>
+<td>
+<p>A numeric value specifying the rate at which growth efficiency decreases as length increases to <code>Linf</code>. The default is 0.11.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>A numeric value specifying a numerical offset. The default value is <code>1e-5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_mature</code></td>
+<td>
+<p>A logical statement indicating whether to force maturity for all fish in the largest length class. The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>species_names</code></td>
+<td>
+<p>A numeric or character vector of length <code>nfish</code> that denotes the names of the species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the rate of change from immature to mature fish.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>A matrix with dimensions <code>nfish</code> and <code>nsc</code>. Row indices represent predators and column indices represent prey. A value of 1 at location <code>i</code>, <code>j</code> indicates prey <code>j</code> is eaten by predator <code>i</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rec_fun</code></td>
+<td>
+<p>A character vector representing the stock recruitment function to be applied to each species. The default value is <code>"hockey-stick"</code> but <code>rec_fun</code> can take a value of <code>"Ricker"</code>, <code>"Beverton-Holt"</code>, <code>"constant"</code>, or <code>"linear"</code> for each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recruit_params</code></td>
+<td>
+<p>A list object of length <code>nfish</code> specifying the parameters for the recruitment function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>natmort_opt</code></td>
+<td>
+<p>A character vector of length <code>1</code> describing the mortality function to be used for the species. The default value is <code>"std_RNM"</code> but can take a value of <code>"constant"</code> or <code>"linear"</code>. See <code>calc_M1</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Nmort</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the maximum background mortality of each species. The default is <code>0.8</code> for all species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the proportion of length classes that have a non-zero background mortality. This is required only when the <code>natmort_opt</code> mortality function is used. The default is <code>3/4</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>curve</code></td>
+<td>
+<p>A character vector of almost any length describing the type of curve to be used to determine the catchability of each species by fishing gear. By default, <code>curve</code> is a character vector of length <code>nfish</code> that takes the value <code>"logistic"</code> in each element, but it can also take a value of <code>"log-gaussian"</code> or <code>"knife-edge"</code>. If a custom curve is required for a particular species and/or fishing gear, the curve must be specified in <code>custom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>catch_species</code></td>
+<td>
+<p>A numeric value or character string describing the species to apply the catchability curve to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_catchability</code></td>
+<td>
+<p>A numeric vector of length <code>curve</code> describing the maximum catchability for each catchability curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gear_name</code></td>
+<td>
+<p>A character vector of the same length as <code>curve</code> and <code>species</code> describing the fishing gear that each element of <code>curve</code> and <code>species</code> relates to. By default, <code>gear_name</code> is a character vector of length <code>curve</code> that takes the value <code>paste("gear_", 1:length(curve), sep = "")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>custom</code></td>
+<td>
+<p>An array with dimensions <code>nsc</code>, <code>nfish</code> and the number of custom catchability curves that are required. <code>custom</code> represents the catchability of each species by the gears specified using custom catchability curves. By default, <code>custom</code> is set to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Linf</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the mid-point of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>k A numeric vector of length <code>nfish</code> representing the von Bertalanffy growth parameter <code>(1/yr)</code> for each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W_a</code></td>
+<td>
+<p>A numeric vector representing the parameter <code>a</code> in the length-weight conversion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W_b</code></td>
+<td>
+<p>A numeric vector representing the parameter <code>b</code> in the length-weight conversion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lmat</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the length at which 50% of the individuals are mature.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Converts objects of class data frame or vector to class LeMansParams for use in the LeMans model. <code>Linf</code>, <code>W_a</code>, <code>W_b</code>, <code>k</code> and <code>Lmat</code> are required as either a data frame or as vectors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>LeMansParam</code> for use in the LeMans model.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>run_LeMans</code>, <code>LeMans_param</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># To run the model with all inputs specified explicitly:
+# Set up species-specific parameters
+Linf &lt;- NS_par$Linf # the von-Bertalanffy asymptotic length of each species (cm).
+W_a &lt;- NS_par$W_a # length-weight conversion parameter.
+W_b &lt;- NS_par$W_b # length-weight conversion parameter.
+k &lt;- NS_par$k # the von-Bertalnaffy growth parameter.
+Lmat &lt;- NS_par$Lmat # the length at which 50% of individuals are mature (cm).
+
+NS_params &lt;- LeMansParam(species_names=NS_par$species_names, Linf=Linf, k=k, W_a=W_a, W_b=W_b,
+Lmat=Lmat, tau=NS_tau, recruit_params=list(a=NS_par$a, b=NS_par$b), eta=rep(0.25, 21), L50=Lmat,
+other=NS_other)
+
+###############################################
+# Alternatively:
+NS_params &lt;- LeMansParam(NS_par, tau=NS_tau, eta=rep(0.25, 21), L50=NS_par$Lmat, other=NS_other)
+</code></pre>
+
+
+</div>

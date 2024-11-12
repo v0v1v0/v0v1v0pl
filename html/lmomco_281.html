@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfpe3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Pearson Type III Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density of the Pearson Type III distribution given parameters (<code class="reqn">\mu</code>, <code class="reqn">\sigma</code>, and <code class="reqn">\gamma</code>)  computed by <code>parpe3</code>. These parameters are equal to the product moments (<code>pmoms</code>): mean, standard deviation, and skew. The probability density function for <code class="reqn">\gamma \ne 0</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x) = \frac{Y^{\alpha -1} \exp({-Y/\beta})}
+                  {\beta^\alpha\, \Gamma(\alpha)} \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">f(x)</code> is the probability density for quantile <code class="reqn">x</code>, <code class="reqn">\Gamma</code> is the complete gamma function in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> as <code>gamma</code>,
+<code class="reqn">\xi</code> is a location parameter, <code class="reqn">\beta</code> is a scale parameter,
+<code class="reqn">\alpha</code> is a shape parameter, and <code class="reqn">Y = x - \xi</code> for <code class="reqn">\gamma &gt; 0</code> and <code class="reqn">Y = \xi - x</code> for <code class="reqn">\gamma &lt; 0</code>. These three “new” parameters are related to the product moments (<code class="reqn">\mu</code>, mean; <code class="reqn">\sigma</code>, standard deviation; <code class="reqn">\gamma</code>, skew) by
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha = 4/\gamma^2 \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\beta  = \frac{1}{2}\sigma |\gamma| \mbox{,\ and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\xi = \mu - 2\sigma/\gamma \mbox{.}</code>
+</p>
+
+<p>If <code class="reqn">\gamma = 0</code>, the distribution is symmetrical and simply is the probability density Normal distribution with mean and standard deviation of <code class="reqn">\mu</code> and <code class="reqn">\sigma</code>, respectively. Internally, the <code class="reqn">\gamma = 0</code> condition is implemented by <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>dnorm</code>. The <span class="pkg">PearsonDS</span> package supports the Pearson distribution system including the Type III (see <b>Examples</b>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfpe3(x, para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parpe3</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of
+distributions using linear combinations of order statistics: Journal
+of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+<p>Hosking, J.R.M., and Wallis, J.R., 1997, Regional frequency analysis—An
+approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfpe3</code>, <code>quape3</code>, <code>lmompe3</code>, <code>parpe3</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  lmr &lt;- lmoms(c(123,34,4,654,37,78))
+  pe3 &lt;- parpe3(lmr)
+  x &lt;- quape3(0.5,pe3)
+  pdfpe3(x,pe3)
+## Not run: 
+# Demonstrate Pearson Type III between lmomco and PearsonDS
+qlmomco.pearsonIII &lt;- function(f, para) {
+   MU    &lt;- para$para[1] # product moment mean
+   SIGMA &lt;- para$para[2] # product moment standard deviation
+   GAMMA &lt;- para$para[3] # product moment skew
+   L &lt;- para$para[1] - 2*SIGMA/GAMMA # location
+   S &lt;- (1/2)*SIGMA*abs(GAMMA)       # scale
+   A &lt;- 4/GAMMA^2                    # shape
+   return(PearsonDS::qpearsonIII(f, A, L, S)) # shape comes first!
+}
+FF &lt;- nonexceeds(); para &lt;- vec2par(c(6,.4,.7), type="pe3")
+plot( FF, qlmomco(FF, para), xlab="Probability", ylab="Quantile", cex=3)
+lines(FF, qlmomco.pearsonIII(FF, para), col=2, lwd=3) # 
+## End(Not run)
+
+## Not run: 
+# Demonstrate forced Pearson Type III parameter estimation via PearsonDS package
+para &lt;- vec2par(c(3, 0.4, 0.6), type="pe3"); X &lt;- rlmomco(105, para)
+lmrpar &lt;- lmom2par(lmoms(X), type="pe3")
+mpspar &lt;- mps2par(X, type="pe3"); mlepar &lt;- mle2par(X, type="pe3")
+PDS &lt;- PearsonDS:::pearsonIIIfitML(X) # force function exporting
+if(PDS$convergence != 0) {
+  warning("convergence failed"); PDS &lt;- NULL # if null, rerun simulation [new data]
+} else {
+  # This is a list() mimic of PearsonDS::pearsonFitML()
+  PDS   &lt;- list(type=3, shape=PDS$par[1], location=PDS$par[2], scale=PDS$par[3])
+  skew  &lt;- sign(PDS$shape) * sqrt(4/PDS$shape)
+  stdev &lt;-    2*PDS$scale  / abs(skew); mu &lt;- PDS$location + 2*stdev/skew
+  PDS &lt;- vec2par(c(mu,stdev,skew), type="pe3") # lmomco form of parameters
+}
+print(lmrpar$para); print(mpspar$para); print(mlepar$para); print(PDS$para)
+#        mu     sigma     gamma
+# 2.9653380 0.3667651 0.5178592 # L-moments (by lmomco, of course)
+# 2.9678021 0.3858198 0.4238529 # MPS by lmomco
+# 2.9653357 0.3698575 0.4403525 # MLE by lmomco
+# 2.9653379 0.3698609 0.4405195 # MLE by PearsonDS
+# So we can see for this simulation that the two MLE approaches are similar.
+## End(Not run)
+</code></pre>
+
+
+</div>

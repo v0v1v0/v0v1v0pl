@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lingexpr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creator of functions representing linguistic expressions</h2>
+
+<h3>Description</h3>
+
+<p>A linguistic expression represents vague human terms such as "very small", "extremely big" etc. Such notions are
+always reasoned within a given context. <code>lingexpr</code> returns a function that models a selected linguistic expression.
+Accordingly to the given <code>context</code>, <code>atomic</code> expression (such as "small", "big") and a linguistic <code>hedge</code> (such as
+<code>very</code>, <code>extremely</code>), the returned function transforms numeric values into degrees (from <code style="white-space: pre;">⁠[0, 1]⁠</code> interval),
+at which the values correspond to the expression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lingexpr(
+  context,
+  atomic = c("sm", "me", "bi", "lm", "um", "ze", "neg.sm", "neg.me", "neg.bi",
+    "neg.lm", "neg.um"),
+  hedge = c("ex", "si", "ve", "ty", "-", "ml", "ro", "qr", "vr"),
+  negated = FALSE,
+  hedgeParams = defaultHedgeParams
+)
+
+allowed.lingexpr
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>context</code></td>
+<td>
+<p>A context of linguistic expressions (see <code>ctx3()</code>, <code>ctx5()</code>, <code>ctx3bilat()</code> or <code>ctx5bilat()</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atomic</code></td>
+<td>
+<p>An atomic expression whose horizon we would like to obtain</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hedge</code></td>
+<td>
+<p>The type of the required linguistic hedge ('-' for no hedging)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>negated</code></td>
+<td>
+<p>Negate the expression? (For instance, "not very small".) Negation
+is done using the <code>invol.neg()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hedgeParams</code></td>
+<td>
+<p>Parameters that determine the shape of the hedges</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>An object of class <code>matrix</code> (inherits from <code>array</code>) with 9 rows and 11 columns.
+</p>
+
+
+<h3>Details</h3>
+
+<p>Based on the context type, the following atomic expressions are allowed:
+</p>
+
+<ul>
+<li> <p><code>ctx3()</code> (trichotomy): small, medium, big;
+</p>
+</li>
+<li> <p><code>ctx5()</code> (pentachotomy): small, lower medium, medium, upper medium, big;
+</p>
+</li>
+<li> <p><code>ctx3bilat()</code> (bilateral trichotomy): negative big, negative medium, negative small,
+zero, small, medium, big;
+</p>
+</li>
+<li> <p><code>ctx5bilat()</code> (bilateral pentachotomy): negative big, negative medium, negative
+small, zero, small, medium, big.
+</p>
+</li>
+</ul>
+<p>The values of the <code>atomic</code> parameter have the following meaning (in ascending order):
+</p>
+
+<ul>
+<li> <p><code>neg.bi</code>: big negative (far from zero)
+</p>
+</li>
+<li> <p><code>neg.um</code>: upper medium negative (between medium negative and big negative)
+</p>
+</li>
+<li> <p><code>neg.me</code>: medium negative
+</p>
+</li>
+<li> <p><code>neg.lm</code>: lower medium negative (between medium negative and small negative)
+</p>
+</li>
+<li> <p><code>neg.sm</code>: small negative (close to zero)
+</p>
+</li>
+<li> <p><code>ze</code>: zero
+</p>
+</li>
+<li> <p><code>sm</code>: small
+</p>
+</li>
+<li> <p><code>lm</code>: lower medium
+</p>
+</li>
+<li> <p><code>me</code>: medium
+</p>
+</li>
+<li> <p><code>um</code>: upper medium
+</p>
+</li>
+<li> <p><code>bi</code>: big
+</p>
+</li>
+</ul>
+<p><code>hedge</code> parameter has the following meaning:
+</p>
+
+<ul>
+<li> <p><code>ex</code>: extremely,
+</p>
+</li>
+<li> <p><code>si</code>: significantly,
+</p>
+</li>
+<li> <p><code>ve</code>: very,
+</p>
+</li>
+<li> <p><code>ty</code>: typically,
+</p>
+</li>
+<li> <p><code>-</code>: empty hedge,
+</p>
+</li>
+<li> <p><code>ml</code>: more or less,
+</p>
+</li>
+<li> <p><code>ro</code>: roughly,
+</p>
+</li>
+<li> <p><code>qr</code>: quite roughly,
+</p>
+</li>
+<li> <p><code>vr</code>: very roughly.
+</p>
+</li>
+</ul>
+<p>Accordingly to the theory of linguistic expressions by Novak, not every hedge is applicable to each atomic
+expression. The combinations of allowed pairs can be found in allowed.lingexpr. Trying to create forbidden
+combination results in error.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a function with a single argument, which has to be a numeric vector.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>horizon()</code>, <code>hedge()</code>, <code>fcut()</code>, <code>lcut()</code>, <code>ctx()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    small &lt;- lingexpr(ctx3(0, 0.5, 1), atomic='sm', hedge='-')
+    small(0)   # 1
+    small(0.8) # 0
+    plot(small)
+
+    verySmall &lt;- lingexpr(ctx3(0, 0.5, 1), atomic='sm', hedge='ve')
+    plot(verySmall)
+</code></pre>
+
+
+</div>

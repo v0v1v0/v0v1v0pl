@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>find_loops_noscc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Loop detection in a matrix</h2>
+
+<h3>Description</h3>
+
+<p>Given the Jacobian matrix of an ODE system or the adjacency
+matrix of a graph, this function determines all loops in the system up
+to the maximal number supplied. No
+decomposition into strongly connected components is performed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">find_loops_noscc(jacobian, max_num_loops = 1e+05)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>jacobian</code></td>
+<td>
+<p>Square Jacobian matrix of an ODE system or the adjacency
+matrix of a graph; captures interactions such that entry <code>(i,j)</code> is
+negative (positive) if variable <code>j</code> regulates variable <code>i</code>
+negatively (positively).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_num_loops</code></td>
+<td>
+<p>Positive numeric value indicating the maximal number
+of loops that are reported. Default: <code class="reqn">10^5</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The input matrix delivers the directed interactions in the ODE
+system; if entry <code>(i,j)</code> is non-zero it means that variable (or
+node) <code>i</code> is regulated by variable (node) <code>j</code>. Johnson's
+algorithm for path detections
+from the igraph package (function:
+<code>all_simple_paths</code>) is used.
+No decomposition into strongly connected components is employed which
+could be beneficial for smaller systems (compared to
+<code>find_loops</code>).
+The queried graph is increased stepwise leading to the output of loops
+in a certain order determined by the order of occurrence in the Jacobian
+matrix:
+</p>
+
+<ul>
+<li>
+<p> first the self-loops,
+</p>
+</li>
+<li>
+<p> then feedback loops incorporating only the first and second species of
+the Jacobian,
+</p>
+</li>
+<li>
+<p> then feedback loops incorporating the third and at most also the first
+and second species of the jacobian, etc.</p>
+</li>
+</ul>
+<p>If the maximal number of loops, max_num_loops, is reached, no warning is
+issued. It is very probable that not all feedback loops of the system
+have been found.
+Up to which species this function searched before stopping due to
+reaching the maximal allowed loop number can be inferred from the last
+exported feedback loop.
+Running the function multiple times with re-ordered jacobian as input
+can enable detection of alternative feedback loops while limiting the
+runtime and output size of single runs.
+If columns of the Jacobian are named,
+the identification is given by the attribute <code>node_ids</code>,
+<code>attr(result,"node_ids")</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame with three columns: <code>loop</code>, <code>length</code>, <code>sign</code>
+containing up to <code>max_num_loops</code> loops of the systems defined
+by matrix <code>jacobian</code>. Each entry in the loop column is a list of
+identifiers that correspond to the indices of the variable in the
+Jacobian matrix and denote
+in which order the variables form the loop.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>find_loops</code>,  <code>find_loops_vset</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#sample Jacobian matrix of a system with 4 variables
+jac_matrix &lt;- rbind(c(-1,0,0,-1),c(1,-1,0,1),c(0,1,-1,0),c(0,0,1,-1))
+#find the first 5 feedback loops of the system
+loop_list &lt;- find_loops_noscc(jac_matrix,5)
+
+</code></pre>
+
+
+</div>

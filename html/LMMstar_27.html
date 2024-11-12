@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CUSTOM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Custom Structure</h2>
+
+<h3>Description</h3>
+
+<p>Variance-covariance structure specified by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">CUSTOM(
+  formula,
+  var.cluster,
+  var.time,
+  FCT.sigma,
+  dFCT.sigma = NULL,
+  d2FCT.sigma = NULL,
+  init.sigma,
+  FCT.rho,
+  dFCT.rho = NULL,
+  d2FCT.rho = NULL,
+  init.rho,
+  add.time
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula indicating variables influencing the residual variance and correlation (right hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.cluster</code></td>
+<td>
+<p>[character] cluster variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.time</code></td>
+<td>
+<p>[character] time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FCT.sigma</code></td>
+<td>
+<p>[function] take as argument the model parameters, time, and design matrix.
+Output the vector of residuals standard deviations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dFCT.sigma</code></td>
+<td>
+<p>[list of vectors] list whose elements are the first derivative of argument <code>FCT.sigma</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2FCT.sigma</code></td>
+<td>
+<p>[list of vectors] list whose elements are the second derivative of argument <code>FCT.sigma</code> (no cross-terms).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.sigma</code></td>
+<td>
+<p>[numeric vector] initial value for the variance parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FCT.rho</code></td>
+<td>
+<p>[function] take as argument the model parameters, time, and design matrix.
+Output the matrix of residuals correlation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dFCT.rho</code></td>
+<td>
+<p>[list of matrices] list whose elements are the first derivative of argument <code>FCT.rho</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d2FCT.rho</code></td>
+<td>
+<p>[list of matrices] list whose elements are the second derivative of argument <code>FCT.rho</code> (no cross-terms).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.rho</code></td>
+<td>
+<p>[numeric vector] initial value for the correlation parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.time</code></td>
+<td>
+<p>not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>CUSTOM</code> that can be passed to the argument <code>structure</code> of the <code>lmm</code> function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Compound symmetry structure
+CUSTOM(~1,
+       FCT.sigma = function(p,n.time,X){rep(p,n.time)},
+       init.sigma = c("sigma"=1),
+       dFCT.sigma = function(p,n.time,X){list(sigma = rep(1,n.time))},  
+       d2FCT.sigma = function(p,n.time,X){list(sigma = rep(0,n.time))},  
+       FCT.rho = function(p,n.time,X){
+           matrix(p,n.time,n.time)+diag(1-p,n.time,n.time)
+       },
+       init.rho = c("rho"=0.5),
+       dFCT.rho = function(p,n.time,X){
+            list(rho = matrix(1,n.time,n.time)-diag(1,n.time,n.time))
+       },
+       d2FCT.rho = function(p,n.time,X){list(rho = matrix(0,n.time,n.time))}
+)
+
+## 2 block structure
+rho.2block &lt;- function(p,n.time,X){
+   rho &lt;- matrix(0, nrow = n.time, ncol = n.time)
+   rho[1,2] &lt;- rho[2,1] &lt;- rho[4,5] &lt;- rho[5,4] &lt;- p["rho1"]
+   rho[1,3] &lt;- rho[3,1] &lt;- rho[4,6] &lt;- rho[6,4] &lt;- p["rho2"]
+   rho[2,3] &lt;- rho[3,2] &lt;- rho[5,6] &lt;- rho[6,5] &lt;- p["rho3"]
+   rho[4:6,1:3] &lt;- rho[1:3,4:6] &lt;- p["rho4"]
+   return(rho)
+}
+drho.2block &lt;- function(p,n.time,X){
+   drho &lt;- list(rho1 = matrix(0, nrow = n.time, ncol = n.time),
+                rho2 = matrix(0, nrow = n.time, ncol = n.time),
+                rho3 = matrix(0, nrow = n.time, ncol = n.time),
+                rho4 = matrix(0, nrow = n.time, ncol = n.time))   
+   drho$rho1[1,2] &lt;- drho$rho1[2,1] &lt;- drho$rho1[4,5] &lt;- drho$rho1[5,4] &lt;- 1
+   drho$rho2[1,3] &lt;- drho$rho2[3,1] &lt;- drho$rho2[4,6] &lt;- drho$rho2[6,4] &lt;- 1
+   drho$rho3[2,3] &lt;- drho$rho3[3,2] &lt;- drho$rho3[5,6] &lt;- drho$rho3[6,5] &lt;- 1
+   drho$rho4[4:6,1:3] &lt;- drho$rho4[1:3,4:6] &lt;- 1
+   return(drho)
+}
+d2rho.2block &lt;- function(p,n.time,X){
+   d2rho &lt;- list(rho1 = matrix(0, nrow = n.time, ncol = n.time),
+                 rho2 = matrix(0, nrow = n.time, ncol = n.time),
+                 rho3 = matrix(0, nrow = n.time, ncol = n.time),
+                 rho4 = matrix(0, nrow = n.time, ncol = n.time))   
+   return(d2rho)
+}
+
+CUSTOM(~variable,
+       FCT.sigma = function(p,n.time,X){rep(p,n.time)},
+       dFCT.sigma = function(p,n.time,X){list(sigma=rep(1,n.time))},
+       d2FCT.sigma = function(p,n.time,X){list(sigma=rep(0,n.time))},
+       init.sigma = c("sigma"=1),
+       FCT.rho = rho.2block,
+       dFCT.rho = drho.2block,
+       d2FCT.rho = d2rho.2block,
+       init.rho = c("rho1"=0.25,"rho2"=0.25,"rho3"=0.25,"rho4"=0.25))
+
+</code></pre>
+
+
+</div>

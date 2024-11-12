@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regsimh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate the distribution of heterogeneity and goodness-of-fit measures</h2>
+
+<h3>Description</h3>
+
+<p>Estimates, using Monte Carlo simulation, the distribution of
+heterogeneity and goodness-of-fit measures for regional frequency analysis.
+These are the statistics <code class="reqn">H</code> and <code class="reqn">Z^{\rm DIST}</code>
+defined respectively in sections 4.3.3 and 5.2.3 of Hosking and Wallis (1997).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regsimh(qfunc, para, cor = 0, nrec, nrep = 500, nsim = 500)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>qfunc</code></td>
+<td>
+<p>List containing the quantile functions for each site.
+Can also be a single quantile function, which will be used for each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>Parameters of the quantile functions at each site.
+If <code>qfunc</code> is a list, <code>para</code> must be a list of the same
+length whose components are numeric vectors, the parameters of
+the corresponding component of <code>qfunc</code>.
+If <code>qfunc</code> is a single quantile function, <code>para</code> can be
+a single vector, containing a single set of parameter values
+that will be used for each site;
+a matrix or data frame whose rows each contain the
+parameter values for one site;
+or a list of length <code>length(nrec)</code> whose components are
+numeric vectors, each containing the parameter values for one site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>Specifies the correlation matrix of the frequency distribution
+of each site's data.  Can be a matrix (which will be rescaled to a
+correlation matrix if necessary) or a constant (which will be taken
+as the correlation between each pair of sites).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrec</code></td>
+<td>
+<p>Numeric vector containing the record lengths at each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>Number of simulated regions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Number of simulations used, within each of the <code>nrep</code>
+simulated regions, when calculating heterogeneity and
+goodness-of-fit measures.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A  realization is generated of data simulated from
+the region specified by parameters <code>qfunc</code>, <code>para</code>, and <code>cor</code>,
+and with record lengths at each site specified by argument <code>nrec</code>.
+The simulation procedure is as described in Hosking and Wallis (1997),
+Table 6.1, through step 3.1.2.
+Heterogeneity and goodness-of-fit measures are computed
+for the realization, using the same method as in function <code>regtst</code>.
+The entire procedure is repeated <code>nrep</code> times, and the values
+of the heterogeneity and goodness-of-fit measures are saved.
+Average values, across all <code>nrep</code> realizations,
+of the heterogeneity and goodness-of-fit measures are computed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"regsimh"</code>.
+This is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>The number of simulated regions (argument <code>nrep</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of simulation used within each region
+(argument <code>nsim</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>results</code></td>
+<td>
+<p>Matrix of dimension 8 <code class="reqn">\times</code> <code>nrep</code>,
+containing the values, for each of the <code>nrep</code> simulated regions,
+of the heterogeneity and goodness-of-fit measures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>Vector of length 8, containing the mean values,
+across the <code>nrep</code> simulated regions,
+of the three heterogeneity and five goodness-of-fit measures.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J. R. M., and Wallis, J. R. (1997).
+<em>Regional frequency analysis: an approach based on <code class="reqn">L</code>-moments</em>.
+Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>regtst</code> for details of the
+heterogeneity and goodness-of-fit measures.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run:  
+data(Cascades)            # A regional data set
+
+rmom&lt;-regavlmom(Cascades) # Regional average L-moments
+
+# Set up an artificial region to be simulated:
+# -- Same number of sites as Cascades
+# -- Same record lengths as Cascades
+# -- Mean 1 at every site (results do not depend on the site means)
+# -- L-CV varies linearly across sites, with mean value equal
+#    to the regional average L-CV for the Cascades data.
+#    'LCVrange' specifies the  range of L-CV across the sites.
+# -- L-skewness the same at each site, and equal to the regional
+#    average L-skewness for the Cascades data
+nsites &lt;- nrow(Cascades)
+means &lt;- rep(1,nsites)
+LCVrange &lt;- 0.025
+LCVs &lt;- seq(rmom[2]-LCVrange/2, rmom[2]+LCVrange/2, len=nsites)
+Lskews&lt;-rep(rmom[3], nsites)
+
+# Each site will have a generalized normal distribution:
+# get the parameter values for each site
+pp &lt;- t(apply(cbind(means, means*LCVs ,Lskews), 1, pelgno))
+
+# Set correlation between each pair of sites to 0.64, the
+# average inter-site correlation for the Cascades data
+avcor &lt;- 0.64
+
+# Run the simulation.  It will take some time (about 25 sec
+# on a Lenovo W500, a moderately fast 2011-vintage laptop)
+# Note that the results are consistent with the statement
+# "the average H value of simulated regions is 1.08"
+# in Hosking and Wallis (1997, p.98).
+set.seed(123)
+regsimh(qfunc=quagno, para=pp, cor=avcor, nrec=Cascades$n,
+  nrep=100)
+
+## End(Not run)</code></pre>
+
+
+</div>

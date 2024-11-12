@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ESEM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates Exploratory Structural Equation Model</h2>
+
+<h3>Description</h3>
+
+<p>A general function to estimate an Exploratory Structural
+Equation Model (ESEM) using the <code>lavaan</code> package.
+With <code>latentFactoR</code> objects,
+the function requires fewer inputs
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ESEM(
+  data,
+  factors,
+  variables,
+  estimator = c("MLR", "WLSMV"),
+  fit_measures = NULL,
+  variable_polarity = NULL,
+  wording_factor = c("none", "CTCM1", "CTCM1_each", "RI", "RI_each"),
+  CTCM1_polarity = c("negative", "positive"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Numeric matrix, data frame, or <code>latentFactoR</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>Numeric (length = 1).
+Number of ESEM factors to estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variables</code></td>
+<td>
+<p>Numeric (length = 1 or <code>factors</code>).
+Number of variables per factor. A vector the length of the
+number of factors can be specified to allow varying
+number of variables on each factor (necessary for some
+<code>wording_factor</code> arguments)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimator</code></td>
+<td>
+<p>Character.
+Estimator to be used in <code>cfa</code>.
+Default options are <code>"MLR"</code> for continuous data
+and <code>"WLSMV"</code> for categorical data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit_measures</code></td>
+<td>
+<p>Character.
+Fit measures to be computed using <code>fitMeasures</code>.
+Defaults to: <code>"chisq"</code>, <code>"df"</code>, <code>"pvalue"</code>, <code>"cfi"</code>,
+<code>"tli"</code>, <code>"rmsea"</code>, <code>"rmsea.ci.lower"</code>,
+<code>"rmsea.ci.upper"</code>, <code>"rmsea.pvalue"</code>, and <code>"srmr"</code>.
+Other measures can be added but these measures will always be produced.
+</p>
+<p>If scaled values are available (not <code>NA</code>), then scaled fit measures
+will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable_polarity</code></td>
+<td>
+<p>Numeric/character (length = 1 or total variables).
+Whether all (length = 1) or each variable (length = total variables) are
+positive (<code>1</code>, <code>"p"</code>, <code>"pos"</code>, <code>"positive"</code>) or
+negative (<code>-1</code>, <code>"n"</code>, <code>"neg"</code>, <code>"negative"</code>)
+polarity on the factor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wording_factor</code></td>
+<td>
+<p>Character (length = 1).
+Whether wording factor(s) should be estimated.
+Defaults to <code>"none"</code>.
+Options include:
+</p>
+
+<ul>
+<li> <p><code>"CTCM1"</code> — Description coming soon...
+</p>
+</li>
+<li> <p><code>"CTCM1_each"</code> — Description coming soon...
+</p>
+</li>
+<li> <p><code>"RI"</code> — Description coming soon...
+</p>
+</li>
+<li> <p><code>"RI_each"</code> — Description coming soon...
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CTCM1_polarity</code></td>
+<td>
+<p>Character.
+Polarity of the CTCM1 wording factor(s).
+Defaults to <code>"negative"</code> for negative
+polarity variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to be passed on to
+<code>cfa</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Estimated ESEM model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Fit measures of estimated ESEM model</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alexander P. Christensen &lt;alexpaulchristensen@gmail.com&gt;,
+Luis Eduardo Garrido &lt;luisgarrido@pucmm.edu&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate factor data
+two_factor &lt;- simulate_factors(
+  factors = 2, # factors = 2
+  variables = 6, # variables per factor = 6
+  loadings = 0.55, # loadings between = 0.45 to 0.65
+  cross_loadings = 0.05, # cross-loadings N(0, 0.05)
+  correlations = 0.30, # correlation between factors = 0.30
+  sample_size = 1000, # number of cases = 1000
+  variable_categories = 5 # 5-point Likert scale
+)
+
+## Not run: 
+# Estimate ESEM model with no wording effects
+esem_no_wording_effects &lt;- ESEM(
+  data = two_factor,
+  estimator = "WLSMV"
+)
+
+# Add wording effects using acquiescence method
+two_factor_acquiescence &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "acquiescence"
+)
+
+# Estimate ESEM model with wording effects
+esem_wording_effects &lt;- ESEM(
+  data = two_factor_acquiescence,
+  estimator = "WLSMV",
+  wording_factor = "RI"
+)
+## End(Not run)
+
+</code></pre>
+
+
+</div>

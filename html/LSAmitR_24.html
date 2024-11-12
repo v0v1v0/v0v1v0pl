@@ -1,0 +1,569 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  8</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 8: Fehlende Daten und Plausible Values</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 8, <em>Fehlende Daten und Plausible 
+Values</em>, im Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische 
+Grundlagen der österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Details</h3>
+
+
+
+<h4>Vorbereitungen</h4>
+
+<p>Zur Illustration der Konsequenzen fehlender Daten und der Messfehlerbehaftetheit 
+von Variablen soll zunächst ein Illustrationsdatensatz (<code>data08I</code>) mit 
+N=1500 simuliert werden. Dabei sollen zwei Variablen vorliegen: Der 
+Sozialstatus <code>X</code> soll teilweise fehlende Werte aufweisen und die zu 
+erfassende Kompetenz liegt sowohl als wahrer Wert <code class="reqn">\theta</code>  als auch als 
+messfehlerbehaftete Variable <code class="reqn">\hat{\theta}</code> vor. 
+Im Datensatz <code>data08I</code> liegt sowohl der vollständig beobachtete 
+Sozialstatus (<code>x</code>) als auch derselbe Sozialstatus mit teilweise fehlenden 
+Variablen (<code>X</code>) vor.
+Neben dem Illustrationsdatensatz werden in diesem Kapitel Datensätze der 
+österreichischen Bildungsstandards im Fach Englisch verwendet. 
+Der Datensatz <code>data08H</code> enthält Kovariaten (d.h. Variablen aus Fragebögen 
+oder administrative Daten) auf Ebene der Schüler (Ebene 1) und auf Ebene der 
+Schulen (Ebene 2). 
+Variablen beider Ebenen können dabei fehlende Werte besitzen. 
+Im Datensatz <code>data08J</code> sind fehlende Werte des Datensatzes <code>data08H</code> 
+durch eine Ersetzung von Werten bereits aufgefüllt. 
+Außerdem liegen Item Responses der Schüler für den Bereich Hörverstehen 
+(Listening, L) im Datensatz <code>data08K</code> vor.
+Folgende R-Pakete werden in diesem Kapitel verwendet: <code>mice</code>, 
+<code>miceadds</code>, <code>TAM</code>, <code>pls</code>.
+</p>
+<p><code style="white-space: pre;">⁠library(miceadds)
+library(mice)
+library(TAM)
+library(pls)
+⁠</code>
+
+</p>
+
+
+
+<h4>Abschnitt 8.1.1: Konsequenzen fehlender Daten und 
+messfehlerbehafteter Variablen</h4>
+
+
+
+<h5>Listing 1: Deskriptive Statistiken des Datensatzes</h5>
+
+<p>Mit folgendem R-Code werden deskriptive Statistiken des Datensatzes 
+<code>data08I</code> ermittelt, an denen die Bedeutung der geeigneten Behandlung 
+fehlender Werte und von Messfehlern herausgearbeitet werden soll.
+</p>
+<p><code style="white-space: pre;">⁠data(datenKapitel08)
+dat &lt;- datenKapitel08$data08I[,-1]
+#*** Missinganteile
+round( colMeans( is.na(dat), na.rm=TRUE) , 2 )     
+#*** Mittelwerte
+round( apply( dat , 2 , mean , na.rm=TRUE ) , 2 )   
+#*** Zusammenhang von Missingindikator und Variablen 
+round( miceadds::mi_dstat( dat[,c("WLE","X")] ) , 2 )
+#*** Varianzen
+round( apply( dat , 2 , var , na.rm=TRUE ) , 2 ) 
+#*** Korrelationsmatrix
+round( cor( dat , use = "pairwise.complete.obs") , 2 )
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Abschnitt 8.2.5: Durchführung der multiplen Imputation in R</h4>
+
+
+
+<h5>Listing 2: Variablenauswahl und leere Imputation</h5>
+
+<p>In diesem Abschnitt wird die multiple Imputation basierend auf dem MICE-Ansatz im 
+Paket <code>mice</code> in R umgesetzt. Als Datensatz soll <code>data08H</code> verwendet 
+werden. 
+Zur Vereinfachung der Darstellung wählen wir auf der Ebene der Schüler die 
+Variablen Sozialstatus (<code>HISEI</code>), Anzahl der Bücher zu Hause (<code>buch</code>) 
+und den WLE der Hörverstehenskompetenz (<code>E8LWLE</code>) sowie einen auf der 
+Schulebene erfassten Sozialstatus (<code>SES_Schule</code>) aus.
+</p>
+<p><code style="white-space: pre;">⁠set.seed(56) 
+dat &lt;- datenKapitel08$data08H
+# wähle Variablen aus 
+dat1 &lt;- dat[ , c("idschool", "HISEI", "buch", "E8LWLE",
+                 "SES_Schule") ]
+colMeans(is.na(dat1)) 
+# führe leere Imputation durch
+imp0 &lt;- mice::mice(dat1, m=0, maxit=0)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 3: Spezifikation der Imputationsmethoden</h5>
+
+<p>Die nachfolgende Syntax zeigt die Spezifikation der Imputationsmethoden im 
+Vektor <code>impMethod</code> in <code>mice</code> für unser Datenbeispiel.
+</p>
+<p><code style="white-space: pre;">⁠impMethod &lt;- imp0$method 
+impMethod["HISEI"] &lt;- "2l.continuous" 
+# [...]  weitere Spezifikationen
+impMethod["SES_Schule"] &lt;- "2lonly.norm" 
+impMethod
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 4: Definition der Prädiktormatrix für die Imputation in 
+mice</h5>
+
+<p>Nachfolgender R-Code zeigt die Definition der Prädiktormatrix (Matrix 
+<code>predMatrix</code>) für die Imputation in <code>mice</code>.
+</p>
+<p><code style="white-space: pre;">⁠predMatrix &lt;- imp0$predictorMatrix 
+predMatrix[-1,"idschool"] &lt;- -2 
+# [...]
+predMatrix
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 5: Datenimputation</h5>
+
+<p>Die Imputation kann nun unter dem Aufruf der Funktion <code>mice</code> unter 
+Übergabe der Imputationsmethoden und der Prädiktormatrix erfolgen. 
+Für das PMM werden 5 Donoren gewählt. Insgesamt sollen 10 imputierte Datensätze 
+generiert werden, wobei der Algorithmus 7 Iterationen durchlaufen soll.
+</p>
+<p><code style="white-space: pre;">⁠imp1 &lt;- mice::mice( dat1, imputationMethod=impMethod, 
+                    predictorMatrix=predMatrix, donors=5,
+                    m=10, maxit=7 )
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Abschnitt 8.3.2: Dimensionsreduzierende Verfahren für Kovariaten im 
+latenten Regressionsmodell</h4>
+
+
+
+<h5>Listing 6: Kovariatenauswahl, Interaktionsbildung und Bestimmung 
+PLS-Faktoren</h5>
+
+<p>Die Methode des Partial Least Squares soll für den Datensatz <code>data08J</code> 
+illustriert werden. 
+Es wird zum Auffüllen der Kovariaten mit fehlenden Werten nur ein imputierter 
+Datensatz erstellt. 
+Danach wird eine PLS-Regression des WLE der Hörverstehenskompetenz 
+<code>E8LWLE</code> auf Kovariaten und deren Interaktionen bestimmt. 
+Für die Bestimmung der PLS-Faktoren wird das R-Paket <code>pls</code> verwendet. 
+Die nachfolgende R-Syntax zeigt die Kovariatenauswahl, die Bildung der 
+Interaktionen und die Bestimmung der PLS-Faktoren. Insgesamt entstehen durch 
+Aufnahme der Haupteffekte und Interaktionen 55 Kovariaten.
+</p>
+<p><code style="white-space: pre;">⁠dat &lt;- datenKapitel08$data08J
+#*** Kovariatenauswahl
+kovariaten &lt;- scan(what="character", nlines=2) 
+female migrant HISEI eltausb buch
+SK LF NSchueler NKlassen SES_Schule
+
+X &lt;- scale( dat[, kovariaten ] )
+V &lt;- ncol(X) 
+# bilde alle Zweifachinteraktionen 
+c2 &lt;- combinat::combn(V,2) 
+X2 &lt;- apply( c2 , 2 , FUN = function(cc){ 
+             X[,cc[1]] * X[,cc[2]] } ) 
+X0 &lt;- cbind( X , X2 )
+mod1 &lt;- pls::plsr( dat$E8LWLE ~ X0 , ncomp=55  ) 
+summary(mod1)
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Abschnitt 8.3.3: Ziehung von Plausible Values in R</h4>
+
+<p>In diesem Abschnitt soll die Ziehung von Plausible Values mit dem R-Paket 
+<code>TAM</code> illustriert werden. Dabei beschränken wir uns auf den 
+Kompetenzbereich des Hörverstehens. 
+</p>
+
+
+<h5>Listing 7: PLS-Faktoren auswählen</h5>
+
+<p>In Abschnitt 8.3.2 wurden dabei die Kovariaten auf PLS-Faktoren reduziert. 
+Für die Ziehung von Plausible Values werden nachfolgend 10 PLS-Faktoren 
+verwendet.
+</p>
+<p><code style="white-space: pre;">⁠facs &lt;- mod1$scores[,1:10]
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 8: Rasch-Skalierung</h5>
+
+<p>Für die Hörverstehenskompetenz im Datensatz <code>data08K</code> wird nachfolgend das 
+Messmodell als Rasch-Modell geschätzt. Dabei werden Stichprobengewichte für die 
+Bestimmung der Itemparameter verwendet.
+</p>
+<p><code style="white-space: pre;">⁠dat2 &lt;- datenKapitel08$data08K
+items &lt;- grep("E8L", colnames(dat2), value=TRUE)
+# Schätzung des Rasch-Modells in TAM
+mod11 &lt;- TAM::tam.mml( resp= dat2[,items ] , 
+                       pid = dat2$idstud,  
+                       pweights = dat2$wgtstud )
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 9: Individuelle Likelihood, latente Regressionsmodell und 
+PV-Ziehung</h5>
+
+<p>Bei einer Fixierung von Itemparametern ist die bedingte Verteilung 
+<code class="reqn">P(\mathbf{X}|\boldsymbol{\theta})</code> des Messmodells konstant. 
+Die Schätzung von Item-Response-Modellen erfolgt in <code>TAM</code> unter Verwendung 
+eines diskreten Gitters von <code class="reqn">\boldsymbol{\theta}</code>-Werten. 
+Während der Anpassung des Rasch-Modells in <code>mod11</code> liegt daher die auf 
+diesem Gitter ausgewertete sog. individuelle Likelihood 
+<code class="reqn">P(\mathbf{X}|\boldsymbol{\theta})</code> vor, die mit der Funktion 
+<code>IRT.likelihood</code> aus dem Objekt <code>mod11</code> extrahiert werden kann. 
+Das latente Regressionsmodell kann unter Rückgriff auf die individuelle 
+Likelihood mit der Funktion <code>tam.latreg</code> angepasst werden. 
+Die Ziehung der Plausible Values erfolgt anschließend mit der Funktion 
+<code>tam.pv</code>.
+</p>
+<p><code style="white-space: pre;">⁠#*** extrahiere individuelle Likelihood
+lmod11 &lt;- IRT.likelihood(mod11) 
+#*** schätze latentes Regressionsmodell
+mod12 &lt;- TAM::tam.latreg( like = lmod11 , Y = facs )
+#*** ziehe Plausible Values 
+pv12 &lt;- TAM::tam.pv(mod12, normal.approx=TRUE, 
+                    samp.regr=TRUE , ntheta=400)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 10: Plausible Values extrahieren</h5>
+
+<p>Die imputierten Plausible Values lassen sich im Element <code>$pv</code> des 
+Ergebnisobjekts aus <code>tam.pv</code> extrahieren.
+</p>
+<p><code style="white-space: pre;">⁠#*** Plausible Values für drei verschiedene Schüler
+round( pv12$pv[c(2,5,9),] , 3 )
+⁠</code>
+
+</p>
+
+
+
+
+<h3>Author(s)</h3>
+
+<p>Alexander Robitzsch, Giang Pham, Takuya Yanagida
+</p>
+
+
+<h3>References</h3>
+
+<p>Robitzsch, A., Pham, G. &amp; Yanagida, T. (2016). Fehlende Daten und Plausible 
+Values.
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 259–293). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel08</code>, den im Kapitel verwendeten Daten.<br>
+Zurück zu <code>Kapitel 7</code>, Statistische Analysen produktiver 
+Kompetenzen .<br>
+Zu <code>Kapitel 9</code>, Fairer Vergleich in der Rückmeldung.<br>
+Zur <code>Übersicht</code>.
+
+
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(TAM)
+library(mice)
+library(miceadds)
+library(pls)
+library(combinat)
+library(mitml)
+
+data(datenKapitel08)
+data08H &lt;- datenKapitel08$data08H
+data08I &lt;- datenKapitel08$data08I
+data08J &lt;- datenKapitel08$data08J
+data08K &lt;- datenKapitel08$data08K
+
+## -------------------------------------------------------------
+## Abschnitt 8.1.1: Konsequenzen fehlender Daten und 
+##                  messfehlerbehafteter Variablen
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 8.1.1, Listing 1: Deskriptive Statistiken des 
+#                             Illustrationsdatensatzes
+#
+
+data(datenKapitel08)
+dat &lt;- datenKapitel08$data08I[,-1]
+#*** Missinganteile
+round( colMeans( is.na(dat), na.rm=TRUE) , 2 )     
+#*** Mittelwerte
+round( apply( dat , 2 , mean , na.rm=TRUE ) , 2 )   
+#*** Zusammenhang von Missingindikator und Variablen 
+round( miceadds::mi_dstat( dat[,c("WLE","X")] ) , 2 )
+#*** Varianzen
+round( apply( dat , 2 , var , na.rm=TRUE ) , 2 ) 
+#*** Korrelationsmatrix
+round( cor( dat , use = "pairwise.complete.obs") , 2 )
+
+
+## -------------------------------------------------------------
+## Abschnitt 8.2: Multiple Imputation
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 1: Variablenauswahl und leere 
+#                             Imputation
+#
+
+set.seed(56) 
+data(datenKapitel08)
+dat &lt;- datenKapitel08$data08H
+# wähle Variablen aus 
+dat1 &lt;- dat[ , c("idschool", "HISEI", "buch", "E8LWLE",
+                 "SES_Schule") ]
+colMeans(is.na(dat1)) 
+# führe leere Imputation durch
+imp0 &lt;- mice::mice(dat1, m=0, maxit=0)
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 2: Spezifikation der Imputations-
+#                             methoden
+#
+
+impMethod &lt;- imp0$method 
+impMethod["HISEI"] &lt;- "2l.continuous" 
+# [...]  weitere Spezifikationen
+impMethod["SES_Schule"] &lt;- "2lonly.norm" 
+impMethod     
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 2b: Ergänzung zum Buch
+#
+
+# [...]  weitere Spezifikationen
+impMethod["buch"]  &lt;- "2l.pmm"
+impMethod
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 3: Definition der Prädiktormatrix 
+#                             für die Imputation in mice
+#
+
+predMatrix &lt;- imp0$predictorMatrix 
+predMatrix[-1,"idschool"] &lt;- -2 
+# [...]
+predMatrix    
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 3b: Ergänzung zum Buch
+#
+
+# [...]
+predMatrix[2:4,2:4] &lt;- 3*predMatrix[2:4,2:4]
+predMatrix
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 4: Führe Imputation durch
+#
+
+imp1 &lt;- mice::mice( dat1, imputationMethod=impMethod, 
+  predictorMatrix=predMatrix, donors=5, m=10, maxit=7)
+
+# -------------------------------------------------------------
+# Abschnitt 8.2.5, Listing 4b: Ergänzung zum Buch
+#
+
+#-- Mittelwert HISEI
+wmod1 &lt;- with( imp1 , lm(HISEI ~ 1))
+summary( mice::pool( wmod1 ) )
+
+#-- lineare Regression HISEI auf Büchervariable
+wmod2 &lt;- with( imp1 , lm(E8LWLE ~ HISEI) )
+summary( mice::pool( wmod2 ))
+
+#-- Inferenz Mehrebenenmodelle mit Paket mitml
+imp1b &lt;- mitml::mids2mitml.list(imp1)
+wmod3 &lt;- with(imp1b, lme4::lmer( HISEI ~ (1|idschool)) )
+mitml::testEstimates(wmod3, var.comp=TRUE)
+
+## ------------------------------------------------------------
+## Abschnitt 8.3.2: Dimensionsreduzierende Verfahren für 
+## Kovariaten im latenten Regressionsmodell
+## ------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.2, Listing 1: Kovariatenauswahl, Interaktions- 
+#                         bildung und Bestimmung PLS-Faktoren
+#
+
+set.seed(56)
+data(datenKapitel08)
+dat &lt;- datenKapitel08$data08J
+
+#*** Kovariatenauswahl
+kovariaten &lt;- scan(what="character", nlines=2) 
+  female migrant HISEI  eltausb buch  
+  SK LF NSchueler NKlassen SES_Schule
+
+X &lt;- scale( dat[, kovariaten ] )
+V &lt;- ncol(X) 
+# bilde alle Zweifachinteraktionen 
+c2 &lt;- combinat::combn(V,2) 
+X2 &lt;- apply( c2 , 2 , FUN = function(cc){ 
+            X[,cc[1]] * X[,cc[2]] } ) 
+X0 &lt;- cbind( X , X2 )
+# Partial Least Squares Regression
+mod1 &lt;- pls::plsr( dat$E8LWLE ~ X0 , ncomp=55  ) 
+summary(mod1)
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.2, Listing 1b: Ergänzung zum Buch
+# Abbildung: Aufgeklärter Varianzanteil
+#
+
+# Principal Component Regression (Extraktion der Hauptkomponenten)
+mod2 &lt;- pls::pcr(  dat$E8LWLE ~ X0 , ncomp=55 )
+summary(mod2)
+
+#*** extrahierte Varianzen mit PLS-Faktoren und PCA-Faktoren
+res &lt;- mod1
+R2 &lt;- base::cumsum(res$Xvar) / res$Xtotvar
+ncomp &lt;- 55
+Y &lt;- dat$E8LWLE
+R21 &lt;- base::sapply( 1:ncomp , FUN = function(cc){
+  1 - stats::var( Y -  res$fitted.values[,1,cc] ) / stats::var( Y )
+} )
+dfr &lt;- data.frame("comp" = 1:ncomp , "PLS" = R21 )
+
+res &lt;- mod2
+R2 &lt;- base::cumsum(res$Xvar) / res$Xtotvar
+ncomp &lt;- 55
+Y &lt;- dat$E8LWLE
+R21 &lt;- base::sapply( 1:ncomp , FUN = function(cc){
+           1 - stats::var( Y -  res$fitted.values[,1,cc] ) / stats::var( Y )
+} )
+dfr$PCA &lt;- R21
+
+
+plot( dfr$comp , dfr$PLS , type="l" , xlab="Anzahl Faktoren" , 
+      ylab="Aufgeklärter Varianzanteil" ,
+      ylim=c(0,.3) )
+points( dfr$comp , dfr$PLS , pch=16 )        
+points( dfr$comp , dfr$PCA , pch=17 )        
+lines( dfr$comp , dfr$PCA , lty=2 )        
+legend( 45 , .15 , c("PLS" , "PCA") , pch=c(16,17) , lty=c(1,2))
+
+## ------------------------------------------------------------
+## Abschnitt 8.3.3: Ziehung von Plausible Values in R
+## ------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 1: PLS-Faktoren auswählen
+#
+
+facs &lt;- mod1$scores[,1:10]
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 1b: Ergänzung zum Buch
+#
+set.seed(98766)
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 2: Anpassung kognitive Daten
+#
+
+data(datenKapitel08)
+dat2 &lt;- datenKapitel08$data08K
+items &lt;- grep("E8L", colnames(dat2), value=TRUE)
+# Schätzung des Rasch-Modells in TAM
+mod11 &lt;- TAM::tam.mml( resp= dat2[,items ] , 
+       pid = dat2$idstud, pweights = dat2$wgtstud ) 
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 3: Individuelle Likelihood, latentes 
+#                             Regressionsmodell und PV-Ziehung
+#
+
+#*** extrahiere individuelle Likelihood
+lmod11 &lt;- IRT.likelihood(mod11) 
+#*** schätze latentes Regressionsmodell
+mod12 &lt;- TAM::tam.latreg( like = lmod11 , Y = facs )
+#*** ziehe Plausible Values 
+pv12 &lt;- TAM::tam.pv(mod12, normal.approx=TRUE, 
+               samp.regr=TRUE , ntheta=400)
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 4: Plausible Values extrahieren
+#
+
+#*** Plausible Values für drei verschiedene Schüler
+round( pv12$pv[c(2,5,9),] , 3 )
+
+
+# -------------------------------------------------------------
+# Abschnitt 8.3.3, Listing 4b: Ergänzung zum Buch
+#
+
+hist( pv12$pv$PV1.Dim1 )
+
+# Korrelation mit Kovariaten
+round( cor( pv12$pv$PV1.Dim1 , dat[,kovariaten] , 
+            use="pairwise.complete.obs") , 3 )
+round( cor( dat$E8LWLE , dat[,kovariaten] , 
+            use="pairwise.complete.obs" ) , 3 )
+
+## End(Not run)
+</code></pre>
+
+
+</div>

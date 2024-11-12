@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LPS.coeff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Linear Predictor Score coefficient computation
+</h2>
+
+<h3>Description</h3>
+
+<p>As Linear Predictor Score coefficients are genuinely t statistics, this function provides a faster implementation for large datasets than using <code>t.test</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  LPS.coeff(data, response, formula = ~1, type = c("t", "limma"),
+    p.value = TRUE, log = FALSE, weighted = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Continuous data used to retrieve classes, as a <code>data.frame</code> or <code>matrix</code>, with samples in rows and features (genes) in columns. Rows and columns should be named. <code>NA</code> values are silently ignored. <strong>Some precautions must be taken concerning data normalization, see the corresponding section in <code>LPS</code> manual page</strong>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+
+<p>Already known classes for the samples provided in <code>data</code>, preferably as a two-level <code>factor</code>. Can be missing if a <code>formula</code> with a response element is provided, but this argument precedes.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>A <code>formula</code> object, describing the features to consider in <code>data</code>. The formula response element (before the "~" sign) can replace the <code>response</code> argument if it is not provided. The features can be enumerated in the variable section of the formula (after the "~" sign). "." is also handled in the usual way (all <code>data</code> columns), and "1" is a more efficient way to refer to all numeric columns of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Single character value, "t" to compute genuine t statistics (unequal variances and unpaired samples) or "limma" to use the lmFit() and eBayes() t statistics from this microarray oriented Bioconductor package.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+
+<p>Single logical value, whether to compute (two-sided) p-values or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+
+<p>Single logical value, whether to log-transform t or not (sign will be preserved). Original description of the LPS does not include log-transformation, but it may be useful to not over-weight discriminant genes in large series. Values between -1 and 1 are transformed to 0 to avoid sign shifting, as it generally comes with non significant p-values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighted</code></td>
+<td>
+
+<p>Single logical value, whether to divide t (or log-transformed t) by gene mean or not. We recommend to normalize data only by samples and use <code>weighted = TRUE</code> to include gene centering in the model, rather than centering and scaling genes by normalizing independantly each series as Wright et al. did.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments are passed to <code>model.frame</code> if <code>response</code> is missing (thus defined via <code>formula</code>). <code>subset</code> and <code>na.action</code> may be particularly useful for cross-validation schemes, see <code>model.frame.default</code> for details. <code>subset</code> is always handled but masked in "..." for compatibility reasons.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Always returns a row named numeric matrix, with a "t" column holding statistics computed. If <code>p.value</code> is TRUE, a second "p.value" column is added.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Using a numeric matrix as <code>data</code> and a factor as <code>response</code> is the fastest way to compute coefficients, if time consumption matters (as in cross-validation schemes). <code>formula</code> was added only for consistency with other R modeling functions, and eventually to subset features to compute coefficients for.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://www.bioconductor.org/packages/release/bioc/html/limma.html">http://www.bioconductor.org/packages/release/bioc/html/limma.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LPS</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Data with features in columns
+  data(rosenwald)
+  group &lt;- rosenwald.cli$group
+  expr &lt;- t(rosenwald.expr)
+  
+  
+  # All features, all samples
+  k &lt;- LPS.coeff(data=expr, response=group)
+  k &lt;- LPS.coeff(formula=group~1, data=as.data.frame(expr))
+  ### LPS.coeff(formula=group~., data=as.data.frame(expr), na.action=na.pass)
+  ### The last is correct but (really) slow on large datasets
+  
+  # Feature subset, all samples
+  k &lt;- LPS.coeff(data=expr[, c("27481","17013") ], response=group)
+  k &lt;- LPS.coeff(formula=group~`27481`+`17013`, data=as.data.frame(expr))
+  ### Notice backticks in formula for syntactically invalid names
+  
+  # All features, sample subset
+  training &lt;- rosenwald.cli$set == "Training"
+  ### training &lt;- sample.int(nrow(expr), 10)
+  ### training &lt;- which(rosenwald.cli$set == "Training")
+  ### training &lt;- rownames(subset(rosenwald.cli, set == "Training"))
+  k &lt;- LPS.coeff(data=expr, response=group, subset=training)
+  k &lt;- LPS.coeff(formula=group~1, data=as.data.frame(expr), subset=training)
+
+  # NA handling by model.frame()
+  k &lt;- LPS.coeff(formula=group~1, data=as.data.frame(expr), na.action=na.omit)
+</code></pre>
+
+
+</div>

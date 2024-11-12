@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nloptwrap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wrappers for additional optimizers</h2>
+
+<h3>Description</h3>
+
+<p>Wrappers to allow use of alternative optimizers, from the <code>NLopt</code>
+library (via <a href="https://CRAN.R-project.org/package=nloptr"><span class="pkg">nloptr</span></a>) or elsewhere, for the nonlinear optimization stage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nloptwrap (par, fn, lower, upper, control = list(), ...)
+nlminbwrap(par, fn, lower, upper, control = list(), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>starting parameter vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+<p>objective function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p>numeric vector of lower and upper bounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p><code>list</code> of control parameters, corresponding to
+<code>optCtrl = *</code>, e.g., in <code>lmerControl()</code>.  For
+<code>nloptwrap</code>, see <code>defaultControl</code> in ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to objective function</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Using alternative optimizers is an important trouble-shooting
+tool for mixed models.  These wrappers provide convenient access to
+the optimizers provided by Steven Johnson's <code>NLopt</code> library
+(via the <a href="https://CRAN.R-project.org/package=nloptr"><span class="pkg">nloptr</span></a> R package), and to the <code>nlminb</code>
+optimizer from base R.  <code>nlminb</code> is also available via the
+<a href="https://CRAN.R-project.org/package=optimx"><span class="pkg">optimx</span></a> package; this wrapper provides access to <code>nlminb()</code>
+without the need to install/link the package, and without the additional
+post-fitting checks that are implemented by <a href="https://CRAN.R-project.org/package=optimx"><span class="pkg">optimx</span></a> (see examples
+below).
+</p>
+<p>One important difference between the <a href="https://CRAN.R-project.org/package=nloptr"><span class="pkg">nloptr</span></a>-provided
+implementation of BOBYQA and the <a href="https://CRAN.R-project.org/package=minqa"><span class="pkg">minqa</span></a>-provided version
+accessible via <code>optimizer="bobyqa"</code> is that it provides simpler
+access to optimization tolerances.  <code>bobyqa</code> provides
+only the <code>rhoend</code> parameter (“[t]he smallest value of the
+trust region radius that is allowed”), while <span class="pkg">nloptr</span> provides a more
+standard set of tolerances for relative or absolute change in the
+objective function or the parameter values (<code>ftol_rel</code>,
+<code>ftol_abs</code>, <code>xtol_rel</code>, <code>xtol_abs</code>).
+</p>
+<p>The default (empty) <code>control</code> list corresponds to the following settings:
+</p>
+
+<dl>
+<dt>
+<code>nlminbwrap</code>:</dt>
+<dd>
+<p><code>control</code> exactly corresponds to
+<code>nlminb()</code>'s defaults, see there.</p>
+</dd>
+<dt>
+<code>nloptwrap</code>:</dt>
+<dd>
+<p><code>environment(nloptwrap)$defaultControl</code>
+contains the defaults, notably <code>algorithm = "NLOPT_LN_BOBYQA"</code>.
+</p>
+<p><code>nloptr::nloptr.print.options()</code> shows and explains the many
+possible algorithm and options.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>estimated parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fval</code></td>
+<td>
+<p>objective function value at minimum</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>feval</code></td>
+<td>
+<p>number of function evaluations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>convergence code (0 if no error)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>convergence message</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Gabor Grothendieck (<code>nlminbwrap</code>)</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lme4)
+ls.str(environment(nloptwrap)) # 'defaultControl' algorithm "NLOPT_LN_BOBYQA"
+## Note that  'optimizer =  "nloptwrap"' is now the default for lmer() :
+fm1 &lt;- lmer(Reaction ~ Days + (Days|Subject), sleepstudy)
+## tighten tolerances
+fm1B &lt;- update(fm1, control= lmerControl(optCtrl = list(xtol_abs=1e-8, ftol_abs=1e-8)))
+## run for longer (no effect in this case)
+fm1C &lt;- update(fm1,control = lmerControl(optCtrl = list(maxeval=10000)))
+
+  logLik(fm1B) - logLik(fm1)  ## small difference in log likelihood
+c(logLik(fm1C) - logLik(fm1)) ## no difference in LL
+## Nelder-Mead
+fm1_nloptr_NM &lt;- update(fm1, control=
+                  lmerControl(optimizer = "nloptwrap",
+                              optCtrl = list(algorithm = "NLOPT_LN_NELDERMEAD")))
+## other nlOpt algorithm options include NLOPT_LN_COBYLA, NLOPT_LN_SBPLX, see
+if(interactive())
+  nloptr::nloptr.print.options()
+
+fm1_nlminb &lt;- update(fm1, control=lmerControl(optimizer = "nlminbwrap"))
+if (require(optimx)) { ## the 'optimx'-based nlminb :
+  fm1_nlminb2 &lt;- update(fm1, control=
+                lmerControl(optimizer = "optimx",
+                            optCtrl = list(method="nlminb", kkt=FALSE)))
+  cat("Likelihood difference (typically zero):  ",
+      c(logLik(fm1_nlminb) - logLik(fm1_nlminb2)), "\n")
+}
+
+
+</code></pre>
+
+
+</div>

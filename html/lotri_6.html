@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lotri</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Easily Specify block-diagonal matrices with lower triangular info</h2>
+
+<h3>Description</h3>
+
+<p>Easily Specify block-diagonal matrices with lower triangular info
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lotri(x, ..., cov = FALSE, rcm = FALSE, envir = parent.frame(), default = "id")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>list, matrix or expression, see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments treated as a list that will be
+concatenated then reapplied to this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov</code></td>
+<td>
+<p>either a boolean or a function accepting a matrix input.
+</p>
+<p>When a boolean, 'cov' describes if this matrix definition is
+actually a rxode2/nlmixr2-style covariance matrix.
+If so, 'lotri()' will enforce certain regularity conditions:
+</p>
+<p>- When diagonal elements are zero, the off-diagonal elements are
+zero. This means the covariance element is fixed to zero and
+not truly part of the covariance matrix in general.
+</p>
+<p>- For the rest of the matrix, 'lotri' will check that it is
+non-positive definite (which is required for covariance matrix in
+general)
+</p>
+<p>It is sometimes difficult to adjust covariance matrices to be
+non-positive definite.  For this reason 'cov' may also be a
+function accepting a matrix input and returning a non-positive
+definite matrix from this matrix input.  When this is a function,
+it is equivalent to 'cov=TRUE' with the additional ability to
+correct the matrix to be non-positive definite if needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rcm</code></td>
+<td>
+<p>logical; if 'TRUE', the matrix will be reordered to
+change the matrix to a banded matrix, which is easier to express
+in 'lotri' than a full matrix.  The RCM stands for the reverse
+Cuthill McKee (RCM) algorithm which is used for this matrix permutation.
+(see 'rcm()')</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>the <code>environment</code> in which <code>expr</code> is to
+be evaluated.  May also be <code>NULL</code>, a list, a data frame,
+a pairlist or an integer as specified to <code>sys.call</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default</code></td>
+<td>
+<p>Is the default factor when no conditioning is
+implemented.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This can take an R matrix, a list including matrices or
+expressions, or expressions
+</p>
+<p>Expressions can take the form
+</p>
+<p>name ~ estimate
+</p>
+<p>Or the lower triangular matrix when "adding" the names
+</p>
+<p>name1 + name2 ~ c(est1,
+est2, est3)
+</p>
+<p>The matrices are concatenated into a block diagonal matrix, like
+<code>bdiag</code>, but allows expressions to specify
+matrices easier.
+</p>
+
+
+<h3>Value</h3>
+
+<p>named symmetric matrix useful in 'rxode2()' simulations (and
+perhaps elsewhere)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthew L Fidler
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## A few ways to specify the same matrix
+lotri({et2 + et3 + et4 ~ c(40,
+                           0.1, 20,
+                           0.1, 0.1, 30)})
+
+## You  do not need to enclose in {}
+lotri(et2 + et3 + et4 ~ c(40,
+                          0.1, 20,
+                          0.1, 0.1, 30),
+          et5 ~ 6)
+## But if you do enclose in {}, you can use
+## multi-line matrix specifications:
+
+lotri({et2 + et3 + et4 ~ c(40,
+                           0.1, 20,
+                           0.1, 0.1, 30)
+          et5 ~ 6
+          })
+
+## You can also add lists or actual R matrices as in this example:
+lotri(list(et2 + et3 + et4 ~ c(40,
+                               0.1, 20,
+                               0.1, 0.1, 30),
+              matrix(1,dimnames=list("et5","et5"))))
+
+## Overall this is a flexible way to specify symmetric block
+## diagonal matrices.
+
+## For rxode2, you may also condition based on different levels of
+## nesting with lotri;  Here is an example:
+
+mat &lt;- lotri(lotri(iov.Ka ~ 0.5,
+                    iov.Cl ~ 0.6),
+              lotri(occ.Ka ~ 0.5,
+                    occ.Cl ~ 0.6) | occ(lower=4,nu=3))
+
+mat
+
+## you may access features of the matrix simply by `$` that is
+
+mat$lower # Shows the lower bound for each condition
+
+mat$lower$occ # shows the lower bound for the occasion variable
+
+## Note that `lower` fills in defaults for parameters.  This is true
+## for `upper` true;  In fact when accessing this the defaults
+## are put into the list
+
+mat$upper
+
+## However all other values return NULL if they are not present like
+
+mat$lotri
+
+## And values that are specified once are only returned on one list:
+
+mat$nu
+
+mat$nu$occ
+mat$nu$id
+
+## You can also change the default condition with `as.lotri`
+
+mat &lt;- as.lotri(mat, default="id")
+
+mat
+
+</code></pre>
+
+
+</div>

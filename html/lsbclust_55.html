@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>step.lsbclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model Search for lsbclust</h2>
+
+<h3>Description</h3>
+
+<p>Fit <code>lsbclust</code> models for different numbers of clusters and/or different values of 
+<code>delta</code>. The resulting output can be inspected through its <code>plot</code> method to facilitate 
+model selection. Each component of the model is fitted separately.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">step.lsbclust(data, margin = 3L, delta = c(1, 1, 1, 1), nclust,
+  ndim = 2, fixed = c("none", "rows", "columns"), nstart = 20,
+  starts = NULL, nstart.kmeans = 500, alpha = 0.5,
+  parallel = FALSE, maxit = 100, verbose = -1, type = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A three-way array representing the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin</code></td>
+<td>
+<p>An integer giving the single subscript of <code>data</code> over which the clustering 
+will be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>A four-element binary vector (logical or numeric) indicating which sum-to-zero 
+constraints must be enforced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclust</code></td>
+<td>
+<p>Either a vector giving the number of clusters which will be applied to each element
+of the model, that is to (a subset of) the overall mean, row margins, column margins and 
+interactions. If it is a list, arguments are matched by the names <code>"overall"</code>, <code>"rows"</code>
+<code>"columns"</code> and <code>"interactions"</code>. If the list does not have names, the components are 
+extracted in the aforementioned order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndim</code></td>
+<td>
+<p>The required rank for the approximation of the interactions (a scalar).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>One of <code>"none"</code>, <code>"rows"</code> or <code>"columns"</code> indicating whether to fix neither
+sets of coordinates, or whether to fix the row or column coordinates across clusters respectively.
+If a vector is supplied, only the first element will be used (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>The number of random starts to use for the interaction clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starts</code></td>
+<td>
+<p>A list containing starting configurations for the cluster membership vector. If not
+supplied, random initializations will be generated (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart.kmeans</code></td>
+<td>
+<p>The number of random starts to use in <code>kmeans</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Numeric value in [0, 1] which determines how the singular values are distributed
+between rows and columns (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical indicating whether to parallelize over different starts or not 
+(passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>The maximum number of iterations allowed in the interaction clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The number of iterations after which information on progress is provided 
+(passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>One of <code>"rows"</code>, <code>"columns"</code> or <code>"overall"</code> (or a unique abbreviation of 
+one of these) indicating whether clustering should be done on row margins, column margins or
+the overall means of the two-way slices respectively. If more than one opion are supplied, the
+algorithm is run for all (unique) options supplied (passed to <code>orc.lsbclust</code>). This
+is an optional argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>kmeans</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">m &lt;- step.lsbclust(data = dcars, margin = 3, delta = c(1, 0, 1, 0), nclust = 4:5, 
+                     ndim = 2, fixed = "columns", nstart = 1, nstart.kmeans = 100, 
+                     parallel = FALSE)
+                     
+## For a list of all deltas                     
+delta &lt;- expand.grid(replicate(4, c(0,1), simplify = FALSE))
+delta &lt;- with(delta, delta[!(Var1 == 0 &amp; Var3 == 1), ])
+delta &lt;- with(delta, delta[!(Var2 == 0 &amp; Var4 == 1),])
+delta &lt;- delta[-4,]
+delta &lt;- as.list(as.data.frame(t(delta)))
+m2 &lt;- step.lsbclust(data = dcars, margin = 3, delta = delta, nclust = 4:5, 
+                     ndim = 2, fixed = "columns", nstart = 1, nstart.kmeans = 100, 
+                     parallel = FALSE)
+</code></pre>
+
+
+</div>

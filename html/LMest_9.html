@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bootstrap_lm_cov_latent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parametric bootstrap for LM models with individual covariates in the latent model</h2>
+
+<h3>Description</h3>
+
+<p>Function that performs bootstrap parametric resampling to compute standard errors for the parameter estimates. <br><br><b>The function is no longer maintained. Please look at</b> <code>bootstrap</code> <b>function</b>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bootstrap_lm_cov_latent(X1, X2, param = "multilogit", Psi, Be, Ga, B = 100,
+                        fort = TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X1 </code></td>
+<td>
+<p>matrix of covariates affecting the initial probabilities (n x nc1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X2 </code></td>
+<td>
+<p>array of covariates affecting the transition probabilities (n x TT-1 x nc2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param </code></td>
+<td>
+<p>type of parametrization for the transition probabilities ("multilogit" = standard multinomial logit for every row of the transition matrix, "difflogit" = multinomial logit based on the difference between two sets of parameters)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psi </code></td>
+<td>
+<p>array of conditional response probabilities (mb x k x r)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Be </code></td>
+<td>
+<p>parameters affecting the logit for the initial probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ga </code></td>
+<td>
+<p>parametes affecting the logit for the transition probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>number of bootstrap samples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort</code></td>
+<td>
+<p>to use fortran routine when possible (FALSE for not use fortran)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mPsi </code></td>
+<td>
+<p>average of bootstrap estimates of the conditional response probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mBe </code></td>
+<td>
+<p>average of bootstrap estimates of the parameters affecting the logit for the initial probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mGa </code></td>
+<td>
+<p>average of bootstrap estimates of the parameters affecting the logit for the transition probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sePsi </code></td>
+<td>
+<p>standard errors for the conditional response probabilities </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seBe </code></td>
+<td>
+<p>standard errors for the parameters in Be</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seGa </code></td>
+<td>
+<p>standard errors for the parameters in Ga </p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci, Silvia Pandolfi - University of Perugia (IT)</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Example based on self-rated health status (SRHS) data
+# load SRHS data
+data(data_SRHS_long)
+dataSRHS &lt;- data_SRHS_long
+
+TT &lt;- 8
+head(dataSRHS)
+res &lt;- long2matrices(dataSRHS$id, X = cbind(dataSRHS$gender-1,
+dataSRHS$race == 2 | dataSRHS$race == 3, dataSRHS$education == 4,
+dataSRHS$education == 5, dataSRHS$age-50, (dataSRHS$age-50)^2/100),
+Y = dataSRHS$srhs)
+
+# matrix of responses (with ordered categories from 0 to 4)
+S &lt;- 5-res$YY
+
+# matrix of covariates (for the first and the following occasions)
+# colums are: gender,race,educational level (2 columns),age,age^2)
+X1 &lt;- res$XX[,1,]
+X2 &lt;- res$XX[,2:TT,]
+
+# estimate the model
+out1 &lt;- est_lm_cov_latent(S, X1, X2, k = 2, output = TRUE, out_se = TRUE)
+
+out2 &lt;- bootstrap_lm_cov_latent(X1, X2, Psi = out1$Psi, Be = out1$Be, Ga = out1$Ga, B = 1000)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

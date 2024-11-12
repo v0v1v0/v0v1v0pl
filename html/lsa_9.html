@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dimcalc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dimensionality Calculation Routines (LSA)</h2>
+
+<h3>Description</h3>
+
+<p>Methods for choosing a ‘good’ number of singular values for the dimensionality reduction in LSA.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   dimcalc_share(share=0.5)
+   dimcalc_ndocs(ndocs)
+   dimcalc_kaiser()
+   dimcalc_raw()
+   dimcalc_fraction(frac=(1/50))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>share</code></td>
+<td>
+<p>Optional: a fraction of the sum of the selected singular values to the sum of all singular values (default: 0.5). Only needed by <code>dimcalc\_share</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frac</code></td>
+<td>
+<p>Optional: a fraction of the number of the singular values to be used (default: 1/50th).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndocs</code></td>
+<td>
+<p>Optional: the number of documents (only needed for <code>dimcalc\_ndocs()</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In an LSA process, the diagonal matrix of the singular value decomposition is 
+usually reduced to a specific number of dimensions (also ‘factors’ or ‘singular values’).
+</p>
+<p>The functions <code>dimcalc\_share()</code>, <code>dimcalc\_ndocs()</code>, <code>dimcalc\_kaiser()</code>
+and also the redundant function <code>dimcalc\_raw()</code> offer methods to calculate a useful
+number of singular values (based on the distribution and values of the given sequence 
+of singular values).
+</p>
+<p>All of them are tightly coupled to the core LSA functions: they generates 
+a function to be executed by the calling (higher-level) 
+function <code>lsa()</code>. The output function contains only one parameter, 
+namely <code>s</code>, which is expected to be the sequence of singular values. 
+In <code>lsa()</code>, the code returned is executed, the mandatory 
+singular values are provided as a parameter within <code>lsa()</code>.
+</p>
+<p>The dimensionality calculation methods, however, can still be called directly
+by adding a second, separate parameter set: e.g.
+</p>
+<p><code>dimcalc\_share(share=0.2)(mysingularvalues)</code>
+</p>
+<p>The method <code>dimcalc\_share()</code> finds the first position in the descending sequence of 
+singular values <code>s</code> where their sum (divided by the sum of all 
+values) meets or exceeds the specified share.
+</p>
+<p>The method <code>dimcalc\_ndocs()</code> calculates the first position in the descending sequence
+of singular values where their sum meets or exceeds the number of documents.
+</p>
+<p>The method <code>dimcalc\_kaiser()</code> calculates the number of singular values according to the 
+Kaiser-Criterium, i.e. from the descending order of values all values 
+with <code>s[n] &gt; 1</code> will be taken. The number of dimensions is returned
+accordingly.
+</p>
+<p>The method <code>dimcalc_fraction()</code> returns the specified share of the
+number of singular values. Per default, 1/50th of the available values
+will be used and the determined number of singular values will be returned.
+</p>
+<p>The method <code>dimcalc\_raw()</code> return the maximum number of singular values (= the length 
+of <code>s</code>). It is here only for completeness.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a function that takes the singular values as a parameter to
+return the recommended number of dimensions. The expected parameter 
+of this function is 
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>A sequence of singular values (as produced by the SVD). Only needed when calling the dimensionality calculation routines directly.</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p> Fridolin Wild <a href="mailto:f.wild@open.ac.uk">f.wild@open.ac.uk</a> </p>
+
+
+<h3>References</h3>
+
+<p>Wild, F., Stahl, C., Stermsek, G., Neumann, G., Penya, Y. (2005) <em>Parameters Driving Effectiveness of Automated Essay Scoring with LSA</em>. In: Proceedings of the 9th CAA, pp.485-494, Loughborough </p>
+
+
+<h3>See Also</h3>
+
+<p><code>lsa</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## create some data 
+vec1 = c( 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 )
+vec2 = c( 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0 )
+vec3 = c( 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0 )
+matrix = cbind(vec1,vec2, vec3)
+s = svd(matrix)$d
+
+# standard share of 0.5
+dimcalc_share()(s) 
+
+# specific share of 0.9
+dimcalc_share(share=0.9)(s) 
+
+# meeting the number of documents (here: 3)
+n = ncol(matrix)
+dimcalc_ndocs(n)(s)
+
+</code></pre>
+
+
+</div>

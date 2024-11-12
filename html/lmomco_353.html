@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quawei</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Quantile Function of the Weibull Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the quantiles of the Weibull distribution given parameters (<code class="reqn">\zeta</code>, <code class="reqn">\beta</code>, and <code class="reqn">\delta</code>) computed by <code>parwei</code>. The quantile function  is
+</p>
+<p style="text-align: center;"><code class="reqn">x(F) = \beta[- \log(1-F)]^{1/\delta} - \zeta \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile for nonexceedance probability <code class="reqn">F</code>,
+<code class="reqn">\zeta</code> is a location parameter, <code class="reqn">\beta</code> is a scale parameter, and <code class="reqn">\delta</code> is a shape parameter.
+</p>
+<p>The Weibull distribution is a reverse Generalized Extreme Value distribution.  As result, the Generalized Extreme Value algorithms are used for implementation of the Weibull in <span class="pkg">lmomco</span>. The relations between the Generalized Extreme Value distribution parameters (<code class="reqn">\xi</code>, <code class="reqn">\alpha</code>, <code class="reqn">\kappa</code>) are
+<code class="reqn">\kappa</code>) is <code class="reqn">\kappa = 1/\delta</code>, 
+<code class="reqn">\alpha = \beta/\delta</code>, and
+<code class="reqn">\xi = \zeta - \beta</code>.
+These relations are taken from Hosking and Wallis (1997).
+</p>
+<p>In <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>, the quantile function of the Weibull distribution is <code>qweibull</code>. Given a Weibull parameter object <code>p</code>, the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> syntax is <code>qweibull(f, p$para[3], scale=p$para[2]) - p$para[1]</code>. For the current implementation for this package, the reversed Generalized Extreme Value distribution <code>quagev</code> is used and the implementation is <code>-quagev((1-f),para)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quawei(f, para, paracheck=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parwei</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters are checked for validity. Overriding of this check might be extremely important and needed for use of the quantile function in the context of TL-moments with nonzero trimming.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Quantile value for nonexceedance probability <code class="reqn">F</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., and Wallis, J.R., 1997, Regional frequency analysis—An
+approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfwei</code>, <code>pdfwei</code>, <code>lmomwei</code>, <code>parwei</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Evaluate Weibull deployed here and within R (qweibull)
+  lmr &lt;- lmoms(c(123,34,4,654,37,78))
+  WEI &lt;- parwei(lmr)
+  Q1  &lt;- quawei(0.5,WEI)
+  Q2  &lt;- qweibull(0.5,shape=WEI$para[3],scale=WEI$para[2])-WEI$para[1]
+  if(Q1 == Q2) EQUAL &lt;- TRUE
+
+  # The Weibull is a reversed generalized extreme value
+  Q &lt;- sort(rlmomco(34,WEI)) # generate Weibull sample
+  lm1 &lt;- lmoms(Q)    # regular L-moments
+  lm2 &lt;- lmoms(-Q)   # L-moment of negated (reversed) data
+  WEI &lt;- parwei(lm1) # parameters of Weibull
+  GEV &lt;- pargev(lm2) # parameters of GEV
+  F &lt;- nonexceeds()  # Get a vector of nonexceedance probs
+  plot(pp(Q),Q)
+  lines(F,quawei(F,WEI))
+  lines(F,-quagev(1-F,GEV),col=2) # line over laps previous
+</code></pre>
+
+
+</div>

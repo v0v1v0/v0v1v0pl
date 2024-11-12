@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cancerlipidome</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Levels of lipids in benign and malignant breast tumors in humans.</h2>
+
+<h3>Description</h3>
+
+<p>This data set contains levels of 409 named lipids in 118 human breast tumor
+tissue samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data( cancerlipidome )
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A long-format data frame with 48262 rows and 7 variables:
+</p>
+
+<dl>
+<dt>ID</dt>
+<dd>
+<p>Participant number</p>
+</dd>
+<dt>Group</dt>
+<dd>
+<p>Diagnosis of the type tumor: benign, cancer, or metastasis</p>
+</dd>
+<dt>Race</dt>
+<dd>
+<p>Ethnic background of the participant</p>
+</dd>
+<dt>Stage</dt>
+<dd>
+<p>Diagnosis of the stage of the tumor</p>
+</dd>
+<dt>Type</dt>
+<dd>
+<p>Sub-type of the breast tumor. IDC: Invasive Ductal Carcinoma</p>
+</dd>
+<dt>Lipid_Name</dt>
+<dd>
+<p>Name of the lipid. The names are in
+the format 'XY(C:D)', where 'XY' is the abbreviation of the lipid
+class, 'C' is the total number of carbon atoms in the fatty-acid
+chains, and 'D' is the total number of double-bonds in the fatty
+acid chains.</p>
+</dd>
+<dt>Lipid_Level</dt>
+<dd>
+<p>Measured level of the lipid.</p>
+</dd>
+</dl>
+<h3>Source</h3>
+
+<p>This data is available at the NIH Common Fund's National
+Metabolomics Data Repository (NMDR) website, the Metabolomics Workbench,
+<a href="https://www.metabolomicsworkbench.org">https://www.metabolomicsworkbench.org</a>,
+where it has been assigned Project ID PR000742.
+The data can be accessed directly via its Project DOI:
+<a href="http://dx.doi.org/10.21228/M8RX01">10.21228/M8RX01</a>.
+This work was supported by NIH grant, U2C- DK119886.
+</p>
+
+
+<h3>References</h3>
+
+<p>Purwaha, P., et al.
+Unbiased lipidomic profiling of triple-negative breast cancer tissues
+reveals the association of sphingomyelin levels with patient disease-free
+survival.
+Metabolites 8, 41 (2018)
+(<a href="https://doi.org/10.3390/metabo8030041">doi: 10.3390/metabo8030041</a>)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Import the data set.
+data( cancerlipidome )
+
+# Convert the data into wide format, where each lipid is one column and
+# each sample is one row.
+cancerlipidome.wide &lt;-
+   tidyr::pivot_wider(
+       data = cancerlipidome,
+       names_from = Lipid_Name,
+       values_from = Lipid_Level
+   )
+# Inspect the data frame.
+# View( cancerlipidome.wide )
+# Create a mapping of the lipid names.
+names.mapping &lt;-
+   map_lipid_names( x = unique( cancerlipidome$"Lipid_Name" ) )
+# Compute the regression models.
+result.limma &lt;-
+   compute_models_with_limma(
+       x = cancerlipidome.wide,
+       dependent.variables = names.mapping$"Name",
+       independent.variables = c( "Group" )
+   )
+
+# Create a figure of all lipids and factors.
+figure.output &lt;-
+  heatmap_lipidome_from_limma(
+    x = result.limma$"model",
+    names.mapping = names.mapping,
+    axis.x.carbons = FALSE,
+    class.facet = "row",
+    plot.all = TRUE,
+    plot.individual = FALSE,
+    print.figure = TRUE,
+    scales = "free",
+    space = "free"
+  )
+
+# Create individual figures for each factor.
+figure.output &lt;-
+   heatmap_lipidome_from_limma(
+       x = result.limma$"model",
+       names.mapping = names.mapping,
+       axis.x.carbons = FALSE,
+       class.facet = "wrap",
+       omit.class = "PA",
+       plot.all = FALSE,
+       plot.individual = TRUE,
+       print.figure = FALSE,
+       scales = "free",
+       space = "free"
+   )
+# Print the figure of differences between cancer and benign tumors.
+print( figure.output[[ "GroupCancer" ]] )
+
+</code></pre>
+
+
+</div>

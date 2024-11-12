@@ -1,0 +1,81 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dsm_tin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Digital Surface Model Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function is made to be used in rasterize_canopy. It implements an algorithm for digital
+surface model computation using a Delaunay triangulation of first returns with a linear interpolation
+within each triangle.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dsmtin(max_edge = 0, highest = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>max_edge</code></td>
+<td>
+<p>numeric. Maximum edge length of a triangle in the Delaunay triangulation.
+If a triangle has an edge length greater than this value it will be removed to trim dummy interpolation
+on non-convex areas. If <code>max_edge = 0</code> no trimming is done (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>highest</code></td>
+<td>
+<p>bool. By default it keeps only the highest point per pixel before to triangulate to
+decrease computation time. If highest = FALSE all first returns are used.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>Other digital surface model algorithms: 
+<code>dsm_pitfree</code>,
+<code>dsm_point2raster</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+las &lt;- readLAS(LASfile)
+col &lt;- height.colors(50)
+
+# Basic triangulation and rasterization of first returns
+chm &lt;- rasterize_canopy(las, res = 1, dsmtin())
+plot(chm, col = col)
+
+## Not run: 
+# Potentially complex concave subset of point cloud
+x = c(481340, 481340, 481280, 481300, 481280, 481340)
+y = c(3812940, 3813000, 3813000, 3812960, 3812940, 3812940)
+las2 = clip_polygon(las,x,y)
+plot(las2)
+
+# Because the TIN interpolation is done within the convex hull of the point cloud
+# dummy pixels are interpolated that are correct according to the interpolation method
+# used, but meaningless in our CHM
+chm &lt;- rasterize_canopy(las2, res = 0.5, dsmtin())
+plot(chm, col = col)
+
+# Use 'max_edge' to trim dummy triangles
+chm = rasterize_canopy(las2, res = 0.5, dsmtin(max_edge = 3))
+plot(chm, col = col)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

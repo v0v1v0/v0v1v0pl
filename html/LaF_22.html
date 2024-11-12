@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>detect_dm_csv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatically detect data models for CSV-files</h2>
+
+<h3>Description</h3>
+
+<p>Automatically detect data models for CSV-files.  Opening of files using the
+data models can be done using <code>laf_open</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">detect_dm_csv(
+  filename,
+  sep = ",",
+  dec = ".",
+  header = FALSE,
+  nrows = 1000,
+  nlines = NULL,
+  sample = FALSE,
+  stringsAsFactors = TRUE,
+  factor_fraction = 0.4,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>character containing the filename of the csv-file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>character vector containing the separator used in the file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec</code></td>
+<td>
+<p>the character used for decimal points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>header</code></td>
+<td>
+<p>does the first line in the file contain the column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrows</code></td>
+<td>
+<p>the number of lines that should be read in to detect the column
+types. The more lines the more likely that the correct types are detected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlines</code></td>
+<td>
+<p>(only needed when the sample option is used) the expected number
+of lines in the file. If not specified the number of lines in the file is
+first calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample</code></td>
+<td>
+<p>by default the first <code>nrows</code> lines are read in for
+determining the column types. When sample is used random lines from the file
+are used. This is more robust, but takes longer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringsAsFactors</code></td>
+<td>
+<p>passed on to <code>read.table</code>. Set to 
+<code>FALSE</code> to read all text columns as character. In that case 
+<code>factor_fraction</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>factor_fraction</code></td>
+<td>
+<p>the fraction of unique string in a column below which
+the column is converted to a factor/categorical. For more information see
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments are passed on to <code>read.table</code>.
+However, be careful with using these as some of these arguments are not
+supported by <code>laf_open_csv</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The argument <code>factor_fraction</code> determines the fraction of unique strings
+below which the column is converted to factor/categorical. If all column need
+to be converted to character a value larger than one can be used. A value
+smaller than zero will ensure that all columns will be converted to
+categorical. Note that LaF stores the levels of a categorical in memory.
+Therefore, for categorical columns with a very large number of (almost) unique
+levels can cause memory problems.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>read_dm</code> returns a data model which can be used by
+<code>laf_open</code>. The data model can be written to file using
+<code>write_dm</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>write_dm</code> to write the data model to file.  The data models
+can be used to open a file using <code>laf_open</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create temporary filename
+tmpcsv  &lt;- tempfile(fileext="csv")
+
+# Generate test data
+ntest &lt;- 10
+column_types &lt;- c("integer", "integer", "double", "string")
+testdata &lt;- data.frame(
+    a = 1:ntest,
+    b = sample(1:2, ntest, replace=TRUE),
+    c = round(runif(ntest), 13),
+    d = sample(c("jan", "pier", "tjores", "corneel"), ntest, replace=TRUE),
+    stringsAsFactors = FALSE
+    )
+# Write test data to csv file
+write.table(testdata, file=tmpcsv, row.names=FALSE, col.names=TRUE, sep=',')
+
+# Detect data model
+model &lt;- detect_dm_csv(tmpcsv, header=TRUE)
+
+# Create LaF-object
+laf &lt;- laf_open(model)
+
+# Cleanup
+file.remove(tmpcsv)
+
+</code></pre>
+
+
+</div>

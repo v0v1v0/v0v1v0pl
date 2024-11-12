@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuse</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Render Markdown, R Markdown, and R scripts</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>fuse()</code> extracts and runs code from code chunks
+and inline code expressions in R Markdown, and interweaves the results with
+the rest of text in the input, which is similar to what <code>knitr::knit()</code> and
+<code>rmarkdown::render()</code> do. It also works on R scripts in a way similar to
+<code>knitr::spin()</code>. The function <code>fiss()</code> extracts code from the input, and is
+similar to <code>knitr::purl()</code>.
+</p>
+<p>The function <code>mark()</code> renders Markdown to an output format via the
+<span class="pkg">commonmark</span> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuse(input, output = NULL, text = NULL, envir = parent.frame(), quiet = FALSE)
+
+fiss(input, output = ".R", text = NULL)
+
+mark(input, output = NULL, text = NULL, options = NULL, meta = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>A character vector to provide the input file path or text. If
+not provided, the <code>text</code> argument must be provided instead. The <code>input</code>
+vector will be treated as a file path if it is a single string, and points
+to an existing file or has a filename extension. In other cases, the vector
+will be treated as the <code>text</code> argument input. To avoid ambiguity, if a
+string should be treated as <code>text</code> input when it happens to be an existing
+file path or has an extension, wrap it in <code>I()</code>, or simply use the <code>text</code>
+argument instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>An output file path or a filename extension (e.g., <code>.html</code>,
+<code>.tex</code>, <code>.xml</code>, <code>.man</code>, <code>.markdown</code>, or <code>.txt</code>). In the latter case, the
+output file path will use the extension on the same base filename as the
+input file if the <code>input</code> is a file. If <code>output</code> is not character (e.g.,
+<code>NA</code>), the results will be returned as a character vector instead of being
+written to a file. If <code>output</code> is <code>NULL</code> or an extension, and the input is
+a file path, the output file path will have the same base name as the input
+file, with an extension corresponding to the output format. The output
+format is retrieved from the first value in the <code>output</code> field of the YAML
+metadata of the <code>input</code> (e.g., <code>litedown::html_format</code> will generate HTML
+output). The <code>output</code> argument can also take an output format name
+(possible values are <code>html</code>, <code>latex</code>, <code>xml</code>, <code>man</code>, <code>commonmark</code>, and
+<code>text</code>). If no output format is detected or provided, the default is HTML.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>A character vector as the text input. By default, it is read from
+the <code>input</code> file if provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>An environment in which the code is to be evaluated. It can be
+accessed via <code>fuse_env()</code> inside <code>fuse()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>If <code>TRUE</code>, do not show the progress bar. If <code>FALSE</code>, the
+progress bar will be shown after a number of seconds, which can be set via
+a global option <code>litedown.progress.delay</code> (the default is <code>2</code>).
+THe progress bar output can be set via a global option
+<code>litedown.progress.output</code> (the default is <code>stderr()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>Options to be passed to the renderer. See <code>markdown_options()</code>
+for details. This argument can take either a character vector of the form
+<code>"+option1 option2-option3"</code> (use <code>+</code> or a space to enable an option, and
+<code>-</code> to disable an option), or a list of the form <code>list(option1 = value1, option2 = value2, ...)</code>. A string <code>"+option1"</code> is equivalent to
+<code>list(option1 = TRUE)</code>, and <code>"-option2"</code> means <code>list(option2 = FALSE)</code>.
+Options that do not take logical values must be specified via a list, e.g.,
+<code>list(width = 30)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meta</code></td>
+<td>
+<p>A named list of metadata. Elements in the metadata will be used
+to fill out the template by their names and values, e.g., <code>list(title = ...)</code> will replace the <code style="white-space: pre;">⁠$title$⁠</code> variable in the template. See the Section
+“YAML metadata” in the vignette <code>vignette('intro', package = 'litedown')</code> for supported variables.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The output file path if output is written to a file, otherwise a
+character vector of the rendered output (wrapped in <code>xfun::raw_string()</code>
+for clearer printing).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sieve()</code>, for the syntax of R scripts to be passed to <code>fuse()</code>.
+</p>
+<p>The spec of GitHub Flavored Markdown:
+<a href="https://github.github.com/gfm/">https://github.github.com/gfm/</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(litedown)
+doc = c("```{r}", "1 + 1", "```", "", "$\\pi$ = `{r} pi`.")
+fuse(doc)
+fuse(doc, ".tex")
+fiss(doc)
+
+mark(c("Hello _World_!", "", "Welcome to **litedown**."))
+# if input appears to be a file path but should be treated as text, use I()
+mark(I("This is *not* a file.md"))
+# that's equivalent to
+mark(text = "This is *not* a file.md")
+
+# output to a file
+(mark("_Hello_, **World**!", output = tempfile()))
+
+# convert to other formats
+mark("Hello _World_!", ".tex")
+mark("Hello _**`World`**_!", "xml")
+mark("Hello _**`World`**_!", "text")
+</code></pre>
+
+
+</div>

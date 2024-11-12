@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parrice</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Rice Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters (<code class="reqn">\nu</code> and <code class="reqn">\alpha</code>) of the Rice distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The relations between distribution parameters and L-moments are complex and tabular lookup is made using a relation between <code class="reqn">\tau</code> and a form of signal-to-noise ratio <code class="reqn">\mathrm{SNR}</code> defined as <code class="reqn">\nu/\alpha</code> and a relation between <code class="reqn">\tau</code> and precomputed Laguerre polynomial (<code>LaguerreHalf</code>).
+</p>
+<p>The <code class="reqn">\lambda_1</code> (mean) is most straightforward
+</p>
+<p style="text-align: center;"><code class="reqn">
+\lambda_1 = \alpha \times \sqrt{\pi/2} \times L_{1/2}(-\nu^2/[2\alpha^2])\mbox{,}
+</code>
+</p>
+
+<p>for which the terms to the right of the multiplication symbol are uniquely a function of <code class="reqn">\tau</code> and precomputed for tabular lookup and interpolation from ‘<span class="file">sysdata.rdb</span>’ (<span class="env">.lmomcohash$RiceTable</span>). Parameter estimation also relies directly on tabular lookup and interpolation to convert <code class="reqn">\tau</code> to <code class="reqn">\mathrm{SNR}</code>. The file ‘<span class="file">SysDataBuilder01.R</span>’ provides additional technical details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parrice(lmom, checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check. However, the end point of the Rice distribution for high <code class="reqn">\nu/\alpha</code> is not determined here, so it is recommended to leave <code>checklmom</code> turned on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>rice</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “parrice”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A numeric failure mode.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifailtext</code></td>
+<td>
+<p>A helpful message on the failure.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomrice</code>, <code>cdfrice</code>, <code>pdfrice</code>, <code>quarice</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  parrice(lmomrice(vec2par(c(10,50),   type="rice"))) # Within Rician limits
+  parrice(lmomrice(vec2par(c(100,0.1), type="rice"))) # Beyond Rician limits
+
+plotlmrdia(lmrdia(), xlim=c(0,0.2), ylim=c(-0.1,0.22),
+           autolegend=TRUE, xleg=0.05, yleg=0.05)
+lines(.lmomcohash$RiceTable$TAU3, .lmomcohash$RiceTable$TAU4, lwd=5, col=8)
+legend(0.1,0, "RICE DISTRIBUTION", lwd=5, col=8, bty="n")
+text(0.14, -0.04,  "Normal distribution limit on left end point"   )
+text(0.14, -0.055, "Rayleigh distribution limit on right end point")
+
+# check parrice against a Maximum Likelihood method in VGAM
+set.seed(1)
+library(VGAM) # now example from riceff() of VGAM
+vee &lt;- exp(2); sigma &lt;- exp(1); y &lt;- rrice(n &lt;- 1000, vee, sigma)
+fit &lt;- vglm(y ~ 1, riceff, trace=TRUE, crit="c")
+Coef(fit)
+# NOW THE MOMENT OF TRUTH, USING L-MOMENTS
+parrice(lmoms(y))
+# VGAM package 0.8-1 reports
+#     vee    sigma
+# 7.344560 2.805877
+# lmomco 1.2.2 reports
+#      nu    alpha
+# 7.348784 2.797651
+## End(Not run)
+</code></pre>
+
+
+</div>

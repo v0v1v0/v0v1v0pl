@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>automatic_analysis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic analysis</h2>
+
+<h3>Description</h3>
+
+<p>Calculates local score and p-value for sequence(s) with integer scores.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">automatic_analysis(
+  sequences,
+  model,
+  scores,
+  transition_matrix,
+  distribution,
+  method_limit = 2000,
+  score_extremes,
+  modelFunc,
+  simulated_sequence_length = 1000,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sequences</code></td>
+<td>
+<p>sequences to be analysed (named list)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the underlying model of the sequence (either "iid" for identically independently distributed variable or "markov" for Markov chains)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>vector of minimum and maximum score range</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition_matrix</code></td>
+<td>
+<p>if the sequences are markov chains, this is their transition matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distribution</code></td>
+<td>
+<p>vector of probabilities in ascending score order (iid sequences). Note that names of the vector must be the associated scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method_limit</code></td>
+<td>
+<p>limit length from which on computation-intensive exact calculation methods for p-value are replaced by approximative methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>score_extremes</code></td>
+<td>
+<p>a vector with two elements: minimal score value, maximal score value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelFunc</code></td>
+<td>
+<p>function to create similar sequences. In this case, Monte Carlo is used to calculate p-value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulated_sequence_length</code></td>
+<td>
+<p>if a modelFunc is provided and the sequence happens to be longer than method_limit, the method karlinMonteCarlo
+is used. This method requires the length of the sequences that will be created by the modelFunc for estimation of Gumble parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>parameters for modelFunc</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This method picks the adequate p-value method for your input.<br> 
+If no sequences are passed to this function, it will let you pick a FASTA file.<br> 
+If this is the case, and if you haven't provided any score system 
+(as you can do by passing a named list with the appropriate scores for each character),
+the second file dialog which will pop up is for choosing a file containing the score 
+(and if you provide an extra column for the probabilities, they will be used, too - see
+section File Formats in the vignette for details).<br> 
+The function then either uses empirical distribution based on your input - or if you provided
+a distribution, then yours - to calculate the p-value based on the length of each of the sequences
+given as input. <br> 
+You can influence the choice of the method by providing the modelFunc argument. In this case, the
+function uses exclusively simulation methods (monteCarlo, karlinMonteCarlo).  <br> 
+By setting the method_limit you can further decide to which extent computation-intensive methods (daudin, exact_mc)
+should be used to calculate the p-value.
+Remark that the warnings of the localScoreC() function have be deleted when called by automatic_analysis() function
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list object containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Local score</code></td>
+<td>
+<p>local score...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p-value</code></td>
+<td>
+<p>p-value ...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Method</code></td>
+<td>
+<p>the method used for the calculus of the p-value</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Minimal example
+l = list()
+seq1 = sample(-2:1, size = 3000, replace = TRUE)
+seq2 = sample(-3:1, size = 150, replace = TRUE)
+l[["hello"]] = seq1
+l[["world"]] = seq2
+automatic_analysis(l, "iid")
+# Example with a given distribution 
+automatic_analysis(l,"iid",scores=c(-3,1),distribution=c(0.3,0.3,0.1,0.1,0.2))
+# forcing the exact method for the longest sequence
+aa1=automatic_analysis(l,"iid")
+aa1$hello$`method applied`
+aa1$hello$`p-value`
+aa2=automatic_analysis(l,"iid",method_limit=3000)
+aa2$hello$`method applied`
+aa2$hello$`p-value`
+# Markovian example 
+MyTransMat &lt;-
+matrix(c(0.3,0.1,0.1,0.1,0.4, 0.3,0.2,0.2,0.2,0.1, 0.3,0.4,0.1,0.1,0.1, 0.3,0.3,0.3,0.0,0.1, 
+        0.1,0.3,0.2,0.3,0.1), ncol = 5, byrow=TRUE)
+MySeq.CM=transmatrix2sequence(matrix = MyTransMat,length=150, score =-2:2)
+MySeq.CM2=transmatrix2sequence(matrix = MyTransMat,length=110, score =-2:2)
+automatic_analysis(sequences = list("x1" = MySeq.CM, "x2" = MySeq.CM2), model = "markov")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lma_dtm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Document-Term Matrix Creation</h2>
+
+<h3>Description</h3>
+
+<p>Creates a document-term matrix (dtm) from a set of texts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lma_dtm(text, exclude = NULL, context = NULL, replace.special = FALSE,
+  numbers = FALSE, punct = FALSE, urls = TRUE, emojis = FALSE,
+  to.lower = TRUE, word.break = " +", dc.min = 0, dc.max = Inf,
+  sparse = TRUE, tokens.only = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>Texts to be processed. This can be a vector (such as a column in a data frame)
+or list. When a list, these can be in the form returned with <code>tokens.only = TRUE</code>,
+or a list with named vectors, where names are tokens and values are frequencies or the like.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+<p>A character vector of words to be excluded. If <code>exclude</code> is a single string
+matching <code>'function'</code>, <code>lma_dict(1:9)</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>context</code></td>
+<td>
+<p>A character vector used to reformat text based on look- ahead/behind. For example,
+you might attempt to disambiguate <em>like</em> by reformatting certain <em>like</em>s
+(e.g., <code>context = c('(i) like*', '(you) like*', '(do) like')</code>, where words in parentheses are
+the context for the target word, and asterisks denote partial matching). This would be converted
+to regular expression (i.e., <code>'(? &lt;= i) like\\b'</code>) which, if matched, would be
+replaced with a coded version of the word (e.g., <code>"Hey, i like that!"</code> would become
+<code>"Hey, i i-like that!"</code>). This would probably only be useful for categorization, where a
+dictionary would only include one or another version of a word (e.g., the LIWC 2015 dictionary
+does something like this with <em>like</em>, and LIWC 2007 did something like this with
+<em>kind (of)</em>, both to try and clean up the posemo category).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace.special</code></td>
+<td>
+<p>Logical: if <code>TRUE</code>, special characters are replaced with regular
+equivalents using the <code>lma_dict</code> special function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numbers</code></td>
+<td>
+<p>Logical: if <code>TRUE</code>, numbers are preserved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>punct</code></td>
+<td>
+<p>Logical: if <code>TRUE</code>, punctuation is preserved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>urls</code></td>
+<td>
+<p>Logical: if <code>FALSE</code>, attempts to replace all urls with "repurl".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emojis</code></td>
+<td>
+<p>Logical: if <code>TRUE</code>, attempts to replace emojis (e.g., ":(" would be replaced
+with "repfrown").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to.lower</code></td>
+<td>
+<p>Logical: if <code>FALSE</code>, words with different capitalization are treated as
+different terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>word.break</code></td>
+<td>
+<p>A regular expression string determining the way words are split. Default is
+<code>' +'</code> which breaks words at one or more blank spaces. You may also like to break by
+dashes or slashes (<code>'[ /-]+'</code>), depending on the text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dc.min</code></td>
+<td>
+<p>Numeric: excludes terms appearing in the set number or fewer documents.
+Default is 0 (no limit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dc.max</code></td>
+<td>
+<p>Numeric: excludes terms appearing in the set number or more. Default
+is Inf (no limit).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>Logical: if <code>FALSE</code>, a regular dense matrix is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tokens.only</code></td>
+<td>
+<p>Logical: if <code>TRUE</code>, returns a list rather than a matrix, with these entries:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+  <code>tokens</code> </td>
+<td style="text-align: left;"> A vector of indices with terms as names. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  <code>frequencies</code> </td>
+<td style="text-align: left;"> A vector of counts with terms as names. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  <code>WC</code> </td>
+<td style="text-align: left;"> A vector of term counts for each document. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  <code>indices</code> </td>
+<td style="text-align: left;"> A list with a vector of token indices for each document. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A sparse matrix (or regular matrix if <code>sparse = FALSE</code>), with a row per <code>text</code>,
+and column per term, or a list if <code>tokens.only = TRUE</code>. Includes an attribute with options (<code>opts</code>),
+and attributes with word count (<code>WC</code>) and column sums (<code>colsums</code>) if <code>tokens.only = FALSE</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>This is a relatively simple way to make a dtm. To calculate the (more or less) standard forms of
+LSM and LSS, a somewhat raw dtm should be fine, because both processes essentially use
+dictionaries (obviating stemming) and weighting or categorization (largely obviating 'stop word'
+removal). The exact effect of additional processing will depend on the dictionary/semantic space
+and weighting scheme used (particularly for LSA). This function also does some processing which
+may matter if you plan on categorizing with categories that have terms with look- ahead/behind assertions
+(like LIWC dictionaries). Otherwise, other methods may be faster, more memory efficient, and/or more featureful.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">text &lt;- c(
+  "Why, hello there! How are you this evening?",
+  "I am well, thank you for your inquiry!",
+  "You are a most good at social interactions person!",
+  "Why, thank you! You're not all bad yourself!"
+)
+
+lma_dtm(text)
+
+# return tokens only
+(tokens &lt;- lma_dtm(text, tokens.only = TRUE))
+
+## convert those to a regular DTM
+lma_dtm(tokens)
+
+# convert a list-representation to a sparse matrix
+lma_dtm(list(
+  doc1 = c(why = 1, hello = 1, there = 1),
+  doc2 = c(i = 1, am = 1, well = 1)
+))
+</code></pre>
+
+
+</div>

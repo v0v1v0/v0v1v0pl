@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>adjust.data.by.covariates</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adjusting data (distance matrix and OTU table) by covariates</h2>
+
+<h3>Description</h3>
+
+<p>This function produces adjusted distance matrix and OTU table (if provided) 
+after removing the effects of covariates (e.g., confounders). 
+Observations with any missing data are removed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">adjust.data.by.covariates(
+  formula = NULL,
+  data = .GlobalEnv,
+  otu.table = NULL,
+  tree = NULL,
+  dist.method = "bray",
+  binary = FALSE,
+  dist = NULL,
+  square.dist = TRUE,
+  center.dist = TRUE,
+  scale.otu.table = TRUE,
+  center.otu.table = TRUE,
+  freq.scale.only = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the covariate model in the form <code> ~ model</code>, 
+where <code>model</code> is specified in the same way as for <code>lm</code> or <code>glm</code>. For example, 
+<code>~ a + b</code> specifies a model with the main effects of covariates <code>a</code> and <code>b</code>, and 
+<code>~ a*b</code>, equivalently <code>~ a + b + a:b</code>, specifies a model with the main effects of 
+<code>a</code> and <code>b</code> as well as their interaction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible 
+by as.data.frame to a data frame) containing the covariates. 
+If not found in <code>data</code>, the covariates are taken from environment (formula), 
+typically the environment from which <code>adjust.data.by.covariates</code> is called. 
+The default is .GlobalEnv.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>otu.table</code></td>
+<td>
+<p>the <code>n.obs</code> by <code>n.otu</code> matrix of read counts. 
+If provided, an adjusted (and column-centered) OTU table at the frequency (i.e., relative abundance) scale 
+and an adjusted (and columnn-centered) OTU table at the arcsin-root-transformed frequency scale are output. If provided, 
+it is also used for calculating the distance matrix unless the distance matrix is directly 
+imported through <code>dist</code>.
+The default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>a phylogenetic tree. Only used for calculating a
+phylogenetic-tree-based distance matrix. Not needed if the calculation of
+requested distance does not require a phylogenetic tree, or if the distance
+matrix is directly imported through <code>dist</code>. The default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.method</code></td>
+<td>
+<p>method for calculating the distance measure, partial
+match to all methods supported by <code>vegdist</code> in the <code>vegan</code> package
+(i.e., "manhattan", "euclidean", "canberra", "bray", "kulczynski", "jaccard", "gower", 
+"altGower", "morisita", "horn", "mountford", "raup" , "binomial", "chao", "cao", "mahalanobis")
+as well as "hellinger" and "wt-unifrac". 
+The default is "bray". 
+For more details, see the <code>dist.method</code> argument in the <code>ldm</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary</code></td>
+<td>
+<p>the "binary" parameter in <code>vegdist</code>. The default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>a distance matrix. Can be either an object of class "dist" or "matrix".
+The elements of the distance matrix will be squared and then the matrix will be centered if the default choices 
+<code>square.dist=TRUE</code> and <code>center.dist=TRUE</code> are used. If <code>dist=NULL</code>, the distance matrix is 
+calculated from the <code>otu.table</code>, using the value of <code>dist.method</code> (and <code>tree</code> if required). 
+The default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>square.dist</code></td>
+<td>
+<p>a logical variable indicating whether to square the 
+distance matrix. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center.dist</code></td>
+<td>
+<p>a logical variable indicating whether to center the 
+distance matrix as described by Gower (1966). The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale.otu.table</code></td>
+<td>
+<p>a logical variable indicating whether to scale the rows of the OTU table 
+for the frequency scale.  For count data, this corresponds to dividing by the library size to give 
+relative frequencies. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center.otu.table</code></td>
+<td>
+<p>a logical variable indicating whether to center the 
+columns of the OTU table. The OTU table should be centered if the distance 
+matrix has been centered. Applied to both OTU tables at frequency and transformed scales. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>freq.scale.only</code></td>
+<td>
+<p>a logical variable indicating whether to provide adjusted frequency-scale OTU table only 
+(not adjusted OTU table at the arcsin-root transformed frequency scale). The default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list consisting of 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>adj.dist</code></td>
+<td>
+<p>the (squared/centered) distance matrix
+after adjustment of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.freq</code></td>
+<td>
+<p>the (column-centered) frequency-scale OTU table after adjustment of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.tran</code></td>
+<td>
+<p>the (column-centered) arcsin-root-transformed 
+OTU table after adjustment of covariates.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yi-Juan Hu &lt;yijuan.hu@emory.edu&gt;, Glen A. Satten &lt;gsatten@emory.edu&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">adj.data &lt;- adjust.data.by.covariates(formula= ~ Sex + AntibioticUse, data=throat.meta,
+                                      otu.table=throat.otu.tab5, dist.method="bray")
+</code></pre>
+
+
+</div>

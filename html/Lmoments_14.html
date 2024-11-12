@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lmoments</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L-moments</h2>
+
+<h3>Description</h3>
+
+<p>Calculates sample L-moments, L-coefficients and covariance matrix of L-moments. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lmoments(data, rmax = 4, na.rm = FALSE, returnobject = FALSE, trim = c(0, 0))
+Lcoefs(data, rmax = 4, na.rm = FALSE, trim = c(0, 0))
+Lmomcov(data, rmax = 4, na.rm = FALSE)
+Lmoments_calc(data, rmax = 4)
+Lmomcov_calc(data, rmax = 4)
+shiftedlegendre(rmax)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>matrix or data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmax</code></td>
+<td>
+<p>maximum order of L-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>a logical value indicating whether 'NA' values should be
+removed before the computation proceeds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnobject</code></td>
+<td>
+<p>a logical value indicating whether a list object should be returned instead of an array of L-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>c(0, 0) for ordinary L-moments and c(1, 1) for trimmed (t = 1) L-moments</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>Lmoments</code> returns an array of L-moments containing a row for each variable in data, or if returnobject=TRUE, 
+a list containing 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>an array of L-moments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>an array of mean, L-scale and L-moment ratios</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>the value of the parameter 'trim'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>a string with value "Lmoments" or "t1lmoments".</p>
+</td>
+</tr>
+</table>
+<p><code>Lcoefs</code> returns an array of L-coefficients (mean, L-scale, L-skewness, L-kurtosis, ...) 
+containing a row for each variable in data.
+</p>
+<p><code>Lmomcov</code> returns the covariance matrix of L-moments or a list of covariance matrices if the input has multiple columns.
+The numerical accuracy of the results decreases with increasing <code>rmax</code>.
+With <code>rmax &gt; 5</code>, a warning is thrown, as the numerical accuracy of the results is likely less than <code>sqrt(.Machine$double.eps)</code>. 
+</p>
+<p><code>shiftedlegendre</code> returns a matrix of the coefficients of the shifted Legendre polynomials up to a given order.</p>
+
+
+<h3>Note</h3>
+
+<p>Functions <code>Lmoments</code> and <code>Lcoefs</code> calculate trimmed L-moments if you specify <code>trim = c(1, 1)</code>.
+<code>Lmoments_calc</code> and <code>Lmomcov_calc</code> are internal C++ functions called by <code>Lmoments</code> and <code>Lmomcov</code>.
+The direct use of these functions is not recommended.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Juha Karvanen <a href="mailto:juha.karvanen@iki.fi">juha.karvanen@iki.fi</a>, Santeri Karppinen</p>
+
+
+<h3>References</h3>
+
+<p>Karvanen, J. 2006. Estimation of quantile mixtures via L-moments and trimmed L-moments, 
+<em>Computational Statistics &amp; Data Analysis</em> <b>51</b>, (2), 947–959.
+<a href="http://www.bsp.brain.riken.jp/publications/2006/karvanen_quantile_mixtures.pdf">http://www.bsp.brain.riken.jp/publications/2006/karvanen_quantile_mixtures.pdf</a>.
+</p>
+<p>Elamir, E. A., Seheult, A. H. 2004. Exact variance structure of sample L-moments, <em>Journal of 
+Statistical Planning and Inference</em> <b>124</b> (2) 337–359.
+</p>
+<p>Hosking, J. 1990. L-moments: Analysis and estimation distributions using linear combinations of order statistics, 
+<em>Journal of Royal Statistical Society B</em> <b>52</b>, 105–124.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>t1lmoments</code> for trimmed L-moments,
+<code>dnormpoly</code>, <code>lmom2normpoly4</code> and <code>covnormpoly4</code> for the normal-polynomial quantile mixture
+and package <span class="pkg">lmomco</span> for additional L-moment functions</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Generates a sample 500 observations from the normal-polynomial quantile mixture, 
+#calculates the L-moments and their covariance matrix,
+#estimates parameters via L-moments and 
+#plots the true pdf and the estimated pdf together with the histogram of the data.
+true_params&lt;-lmom2normpoly4(c(0,1,0.2,0.05));
+x&lt;-rnormpoly(500,true_params);
+lmoments&lt;-Lmoments(x);
+lmomcov&lt;-Lmomcov(x);
+estim_params&lt;-lmom2normpoly4(lmoments);
+hist(x,30,freq=FALSE)
+plotpoints&lt;-seq(min(x)-1,max(x)+1,by=0.01);
+lines(plotpoints,dnormpoly(plotpoints,estim_params),col='red');
+lines(plotpoints,dnormpoly(plotpoints,true_params),col='blue');
+</code></pre>
+
+
+</div>

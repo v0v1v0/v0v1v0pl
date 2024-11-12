@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>allow</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Implement decision rules for land use change</h2>
+
+<h3>Description</h3>
+
+<p>Identify legitimate transitions based on land use history and specific
+transition rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">allow(x, categories, cd, rules, hist = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector containing the land use pattern for the current
+timestep</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categories</code></td>
+<td>
+<p>numeric vector containing land use categories in the study
+region</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cd</code></td>
+<td>
+<p>numeric vector indicating the direction of change for each
+land use category. A value of 1 means demand is increasing (i.e. the number
+of cells belonging to the category must increase), -1 means decreasing
+demand and 0 means demand is static</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>matrix. See details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hist</code></td>
+<td>
+<p>numeric vector containing land use history (values represent the
+number of timesteps the cell has contained the current land use category).
+Only required for rules 2 and 3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments (none)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Decision rules are based on those described by Verburg et al. (2002). The
+<code>rules</code> input argument is a square matrix with dimensions equal to the
+number of land use categories in the study region where rows represent the
+current land use and columns represent future transitions. The value of each
+element should represent a rule from the following list:
+</p>
+
+<ol>
+<li>
+<p> rule == 0 | rule == 1: this rule concerns specific land use
+transitions that are allowed (1) or not (0)
+</p>
+</li>
+<li>
+<p> rule &gt; 100 &amp; rule &lt; 1000: this rule imposes a time limit (rule - 100)
+on land use transitions, after which land use change is not allowed. Time
+is taken from <code>hist</code>
+</p>
+</li>
+<li>
+<p> rule &gt; 1000: this rule imposes a minimum period of time (rule-1000)
+before land use is allowed to change
+</p>
+</li>
+</ol>
+<p><code>allow</code> should be called from <code>allocate</code> methods. The output
+is a matrix with the same dimensions as the matrix used internally by
+allocation functions to store land use suitability. Thus, by multiplying the
+two matrices together, disallowed transitions are removed from the allocation
+procedure.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix.
+</p>
+
+
+<h3>References</h3>
+
+<p>Verburg, P.H., Soepboer, W., Veldkamp, A., Limpiada, R., Espaldon,
+V., Mastura, S.S. (2002). Modeling the spatial dynamics of regional land use:
+the CLUE-S model. Environmental management, 30(3):391-405.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>allowNeighb</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Plum Island Ecosystems
+
+## load observed land use data
+obs &lt;- ObsLulcRasterStack(x=pie,
+                   pattern="lu",
+                   categories=c(1,2,3),
+                   labels=c("forest","built","other"),
+                   t=c(0,6,14))
+
+## get land use values
+x &lt;- getValues(obs[[1]])
+x &lt;- x[!is.na(x)]
+
+## create vector of arbitrary land use history values
+hist &lt;- sample(1:10, length(x), replace=TRUE)
+
+## calculate demand and get change direction for first timestep
+dmd &lt;- approxExtrapDemand(obs=obs, tout=0:14)
+cd &lt;- dmd[2,] - dmd[1,]
+ 
+## create rules matrix, only allowing forest to change if the cell has
+## belonged to forest for more than 8 years
+rules &lt;- matrix(data=c(1,1008,1008,
+                        1,1,1,
+                        1,1,1), nrow=3, ncol=3, byrow=TRUE)
+
+allow &lt;- allow(x=x,
+               hist=hist,
+               categories=obs@categories,
+               cd=cd,
+               rules=rules)
+
+## create raster showing cells that are allowed to change from forest to built
+r &lt;- obs[[1]]
+r[!is.na(r)] &lt;- allow[,2]
+r[obs[[1]] != 1] &lt;- NA
+plot(r)
+
+## NB output is only useful when used within allocation routine
+
+</code></pre>
+
+
+</div>

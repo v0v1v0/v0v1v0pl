@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.FEXP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot Method for FEXP and WhittleEst Model Fits</h2>
+
+<h3>Description</h3>
+
+<p>(S3) methods for the generic functions <code>plot</code> (and
+<code>lines</code>)   applied to <b>f</b>ractional EXP (FEXP) and
+<code>"WhittleEst"</code> (<code>FEXPest</code>,
+models.
+<code>plot()</code> plots the data periodogram and the ‘FEXP'’ model
+estimated spectrum, where <code>lines()</code> and does the latter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'FEXP'
+plot(x, log = "xy", type = "l",
+      col.spec = 4, lwd.spec = 2, xlab = NULL, ylab = expression(hat(f)(nu)),
+      main = paste(deparse(x$call)[1]), sub = NULL, ...)
+
+## (With identical argument list:)
+## S3 method for class 'WhittleEst'
+plot(x, log = "xy", type = "l",
+      col.spec = 4, lwd.spec = 2, xlab = NULL, ylab = expression(hat(f)(nu)),
+      main = paste(deparse(x$call)[1]), sub = NULL, ...)
+
+## S3 method for class 'FEXP'
+      lines(x, type = "l", col = 4, lwd = 2, ...)
+## S3 method for class 'WhittleEst'
+lines(x, type = "l", col = 4, lwd = 2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object of <code>class</code> <code>"FEXP"</code>, as from
+<code>FEXPest()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>character specifying log scale should be used, see
+<code>plot.default</code>.  Note that the default log-log scale is
+particularly sensible for long-range dependence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>plot type for the periodogram, see <code>plot.default</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.spec, lwd.spec, col, lwd</code></td>
+<td>
+<p>graphical parameters used for drawing the
+estimated spectrum, see <code>lines</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlab, ylab, main, sub</code></td>
+<td>
+<p>labels for annotating the plot, see
+<code>title</code>, each with a sensible default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>plot.default</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Martin Maechler</p>
+
+
+<h3>See Also</h3>
+
+<p><code>FEXPest</code>, <code>WhittleEst</code>;
+<code>plot.default</code> and <code>spectrum</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(videoVBR)
+fE &lt;- FEXPest(videoVBR, order = 3, pvalmax = .5)
+plot(fE)
+fE3 &lt;- FEXPest(videoVBR, order = 3, pvalmax = 1)#-&gt; order 3
+lines(fE3, col = "red3", lty=2)
+
+f.GN    &lt;- WhittleEst(videoVBR)
+f.am21  &lt;- WhittleEst(videoVBR, model = "fARIMA",
+                      start= list(H= .5, AR = c(.5,0), MA= .5))
+lines(f.GN,   col = "blue4")
+lines(f.am21, col = "goldenrod")
+
+##--- Using a tapered periodogram ---------
+spvVBR &lt;- spec.pgram(videoVBR, fast=FALSE, plot=FALSE)
+fam21 &lt;- WhittleEst(periodogr.x = head(spvVBR$spec, -1),
+                    n = length(videoVBR), model = "fARIMA",
+                    start= list(H= .5, AR = c(.5,0), MA= .5))
+fam21
+f.am21 # similar but slightly different
+
+plot(fam21)
+
+## Now, comparing to traditional ("log-X", not "log-log") spectral plot:
+plot(fam21, log="y")
+
+## compared to the standard R spectral plot : s
+if(dev.interactive(TRUE)) getOption("device")()# a new graphics window
+plot(spvVBR, log = "yes", col="gray50")
+all.equal(.ffreq(fE$n) / (2*pi) -&gt; ffr.,
+          head(spvVBR$freq, -1))# TRUE
+lines(ffr., fam21$spec, col=4, lwd=2)
+## need to adjust for different 'theta1':
+lines(ffr., f.am21$spec * fam21$theta1 / f.am21$theta1,
+      col = adjustcolor("tomato", 0.6), lwd=2)
+</code></pre>
+
+
+</div>

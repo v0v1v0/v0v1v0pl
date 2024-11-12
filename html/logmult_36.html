@@ -1,0 +1,298 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hmskew</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting van der Heijden &amp; Mooijaart Skew-Symmetric Association Model</h2>
+
+<h3>Description</h3>
+
+<p>Fits a skew-symmetric association model proposed in van der Heijden &amp; Mooijaart (1995)
+to describe asymmetry of square tables. Skew-symmetric association can be combined with
+quasi-symmetry (the default), quasi-independence, or symmetric (homogeneous) RC(M) associations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hmskew(tab, nd.symm = NA, diagonal = FALSE,
+       weighting = c("marginal", "uniform", "none"),
+       rowsup = NULL, colsup = NULL,
+       se = c("none", "jackknife", "bootstrap"),
+       nreplicates = 100, ncpus = getOption("boot.ncpus"),
+       family = poisson, weights = NULL,
+       start = NULL, etastart = NULL, tolerance = 1e-8,
+       iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p> a square two-way table, or an object (such as a matrix) that can be coerced into a table;
+if present, dimensions above two will be collapsed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nd.symm</code></td>
+<td>
+<p> the number of dimensions to include in the <em>symmetric</em> RC(M) association. Cannot exceed
+<code>2 * min(nrow(tab) - 1, ncol(tab) - 1)</code> (quasi-symmetry model).
+If <code>NA</code> (the default), a full quasi-symmetric association is used instead of a RC(M) model; if <code>0</code>,
+quasi-independence is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p> should the model include parameters specific to each diagonal cell? This amounts to
+taking quasi-independence, rather than independence, as the baseline model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p> what weights should be used when normalizing the scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowsup</code></td>
+<td>
+<p> if present, a matrix with the same columns as <code>tab</code> and rows corresponding to the columns
+of <code>colsup</code>, giving supplementary (passive) rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colsup</code></td>
+<td>
+<p> if present, a matrix with the same rows as <code>tab</code> and columns corresponding to the rows of
+<code>colsup</code>, giving supplementary (passive) columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p> which method to use to compute standard errors for parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nreplicates</code></td>
+<td>
+<p> the number of bootstrap replicates, if enabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p> the number of processes to use for jackknife or bootstrap parallel computing. Defaults to
+the number of cores (see <code>detectCores</code>), with a maximum of 5, but falls back to 1
+(no parallelization) if package <code>parallel</code> is not available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p> a specification of the error distribution and link function
+to be used in the model. This can be a character string naming
+a family function; a family function, or the result of a call
+to a family function. See <code>family</code> details of family functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> an optional vector of weights to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>either <code>NA</code> to use optimal starting values, <code>NULL</code> to use
+random starting values, or a vector of starting values for the parameters in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etastart</code></td>
+<td>
+<p> starting values for the linear predictor; set to <code>NULL</code> to use either default
+starting values (if <code>start = NA</code>), or random starting values (in all other cases).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p> a positive numeric value specifying the tolerance level for
+convergence; higher values will speed up the fitting process, but beware of numerical
+instability of estimated scores!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterMax</code></td>
+<td>
+<p> a positive integer specifying the maximum number of main iterations to perform;
+consider raising this value if your model does not converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> a logical value indicating whether the deviance
+should be printed after each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> a logical value indicating whether progress indicators should be printed,
+including a diagnostic error message if the algorithm restarts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> more arguments to be passed to <code>gnm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The original model presented by van der Heijden &amp; Mooijaart (1995), called “quasi-symmetry plus
+skew-symmetry”, combines a skew-symmetric association with a quasi-symmetry baseline; it is the variant
+fitted by default by this function. If <code>nd.symm</code> is set to a positive integer value, though, variants
+using a RC(M) model to describe the <em>symmetric association</em> are used, with our without
+diagonal-specific parameters (depending on the value of the <code>diagonal</code> argument).
+</p>
+<p>These models follow the equation:
+</p>
+<p style="text-align: center;"><code class="reqn"> log F_{ij} = q_{ij} + \phi (\nu_i \mu_j - \mu_i \nu_j) </code>
+</p>
+
+<p>where <code class="reqn">F_{ij}</code> is the expected frequency for the cell at the intersection of row i and column j of
+<code>tab</code>, and <code class="reqn">q_{ij}</code> a quasi-symmetric specification, with either full interaction parameters, or
+a RC(M) association. See reference for detailed information about the degrees of freedom and the identification
+constraints applied to the scores.
+</p>
+<p>Another model presented in the paper, the “symmetry plus skew-symmetry model” is not currently supported
+out of the box, but should be relatively straightforward to implement using the underlying <code>assoc.hmskew</code>
+function combined with a symmetric association model.
+</p>
+<p>Actual model fitting is performed using <code>gnm</code>, which implements the Newton-Raphson algorithm.
+This function simply ensures correct start values are used, in addition to allowing for identification
+of scores even with several dimensions, computation of their jackknife or bootstrap standard errors, and plotting.
+The default starting values for skew association parameters are computed using an eigen value decomposition from the
+results of the model without skew association component (“base model”); if <code>nd.symm</code> is not <code>NA</code> and
+strictly positive, random starting values are used. In some complex cases, using <code>start = NULL</code> to start with
+random values can be more efficient, but it is also less stable and can converge to non-optimal solutions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>hmskew</code> object, which is a subclass of an <code>rc.symm</code> object (see <code>rc</code>) if
+<code>nd.symm</code> is strictly positive. In addition to this class, it contains a <code>assoc.hmskew</code> component
+holding information about the <em>skew-symmetric</em> association:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>phi </code></td>
+<td>
+<p>The intrisic association parameters, one per dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row </code></td>
+<td>
+<p>Row scores, normalized so that their (weighted) sum is 0, their (weighted)
+sum of squares is 1, and their (weighted) cross-dimensional correlation is null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col </code></td>
+<td>
+<p>Column scores, normalized so that their (weighted) sum is 0, their (weighted)
+sum of squares is 1, and their (weighted) cross-dimensional correlation is null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.weights </code></td>
+<td>
+<p>The row weights used for the identification of scores, as specified by the
+<code>weighting</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.weights </code></td>
+<td>
+<p>The column weights used for the identification of scores, as specified by the
+<code>weighting</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covmat </code></td>
+<td>
+<p>The variance-covariance matrix for phi coefficients and normalized row and column
+scores. Only present if <code>se</code> was not “none”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj.covmats </code></td>
+<td>
+<p>An array stacking on its third dimension one variance-covariance matrix for
+the adjusted scores of each layer in the model (used for plotting). Only present if <code>se</code>
+was not “none”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covtype </code></td>
+<td>
+<p>The method used to compute the variance-covariance matrix (corresponding to the
+<code>se</code> argument.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>van der Heijden, P.G.M., and Mooijaart, A. (1995). Some new log bilinear models for the analysis
+of asymmetry in a square contingency table. <em>Sociol. Methods and Research</em> 24, 7-29.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.hmskew</code>, <code>gnm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## van der Heijden &amp; Mooijaart (1995), Table 2c, p. 23
+  data(ocg1973)
+
+  # 5:1 is here to take "Farmers" as reference category (angle 0)
+  model &lt;- hmskew(ocg1973[5:1, 5:1], weighting="uniform")
+  model
+  ass &lt;- model$assoc.hmskew
+
+  # First column of the table
+  round(ass$row[,,1] * sqrt(ass$phi[1,1]), d=2)[5:1,]
+
+  # Right part of the table
+  round(ass$phi[1] * (ass$row[,2,1] %o% ass$row[,1,1] -
+                      ass$row[,1,1] %o% ass$row[,2,1]), d=3)[5:1, 5:1]
+
+  # Plot
+  plot(model, coords="cartesian")
+</code></pre>
+
+
+</div>

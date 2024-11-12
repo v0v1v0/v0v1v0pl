@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DLLoglikelihood</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Durbin-Levinsion Loglikelihood </h2>
+
+<h3>Description</h3>
+
+<p>The Durbin-Levinsion algorithm is used for the computation of the exact
+loglikelihood function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DLLoglikelihood(r, z, useC = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>autocovariance or autocorrelation at lags 0,...,n-1, where n is length(z) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>time series data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useC</code></td>
+<td>
+<p> TRUE, use compiled C, otherwise R </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The concentrated loglikelihood function may be written Lm(beta) = -(n/2)*log(S/n)-0.5*g,
+where beta is the parameter vector, n is the length of the time series, S=z'M z,
+z is the mean-corrected time series, M is the inverse of the covariance matrix setting
+the innovation variance to one and g=-log(det(M)).
+This method was given in Li (1981) for evaluating the loglikelihood function
+in the case of the fractionally differenced white noise.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The loglikelihood concentrated over the parameter for the innovation
+variance is returned.
+</p>
+
+
+<h3>Note</h3>
+
+ 
+<p>The purpose of this function is to provide a check on the TrenchLoglikelihod function. 
+Completely different algorithms are used in each case but the numerical values should
+agree.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> A.I. McLeod </p>
+
+
+<h3>References</h3>
+
+ 
+<p>W.K. Li (1981). 
+Topics in Time Series Analysis. 
+Ph.D. Thesis, 
+University of Western Ontario.
+</p>
+<p>McLeod, A.I., Yu, Hao, Krougly, Zinovi L.  (2007).
+Algorithms for Linear Time Series Analysis,
+Journal of Statistical Software.
+</p>
+
+
+<h3>See Also</h3>
+
+ 
+<p><code>TrenchLoglikelihood</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example 1
+#compute loglikelihood for white noise
+z&lt;-rnorm(100)
+DLLoglikelihood(c(1,rep(0,length(z)-1)), z)
+
+#Example 2
+#simulate a time series and compute the concentrated loglikelihood using DLLoglikelihood and
+#compare this with the value given by TrenchLoglikelihood.
+phi&lt;-0.8
+n&lt;-200
+r&lt;-phi^(0:(n-1))
+z&lt;-arima.sim(model=list(ar=phi), n=n)
+LD&lt;-DLLoglikelihood(r,z)
+LT&lt;-TrenchLoglikelihood(r,z)
+ans&lt;-c(LD,LT)
+names(ans)&lt;-c("DLLoglikelihood","TrenchLoglikelihood")
+
+#Example 3
+## Not run: 
+#Compare direct evaluation of AR(1) loglikelihood with DL method
+#First define the exact concentrated loglikelihood function for AR(1)
+AR1Loglikelihood &lt;-function(phi,z){
+n&lt;-length(z)
+S&lt;-(z[1]^2)*(1-phi^2) + sum((z[-1]-phi*z[-n])^2)
+0.5*log(1-phi^2)-(n/2)*log(S/n)
+}
+#Next run script to compare numerically the loglikelihoods.
+#They should be identical.
+phi&lt;-0.8
+n&lt;-200
+z&lt;-arima.sim(list(ar=phi), n=n)
+phis&lt;-seq(0.1,0.95,0.05)
+ansAR1&lt;-ansDL&lt;-numeric(length(phis))
+for (i in 1:length(phis)) {
+    ansAR1[i] &lt;- AR1Loglikelihood(phis[i],z)
+    r&lt;-(1/(1-phis[i]^2))*phis[i]^(0:(n-1))
+    ansDL[i] &lt;- DLLoglikelihood(r,z,useC=FALSE)
+}
+ans&lt;-matrix(c(ansDL,ansAR1),ncol=2)
+dimnames(ans)&lt;-list(phis, c("DL-method","AR1-method"))
+
+## End(Not run)
+
+#Example 4
+## Not run: 
+#compare timings. See (McLeod, Yu, Krougly, Table 8).
+ n&lt;-5000
+ ds&lt;-c(-0.45, -0.25, -0.05, 0.05, 0.25, 0.45)
+ tim&lt;-matrix(numeric(3*length(ds)),ncol=3)
+ for (i in 1:length(ds)){
+    d&lt;-ds[i]
+    alpha &lt;- 1-2*d #equivalent hyperbolic autocorrelation
+    r &lt;- (1/(1:n))^alpha
+    z&lt;-DLSimulate(n,r)
+    tim1a&lt;-system.time(LL1&lt;-DLLoglikelihood(r,z))[1]
+    tim1b&lt;-system.time(LL1&lt;-DLLoglikelihood(r,z,useC=FALSE))[1]
+    tim2&lt;-system.time(LL2&lt;-TrenchLoglikelihood(r,z))[1]
+    tim[i,]&lt;-c(tim1a,tim1b, tim2)
+    }
+ dimnames(tim)&lt;-list(ds, c("DL-C","DL-R","Trench"))
+ tim
+
+## End(Not run)
+</code></pre>
+
+
+</div>

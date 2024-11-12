@@ -1,0 +1,360 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lqmix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear Quantile Mixture with TC and/or TV, discrete, random coefficients</h2>
+
+<h3>Description</h3>
+
+<p>Estimate a finite mixture of linear quantile regression models with TC and/or TV, discrete, random coefficients, for a given number of components and/or states
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lqmix(formula, randomTC = NULL, randomTV = NULL, group, time, G = NULL,
+  m = NULL, data, qtl = 0.5, eps = 10^-5, maxit = 1000, se = TRUE,
+  R = 50, start = 0, parInit = list(betaf = NULL, betarTC = NULL, betarTV
+  = NULL, pg = NULL, delta = NULL, Gamma = NULL, scale = NULL),
+  verbose = TRUE, seed = NULL, parallel = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>formula</code>: a symbolic description of the model to be fitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomTC</code></td>
+<td>
+<p>a one-sided formula of the form <code>~z1+z2+...+zr</code>, where <code>z1,..., zr</code> denote the variables associated to TC random coefficients (1 for the intercept)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomTV</code></td>
+<td>
+<p>a one-sided formula of the form <code>~w1+w2+...+wl</code>, where <code>w1,..., wl</code> denote the variables associated to TV random coefficients (1 for the intercept). Note that only TC variables are allowed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>a string indicating the grouping variable, i.e., the factor identifying the unit longitudinal measurements refer to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>a string indicating the time variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>number of mixture components associated to TC random coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>number of states associated to the TV random coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the variables named in <code>formula</code>, <code>randomTC</code>, <code>randomTV</code>, and <code>time</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtl</code></td>
+<td>
+<p>quantile to be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>tolerance level for (relative) convergence of the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations for the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>standard error computation for the optimal model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>number of bootstrap samples for computing standard errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>type of starting values (0 = deterministic, 1 = random, 2 = initial values in input)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parInit</code></td>
+<td>
+<p>list of initial model parameters when <code>start=2</code>. For a list of</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if set to FALSE, no printed output is given during the function execution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>an integer value for random numbers generation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>if set to TRUE, a parallelized code is use for standard error computation (if se=TRUE)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes ML estimates for the parameters of a linear quantile mixture model, based on TC and/or TV random coefficients.
+Estimates are derived by maximizing the (log-)likelihood of a Laplace regression where the location parameter is modeled as a function of fixed coefficients, together with TC and/or TV discrete random coefficients, as proposed by Alfo' et. al (2017), Farcomeni (2012), and Marino et. al (2018), respectively.
+</p>
+<p>The function requires data in long-format and two additional columns indicating the group identifier and the time occasion.
+The model is specified by means of the arguments <code>formula</code>, <code>formulaTC</code>, and <code>formulaTV</code>:
+<code>formula</code> is associated to fixed coefficients; <code>formulaTC</code> is associated to TC random coefficients; <code>formulaTV</code> is associated to TV random coefficients.
+In this latter, only TC variables (predictors) are allowed.
+</p>
+<p>The function admits the presence of missing data, both in terms of drop-outs (monotone missing data) and intermittent missing, under a missing-at-random assumption.
+Note that, when TV random coefficients are considered, intermittent missingness may cause biased inference.
+</p>
+<p>If <code>se=TRUE</code>, standard errors based on a block bootstrap procedure are computed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return an object of <code>class</code> <code>lqmix</code>. This is a list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>betaf</code></td>
+<td>
+<p>a vector containing fixed regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betarTC</code></td>
+<td>
+<p>a matrix containing the TC random coefficients, if present in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>betarTV</code></td>
+<td>
+<p>a matrix containing the TV random coefficients, if present in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pg</code></td>
+<td>
+<p>the prior probabilities of the finite mixture associated to TC random coefficients, if present in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>the initial probability vector of the hidden Markov chain associated to TV random coefficients, if present in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gamma</code></td>
+<td>
+<p>the transition probability matrix of the hidden Markov chain associated to TV random coefficients, if present in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>the scale parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.e</code></td>
+<td>
+<p>the standard deviation of error terms</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lk</code></td>
+<td>
+<p>the log-likelihood at convergence of the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>the total number of model parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>the AIC value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>the BIC value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtl</code></td>
+<td>
+<p>the estimated quantile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>the number of mixture components associated to TC random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the number of hidden states associated to TV random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsbjs</code></td>
+<td>
+<p>the number of subjects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>the total number of observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.betaf</code></td>
+<td>
+<p>the standard errors for fixed regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.betarTC</code></td>
+<td>
+<p>the standard errors for TC random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.betarTV</code></td>
+<td>
+<p>the standard errors for TV random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.Mprob</code></td>
+<td>
+<p>the standard errors for the prior probabilities of the finite mixture associated to TC random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.Init</code></td>
+<td>
+<p>the standard errors for the initial probabilities of the hidden Markov chain associated to TV random coefficients(if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.Trans</code></td>
+<td>
+<p>the standard errors for the transition probabilities of the hidden Markov chain associated to TV random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.scale</code></td>
+<td>
+<p>the standard error for the scale parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>miss</code></td>
+<td>
+<p>the missingness type</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<p>Marino MF, Tzavidis N, Alfo' M (2018).
+“Mixed hidden Markov quantile regression models for longitudinal data with possibly incomplete sequences.”
+<em>Statistical Methods in Medical Research</em>, <b>27</b>, 2231-2246.
+
+</p>
+
+<p>Altman RJ (2007).
+“Mixed hidden Markov models: an extension of the hidden Markov model to the longitudinal data setting.”
+<em>Journal of the American Statistical Association</em>, <b>102</b>, 201–210.
+
+</p>
+
+<p>Maruotti A (2011).
+“Mixed Hidden Markov Models for Longitudinal Data: An Overview.”
+<em>International Statistical Review</em>, <b>79</b>.
+ISSN 1751-5823.
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">outTC = lqmix(formula=meas~trt+time+trt:time,randomTC=~1,
+              group="id",time="time",G=2,data=pain,se=TRUE,R=10)
+
+
+outTV = lqmix(formula=meas~trt+time+trt:time,randomTV=~1,
+              group="id",time="time",m=2,data=pain,R=10)
+
+outTCTV = lqmix(formula=meas~trt+time+trt:time,randomTC=~time,
+                    randomTV=~1,group="id",time="time",m=2,G=2,data=pain,R=10)
+
+</code></pre>
+
+
+</div>

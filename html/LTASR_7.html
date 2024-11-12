@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_table_history_est</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stratify Person Table with Time Varying Co-variate</h2>
+
+<h3>Description</h3>
+
+<p><code>get_table_history_est</code> reads in a data.frame/tibble (<code>persondf</code>) containing basic demographic information for
+each person of the cohort as well as a data.frame/tibble (<code>historydf</code>) containing time varying exposure
+information and stratifies the person-time and deaths into 5-year age, 5-year calendar period, race, sex and
+exposure categories. Additionally, average cumulative exposure values for each strata and each exposure
+variable are included. These strata are more crudely calculated by taking regular steps (such as every 7 days)
+as opposed to evaluating every individual day. See <code>Details</code> for information on how the person file and history file must be
+formatted.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_table_history_est(
+  persondf,
+  rateobj,
+  historydf,
+  exps,
+  strata = dplyr::vars(),
+  step = 7,
+  batch_size = 25 * step
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>persondf</code></td>
+<td>
+<p>data.frame like object containing one row per person with the required demographic information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rateobj</code></td>
+<td>
+<p>a rate object created by the <code>parseRate</code> function, or the included rate object <code>us_119ucod_19602021</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>historydf</code></td>
+<td>
+<p>data.frame like object containing one row per person and exposure period. An exposure period is a
+period of time where exposure levels remain constant. See <code>Details</code> for required variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exps</code></td>
+<td>
+<p>a list containing exp_strata objects created by <code>exp_strata()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>any additional variables contained in persondf on which to stratify.
+Must be wrapped in a <code>vars()</code> call from <code>dplyr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>numeric defining number of days to jump when calculating cumulative exposure values. Exact stratification
+specifies a step of 1 day.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_size</code></td>
+<td>
+<p>a number specifying how many persons to stratify at a time.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The persondf tibble must contain the variables:
+</p>
+
+<ul>
+<li>
+<p> id,
+</p>
+</li>
+<li>
+<p> gender (character: 'M'/'F'),
+</p>
+</li>
+<li>
+<p> race (character: 'W'/'N'),
+</p>
+</li>
+<li>
+<p> dob (date),
+</p>
+</li>
+<li>
+<p> pybegin (date),
+</p>
+</li>
+<li>
+<p> dlo	(date),
+</p>
+</li>
+<li>
+<p> rev (numeric: values 5-10),
+</p>
+</li>
+<li>
+<p> code (character: ICD code)
+</p>
+</li>
+</ul>
+<p>The historydf tibble must contain the variables:
+</p>
+
+<ul>
+<li>
+<p> id,
+</p>
+</li>
+<li>
+<p> begin_dt (date),
+</p>
+</li>
+<li>
+<p> end_dt (date),
+</p>
+</li>
+<li> <p><em>&lt;daily exposure levels&gt;</em>
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A data.frame with a row for each strata containing the number of observed
+deaths within each of the defined minors/outcomes (<code style="white-space: pre;">⁠_o1⁠</code>-<code style="white-space: pre;">⁠_oxxx⁠</code>) and the number of person days.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LTASR)
+library(dplyr)
+
+#Import example person file
+person &lt;- person_example %&gt;%
+mutate(dob = as.Date(dob, format='%m/%d/%Y'),
+         pybegin = as.Date(pybegin, format='%m/%d/%Y'),
+         dlo = as.Date(dlo, format='%m/%d/%Y'))
+
+#Import example history file
+history &lt;- history_example %&gt;%
+  mutate(begin_dt = as.Date(begin_dt, format='%m/%d/%Y'),
+         end_dt = as.Date(end_dt, format='%m/%d/%Y'))
+
+#Import default rate object
+rateobj &lt;- us_119ucod_19602021
+#Define exposure of interest. Create exp_strata object.The `employed` variable
+#indicates (0/1) periods of employment and will be summed each day of each exposure
+#period. Therefore, this calculates duration of employment in days. The cut-points
+#used below will stratify by person-time with less than and greater than a
+#year of employment (365 days of employment).
+exp1 &lt;- exp_strata(var = 'employed',
+                   cutpt = c(-Inf, 365, Inf),
+                   lag = 0)
+
+#Stratify cohort by employed variable.
+py_table &lt;- get_table_history_est(persondf = person,
+                                  rateobj = rateobj,
+                                  historydf = history,
+                                  exps = list(exp1))
+
+#Multiple exposures can be considered.
+exp1 &lt;- exp_strata(var = 'employed',
+                   cutpt = c(-Inf, 365, Inf),
+                   lag = 0)
+exp2 &lt;- exp_strata(var = 'exposure_level',
+                   cutpt = c(-Inf, 0, 10000, 20000, Inf),
+                   lag = 10)
+
+#Stratify cohort by employed variable.
+py_table &lt;- get_table_history_est(persondf = person,
+                                  rateobj = rateobj,
+                                  historydf = history,
+                                  exps = list(exp1, exp2))
+
+</code></pre>
+
+
+</div>

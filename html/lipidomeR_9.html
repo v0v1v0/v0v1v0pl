@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>liverlipidome</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Levels of lipids in the human liver with or without non-alcoholic liver
+disease (NAFLD).</h2>
+
+<h3>Description</h3>
+
+<p>This data set contains levels of 383 named lipids in 88 liver tissue samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data( liverlipidome )
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A long-format data frame with 33704 rows and 13 variables:
+</p>
+
+<dl>
+<dt>ID</dt>
+<dd>
+<p>Participant number</p>
+</dd>
+<dt>Diagnosis</dt>
+<dd>
+<p>Diagnosis of the liver: normal, steatosis, non-alcoholic
+steatohepatitis (NASH), or cirrhosis</p>
+</dd>
+<dt>Gender</dt>
+<dd>
+<p>Gender of the participant</p>
+</dd>
+<dt>BMI</dt>
+<dd>
+<p>Body-mass-index (BMI) of the participant</p>
+</dd>
+<dt>Ethnicity</dt>
+<dd>
+<p>Ethnicity of the participant</p>
+</dd>
+<dt>Age</dt>
+<dd>
+<p>Age of the participant</p>
+</dd>
+<dt>AST</dt>
+<dd>
+<p>Aspartate aminotransferase blood test (U/l)</p>
+</dd>
+<dt>ALT</dt>
+<dd>
+<p>Alanine aminotransferase blood test (U/l)</p>
+</dd>
+<dt>ALKP</dt>
+<dd>
+<p>Alkaline phosphatase blood test (U/l)</p>
+</dd>
+<dt>TBIL</dt>
+<dd>
+<p>Total bilirubin blood test (mg/dl)</p>
+</dd>
+<dt>Glucose</dt>
+<dd>
+<p>Glucose blood test (mg/dl)</p>
+</dd>
+<dt>Type</dt>
+<dd>
+<p>Sub-type of the breast tumor. IDC: Invasive Ductal Carcinoma</p>
+</dd>
+<dt>Lipid_Name</dt>
+<dd>
+<p>Name of the lipid. The names are in
+the format 'XY(C:D)', where 'XY' is the abbreviation of the lipid
+class, 'C' is the total number of carbon atoms in the fatty-acid
+chains, and 'D' is the total number of double-bonds in the fatty
+acid chains.</p>
+</dd>
+<dt>Lipid_Level</dt>
+<dd>
+<p>Measured level of the lipid.</p>
+</dd>
+</dl>
+<h3>Source</h3>
+
+<p>This data is available at the NIH Common Fund's National
+Metabolomics Data Repository (NMDR) website, the 'Metabolomics Workbench',
+<a href="https://www.metabolomicsworkbench.org">https://www.metabolomicsworkbench.org</a>,
+where it has been assigned Project ID PR000633.
+The data can be accessed directly via its Project DOI:
+<a href="http://dx.doi.org/10.21228/M8MW26">10.21228/M8MW26</a>.
+This work was supported by NIH grant, U2C- DK119886.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gorden, D. Lee, et al.
+Biomarkers of NAFLD Progression: a Lipidomics Approach to an Epidemic.
+J Lip Res. 56(3) 722-36 (2015)
+(<a href="https://dx.doi.org/10.1194/jlr.P056002">doi: 10.1194/jlr.P056002</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load the data set.
+data( liverlipidome )
+# Convert the data into wide format, where each lipid is one column and
+# each sample is one row.
+liverlipidome.wide &lt;-
+   tidyr::pivot_wider(
+       data = liverlipidome,
+       names_from = Lipid_Name,
+       values_from = Lipid_Level
+   )
+# Create a mapping of the lipid names.
+names.mapping &lt;-
+   map_lipid_names( x = unique( liverlipidome$"Lipid_Name" ) )
+# Compute the regression models.
+result.limma &lt;-
+   compute_models_with_limma(
+       x = liverlipidome.wide,
+       dependent.variables = names.mapping$"Name",
+       independent.variables = c( "Diagnosis" ),
+       F.test = TRUE # Compute an F-test for a factor variable.
+   )
+# Compute the F-test.
+result.limma &lt;- compute_F_test_with_limma( x = result.limma )
+# Print a figure of the F-test.
+
+figure.output &lt;-
+  heatmap_lipidome_from_limma(
+      x = result.limma,
+      names.mapping = names.mapping,
+      F.test = TRUE,
+      axis.x.carbons = FALSE,
+      class.facet = "wrap",
+      plot.all = FALSE,
+      plot.individual = TRUE,
+      scales = "free",
+      space = "free"
+  )
+
+# Compute pairwise post-hoc comparisons between the factor levels for
+# the dependent variables (i.e., lipids) with a significant F-test result.
+result.limma &lt;-
+   compute_post_hoc_test_with_limma(
+       x = result.limma,
+       remap.level.names = TRUE
+   )
+# Print a figure of all post-hoc comparisons.
+
+figure.output &lt;-
+    heatmap_lipidome_from_limma(
+    x = result.limma$"result.post.hoc.test",
+    names.mapping = names.mapping,
+    axis.x.carbons = FALSE,
+    plot.all = TRUE,
+    plot.individual = FALSE,
+    scales = "free",
+    space = "free"
+)
+
+# Specify the contrasts of the post-hoc comparison that will be included
+# in the figure.
+contrasts.included &lt;-
+   c( "DiagnosisSteatosis", "DiagnosisNASH", "DiagnosisCirrhosis" )
+# Get the omitted contrasts based on the above definition.
+contrasts.omitted &lt;-
+   colnames( result.limma$"result.post.hoc.test"$"p.value" )[
+       !(
+           colnames( result.limma$"result.post.hoc.test"$"p.value" ) %in%
+           contrasts.included
+       )
+   ]
+# Find dependent variables (i.e., lipids) that have any significant
+# difference.
+has.any.significant &lt;-
+   apply(
+       X =
+           result.limma$"result.post.hoc.test"$"p.value"[
+               ,
+               contrasts.included
+           ],
+       MAR = 2,
+       FUN = p.adjust,
+       method = "BH"
+   )
+has.any.significant &lt;-
+   rownames(
+       has.any.significant[
+           apply(
+               X = has.any.significant &lt; 0.05,
+               MAR = 1,
+               FUN = any
+           ),
+       ]
+   )
+# Include in the figure only lipid classes that have at least four
+# significant differences.
+classes.included &lt;-
+   names(
+       which(
+           table(
+               names.mapping[
+                   make.names( has.any.significant ), "Class"
+               ]
+           ) &gt; 4
+       )
+   )
+classes.omitted &lt;- unique( names.mapping$"Class" )
+classes.omitted &lt;-
+   classes.omitted[ !( classes.omitted ) %in% classes.included ]
+# Print a figure of the selected post-hoc-comparisons.
+figure.output &lt;-
+   heatmap_lipidome_from_limma(
+       x = result.limma$"result.post.hoc.test",
+       names.mapping = names.mapping,
+       axis.x.carbons = FALSE,
+       omit.class = classes.omitted,
+       omit.factor = contrasts.omitted,
+       plot.all = TRUE,
+       plot.individual = FALSE,
+       scales = "free",
+       space = "free"
+   )
+
+</code></pre>
+
+
+</div>

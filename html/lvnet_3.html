@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lassoSelect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Update lvnatLasso results to select a different model
+</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to select a model using any fit index
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lassoSelect(object, select, minimize = TRUE, refit = TRUE, lassoTol = 1e-04)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>An <code>lvnetLasso</code> object
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+
+<p>A raw R expression using names used in the <code>object$fitMeasures</code> part of the output of <code>lvnet</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minimize</code></td>
+<td>
+
+<p>Logical. Minimize or maximize?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refit</code></td>
+<td>
+
+<p>Logical. Should the new best model be refitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lassoTol</code></td>
+<td>
+
+<p>Tolerance for absolute values to be treated as zero in counting parameters.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sacha Epskamp &lt;mail@sachaepskamp.com&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Load dataset:
+library("lavaan")
+data(HolzingerSwineford1939)
+Data &lt;- HolzingerSwineford1939[,7:15]
+
+# Measurement model:
+Lambda &lt;- matrix(0, 9, 3)
+Lambda[1:3,1] &lt;- NA
+Lambda[4:6,2] &lt;- NA
+Lambda[7:9,3] &lt;- NA
+
+# Search best fitting omega_theta:
+res &lt;- lvnetLasso(Data, "omega_theta", lambda = Lambda)
+res$best
+summary(res)
+
+# Update to use EBIC:
+resEBIC &lt;- lassoSelect(res, ebic)
+summary(resEBIC)
+
+# Update to use minimal fitting model with RMSEA &lt; 0.05:
+resMinimal &lt;- lassoSelect(res, df * (rmsea &lt; 0.05), minimize = FALSE)
+summary(resMinimal)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

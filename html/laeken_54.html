@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>thetaPDC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partial density component (PDC) estimator</h2>
+
+<h3>Description</h3>
+
+<p>The partial density component (PDC) estimator estimates the shape parameter
+of a Pareto distribution based on the relative excesses of observations above
+a certain threshold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">thetaPDC(x, k = NULL, x0 = NULL, w = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of observations in the upper tail to which the Pareto
+distribution is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>the threshold (scale parameter) above which the Pareto distribution
+is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>an optional numeric vector giving sample weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to
+<code>optimize</code> (see “Details”).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments <code>k</code> and <code>x0</code> of course correspond with each other.
+If <code>k</code> is supplied, the threshold <code>x0</code> is estimated with the <code class="reqn">n
+- k</code> largest value in <code>x</code>, where <code class="reqn">n</code> is the number of observations.
+On the other hand, if the threshold <code>x0</code> is supplied, <code>k</code> is given
+by the number of observations in <code>x</code> larger than <code>x0</code>.  Therefore,
+either <code>k</code> or <code>x0</code> needs to be supplied.  If both are supplied,
+only <code>k</code> is used (mainly for back compatibility).
+</p>
+<p>The PDC estimator minimizes the integrated squared error (ISE) criterion with
+an incomplete density mixture model.  The minimization is carried out using 
+<code>nlm</code>.  By default, the starting value is obtained with 
+the Hill estimator (see <code>thetaHill</code>).
+<code>optimize</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The estimated shape parameter.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The arguments <code>x0</code> for the threshold (scale parameter) of the
+Pareto distribution and <code>w</code> for sample weights were introduced in
+version 0.2.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Alfons and Josef Holzer
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Alfons and M. Templ (2013) Estimation of Social Exclusion Indicators
+from Complex Surveys: The <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> Package <span class="pkg">laeken</span>.  <em>Journal of
+Statistical Software</em>, <b>54</b>(15), 1–25.  <a href="https://doi.org/10.18637/jss.v054.i15">doi:10.18637/jss.v054.i15</a>
+</p>
+<p>A. Alfons, M. Templ, P. Filzmoser (2013) Robust estimation of economic
+indicators from survey samples based on Pareto tail modeling. <em>Journal
+of the Royal Statistical Society, Series C</em>, <b>62</b>(2), 271–286.
+</p>
+<p>Vandewalle, B., Beirlant, J., Christmann, A., and Hubert, M.
+(2007) A robust estimator for the tail index of Pareto-type
+distributions.  <em>Computational Statistics &amp; Data Analysis</em>,
+<b>51</b>(12), 6252–6268.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>paretoTail</code>, <code>fitPareto</code>,
+<code>thetaISE</code>, <code>thetaHill</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(eusilc)
+# equivalized disposable income is equal for each household
+# member, therefore only one household member is taken
+eusilc &lt;- eusilc[!duplicated(eusilc$db030),]
+
+# estimate threshold
+ts &lt;- paretoScale(eusilc$eqIncome, w = eusilc$db090)
+
+# using number of observations in tail
+thetaPDC(eusilc$eqIncome, k = ts$k, w = eusilc$db090)
+
+# using threshold
+thetaPDC(eusilc$eqIncome, x0 = ts$x0, w = eusilc$db090)
+
+</code></pre>
+
+
+</div>

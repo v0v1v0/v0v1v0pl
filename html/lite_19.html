@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estfun</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Functions for the <code>estfun</code> method</h2>
+
+<h3>Description</h3>
+
+<p>Functions to calculate contributions to the score vector from individual
+observations for a fitted model object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'Bernoulli'
+estfun(x, ...)
+
+## S3 method for class 'GP'
+estfun(x, eps = 1e-05, m = 3, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A fitted model object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments.  None are used for
+<code>estfun.Bernoulli</code> or <code>estfun.GP</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps, m</code></td>
+<td>
+<p>These control the estimation of the observed
+information in <code>gpObsInfo</code> when the GP shape parameter <code class="reqn">\xi</code> is
+very close to zero.  In these cases, direct calculation is unreliable.
+<code>eps</code> is a (small, positive) numeric scalar.  If the absolute value
+of the input value of <code class="reqn">\xi</code>, that is, <code>pars[2]</code>, is smaller than
+<code>eps</code> then we approximate the <code>[2, 2]</code> element using a Taylor
+series expansion in <code class="reqn">\xi</code>, evaluated up to and including the
+<code>m</code>th term.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An <code>estfun</code> method is used by
+<code>meatCL</code> to calculate the
+<code>meat</code> in the sandwich covariance estimator on which
+the log-likelihood adjustments in <code>flite</code> are based.
+Specifically, <code>meatCL</code> is used to calculate
+the argument <code>V</code> passed to <code>adjust_loglik</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code class="reqn">n \times k</code> matrix containing contributions
+to the score function from <code class="reqn">n</code> observations for each of the <code class="reqn">k</code>
+parameters.
+</p>
+<p><code>estfun.Bernoulli</code>: an <code class="reqn">n \times 2</code> matrix, where
+<code class="reqn">n</code> is the sample size, the length of the input <code>data</code> to
+<code>fitBernoulli</code>.  The column is named <code>prob</code>.
+</p>
+<p><code>estfun.GP</code>: an <code class="reqn">n \times 2</code> matrix, where <code class="reqn">n</code> is the
+sample size, the length of the input <code>data</code> to <code>fitGP</code>.
+The columns are named <code>sigma[u]</code> and <code>xi</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Bernoulli</code> for maximum likelihood inference for the
+Bernoulli distribution.
+</p>
+<p><code>generalisedPareto</code> for maximum likelihood inference
+for the generalised Pareto distribution.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(sandwich)
+
+# estfun.Bernoulli
+bfit &lt;- fitBernoulli(c(exdex::cheeseboro) &gt; 45)
+head(estfun(bfit))
+
+# estfun.generalisedPareto
+gpfit &lt;- fitGP(c(exdex::cheeseboro), u = 45)
+head(estfun(gpfit))
+</code></pre>
+
+
+</div>

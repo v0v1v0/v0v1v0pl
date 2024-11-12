@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MERT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>(S)MERT algorithm</h2>
+
+<h3>Description</h3>
+
+<p>(S)MERT is an adaptation of the random forest regression method to longitudinal data introduced by Hajjem et. al. (2011) &lt;doi:10.1016/j.spl.2010.12.003&gt;.
+The model has been improved by Capitaine et. al. (2020) &lt;doi:10.1177/0962280220946080&gt; with the addition of a stochastic process.
+The algorithm will estimate the parameters of the following semi-parametric stochastic mixed-effects model: </p>
+<p style="text-align: center;"><code class="reqn">Y_i(t)=f(X_i(t))+Z_i(t)\beta_i + \omega_i(t)+\epsilon_i</code>
+</p>
+
+<p>with <code class="reqn">Y_i(t)</code> the output at time <code class="reqn">t</code> for the <code class="reqn">i</code>th individual; <code class="reqn">X_i(t)</code> the input predictors (fixed effects) at time <code class="reqn">t</code> for the <code class="reqn">i</code>th individual;
+<code class="reqn">Z_i(t)</code> are the random effects at time <code class="reqn">t</code> for the <code class="reqn">i</code>th individual; <code class="reqn">\omega_i(t)</code> is the stochastic process at time <code class="reqn">t</code> for the <code class="reqn">i</code>th individual
+which model the serial correlations of the output measurements; <code class="reqn">\epsilon_i</code> is the residual error.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MERT(X, Y, id, Z, iter = 100, time, sto, delta = 0.001)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>[matrix]: A <code>N</code>x<code>p</code> matrix containing the <code>p</code> predictors of the fixed effects, column codes for a predictor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>[vector]: A vector containing the output trajectories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>[vector]: Is the vector of the identifiers for the different trajectories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>[matrix]: A <code>N</code>x<code>q</code> matrix containing the <code>q</code> predictor of the random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>[numeric]: Maximal number of iterations of the algorithm. The default is set to <code>iter=100</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>[vector]: Is the vector of the measurement times associated with the trajectories in <code>Y</code>,<code>Z</code> and <code>X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sto</code></td>
+<td>
+<p>[character]: Defines the covariance function of the stochastic process, can be either <code>"none"</code> for no stochastic process, <code>"BM"</code> for Brownian motion, <code>OrnUhl</code> for standard Ornstein-Uhlenbeck process, <code>BBridge</code> for Brownian Bridge, <code>fbm</code> for Fractional Brownian motion; can also be a function defined by the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>[numeric]: The algorithm stops when the difference in log likelihood between two iterations is smaller than <code>delta</code>. The default value is set to O.O01</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A fitted (S)MERF model which is a list of the following elements: </p>
+
+<ul>
+<li> <p><code>forest:</code> Tree obtained at the last iteration.
+</p>
+</li>
+<li> <p><code>random_effects :</code> Predictions of random effects for different trajectories.
+</p>
+</li>
+<li> <p><code>id_btilde:</code> Identifiers of individuals associated with the predictions <code>random_effects</code>.
+</p>
+</li>
+<li> <p><code>var_random_effects: </code> Estimation of the variance covariance matrix of random effects.
+</p>
+</li>
+<li> <p><code>sigma_sto: </code> Estimation of the volatility parameter of the stochastic process.
+</p>
+</li>
+<li> <p><code>sigma: </code> Estimation of the residual variance parameter.
+</p>
+</li>
+<li> <p><code>time: </code> The vector of the measurement times associated with the trajectories in <code>Y</code>,<code>Z</code> and <code>X</code>.
+</p>
+</li>
+<li> <p><code>sto: </code> Stochastic process used in the model.
+</p>
+</li>
+<li> <p><code>Vraisemblance:</code> Log-likelihood of the different iterations.
+</p>
+</li>
+<li> <p><code>id: </code> Vector of the identifiers for the different trajectories.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(123)
+data &lt;- DataLongGenerator(n=20) # Generate the data composed by n=20 individuals.
+# Train a SMERF model on the generated data. Should take ~ 50 secondes
+# The data are generated with a Brownian motion,
+# so we use the parameter sto="BM" to specify a Brownian motion as stochastic process
+smert &lt;- MERF(X=data$X,Y=data$Y,Z=data$Z,id=data$id,time=data$time,sto="BM")
+smert$forest # is the fitted random forest (obtained at the last iteration).
+smert$random_effects # are the predicted random effects for each individual.
+smert$omega # are the predicted stochastic processes.
+plot(smert$Vraisemblance) #evolution of the log-likelihood.
+
+
+</code></pre>
+
+
+</div>

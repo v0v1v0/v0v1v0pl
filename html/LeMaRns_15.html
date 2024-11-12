@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_recruits</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the number of recruits</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the number of recruits of each species in a year.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_recruits(SSB, stored_rec_funs, rec_args)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>SSB</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the Spawning Stock Biomass (SSB) of each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stored_rec_funs</code></td>
+<td>
+<p>A list object of length <code>nfish</code> that is used to store the generated stock recruitment functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rec_args</code></td>
+<td>
+<p>A list object of length <code>nfish</code> that is used to store the parameters of the stock recruitment functions.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric vector of length <code>nfish</code> representing the number of new recruits of each species.
+</p>
+
+
+<h3>References</h3>
+
+<p>Barrowman, N.J., Myers, R.A. (2000).  Still more spawner-recruit curves: the hockey stick and its generalisations. <em>Canadian Journal of Fisheries and Aquatic Science</em>, 57:665–676.
+</p>
+<p>Beverton, R.J.H., Holt, S.J. (1957). On the Dynamics of Exploited Fish Populations, volume 19 of Fisheries Investigations (Series 2). United Kingdom Ministry of Agriculture and Fisheries.
+</p>
+<p>Hall, S. J., Collie, J. S., Duplisea, D. E., Jennings, S., Bravington, M., &amp; Link, J. (2006). A length-based multispecies model for evaluating community responses to fishing. <em>Canadian Journal of Fisheries and Aquatic Sciences</em>, 63(6):1344-1359.
+</p>
+<p>Ogle, D.H. (2016). Introductory Fisheries Analyses with R. CRC Press.
+</p>
+<p>Ricker, W.E. (1954). Stock and recruitment. <em>Journal of the Fisheries Research Board of Canada</em>, 11:559-623.
+</p>
+<p>Thorpe, R.B., Le Quesne, W.J.F., Luxford, F., Collie, J.S., Jennings, S. (2015). Evaluation and management implications of uncertainty in a multispecies size-structured model of population and community responses to fishing. <em>Methods in Ecology and Evolution</em>, 6:49-58.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_rec_fun</code>, <code>make_rec_fun</code>, <code>rec_BH</code>, <code>rec_Ricker</code>, <code>rec_hockey</code>, <code>rec_const</code>, <code>rec_linear</code> and <code>calc_SSB</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up the inputs to the function - species-independent parameters
+nfish &lt;- nrow(NS_par)
+nsc &lt;- 32
+maxsize &lt;- max(NS_par$Linf)*1.01 # the biggest size is 1% bigger than the largest Linf
+l_bound &lt;- seq(0, maxsize, maxsize/nsc); l_bound &lt;- l_bound[-length(l_bound)]
+u_bound &lt;- seq(maxsize/nsc, maxsize, maxsize/nsc)
+mid &lt;- l_bound+(u_bound-l_bound)/2
+
+# Set up the inputs to the function - species-specific parameters
+Linf &lt;- NS_par$Linf # the von-Bertalanffy asymptotic length of each species (cm).
+W_a &lt;- NS_par$W_a # length-weight conversion parameter.
+W_b &lt;- NS_par$W_b # length-weight conversion parameter.
+k &lt;- NS_par$k # the von-Bertalnaffy growth parameter.
+Lmat &lt;- NS_par$Lmat # the length at which 50\% of individuals are mature (cm).
+
+# Get phi_min
+tmp &lt;- calc_phi(k, Linf, nsc, nfish, u_bound, l_bound, calc_phi_min=FALSE,
+                  phi_min=0.1) # fixed phi_min
+phi_min &lt;- tmp$phi_min
+
+# Run calc_ration_growthfac()
+tmp &lt;- calc_ration_growthfac(k, Linf, nsc, nfish, l_bound, u_bound, mid, W_a, W_b, phi_min)
+sc_Linf &lt;- tmp$sc_Linf
+wgt &lt;- tmp$wgt
+
+# Calculate maturity
+mature &lt;- calc_mature(Lmat, nfish, mid, kappa=rep(10, nfish), sc_Linf)
+
+# Create recruitment functions
+stored_rec_funs &lt;- get_rec_fun(rep("hockey-stick", nfish))
+recruit_params &lt;- do.call("Map", c(c, list(a=NS_par$a, b=NS_par$b)))
+
+# Get an initial population
+N0 &lt;- get_N0(nsc, nfish, mid, wgt, sc_Linf, intercept=1e10, slope=-5)
+
+# Calculate the SSB
+SSB &lt;- calc_SSB(mature, N0, wgt)
+
+# Calculate the number of recruits
+R &lt;- calc_recruits(SSB, stored_rec_funs, recruit_params)
+</code></pre>
+
+
+</div>

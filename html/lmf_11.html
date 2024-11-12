@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nearPD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Find nearest positive definite matrix
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute the nearest positive definite matrix to an approximate one,
+typically a correlation or variance-covariance matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nearPD(x, corr = FALSE, keepDiag = FALSE, do2eigen = TRUE, doSym = FALSE,
+doDykstra = TRUE, only.values = FALSE, only.matrix = TRUE, eig.tol = 1e-06,
+conv.tol = 1e-07, posd.tol = 1e-08, maxit = 100, trace = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>numeric <em>n * n</em> approximately positive definite matrix, typically an
+approximation to a correlation or covariance matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>logical indicating if the matrix should be a
+<em>correlation</em> matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepDiag</code></td>
+<td>
+<p>logical, generalizing <code>corr</code>: if <code>TRUE</code>, the
+resulting matrix should have the same diagonal (<code>diag(x)</code>) as
+the input matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do2eigen</code></td>
+<td>
+<p>logical indicating if a <code>posdefify</code>
+eigen step should be applied to the result of the Higham algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doSym</code></td>
+<td>
+<p>logical indicating if <code>X &lt;- (X + t(X))/2</code> should be done,
+after <code>X &lt;- tcrossprod(Qd, Q)</code>. Some doubt if this is necessary.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doDykstra</code></td>
+<td>
+<p>logical indicating if Dykstra's correction should be used;
+true by default. If false, the algorithm is basically the direct fixpoint
+iteration <code class="reqn">Y(k) = P_U(P_S(Y(k-1)))</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only.values</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, the result is just the vector
+of eigen values of the approximating matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only.matrix</code></td>
+<td>
+<p>logical indicating if only the matrix should be returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eig.tol</code></td>
+<td>
+<p>defines relative positiveness of eigenvalues compared to
+largest one, <code class="reqn">\lambda_1</code>. Eigen values <code class="reqn">\lambda_k</code> are treated
+as if zero when <code class="reqn">\lambda_k / \lambda_1 = eig.tol</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv.tol</code></td>
+<td>
+<p>convergence tolerance for Higham algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posd.tol</code></td>
+<td>
+<p>tolerance for enforcing positive definiteness (in the
+final <code>posdefify</code> step when <code>do2eigen</code> is <code>TRUE</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations allowed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>logical or integer specifying if convergence monitoring
+should be traced.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is identical to <code>nearPD</code> in package <span class="pkg">Matrix</span> as
+far as the algorithmic method is concerned, but has an addition of the argument
+<code>only.matrix</code> to ease its application within the function <code>fs</code>,
+has lost the argument <code>ensureSymmetry</code> and have a small change in the
+list returned when <code>only.matrix = FALSE</code>.
+</p>
+<p>Please see <code>nearPD</code> in package <span class="pkg">Matrix</span> for further details.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>nearPD</code> returns a numeric vector of eigen values of
+the approximating matrix if <code>only.values = TRUE</code>, returns the computed
+positive definite matrix if <code>only.matrix = TRUE</code> and else returns a list
+with the following componets:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>matrix of class "dpoMatrix", the computed
+positive-definite matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eigenvalues</code></td>
+<td>
+<p>numeric vector of eigenvalues of <code>mat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>logical, just the argument <code>corr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normF</code></td>
+<td>
+<p>the Frobenius norm (<code>norm(x-X, "F")</code>) of the
+difference between the original and the resulting matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>number of iterations needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>logical indicating if iterations converged.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jens Oehlschlaegel donated a first version. Subsequent
+changes by the Matrix package authors and present modifications
+by Thomas Kvalnes.
+</p>
+
+
+<h3>References</h3>
+
+<p>Cheng, S.H. and Higham, N. 1998. A Modified Cholesky Algorithm Based
+on a Symmetric Indefinite Factorization. SIAM Journal on Matrix Analysis and
+Applications, 19, 1097-1110.
+</p>
+<p>Knol, D.L. and ten Berge, J.M.F. 1989. Least-squares approximation of an
+improper correlation matrix by a proper one. Psychometrika, 54, 53-61.
+</p>
+<p>Higham, N. 2002. Computing the nearest correlation matrix - a problem
+from finance. IMA Journal of Numerical Analysis, 22, 329-343.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fs</code>, <code>lmf</code>, <code>nearPD</code>,
+<code>posdefify</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Simulated non-positive definite (PD) matrix
+nonPD &lt;- matrix(c(2.04e-03, 3.54e-05, 7.52e-03, 3.54e-05, 6.15e-07,
+  1.30e-04, 7.52e-03, 1.30e-04, 2.76e-02), ncol = 3)
+#View eigenvalues (PD = only positive eigenvalues)
+eigen(nonPD)
+#Calculate PD matrix
+PD &lt;- nearPD(nonPD, only.matrix = TRUE)
+PD
+#View eigenvalues
+eigen(PD)
+#More thorough examples are given in the help pages for nearPD
+ #in the Matrix package.
+</code></pre>
+
+
+</div>

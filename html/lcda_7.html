@@ -1,0 +1,266 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Latent Class Discriminant Analysis (LCDA)</h2>
+
+<h3>Description</h3>
+
+<p>Local Discrimination via Latent Class Models</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcda(x, ...)
+
+
+## Default S3 method:
+lcda(x, grouping=NULL, prior=NULL,
+                       probs.start=NULL, nrep=1, m=3, 
+                       maxiter = 1000, tol = 1e-10,
+                       subset, na.rm = FALSE, ...)
+
+## S3 method for class 'formula'
+lcda(formula, data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix or data frame containing the explanatory variables. Manifest variables must contain only integer values, and must be coded with consecutive values from 1 to the maximum number of outcomes for each variable. All missing values should be entered as NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grouping</code></td>
+<td>
+<p>A factor specifying the class for each observation; if not specified, the first column of <code>data</code> is taken. The class must be coded by integer values with consecutive values from 1 to the maximum number of classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula of the form <code>'groups ~ x1 + x2 + ...'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>The prior probabilities of class membership. If unspecified, the class proportions for the training set are used. If present, the probabilities should be specified in the order of the factor levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs.start</code></td>
+<td>
+<p>A list (per class) of lists of matrices (per variable) of response probabilities <code class="reqn">\theta_{mkdr}</code> to be used as the starting values for the estimation algorithm. Each matrix in the list corresponds to one manifest variable, with one row for each latent class, and one column for each outcome. The default is <code>NULL</code>, producing random starting values. Note that if <code>nrep&gt;1</code>, then any user-specified <code>probs.start</code> values are only used in the first of the nrep attempts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>Number of times to estimate the model, using different random values of <code>probs.start</code>. The default is one. Setting <code>nrep&gt;1</code> automates the search for the global – rather than just a local – maximum of the log-likelihood function. <code>lcda</code> uses the parameter estimates corresponding to the model with the greatest log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>The number of subclasses per class. Can be either a vector containing the number of subclasses per class or a number of subclasses for all classes. Default is <code>m=3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations through which the estimation algorithm will cycle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A tolerance value for judging when convergence has been reached. When the one-iteration change in the estimated log-likelihood is less than <code>tol</code>, the estimation algorithm stops updating and considers the maximum log-likelihood to have been found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>An index vector specifying the cases to be used in the training sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical, for how <code>lcda</code> handles cases with missing values on the manifest variables. If <code>TRUE</code>, those cases are removed (listwise deleted) before estimating the model. If <code>FALSE</code>, cases with missing values are retained. Cases with missing covariates are always removed. The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to <code>lcda</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>lcda</code>-function performs a Latent Class Discriminant Analysis (LCDA).  A Latent Class Modell will be estimated for each class by the <code>poLCA</code>-function (see <code>poLCA</code>).
+The class conditional model is given by
+</p>
+<p style="text-align: center;"><code class="reqn">f_k(x) = \sum_{m=1}^{M_k} w_{mk} \prod_{d=1}^D\prod_{r=1}^{R_d} \theta_{mkdr}^{x_{kdr}},</code>
+</p>
+
+<p>where <code class="reqn">k</code> is the class index, <code class="reqn">m</code> is the latent subclass index, <code class="reqn">d</code> is the variable index and <code class="reqn">r</code> is the observation index. The variable <code class="reqn">x_{kdr}</code> is <code class="reqn">1</code> if the variable <code class="reqn">d</code> of this observation is <code class="reqn">r</code> and in class <code class="reqn">k</code>. The parameter <code class="reqn">w_{mk}</code> is the class conditional mixture weight and <code class="reqn">\theta_{mkdr}</code> is the probability for outcome <code class="reqn">r</code> of variable <code class="reqn">d</code> in subclass <code class="reqn">m</code> of class <code class="reqn">k</code>.
+</p>
+<p>These Latent Class Models use the assumption of local independence to estimate a mixture model of latent multi-way tables. The mixture models are estimated by the EM-algorithm. The number of mixture components (<code>m</code>) is specified by the user. Estimated parameters include the latent-class conditional response probabilities for each manifest variable  <code class="reqn">\theta_{mkdr}</code> and the class conditional mixing proportions <code class="reqn">w_{mk}</code> denoting the population share of observations corresponding to each latent multi-way table.
+</p>
+<p>Posterior class probabilities and class memberships can be estimated with the <code>predict</code> method.</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>lcda</code> containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The (matched) function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lca.theta</code></td>
+<td>
+<p>The estimated class conditional response probabilities of the LCA given as a list of matrices like <code>probs.start</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lca.w</code></td>
+<td>
+<p>The estimated mixing proportions of the LCA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>Prior probabilites.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Number of latent subclasses per class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Number of possible responses per variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Number of variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>Value of the AIC for each class conditional Latent Class Model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>Value of the BIC for each class conditional Latent Class Model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gsq</code></td>
+<td>
+<p>The likelihood ratio/deviance statistic for each class conditional model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Chisq</code></td>
+<td>
+<p>The Pearson Chi-square goodness of fit statistic for fitted vs. observed multiway tables for each class conditional model.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the number of latent classes per class is unknown a model selection must be accomplished to determine the value of <code>m</code>. For this goal there are some model selection criteria implemented. The AIC, BIC, likelihood ratio statistic and the Chi-square goodness of fit statistic are taken from the poLCA-function (see <code>poLCA</code>). For each class these criteria can be regarded separately and for each class the number of latent classes can be determined.</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Michael B\"ucker</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>predict.lcda</code>, <code>cclcda</code>, <code>predict.cclcda</code>, <code>cclcda2</code>, <code>predict.cclcda2</code>, <code>poLCA</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># response probabilites for class 1
+probs1 &lt;- list()
+probs1[[1]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1), 
+                      nrow=2, byrow=TRUE)
+probs1[[2]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=2, byrow=TRUE)
+probs1[[3]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7),
+                      nrow=2, byrow=TRUE)
+probs1[[4]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+
+# response probabilites for class 2
+probs2 &lt;- list()
+probs2[[1]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7),
+                      nrow=2, byrow=TRUE)
+probs2[[2]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+probs2[[3]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+probs2[[4]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=2, byrow=TRUE)
+
+# generation of data
+simdata1 &lt;- poLCA.simdata(N = 500, probs = probs1, nclass = 2,
+              ndv = 4, nresp = 4, missval = FALSE)
+
+simdata2 &lt;- poLCA.simdata(N = 500, probs = probs2, nclass = 2,
+              ndv = 4, nresp = 4, missval = FALSE)
+
+data1 &lt;- simdata1$dat
+data2 &lt;- simdata2$dat
+
+data &lt;- cbind(rbind(data1, data2), rep(c(1,2), each=500))
+names(data)[5] &lt;- "grouping"
+data &lt;- data[sample(1:1000),]
+grouping &lt;- data[[5]]
+data &lt;- data[,1:4]
+
+# lcda-procedure
+object &lt;- lcda(data, grouping=grouping, m=2)
+object
+</code></pre>
+
+
+</div>

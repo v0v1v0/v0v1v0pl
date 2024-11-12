@@ -1,0 +1,452 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fitting age-structured selection model
+</h2>
+
+<h3>Description</h3>
+
+<p><code>lmf</code> fit linear models within each combination of year and age class and
+estimates coefficients of selection using maximum likelihood procedures.
+<code>lmf</code> is compatible with populations without age-structure.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmf(formula, age, year, data, na.action = na.exclude,
+method = c("BFGS"), control = list(maxit = 500,
+reltol = sqrt(.Machine$double.eps)), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>an object of class "formula" (or one that can be coerced to that class): a
+symbolic description of the model to be fitted when estimating coefficients of
+selection. Format: response ~ terms. The detail of model
+specification are given under 'Details'.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+
+<p>used to define the name of the age column in the data set. Use NULL
+if no age data are available in the data set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+
+<p>used to define the name of the year column in the data set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>data set with individual ids (optional), year of reproduction (year),
+maternal age (age; may be omitted if a model without age is desired), 
+number of female offspring (recruits), survival to the next reproductive
+event (survival) and phenotypic measurements. Age classes should have a
+natural order of increasing age. E.g. 1, 2, 3, ...
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>a function which indicate what should happend when the data contain NAs. The
+default is <code>na.exclude</code> (see <code>?na.fail</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>defines what optimalization algorithm to be used in the maximization of the
+loglikelihood. Alternatives are: "Nelder-Mead", "BFGS" (default), "CG",
+"L-BFGS-B" and "SANN". Not all are applicable here. See <code>?optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>a list of control parameters for the maximization of the likelihood.
+<code>maxit</code> sets the maximum number of iterations to use before convergence
+and <code>reltol</code> sets the relative threshold for improvement in the
+likelihood which desides whether to continue maximation or end.
+See <code>?optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>additional arguments to be passed to optim for the maximization of the
+loglikelihood. See <code>?optim</code> for options.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>lmf</code> use formulas for model specification. These should be formatted as
+decribed under arguments. Note however that your response should be specified
+as a two-column matrix with the columns recruits and survival. The first column
+should give the number of recruits that an individual produced a given year and
+the second column should contain information on whether the individual survived
+or not (1 or 0) to the next breeding season. These two columns will be used to
+calculate the individual reproductive values (Wj) which the model will substitute
+for the response in the age and year specific linear regressions
+(i.e. <code>Wj ~ terms</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>lmf</code> returns an object of class "lmf".
+</p>
+<p>The function <code>summary</code> is used to obtain and
+print a summary of the results. For construction of confidene intervals or
+perform statistical inference on the parameters the function <code>boot.lmf</code> is used.
+</p>
+<p>An object of class "lmf" is a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>running.time</code></td>
+<td>
+<p>the total time used for computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.time</code></td>
+<td>
+<p>the time used for maximation of the loglikelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>the number of parameters in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uage</code></td>
+<td>
+<p>the unique age classes in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nage</code></td>
+<td>
+<p>the number of unique age classes in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxage</code></td>
+<td>
+<p>the final age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>the estimated projection matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>the deterministic multiplicative growth rate of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>the stable age distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>the vector of reproductive values for each age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uyear</code></td>
+<td>
+<p>the unique years in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyear</code></td>
+<td>
+<p>the number of unique years in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>the number of observations (counting individual-year).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs.age</code></td>
+<td>
+<p>the number of observations per age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indnr</code></td>
+<td>
+<p>assigned individual numbers (1:nobs).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ajt</code></td>
+<td>
+<p>a list containing the named vectors of the estimated selection
+coefficient for each age class within each year. Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ajt.us</code></td>
+<td>
+<p>a list containing the named unscaled variance-covariance matrix for
+each age class within each year. Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma.djt</code></td>
+<td>
+<p>a list containing the vectors of residual standard errors from
+the linear regression for each age class within each year.
+Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dof</code></td>
+<td>
+<p>a list containing the vectors of degrees of freedom (dof) from the
+linear regression for each age class within each year.
+Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>a list containing the vectors of residuals from the linear
+regression for each age class within each year. Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>a list containing the vectors of fitted values from the linear
+regression for each age class within each year. Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leverage</code></td>
+<td>
+<p>a list containing the vectors of estimated leverage for each
+data point from the linear regression for each age class within each year
+(see <code>lm.influence?</code>). Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cook</code></td>
+<td>
+<p>a list containing the vectors of estimated Cook's distance for each
+data point from the linear regression for each age class within each year
+(see <code>cooks.distance?</code>). Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.dj</code></td>
+<td>
+<p>a list containing the demographic variance for each age class.
+Sorted by age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.dj.dof</code></td>
+<td>
+<p>a list containing the degrees of freedom (dof) for the
+demographic variance for each age class. Sorted by age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.dj.sd</code></td>
+<td>
+<p>a list containing the standard deviation (sd) for the
+demographic variance for each age class. Sorted by age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.d</code></td>
+<td>
+<p>the total demographic variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.d.dof</code></td>
+<td>
+<p>the degrees of freedom (dof) for the total demographic
+variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.d.sd</code></td>
+<td>
+<p>the standard deviation (sd) for the total demographic
+variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ajt</code></td>
+<td>
+<p>a list containing the named variance-covariance matrix (scaled by
+sigma2.dj) for each age class within each year. Sorted by age class and year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>at</code></td>
+<td>
+<p>a list containing the named vectors of the estimated selection
+coefficient for each year. Sorted by year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>At</code></td>
+<td>
+<p>a list containing the named variance-covariance matrix (scaled by
+sigma2.dj) for each year. Sorted by year.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>"yes" indicates that the numerical maximation of the
+likelihood successfully converged before reaching the iteration limit <code>maxit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>the number of iterations of the function in the numerical
+maximation of the likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>the estimated temporal covariance matrix (fluctuating selection).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aM</code></td>
+<td>
+<p>the estimated temporal mean selection coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atC</code></td>
+<td>
+<p>the best linear predictor for the estimated yearly selection
+coefficients (i.e. corrected for sampling errors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Anf</code></td>
+<td>
+<p>the estimated temporal covariance matrix assuming no
+fluctuating selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anf</code></td>
+<td>
+<p>the estimated temporal mean selection coefficients assuming
+no fluctuating selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.e</code></td>
+<td>
+<p>the environmental variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.set</code></td>
+<td>
+<p>the data set used in the analyses with a column of individual
+reproductive values addad</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Thomas Kvalnes
+</p>
+
+
+<h3>References</h3>
+
+<p>Engen, S., Saether, B.-E., Kvalnes, T. and Jensen, H. 2012. Estimating fluctuating
+selection in age-structured populations. Journal of Evolutionary Biology, 25, 1487-1499.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>procomp</code>, <code>promat</code>, <code>eigenl</code>,
+<code>lm.extract</code>, <code>fs</code>, <code>atCfn</code>,
+<code>nfs</code>, <code>boot.lmf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Data set from Engen et al. 2012
+data(sparrowdata)
+#Fit model
+lmf.1 &lt;- lmf(formula = cbind(recruits, survival) ~ weight + tars,
+               age = age, year = year, data = sparrowdata)
+#View diagnostic plots
+plot(lmf.1)
+#View output
+print(lmf.1)
+#Print summary
+summary(lmf.1)
+</code></pre>
+
+
+</div>

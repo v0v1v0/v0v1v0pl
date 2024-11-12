@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>E_loo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute weighted expectations</h2>
+
+<h3>Description</h3>
+
+<p>The <code>E_loo()</code> function computes weighted expectations (means, variances,
+quantiles) using the importance weights obtained from the
+PSIS smoothing procedure. The expectations estimated by the
+<code>E_loo()</code> function assume that the PSIS approximation is working well.
+<strong>A small Pareto k estimate is necessary,
+but not sufficient, for <code>E_loo()</code> to give reliable estimates.</strong> Additional
+diagnostic checks for gauging the reliability of the estimates are in
+development and will be added in a future release.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">E_loo(x, psis_object, ...)
+
+## Default S3 method:
+E_loo(
+  x,
+  psis_object,
+  ...,
+  type = c("mean", "variance", "sd", "quantile"),
+  probs = NULL,
+  log_ratios = NULL
+)
+
+## S3 method for class 'matrix'
+E_loo(
+  x,
+  psis_object,
+  ...,
+  type = c("mean", "variance", "sd", "quantile"),
+  probs = NULL,
+  log_ratios = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector or matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psis_object</code></td>
+<td>
+<p>An object returned by <code>psis()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to individual methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of expectation to compute. The options are
+<code>"mean"</code>, <code>"variance"</code>, <code>"sd"</code>, and <code>"quantile"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p>For computing quantiles, a vector of probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_ratios</code></td>
+<td>
+<p>Optionally, a vector or matrix (the same dimensions as <code>x</code>)
+of raw (not smoothed) log ratios. If working with log-likelihood values,
+the log ratios are the <strong>negative</strong> of those values. If <code>log_ratios</code> is
+specified we are able to compute more accurate Pareto k
+diagnostics specific to <code>E_loo()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list with the following components:
+</p>
+
+<dl>
+<dt><code>value</code></dt>
+<dd>
+<p>The result of the computation.
+</p>
+<p>For the matrix method, <code>value</code> is a vector with <code>ncol(x)</code>
+elements, with one exception: when <code>type="quantile"</code> and
+multiple values are specified in <code>probs</code> the <code>value</code> component of
+the returned object is a <code>length(probs)</code> by <code>ncol(x)</code> matrix.
+</p>
+<p>For the default/vector method the <code>value</code> component is scalar, with
+one exception: when <code>type="quantile"</code> and multiple values
+are specified in <code>probs</code> the <code>value</code> component is a vector with
+<code>length(probs)</code> elements.
+</p>
+</dd>
+<dt><code>pareto_k</code></dt>
+<dd>
+<p>Function-specific diagnostic.
+</p>
+<p>For the matrix method it will be a vector of length <code>ncol(x)</code>
+containing estimates of the shape parameter <code class="reqn">k</code> of the
+generalized Pareto distribution. For the default/vector method,
+the estimate is a scalar. If <code>log_ratios</code> is not specified when
+calling <code>E_loo()</code>, the smoothed log-weights are used to estimate
+Pareto-k's, which may produce optimistic estimates.
+</p>
+<p>For <code>type="mean"</code>, <code>type="var"</code>, and <code>type="sd"</code>, the returned Pareto-k is
+usually the maximum of the Pareto-k's for the left and right tail of <code class="reqn">hr</code>
+and the right tail of <code class="reqn">r</code>, where <code class="reqn">r</code> is the importance ratio and
+<code class="reqn">h=x</code> for <code>type="mean"</code> and <code class="reqn">h=x^2</code> for <code>type="var"</code> and <code>type="sd"</code>.
+If <code class="reqn">h</code> is binary, constant, or not finite, or if <code>type="quantile"</code>, the
+returned Pareto-k is the Pareto-k for the right tail of <code class="reqn">r</code>.
+</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (requireNamespace("rstanarm", quietly = TRUE)) {
+# Use rstanarm package to quickly fit a model and get both a log-likelihood
+# matrix and draws from the posterior predictive distribution
+library("rstanarm")
+
+# data from help("lm")
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+d &lt;- data.frame(
+  weight = c(ctl, trt),
+  group = gl(2, 10, 20, labels = c("Ctl","Trt"))
+)
+fit &lt;- stan_glm(weight ~ group, data = d, refresh = 0)
+yrep &lt;- posterior_predict(fit)
+dim(yrep)
+
+log_ratios &lt;- -1 * log_lik(fit)
+dim(log_ratios)
+
+r_eff &lt;- relative_eff(exp(-log_ratios), chain_id = rep(1:4, each = 1000))
+psis_object &lt;- psis(log_ratios, r_eff = r_eff, cores = 2)
+
+E_loo(yrep, psis_object, type = "mean")
+E_loo(yrep, psis_object, type = "var")
+E_loo(yrep, psis_object, type = "sd")
+E_loo(yrep, psis_object, type = "quantile", probs = 0.5) # median
+E_loo(yrep, psis_object, type = "quantile", probs = c(0.1, 0.9))
+
+# We can get more accurate Pareto k diagnostic if we also provide
+# the log_ratios argument
+E_loo(yrep, psis_object, type = "mean", log_ratios = log_ratios)
+}
+
+
+</code></pre>
+
+
+</div>

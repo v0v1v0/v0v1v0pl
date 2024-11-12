@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>confIntBootLogConROC_t0</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to compute a bootstrap confidence interval for the ROC curve at a given t, based on the log-concave ROC curve</h2>
+
+<h3>Description</h3>
+
+<p>This function computes a bootstrap confidence interval for the ROC curve at a given value false negative fraction (1 - specificity) <code class="reqn">t</code>. The ROC curve estimate is based on log-concave densities, as discussed in Rufibach (2011).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">confIntBootLogConROC_t0(controls, cases, grid = c(0.2, 0.8), conf.level = 0.95, 
+M = 1000, smooth = TRUE, output = TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cases</code></td>
+<td>
+<p>Values of the continuous variable for the cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>controls</code></td>
+<td>
+<p>Values of the continuous variable for the controls.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>Values of 1 - specificity where confidence intervals should be computed at (may be a vector).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>Confidence level of confidence interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Number of bootstrap replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth</code></td>
+<td>
+<p><code>Logical</code>. Compute confidence interval also for ROC curve estimate based on smoothed log-concave densities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p><code>Logical</code>. Show progress of computations?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>qs</code></td>
+<td>
+<p><code>data.frame</code> with the columns <code>t</code> (false positive fractions where confidence interval is computed at) and the confidence intervals for the ROC curve at <code>grid</code>, based on the log-concave density estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.mat</code></td>
+<td>
+<p>Bootstrap samples for the ROC curve based on the log-concave density estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qs.smooth</code></td>
+<td>
+<p>If <code>smooth = TRUE</code>, same as <code>qs</code> but for the ROC curve based on the smooth log-concave density estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.mat.smooth</code></td>
+<td>
+<p>If <code>smooth = TRUE</code>, bootstrap samples for the ROC curve based on the smoothed log-concave density estimate.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The confidence intervals are only valid if observations are <em>independent</em>, i.e. eacht patient only contributes one measurement, e.g.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach (maintainer) <br><a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a> <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a>.</p>
+
+
+<h3>References</h3>
+
+<p>The reference for computation of these bootstrap confidence intervals is:
+</p>
+<p>Rufibach, K. (2012).
+A smooth ROC curve estimator based on log-concave density estimates.
+<em>Int. J. Biostat.</em>, <b>8</b>(1), 1–29.
+</p>
+<p>The bootstrap competitor based on the empirical ROC curve is described in:
+</p>
+<p>Zhou, X.H. and Qin, G. (2005).
+Improved confidence intervals for the sensitivity at a fixed level of specificity of a continuous-scale diagnostic test.
+<em>Statist. Med.</em>, <b>24</b>, 465–477.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The ROC curve based on log-concave density estimates can be computed using <code>logConROC</code>. In the example below we analyze the <code>pancreas</code> data.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## ROC curve for pancreas data 
+data(pancreas)
+status &lt;- factor(pancreas[, "status"], levels = 0:1, labels = c("healthy", "diseased"))
+var &lt;- log(pancreas[, "ca199"])
+cases &lt;- var[status == "diseased"]
+controls &lt;- var[status == "healthy"]
+
+## compute confidence intervals
+res &lt;- confIntBootLogConROC_t0(controls, cases, grid = c(0.2, 0.8), conf.level = 0.95, 
+    M = 1000, smooth = TRUE, output = TRUE)
+res
+
+## End(Not run)
+</code></pre>
+
+
+</div>

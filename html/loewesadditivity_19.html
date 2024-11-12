@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simulate_coverage</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate a GIA model with an assumed error structure</h2>
+
+<h3>Description</h3>
+
+<p>Simulate a GIA model with an assumed error structure
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simulate_coverage(
+  n_sims = 10,
+  n_boot = 100,
+  verbose = TRUE,
+  experimental_grid,
+  model_par,
+  alpha = 0.05,
+  noise_par = c(a0 = 2, a1 = 0.01),
+  GIA_fn = base_GIA,
+  S_fn = calc_S_base,
+  fn_list = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n_sims</code></td>
+<td>
+<p>number of coverage simulations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+<p>number of bootstraps to use in each simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating whether we should use print statements.  Default is TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>experimental_grid</code></td>
+<td>
+<p>data frame with columns 'dose_A' and 'dose_B'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_par</code></td>
+<td>
+<p>named vector of parameters corresponding to those used in GIA_fn()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>alpha level used to produce confidence intervals for each bootstrap</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise_par</code></td>
+<td>
+<p>named vector for the noise parameter.  Must have names "a0" and "a1".  See <code>?base_gia</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GIA_fn</code></td>
+<td>
+<p>function used to calculate GIA.  Default is base_GIA().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S_fn</code></td>
+<td>
+<p>function to calculate S</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn_list</code></td>
+<td>
+<p>additional parameters to pass to GIA_fn</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>list with the following entries
+</p>
+
+<dl>
+<dt>interaction_cov</dt>
+<dd>
+<p>This is the percent of times 0 was in the (1-alpha)% confidence interval for the interaction term "tau_1" from the simulated results</p>
+</dd>
+<dt>params_cov</dt>
+<dd>
+<p>This is the percent of times the true model parameter (those from model_par) lies in the (marginal) 95% confidence interval for that model parameter.</p>
+</dd>
+<dt>tau_pos</dt>
+<dd>
+<p>This is the percent of times the (1-alpha)% CI of "tau_1" was completely above 0.</p>
+</dd>
+<dt>tau_neg</dt>
+<dd>
+<p>This is the percent of times (1-alpha)% CI of "tau_1" is completely below zero</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">df &lt;- loewesadditivity::cyrpa_ripr
+df$dose_A &lt;- df$CyRPA
+df$dose_B &lt;- df$RIPR
+data &lt;- fortify_gia_data(df)
+model_params &lt;- c("beta_A" = .247, "beta_B" = .224,
+                  "gamma_A" = .734, "gamma_B" = .806,
+                  "tau_1" = .28, "tau_2" = -.28)
+experimental_grid &lt;- make_grid(par = model_params,
+                               n = 5)
+n_boot &lt;- 100
+n_sims &lt;- 10
+GIA_fn &lt;- base_GIA
+S_fn &lt;- calc_S_base
+fn_list &lt;- NULL
+alpha &lt;- .05
+verbose &lt;- TRUE
+## NOT RUN
+##out &lt;- simulate_coverage(n_sims = n_sims,
+  ##                      n_boot = n_boot,
+   ##                     verbose = TRUE,
+    ##                    experimental_grid = experimental_grid,
+     ##                   model_par = model_params,
+     ##                   alpha = .05,
+   ##                     noise_par = c("a0" = 3, "a1" = .01),
+   ##                     GIA_fn = base_GIA,
+   ##                     fn_list = NULL)
+##out
+</code></pre>
+
+
+</div>

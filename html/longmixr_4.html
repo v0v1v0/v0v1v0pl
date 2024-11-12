@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>longitudinal_consensus_cluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Longitudinal consensus clustering with flexmix</h2>
+
+<h3>Description</h3>
+
+<p>This function performs longitudinal clustering with flexmix. To get robust
+results, the data is subsampled and the clustering is performed on this
+subsample. The results are combined in a consensus matrix and a final
+hierarchical clustering step performed on this matrix. In this, it follows
+the approach from the <code>ConsensusClusterPlus</code> package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">longitudinal_consensus_cluster(
+  data = NULL,
+  id_column = NULL,
+  max_k = 3,
+  reps = 10,
+  p_item = 0.8,
+  model_list = NULL,
+  flexmix_formula = as.formula("~s(visit, k = 4) | patient_id"),
+  title = "untitled_consensus_cluster",
+  final_linkage = c("average", "ward.D", "ward.D2", "single", "complete", "mcquitty",
+    "median", "centroid"),
+  seed = 3794,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>data.frame</code> with one or several observations per subject.
+It needs to contain one column that specifies to which subject the entry (row)
+belongs to. This ID column is specified in <code>id_column</code>. Otherwise, there
+are no restrictions on the column names, as the model is specified in
+<code>flexmix_formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id_column</code></td>
+<td>
+<p>name (character vector) of the ID column in <code>data</code> to
+identify all observations of one subject</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_k</code></td>
+<td>
+<p>maximum number of clusters, default is <code>3</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reps</code></td>
+<td>
+<p>number of repetitions, default is <code>10</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_item</code></td>
+<td>
+<p>fraction of samples contained in subsampled sample, default is
+<code>0.8</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_list</code></td>
+<td>
+<p>either one <code>flexmix</code> driver or a list of <code>flexmix</code>
+drivers of class <code>FLXMR</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flexmix_formula</code></td>
+<td>
+<p>a <code>formula</code> object that describes the <code>flexmix</code>
+model relative to the formula in the flexmix drivers (the dot in the flexmix
+drivers is replaced, see the example). That means that you usually only
+specify the right-hand side of the formula here. However, this is not enforced
+or checked to give you more flexibility over the <code>flexmix</code> interface</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>name of the clustering; used if <code>writeTable = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final_linkage</code></td>
+<td>
+<p>linkage used for the last hierarchical clustering step on
+the consensus matrix; has to be <code>average, ward.D, ward.D2, single, complete, mcquitty, median</code>
+or <code>centroid</code>. The default is <code>average</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>seed for reproducibility</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>boolean</code> if status messages should be displayed.
+Default is <code>FALSE</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data types <code>longitudinal_consensus_cluster</code> can handle depends on
+how the <code>flexmix</code> models are set up, in principle all data types are
+supported for which there is a <code>flexmix</code> driver with the desired
+outcome variable.
+</p>
+<p>If you follow the dimension reduction approach outlined in
+<code>vignette("Example clustering analysis", package = "longmixr")</code>, the
+input data types depend on what <code>FAMD</code> from the <code>FactoMineR</code>
+package can handle. <code>FAMD</code> accepts <code>numeric</code> variables and treats
+all other variables as <code>factor</code> variables which it can handle as well.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object (list) of class <code>lcc</code> with length <code>maxk</code>.
+The first entry <code>general_information</code> contains the entries:</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>consensus_matrices</code> </td>
+<td style="text-align: left;"> a list of all consensus matrices (for all specified clusters) </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>cluster_assignments</code> </td>
+<td style="text-align: left;"> a <code>data.frame</code> with an ID column named after <code>id_column</code> and a column for every specified number of clusters, e.g. <code>assignment_num_clus_2</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>call</code> </td>
+<td style="text-align: left;"> the call/all arguments how <code>longitudinal_consensus_cluster</code> was called
+</td>
+</tr>
+</table>
+<p>The other entries correspond to the number of specified clusters (e.g. the
+second entry corresponds to 2 specified clusters) and each contains a list with the
+following entries:</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>consensus_matrix</code> </td>
+<td style="text-align: left;"> the consensus matrix </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>consensus_tree</code> </td>
+<td style="text-align: left;"> the result of the hierarchical clustering on the consensus matrix </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>consensus_class</code> </td>
+<td style="text-align: left;"> the resulting class for every observation </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>found_flexmix_clusters</code> </td>
+<td style="text-align: left;"> a vector of the actual found number of clusters by <code>flexmix</code> (which can deviate from the specified number)
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(5)
+test_data &lt;- data.frame(patient_id = rep(1:10, each = 4),
+visit = rep(1:4, 10),
+var_1 = c(rnorm(20, -1), rnorm(20, 3)) +
+rep(seq(from = 0, to = 1.5, length.out = 4), 10),
+var_2 = c(rnorm(20, 0.5, 1.5), rnorm(20, -2, 0.3)) +
+rep(seq(from = 1.5, to = 0, length.out = 4), 10))
+model_list &lt;- list(flexmix::FLXMRmgcv(as.formula("var_1 ~ .")),
+flexmix::FLXMRmgcv(as.formula("var_2 ~ .")))
+clustering &lt;- longitudinal_consensus_cluster(
+data = test_data,
+id_column = "patient_id",
+max_k = 2,
+reps = 3,
+model_list = model_list,
+flexmix_formula = as.formula("~s(visit, k = 4) | patient_id"))
+# not run
+# plot(clustering)
+# end not run
+</code></pre>
+
+
+</div>

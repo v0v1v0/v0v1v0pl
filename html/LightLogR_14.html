@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>data2reference</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create reference data from other data</h2>
+
+<h3>Description</h3>
+
+<p>Create reference data from almost any other data that has a datetime column
+and a data column. The reference data can even be created from subsets of the
+same data. Examples are that one participant can be used as a reference for
+all other participants, or that the first (second,...) day of every
+participant data is the reference for any other day. <strong>This function needs to
+be carefully handled, when the reference data time intervals are shorter than
+the data time intervals. In that case, use <code>aggregate_Datetime()</code> on the
+reference data beforehand to lengthen the interval.</strong>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data2reference(
+  dataset,
+  Reference.data = dataset,
+  Datetime.column = Datetime,
+  Data.column = MEDI,
+  Id.column = Id,
+  Reference.column = Reference,
+  overwrite = FALSE,
+  filter.expression.reference = NULL,
+  across.id = FALSE,
+  shift.start = FALSE,
+  length.restriction.seconds = 60,
+  shift.intervals = "auto",
+  Reference.label = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reference.data</code></td>
+<td>
+<p>The data that should be used as reference. By default
+the <code>dataset</code> will be used as reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.column</code></td>
+<td>
+<p>Datetime column of the <code>dataset</code> and <code>Reference.data</code>.
+Need to be the same in both sets. Default is <code>Datetime</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data.column</code></td>
+<td>
+<p>Data column in the <code>Reference.data</code> that is then converted
+to a reference. Default is <code>MEDI</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Id.column</code></td>
+<td>
+<p>Name of the <code>Id.column</code> in both the <code>dataset</code> and the
+<code>Reference.data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reference.column</code></td>
+<td>
+<p>Name of the reference column that will be added to
+the <code>dataset</code>. Default is <code>Reference</code>. Cannot be the same as any other
+column in the <code>dataset</code> and will throw an error if it is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>If <code>TRUE</code> (defaults to <code>FALSE</code>), the function will
+overwrite the <code>Reference.colname</code> column if it already exists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.expression.reference</code></td>
+<td>
+<p>Expression that is used to filter the
+<code>Reference.data</code> before it is used as reference. Default is <code>NULL</code>. See</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>across.id</code></td>
+<td>
+<p>Grouping variables that should be ignored when creating the
+reference data. Default is <code>FALSE</code>. If <code>TRUE</code>, all grouping variables are
+ignored. If <code>FALSE</code>, no grouping variables are ignored. If a vector of
+grouping variables is given, these are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift.start</code></td>
+<td>
+<p>If <code>TRUE</code>, the reference data is shifted to the start of
+the respective group. Default is <code>FALSE</code>. The shift ignores the groups
+specified in <code>across.id</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length.restriction.seconds</code></td>
+<td>
+<p>Restricts the application of reference data
+to a maximum length in seconds. Default is <code>60</code> seconds. This is useful to
+avoid reference data being applied to long periods of time, e.g., when
+there are gaps in the reference data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift.intervals</code></td>
+<td>
+<p>Time shift in seconds, that is applied to every data
+point in the reference data. Default is <code>"auto"</code>. If <code>"auto"</code>, the shift is
+calculated by halving the most frequent time difference between two data
+points in the reference data. If a number is given, this number in seconds
+is used as the shift. Can also use <code>lubridate::duration()</code> to specify the
+shift.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Reference.label</code></td>
+<td>
+<p>Label that is added to the reference data. If <code>NULL</code>,
+no label is added.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To use subsets of data, use the <code>filter.expression.reference</code> argument to
+specify the subsets of data. The <code>across.id</code> argument specifies whether the
+reference data should be used across all or some grouping variables (e.g.,
+across participants). The <code>shift.start</code> argument enables a shift of the
+reference data start time to the start of the respective group.
+</p>
+<p>and @examples for more information. The expression is evaluated
+within <code>dplyr::filter()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>dataset</code> with a new column <code>Reference</code> that contains the reference
+data.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(dplyr)
+library(lubridate)
+library(ggplot2)
+
+gg_reference &lt;- function(dataset) {
+dataset %&gt;%
+ggplot(aes(x = Datetime, y = MEDI, color = Id)) +
+geom_line(linewidth = 1) +
+geom_line(aes(y = Reference), color = "black", size = 0.25, linetype = "dashed") +
+theme_minimal() + facet_wrap(~ Id, scales = "free_y")
+}
+
+#in this example, each data point is its own reference
+sample.data.environment %&gt;%
+  data2reference() %&gt;%
+  gg_reference()
+
+#in this example, the first day of each ID is the reference for the other days
+#this requires grouping of the Data by Day, which is then specified in across.id
+#also, shift.start needs to be set to TRUE, to shift the reference data to the
+#start of the groupings
+sample.data.environment %&gt;% group_by(Id, Day = as_date(Datetime)) %&gt;%
+data2reference(
+  filter.expression.reference =  as_date(Datetime) == min(as_date(Datetime)),
+  shift.start = TRUE,
+  across.id = "Day") %&gt;%
+  gg_reference()
+
+#in this example, the Environment Data will be used as a reference
+sample.data.environment %&gt;%
+data2reference(
+  filter.expression.reference =  Id == "Environment",
+  across.id = TRUE) %&gt;%
+  gg_reference()
+</code></pre>
+
+
+</div>

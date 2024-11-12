@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lod_lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fitting Linear Models with Covariates Subject to a Limit of Detection (LOD)
+</h2>
+
+<h3>Description</h3>
+
+<p><code>lod_lm</code> is used to fit linear models while taking into account limits of detection for corresponding covariates.  It carries out the method detailed in May et al. (2011) with regression coefficient standard errors calculated using bootstrap resampling.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lod_lm(data, frmla, lod=NULL, var_LOD=NULL, nSamples = 250,
+fill_in_method="mean", convergenceCriterion = 0.001, boots = 25)
+
+## S3 method for class 'lod_lm'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a required data frame (or object coercible by as.data.frame to a data frame) containing the variables in the model.  If not specified, a corresponding error is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "<code>lod_lm</code>", usually, a result of a call to <code>lod_lm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frmla</code></td>
+<td>
+<p>an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. The details of model specification are given under 'Details'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lod</code></td>
+<td>
+<p>a numeric vector (or object coercible by as.numeric) specifying the limit of detection for each covariates specified in <code>var_LOD</code> (in the same order as the covariates in <code>var_LOD</code>).  Default is <code>NULL</code>, representing no covariates having limits of detection, which calls <code>lm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_LOD</code></td>
+<td>
+<p>a character vector specifying which covariates in the model (<code>frmla</code>) are subject to limits of detection.  Default is <code>NULL</code>, representing no covariates having limits of detection, which calls <code>lm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nSamples</code></td>
+<td>
+<p>an integer specifying the number of samples to generate for each subject with covariate values outside of their limits of detection.  For more details, see May et al. (2011).  The default is 250.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill_in_method</code></td>
+<td>
+<p>a string specifying how values outside of the limits of detection should be handled when calculating residuals and fitted values.  Default is "mean", which uses the mean covariate value.  Another choice is "LOD" which uses the lower limit of detection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergenceCriterion</code></td>
+<td>
+<p>a number specifying the smallest difference between iterations required for the regression coefficient estimation process to complete.  The default is 0.001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boots</code></td>
+<td>
+<p>a number specifying the number of bootstrap resamples used for the standard error estimation process for the regression coefficient estimates.  The default is 25.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Models for <code>lod_lm</code> are specified the same as models for <code>lm</code>.  A typical model as the form <code>response ~ terms</code> where <code>response</code> is the (numeric) response vector and <code>terms</code> is a series of terms separated by <code>+</code> which specifies a linear predictor for <code>response</code>.  A formula has an implied intercept term.
+</p>
+<p>In the dataset used with lod_lm, values outside of the limits of detection need to be denoted by the value of the lower limit of detection.  Observations with values marked as missing by <code>NA</code> are removed by the model fit procedure as done with <code>lm</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>lod_lm</code> returns an object of class) "<code>lod_lm</code>" if arguments <code>lod</code> and <code>var_LOD</code> are not <code>NULL</code>, otherwise it returns class) "<code>lm</code>".  The function <code>summary</code> prints a summary of the results in the same format as with an object of class) "<code>lm</code>".  The generic accessor functions <code>coef</code>, <code>fitted</code> and <code>residuals</code> extract various useful features of the value returned by <code>lod_lm</code>.
+</p>
+<p>An object of class) "<code>lod_lm</code>" is a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>a named vector of regression coefficient estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot_SE</code></td>
+<td>
+<p>a named vector of regression coefficient estimate bootstrap standard error estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>the fitted mean values for subjects with covariates within their limits of detection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank</code></td>
+<td>
+<p>the numeric rank of the fitted linear model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>the residuals, that is response minus fitted values, for subjects with covariates within their limits of detection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df.residual</code></td>
+<td>
+<p>the residual degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the model frame used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>the <code>terms</code> object used.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Kevin Donovan, kmdono02@ad.unc.edu.
+</p>
+<p>Maintainer: Kevin Donovan &lt;kmdono02@ad.unc.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>May RC, Ibrahim JG, Chu H (2011).
+“Maximum likelihood estimation in generalized linear models with multiple covariates subject to detection limits.”
+<em>Statistics in medicine</em>, <b>30</b>(20), 2551–2561.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.lod_lm</code> for summaries of the results from <code>lod_lm</code>
+</p>
+<p>The generic functions <code>coef</code>, <code>fitted</code> and <code>residuals</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lodr)
+## Using example dataset provided in lodr package: lod_data_ex
+## 3 covariates: x1, x2, x3 with x2 and x3 subject to a lower limit of
+## detection of 0
+
+## nSamples set to 100 for computational speed/illustration purposes only.  
+## At least 250 is recommended.  Same for boots=0; results in NAs returned for standard errors
+
+fit &lt;- lod_lm(data=lod_data_ex, frmla=y~x1+x2+x3, lod=c(0,0),
+                  var_LOD=c("x2", "x3"), nSamples=100, boots=0)
+ summary(fit)
+</code></pre>
+
+
+</div>

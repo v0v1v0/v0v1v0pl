@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>draw_lm_cov_latent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Draw samples from LM model with covariaates in the latent model</h2>
+
+<h3>Description</h3>
+
+<p>Function that draws samples from the LM model with individual covariates with specific parameters.  <br><br><b>The function is no longer maintained. Please look at</b> <code>draw.LMlatent</code> <b>function</b>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">draw_lm_cov_latent(X1, X2, param = "multilogit", Psi, Be, Ga, fort = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X1 </code></td>
+<td>
+<p>desing matrix for the covariates on the initial probabilities (n x nc1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X2 </code></td>
+<td>
+<p>desing matrix for the covariates on the transition probabilities (n x TT-1 x nc2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param </code></td>
+<td>
+<p>type of parametrization for the transition probabilities ("multilogit" = standard multinomial logit for every row of the transition matrix, "difflogit" = multinomial logit based on the difference between two sets of parameters)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psi </code></td>
+<td>
+<p>array of conditional response probabilities (mb x k x r)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Be </code></td>
+<td>
+<p>parameters affecting the logit for the initial probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ga </code></td>
+<td>
+<p>parametes affecting the logit for the transition probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort</code></td>
+<td>
+<p>to use fortran routine when possible (FALSE for not use fortran)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>matrix of response configurations unit by unit (n x TT x r)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U </code></td>
+<td>
+<p>matrix containing the sequence of latent states (n x TT)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci, Silvia Pandolfi, University of Perugia (IT), http://www.stat.unipg.it/bartolucci</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# draw a sample for 1000 units, 10 response variable and 2 covariates
+n &lt;- 1000
+TT &lt;- 5
+k &lt;- 2
+nc &lt;- 2 #number of covariates
+r &lt;- 10 #number of response variables
+mb &lt;- 2 #maximum number of response categories
+fort &lt;- TRUE
+
+
+Psi &lt;- matrix(c(0.9,0.1,0.1,0.9), mb, k)
+Psi &lt;- array(Psi, c(mb, k, r))
+Ga &lt;- matrix(c(-log(0.9/0.1),0.5,1), (nc+1)*(k-1), k)
+Be &lt;- array(c(0,0.5,1), (nc+1)*(k-1))
+#Simulate covariates
+X1 &lt;- matrix(0, n, nc)
+for(j in 1:nc) X1[,j] &lt;- rnorm(n)
+X2 &lt;- array(0,c(n, TT-1, nc))
+for (t in 1:(TT-1)) for(j in 1:nc){
+	if(t==1){
+		X2[,t,j] &lt;- 0.5*X1[,j] + rnorm(n)
+	}else{
+		X2[,t,j] &lt;- 0.5 *X2[,t-1,j] + rnorm(n)
+	}
+}
+
+out &lt;- draw_lm_cov_latent(X1, X2, Psi = Psi, Be = Be, Ga = Ga, fort = fort)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

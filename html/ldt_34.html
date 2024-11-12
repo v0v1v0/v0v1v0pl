@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get.search.metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get Options for Measuring Performance</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to get measuring options in <code>search.?</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get.search.metrics(
+  typesIn = c("aic"),
+  typesOut = NULL,
+  simFixSize = 2,
+  trainRatio = 0.75,
+  trainFixSize = 0,
+  seed = 0,
+  horizons = c(1L),
+  weightedEval = FALSE,
+  minMetrics = list(aic = 0)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>typesIn</code></td>
+<td>
+<p>A list of evaluation metrics when the model is estimated using all available data. It can be <code>aic</code>, <code>sic</code>, <code>frequencyCostIn</code>, <code>brierIn</code>, or <code>aucIn</code>. <code>NULL</code> means no metric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>typesOut</code></td>
+<td>
+<p>A list of evaluation metrics in a out-of-sample simulation. It can be <code>sign</code>, <code>direction</code>, <code>rmse</code>, <code>rmspe</code>, <code>mae</code>, <code>mape</code>, <code>crps</code>, <code>frequencyCostOut</code>, <code>brierOut</code>, or <code>aucOut</code>. Null means no metric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simFixSize</code></td>
+<td>
+<p>An integer that determines the number of out-of-sample simulations. Use zero to disable the simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trainRatio</code></td>
+<td>
+<p>A number representing the size of the training sample relative to the available size, in the out-of-sample simulation. It is effective if <code>trainFixSize</code> is zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trainFixSize</code></td>
+<td>
+<p>An integer representing the number of data points in the training sample in the out-of-sample simulation. If zero, <code>trainRatio</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A seed for the random number generator. Use zero for a random value. It can be negative to get reproducible results between the <code>search.?</code> function and the <code>estim.?</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horizons</code></td>
+<td>
+<p>An array of integers representing the prediction horizons to be used in out-of-sample simulations, if the model supports time-series prediction. If <code>NULL</code>, <code>c(1)</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightedEval</code></td>
+<td>
+<p>If <code>TRUE</code>, weights are used in evaluating discrete-choice models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minMetrics</code></td>
+<td>
+<p>a list of minimum values for adjusting the weights when applying the AIC weight formula.
+It can contain the following members: <code>aic</code>, <code>sic</code>, <code>brierIn</code>, <code>rmse</code>, <code>rmspe</code>, <code>mae</code>, <code>mape</code>, <code>crps</code>, <code>brierOut</code>.
+Members can be numeric vectors for specifying a value for each target variable. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An important aspect of <code>ldt</code> is model evaluation during the screening process. This involves considering both in-sample and out-of-sample evaluation metrics. In-sample metrics are computed using data that was used in the estimation process, while out-of-sample metrics are computed using new data. These metrics are well documented in the literature, and I will provide an overview of the main computational aspects and relevant references.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the given options.
+</p>
+
+
+<h3>AIC and SIC</h3>
+
+<p>According to Burnham and Anderson (2002) or Greene (2020), AIC and SIC are two commonly used metrics for comparing and choosing among different models with the same endogenous variable(s). Given <code class="reqn">L^*</code> as the maximum value of the likelihood function in a regression analysis with <code class="reqn">k</code> estimated parameters and <code class="reqn">N</code> observations, AIC is calculated by <code class="reqn">2k-2\ln L^*</code> and SIC is calculated by <code class="reqn">k\ln N-2\ln L^*</code>. SIC includes a stronger penalty for increasing the number of estimated parameters in the model.
+</p>
+<p>These metrics can be converted into weights using the formula <code class="reqn">w=\exp (-0.5x)</code>, where <code class="reqn">x</code> is the value of the metric. When divided by the sum of all weights, <code class="reqn">w</code> can be interpreted as the probability that a given model is the best model among all members of the model set (see section 2.9 in Burnham and Anderson (2002)). Compared to the Burnham and Anderson (2002) discussion and since <code class="reqn">f(x)=exp(-0.5x)</code> transformation is invariant to translation, the minimum AIC part is removed in the screening process. This is an important property because it enables the use of running statistics and parallel computation.
+</p>
+
+
+<h3>MSE, RMSE, MSPE, and RMSPE</h3>
+
+<p>According to Hyndman and Athanasopoulos (2018), MSE and RMSE are two commonly used scale-dependent metrics, while MAPE is a commonly used unit-free metric. <code>ldt</code> also calculates the less common RMSPE metric. If there are <code class="reqn">n</code> predictions and <code class="reqn">e_i=y_i-\hat{y}_i</code> for <code class="reqn">i=1\ldots n</code> is the prediction error, i.e., the distance between actual values (<code class="reqn">y_i</code>) and predictions (<code class="reqn">\hat{y}_i</code>), these metrics can be expressed analytically by the following formulas:
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathrm{MAE} = \frac{1}{n}\sum_{i=1}^{n}|e_i|
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+\mathrm{MAPE} = \frac{1}{n}\sum_{i=1}^{n}\left|\frac{e_i}{y_i}\right|\times 100
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+\mathrm{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(e_i)^2}
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+\mathrm{RMSPE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(\frac{e_i}{y_i}\right)^2}\times 100
+</code>
+</p>
+
+<p>Note that, first MAPE and RMSPE are not defined if <code class="reqn">y_i</code> is zero and may not be meaningful or useful if it is near zero or negative. Second, although these metrics cannot be directly interpreted as weights, they are treated in a manner similar to AIC in the <code>ldt</code> package.. Third, caution is required when target variables are transformed, for example to a logarithmic scale. <code>ldt</code> provides an option to transform the data back when calculating these metrics.
+</p>
+
+
+<h3>Brier</h3>
+
+<p>The Brier score measures the accuracy of probabilistic predictions for binary outcomes. It is calculated as the mean squared difference between the actual values (<code class="reqn">y_i</code>) and the predicted probabilities (<code class="reqn">p_i</code>). Assuming that there are <code class="reqn">n</code> predictions, its formula is given by:
+</p>
+<p><code class="reqn">
+\mathrm{Brier} = \frac{\sum (y_i-\hat{p}_i)^2}{n},
+</code>
+</p>
+<p>where <code class="reqn">p_i</code> is the predicted probability that the <code class="reqn">i</code>-th observation is positive. The value of this metric ranges from 0 to 1, with lower values indicating better predictions. In the screening process in <code>ldt</code>, both in-sample and out-of-sample observations can be used to calculate this metric. Although this metric cannot be directly interpreted as a weight, it is treated in a manner similar to AIC.
+</p>
+
+
+<h3>AUC</h3>
+
+<p>As described by Fawcett (2006), the receiver operating characteristic curve (ROC) plots the true positive rate (sensitivity) against the false positive rate (1-specificity) at different classification thresholds. The area under this curve is known as the AUC. Its value ranges from 0 to 1, with higher values indicating that the model is better at distinguishing between the two classes Fawcett (2006, 2006). In the screening process in <code>ldt</code>, both in-sample and out-of-sample observations can be used to calculate this metric. There is also an option to calculate the pessimistic or an instance-varying costs version of this metric. Although this metric does not have a direct interpretation as weights, in <code>ldt</code> its value is considered as weight.
+</p>
+
+
+<h3>CRPS</h3>
+
+<p>According to Gneiting et al. (2005), the continuous ranked probability score (CRPS) is a metric used to measure the accuracy of probabilistic predictions. Unlike MAE, RMSE, etc., CRPS takes into account the entire distribution of the prediction, rather than focusing on a specific point of the probability distribution. For <code class="reqn">n</code> normally distributed predictions with mean <code class="reqn">\hat{y}_i</code> and variance <code class="reqn">\mathrm{var}(\hat{y}_i)</code>, this metric can be expressed analytically as:
+</p>
+<p><code class="reqn">
+\mathrm{CRPS}=\sum_{i=1}^{n} \sigma \left(\frac{1}{\sqrt{\pi}} - 2\Phi(z_i) + z_i (2\phi(z_i)-1)\right),
+</code>
+</p>
+<p>where <code class="reqn">z_i=(y_i-\hat{y}_i)/\sqrt{\mathrm{var}(\hat{y}_i)}</code>, and <code class="reqn">\Phi</code> and <code class="reqn">\phi</code> are CDF and density functions of standard normal distribution. Although this metric cannot be directly interpreted as a weight, it is treated in a manner similar to AIC in the <code>ldt</code> package.
+</p>
+
+
+<h3>Other metrics</h3>
+
+<p>There are some other metrics in <code>ldt</code>. One is “directional prediction accuracy”, which is calculated as the proportion of predictions that correctly predict the direction of change relative to the previous observation. Its value ranges from 0 to 1, with higher values indicating better performance of the model. Its value is used as the weight of a model. Note that this is applicable only to time-series data.
+</p>
+<p>Another similar metric is “sign prediction accuracy”, which reports the proportion of predictions that have the same sign as the actual values. It is calculated as the number of correct sign predictions divided by the total number of predictions. Its value ranges from 0 to 1, with higher values indicating better performance of the model. Its value is used as the weight of a model.
+</p>
+
+
+<h3>References</h3>
+
+<p>Burnham KP, Anderson DR (2002).
+<em>Model selection and multimodel inference</em>.
+Springer, New York.
+ISBN 0387953647, <a href="https://doi.org/10.1007/b97636">doi:10.1007/b97636</a>.<br><br> Fawcett T (2006).
+“An introduction to ROC analysis.”
+<em>Pattern Recognition Letters</em>, <b>27</b>(8), 861–874.
+<a href="https://doi.org/10.1016/j.patrec.2005.10.010">doi:10.1016/j.patrec.2005.10.010</a>.<br><br> Fawcett T (2006).
+“ROC graphs with instance-varying costs.”
+<em>Pattern Recognition Letters</em>, <b>27</b>(8), 882–891.
+<a href="https://doi.org/10.1016/j.patrec.2005.10.012">doi:10.1016/j.patrec.2005.10.012</a>.<br><br> Gneiting T, Raftery AE, Westveld AH, Goldman T (2005).
+“Calibrated probabilistic forecasting using ensemble model output statistics and minimum CRPS estimation.”
+<em>Monthly Weather Review</em>, <b>133</b>(5), 1098–1118.
+<a href="https://doi.org/10.1175/mwr2904.1">doi:10.1175/mwr2904.1</a>.<br><br> Greene WH (2020).
+<em>Econometric analysis</em>, 8th edition.
+Pearson Education Limited, New York.
+ISBN 9781292231136.<br><br> Hyndman RJ, Athanasopoulos G (2018).
+<em>Forecasting: Principles and practice</em>.
+OTexts.
+<a href="https://otexts.com/fpp2/">https://otexts.com/fpp2/</a>.
+</p>
+
+
+</div>

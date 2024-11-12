@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>icmaLogCon</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes a Log-Concave Probability Density Estimate via an Iterative Convex Minorant Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Given a vector of observations <code class="reqn">{\bold{x}_n} = (x_1, \ldots, x_n)</code> 
+with not necessarily equal entries, 
+<code>activeSetLogCon</code> first computes vectors <code class="reqn">{\bold{x}_m} = (x_1, \ldots, x_m)</code> and
+<code class="reqn">{\bold{w}} = (w_1, \ldots, w_m)</code> where <code class="reqn">w_i</code> is the weight of each <code class="reqn">x_i</code> s.t. 
+<code class="reqn">\sum_{i=1}^m w_i = 1</code>.
+Then, <code>activeSetLogCon</code> computes a concave, piecewise 
+linear function <code class="reqn">\widehat \phi_m</code> on <code class="reqn">[x_1, x_m]</code> with knots only in <code class="reqn">\{x_1, \ldots, x_m\}</code> such that 
+</p>
+<p style="text-align: center;"><code class="reqn">L(\phi) = \sum_{i=1}^m w_i \phi(x_i) - \int_{-\infty}^\infty \exp(\phi(t)) dt</code>
+</p>
+
+<p>is maximal. In order to be able to apply the pool - adjacent - violaters algorithm, computations are performed
+in the parametrization
+</p>
+<p style="text-align: center;"><code class="reqn">{\bold{\eta}}({\bold{\phi}}) = \Bigl(\phi_1, \Bigl(\eta_1 + \sum_{j=2}^i (x_i-x_{i-1})\eta_i\Bigr)_{i=2}^m \Bigr).</code>
+</p>
+
+<p>To find the maximum of <code class="reqn">L</code>, a variant of the iterative convex minorant using the pool - adjacent - violaters 
+algorithm is used.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">icmaLogCon(x, xgrid = NULL, eps = 10^-8, T1 = 2000, 
+    robustif = TRUE, print = FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Vector of independent and identically distributed numbers, not necessarily equal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xgrid</code></td>
+<td>
+<p>Governs the generation of weights for observations. See <code>preProcess</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>An arbitrary real number, typically small. Iterations are halted if the directional derivative of <code class="reqn">{\bold{\eta}} \to L({\bold{\eta}})</code> in the direction of the new candidate is <code class="reqn">\le \varepsilon</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T1</code></td>
+<td>
+<p>Maximal number of iterations to perform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robustif</code></td>
+<td>
+<p><code>robustif = TRUE</code> performs the robustification and Hermite interpolation procedure detailed in 
+Rufibach (2006, 2007), <code>robustif = FALSE</code> does not. In the latter case, convergence of the algorithm
+is no longer guaranteed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+<p><code>print = TRUE</code> outputs log-likelihood in every loop, <code>print = FALSE</code> does not. Make sure to 
+tell <code>R</code> to output (press CTRL+W).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Vector of observations <code class="reqn">x_1, \ldots, x_m</code> that was used to estimate the density. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>The vector of weights that had been used. Depends on the chosen setting for <code>xgrid</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Vector with entries <code class="reqn">\widehat f_m(x_i).</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xn</code></td>
+<td>
+<p>Vector with initial observations <code class="reqn">x_1, \ldots, x_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Loglik</code></td>
+<td>
+<p>The value <code class="reqn">L(\widehat \phi_m)</code> of the log-likelihood-function <code class="reqn">L</code> at the maximum <code class="reqn">\widehat \phi_m.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Iterations</code></td>
+<td>
+<p>Number of iterations performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig</code></td>
+<td>
+<p>The standard deviation of the initial sample <code class="reqn">x_1, \ldots, x_n</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach, <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a>, <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a> 
+</p>
+<p>Lutz Duembgen, <a href="mailto:duembgen@stat.unibe.ch">duembgen@stat.unibe.ch</a>, <br><a href="https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html">https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html</a></p>
+
+
+<h3>References</h3>
+
+<p>Rufibach K. (2006) <em>Log-concave Density Estimation and Bump Hunting for i.i.d. Observations.</em>
+PhD Thesis, University of Bern, Switzerland and Georg-August University of Goettingen, Germany, 2006.
+<br> Available at <a href="https://slsp-ube.primo.exlibrisgroup.com/permalink/41SLSP_UBE/17e6d97/alma99116730175505511">https://slsp-ube.primo.exlibrisgroup.com/permalink/41SLSP_UBE/17e6d97/alma99116730175505511</a>.
+</p>
+<p>Rufibach, K. (2007)
+Computing maximum likelihood estimators of a log-concave density function.
+<em>J. Stat. Comput. Simul.</em> <b>77</b>, 561–574.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>icmaLogCon</code> can be used to estimate a log-concave density. However, to generate an object of
+class <code>dlc</code> that allows application of <code>summary</code> and <code>plot</code> one has to 
+use <code>logConDens</code>.
+</p>
+<p>The following functions are used by <code>icmaLogCon</code>: 
+</p>
+<p><code>phieta</code>, <code>etaphi</code>, <code>Lhat_eta</code>, <code>quadDeriv</code>,
+<code>robust</code>, <code>isoMean</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1977)
+x &lt;- rgamma(200, 2, 1)
+## Not run: 
+res &lt;- icmaLogCon(x, T1 = 2000, robustif = TRUE, print = TRUE)
+
+## plot resulting functions
+par(mfrow = c(2, 1), mar = c(3, 2, 1, 2))
+plot(x, exp(res$phi), type = 'l'); rug(x)
+plot(x, res$phi, type = 'l'); rug(x)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

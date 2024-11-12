@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MatFit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Wrapper Function to Estimate a 2- or 3-Parameters Logistic Regression of Sexual
+Maturity
+</h2>
+
+<h3>Description</h3>
+
+<p>Define the logistic model, pass the initial parameter values, the data, and
+the numerical optimization method(s) to estimate the model and to organize results
+in a list.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MatFit(p, par, matdat, method, control = ls(), itnmax)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>Integer, either 2 or 3, determining if the asymptotic proportion is assumed
+known at 1 or estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+
+<p>Numeric vector of 2 or 3 components with initial paramater values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matdat</code></td>
+<td>
+
+<p>A data.frame where each row is an individual fish, and the columnds are a
+continuous predictor, and ordinal keys for sex, month, and maturity stage.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Character or character vector, defining the list of numerical methods to use.
+See help pages for function optimx().
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>List, optimization control parameters to be passed to optimx. See help for
+function optimx().
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itnmax</code></td>
+<td>
+
+<p>Integer, maximum number of iterations, to be passed to optimx().
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function controls the estimation process. From a valid value of p, it will
+define the proper process model, either 2-parameters or 3-parameters logistic
+regression. The 3-parameter model might be useful outside the reproductive season
+when not all adult individuals are ready to reproduce, whereas the 2-parameter
+model assumes that above certain value of the continuous predictor all individuals
+are reproducing.
+</p>
+<p>The function will re-organize optimx()'s output by adding some items (AIC,
+standard errors, correlation matrix) and ignoring other items. The output is a
+list of results in a list of optimization methods.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model </code></td>
+<td>
+<p>Type of model, matlik.2p or matlik.3p</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method </code></td>
+<td>
+<p>Name of numerical optimization method</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converg </code></td>
+<td>
+<p>Convergence message</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kkt </code></td>
+<td>
+<p>The Karush-Kuhn-Tucker optimality conditions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC </code></td>
+<td>
+<p>The Akaike Information Criterion</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars </code></td>
+<td>
+<p>Maximum likelihood estimates of model parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.grads </code></td>
+<td>
+<p>Numerical gradients at the maximum likelihood estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stdev </code></td>
+<td>
+<p>Estimated standard deviations of maximum likelihood estimates of model parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cor </code></td>
+<td>
+<p>The estimated correlation matrix of maximum likelihood estimates of model parameters</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ruben H. Roa-Ureta
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(BlackAngler.lenmatdat)
+BA.matlen     &lt;- MatCount(matdat=BlackAngler.lenmatdat,
+                          fem.key=2,
+                          mal.key=1,
+                          stage.key=2,
+                          season.key=c(5,7))
+plot(BA.matlen[[2]],
+     pred.50=35,
+     pred.95=55,
+     pred.unit="Length (cm)",
+     top.text="Males Rep Season",
+     lwd=2, xlab="", ylab="")
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(4,4,1,1))
+plot(BA.matlen[[1]],pred.50=35,pred.95=55,pred.unit="Length (cm)",
+     top.text="Males NoRep Season", lwd=2, xlab="", ylab="")
+plot(BA.matlen[[2]],pred.50=35,pred.95=55,pred.unit="Length (cm)",
+     top.text="Males Rep Season", lwd=2, xlab="", ylab="")
+plot(BA.matlen[[3]],pred.50=85,pred.95=110,pred.unit="Length (cm)",
+     top.text="Females NoRep Season", lwd=2, xlab="", ylab="")
+plot(BA.matlen[[4]],pred.50=55,pred.95=75,pred.unit="Length (cm)",
+     top.text="Females Rep Season", lwd=2, xlab="", ylab="")
+require(optimx)
+BA.matlen.mal &lt;- MatFit(p=2,
+                        par=c(35,55),
+                        matdat=BA.matlen[[2]],
+                        method=c("spg", "CG", "Nelder-Mead"),
+                        itnmax=100)
+#
+plot(BA.matlen[[2]],
+     pred.50=BA.matlen.mal[[1]]$par.mle[1],
+     pred.95=BA.matlen.mal[[1]]$par.mle[2],
+     pred.unit="Length (cm)",
+     top.text="Males Reproductive Season",
+     lwd=2,
+     xlab="Length (cm)",
+     ylab="Proportion Mature")
+</code></pre>
+
+
+</div>

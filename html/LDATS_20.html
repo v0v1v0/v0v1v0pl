@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LDA_TS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run a full set of Latent Dirichlet Allocations and Time 
+Series models</h2>
+
+<h3>Description</h3>
+
+<p>Conduct a complete LDATS analysis (Christensen 
+<em>et al.</em> 2018), including running a suite of Latent Dirichlet
+Allocation (LDA) models (Blei <em>et al.</em> 2003, Grun and Hornik 2011) 
+via <code>LDA_set</code>, selecting LDA model(s) via 
+<code>select_LDA</code>, running a complete set of Bayesian Time Series
+(TS) models (Western and Kleykamp 2004) via <code>TS_on_LDA</code> on
+the chosen LDA model(s), and selecting the best TS model via 
+<code>select_TS</code>. <br><br><code>conform_LDA_TS_data</code> converts the <code>data</code> input to
+match internal and sub-function specifications. <br><br><code>check_LDA_TS_inputs</code> checks that the inputs to 
+<code>LDA_TS</code> are of proper classes for a full analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LDA_TS(
+  data,
+  topics = 2,
+  nseeds = 1,
+  formulas = ~1,
+  nchangepoints = 0,
+  timename = "time",
+  weights = TRUE,
+  control = list()
+)
+
+conform_LDA_TS_data(data, quiet = FALSE)
+
+check_LDA_TS_inputs(
+  data = NULL,
+  topics = 2,
+  nseeds = 1,
+  formulas = ~1,
+  nchangepoints = 0,
+  timename = "time",
+  weights = TRUE,
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Either a document term table or a list including at least
+a document term table (with the word "term" in the name of the element)
+and optionally also a document covariate table  (with the word 
+"covariate" in the name of the element). 
+<br><br> 
+The document term table is a table of observation count data (rows: 
+documents, columns: terms) that may be a <code>matrix</code> or 
+<code>data.frame</code>, but must be conformable to a matrix of integers,
+as verified by <code>check_document_term_table</code>.   
+<br><br>
+The document covariate table is a table of associated data (rows: 
+documents, columns: time index and covariate options) that may be a
+<code>matrix</code> or <code>data.frame</code>, but must be a conformable to a data 
+table, as verified by <code>check_document_covariate_table</code>. Every 
+model needs a covariate to describe the time value for each document 
+(in whatever units and whose name in the table is input in 
+<code>timename</code>) that dictates the application of the change points. 
+<strong><em>If a covariate table is not provided, the model assumes the 
+observations were equi-spaced in time</em></strong>. All covariates named within 
+specific models in <code>formulas</code> must be included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>topics</code></td>
+<td>
+<p>Vector of the number of topics to evaluate for each model.
+Must be conformable to <code>integer</code> values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nseeds</code></td>
+<td>
+<p><code>integer</code> number of seeds (replicate starts) to use for 
+each value of <code>topics</code> in the LDAs. Must be conformable to 
+<code>integer</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulas</code></td>
+<td>
+<p>Vector of <code>formula</code>(s) for the 
+continuous (non-change point) component of the time series models. Any 
+predictor variable included in a formula must also be a column in the
+<code>document_covariate_table</code>. Each element (formula) in the vector
+is evaluated for each number of change points and each LDA model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchangepoints</code></td>
+<td>
+<p>Vector of <code>integer</code>s corresponding to the number 
+of change points to include in the time series models. 0 is a valid input 
+corresponding to no change points (<em>i.e.</em>, a singular time series
+model), and the current implementation can reasonably include up to 6 
+change points. Each element in the vector is the number of change points 
+used to segment the data for each formula (entry in <code>formulas</code>) 
+component of the TS model, for each selected LDA model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timename</code></td>
+<td>
+<p><code>character</code> element indicating the time variable
+used in the time series. Defaults to <code>"time"</code>. The variable must be
+integer-conformable or a <code>Date</code>. If the variable named
+is a <code>Date</code>, the input is converted to an integer, resulting in the
+timestep being 1 day, which is often not desired behavior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional input for overriding standard weighting for 
+documents in the time series. Defaults to <code>TRUE</code>,
+translating to an appropriate weighting of the documents
+based on the size (number of words) each document (the result of 
+<code>LDA</code> is a matrix of proportions, which does not
+account for size differences among documents. Alternatively can be 
+<code>NULL</code> for an equal weighting among documents or a <code>numeric</code>
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A <code>list</code> of parameters to control the running and 
+selecting of LDA and TS models. Values not input assume default values 
+set by <code>LDA_TS_control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p><code>logical</code> indicator for <code>conform_LDA_TS_data</code> to 
+indicate if messages should be printed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>LDA_TS</code>: a class <code>LDA_TS</code> list object including all 
+fitted LDA and TS models and selected models specifically as elements 
+<code>"LDA models"</code> (from <code>LDA_set</code>),
+<code>"Selected LDA model"</code> (from <code>select_LDA</code>), 
+<code>"TS models"</code> (from <code>TS_on_LDA</code>), and
+<code>"Selected TS model"</code> (from <code>select_TS</code>). <br><br><code>conform_LDA_TS_data</code>: a data <code>list</code> that is ready for analyses 
+using the stage-specific functions. <br><br><code>check_LDA_TS_inputs</code>: an error message is thrown if any input is 
+improper, otherwise <code>NULL</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Blei, D. M., A. Y. Ng, and M. I. Jordan. 2003. Latent Dirichlet
+Allocation. <em>Journal of Machine Learning Research</em> 
+<strong>3</strong>:993-1022.
+<a href="https://jmlr.csail.mit.edu/papers/v3/blei03a.html">link</a>.
+</p>
+<p>Christensen, E., D. J. Harris, and S. K. M. Ernest. 2018.
+Long-term community change through multiple rapid transitions in a 
+desert rodent community. <em>Ecology</em> <strong>99</strong>:1523-1529. 
+<a href="https://pubmed.ncbi.nlm.nih.gov/29718539/">link</a>.
+</p>
+<p>Grun B. and K. Hornik. 2011. topicmodels: An R Package for Fitting Topic
+Models. <em>Journal of Statistical Software</em> <strong>40</strong>:13.
+<a href="https://www.jstatsoft.org/article/view/v040i13">link</a>.
+</p>
+<p>Western, B. and M. Kleykamp. 2004. A Bayesian change point model for 
+historical time series analysis. <em>Political Analysis</em>
+<strong>12</strong>:354-374.
+<a href="https://www.cambridge.org/core/journals/political-analysis/article/abs/bayesian-change-point-model-for-historical-time-series-analysis/F7D2EDBBC211278EC6C6CB43FE170812">link</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(rodents)
+
+  mod &lt;- LDA_TS(data = rodents, topics = 2, nseeds = 1, formulas = ~1,
+                nchangepoints = 1, timename = "newmoon")
+
+  conform_LDA_TS_data(rodents)
+  check_LDA_TS_inputs(rodents, timename = "newmoon")
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>par2qua2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Equivalent Quantile Function of Two Distributions</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the nonexceedance probability of a given quantile from a linear weighted combination of two quantile functions—a mixed distribution:
+</p>
+<p style="text-align: center;"><code class="reqn">Q_\mathrm{mixed}(F; \Theta_1, \Theta_2, \omega) = (1-\omega)Q_1(F, \Theta_1) + \omega Q_2(F, \Theta2)\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">Q</code> is a quantile function for nonexceedance probability <code class="reqn">F</code>, the distributions have parameters <code class="reqn">\Theta_1</code> and <code class="reqn">\Theta_2</code>, and <code class="reqn">\omega</code> is a weight factor.
+</p>
+<p>The distributions are specified by the two parameter object arguments in usual <span class="pkg">lmomco</span> style. When proration by the nonexceedance probability is desired (<code>weight=</code><code>NULL</code>, default), the left-tail parameter object (<code>para1</code>) is the distribution obviously governing the left tail; the right-tail parameter object (<code>para2</code>) is of course governs the right tail. The quantile function algebra is
+</p>
+<p style="text-align: center;"><code class="reqn"> Q(F) = (1-F^\star) \times {\triangleleft}Q(F) + F^\star \times Q(F){\triangleright}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">Q(F)</code> is the mixed quantile for nonexceedance probability <code class="reqn">F</code>. <code class="reqn">{\triangleleft}Q(F)</code> is the first or left-tail quantile function; <code class="reqn">Q(F){\triangleright}</code> is the second or right-tail quantile function. In otherwords, if <code>weight = NULL</code>, then <code class="reqn">F^\star = F =</code> <code>f</code> and the weight between the two quantile functions thus continuously varies from left to right. This is a probability proration from one to the other. A word of caution in this regard. The resulting weighted- or mixed-quantile function is not rigorously checked for monotonic increase with <code class="reqn">F</code>, which is a required property of quantile functions. However, a first-order difference on the mixed quantiles with the probabilities is computed and a warning issued if not monotonic increasing.
+</p>
+<p>If the optional <code>weight</code> argument is provided with length 1, then <code class="reqn">\omega</code> equals that weight. If <code>weight = 0</code>, then only the quantiles for <code class="reqn">Q_1(F)</code> are returned, and if <code>weight = 1</code>, then only the quantiles for the left tail <code class="reqn">Q_2(F)</code> are returned.
+</p>
+<p>If the optional <code>weight</code> argument is provided with length 2, then <code class="reqn">(1 - \omega)</code> is replaced by the first weight and <code class="reqn">\omega</code> is replaced by the second weight. These are internally rescaled to sum to unity before use and a warning is issued that this was done. Finally, the <code>par2cdf2</code> function inverses the above equation for <code class="reqn">F</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">par2qua2(f, para1, para2, wfunc=NULL, weight=NULL, as.list=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para1</code></td>
+<td>
+<p>The first or left-tail parameters from <code>lmom2par</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para2</code></td>
+<td>
+<p>The second or right-tail parameters from <code>lmom2par</code> or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wfunc</code></td>
+<td>
+<p>A function taking the argument <code>f</code> and computing a weight for the <code>para2</code> curve for which the complement of the computed weight is used for the weight on <code>para1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>An optional weighting argument to use in lieu of <code>F</code>. If <code>NULL</code> then prorated by the <code>f</code>, if <code>weight</code> has length 1, then weight on left distribution is the complement of the weight and weight on right distribution is <code>weight[1]</code>, and if <code>weight</code> had length 2, then <code>weight[1]</code> is the weight on the left distribution and <code>weight[2]</code> is the weight on the right distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.list</code></td>
+<td>
+<p>A logical to control whether an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>data.frame</code> is returned having a column for <code>f</code> and for the mixed quantiles. This feature is provided for some design consistency with <code>par2qua2lo</code>, which mandates a <code>data.frame</code> return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The additional arguments are passed to the quantile function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The weighted quantile value for <code class="reqn">F</code> from the two distributions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>par2qua</code>, <code>par2cdf2</code>, <code>par2qua2lo</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(rnorm(20)); left &lt;- parnor(lmr); right &lt;- pargev(lmr)
+mixed.median &lt;- par2qua2(0.5, left, right)
+
+# Bigger example--using Kappa fit to whole sample for the right tail and
+# Normal fit to whole sample for the left tail
+D   &lt;- c(123, 523, 345, 356, 2134, 345, 2365, 235, 12, 235, 61, 432, 843)
+lmr &lt;- lmoms(D); KAP &lt;- parkap(lmr); NOR &lt;- parnor(lmr); PP &lt;- pp(D)
+plot( PP, sort(D), ylim=c(-500, 2300))
+lines(PP, par2qua( PP, KAP),      col=2)
+lines(PP, par2qua( PP, NOR),      col=3)
+lines(PP, par2qua2(PP, NOR, KAP), col=4)
+</code></pre>
+
+
+</div>

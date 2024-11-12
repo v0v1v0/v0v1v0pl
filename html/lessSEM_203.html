@@ -1,0 +1,80 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>newTau</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>newTau</h2>
+
+<h3>Description</h3>
+
+<p>assign new value to parameter tau used by approximate optimization. Any regularized
+value below tau will be evaluated as zeroed which directly impacts the AIC, BIC, etc.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">newTau(regularizedSEM, tau)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>regularizedSEM</code></td>
+<td>
+<p>object fitted with approximate optimization</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>new tau value</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>regularizedSEM, but with new regularizedSEM@fits$nonZeroParameters
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lessSEM)
+
+# Identical to regsem, lessSEM builds on the lavaan
+# package for model specification. The first step
+# therefore is to implement the model in lavaan.
+
+dataset &lt;- simulateExampleData()
+
+lavaanSyntax &lt;- "
+f =~ l1*y1 + l2*y2 + l3*y3 + l4*y4 + l5*y5 +
+     l6*y6 + l7*y7 + l8*y8 + l9*y9 + l10*y10 +
+     l11*y11 + l12*y12 + l13*y13 + l14*y14 + l15*y15
+f ~~ 1*f
+"
+
+lavaanModel &lt;- lavaan::sem(lavaanSyntax,
+                           data = dataset,
+                           meanstructure = TRUE,
+                           std.lv = TRUE)
+
+# Regularization:
+
+lsem &lt;- smoothLasso(
+  # pass the fitted lavaan model
+  lavaanModel = lavaanModel,
+  # names of the regularized parameters:
+  regularized = paste0("l", 6:15),
+  epsilon = 1e-10,
+  tau = 1e-4,
+  lambdas = seq(0,1,length.out = 50))
+newTau(regularizedSEM = lsem, tau = .1)
+</code></pre>
+
+
+</div>

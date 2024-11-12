@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>samp_elife</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate excess lifetime with truncation or right-censoring</h2>
+
+<h3>Description</h3>
+
+<p>This function dispatches simulations accounting for potential left-truncation (remove by setting lower to zero).
+If <code>type2=ltrt</code>, simulated observations will be lower than the upper bounds <code>upper</code>.
+If <code>type2=ltrc</code>, simulated observations are capped at <code>upper</code> and the observation is right-censored (<code>rcens=TRUE</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">samp_elife(
+  n,
+  scale,
+  rate,
+  shape = NULL,
+  lower = 0,
+  upper = Inf,
+  family = c("exp", "gp", "gomp", "gompmake", "weibull", "extgp", "gppiece",
+    "extweibull", "perks", "beard", "perksmake", "beardmake"),
+  type2 = c("none", "ltrt", "ltrc", "ditrunc")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>scale parameter(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rate</code></td>
+<td>
+<p>rate parameter(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape</code></td>
+<td>
+<p>shape parameter(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>vector of lower bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>vector of upper bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>string; choice of parametric family</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type2</code></td>
+<td>
+<p>string, either <code>none</code>, <code>ltrt</code> for left- and right-truncated data or <code>ltrc</code> for left-truncated right-censored data</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>either a vector of observations or, if <code>type2=ltrc</code>, a list with <code>n</code> observations <code>dat</code> and a logical vector of the same length with <code>TRUE</code> for right-censored observations and <code>FALSE</code> otherwise.
+</p>
+
+
+<h3>Note</h3>
+
+<p>As the tails of the Gompertz and Gompertz–Makeham models decrease exponentially fast, the method fails in the rare event case if the lower bound is too large (say larger than the 99.99
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1234)
+n &lt;- 500L
+# Simulate interval truncated data
+x &lt;- samp_elife(n = n,
+                scale = 2,
+                shape = 1.5,
+                lower = low &lt;- runif(n),
+                upper = upp &lt;- runif(n, min = 3, max = 15),
+                type2 = "ltrt",
+                family = "weibull")
+coef(fit_elife(
+   time = x,
+   ltrunc = low,
+   rtrunc = upp,
+   family = "weibull"))
+# Simulate left-truncated right-censored data
+x &lt;- samp_elife(n = n,
+                scale = 2,
+                shape = 1.5,
+                lower = low &lt;- runif(n),
+                upper = upp &lt;- runif(n, min = 3, max = 15),
+                type2 = "ltrc",
+                family = "gomp")
+#note that the return value is a list...
+coef(fit_elife(
+   time = x$dat,
+   ltrunc = low,
+   event = !x$rcens,
+   family = "gomp"))
+</code></pre>
+
+
+</div>

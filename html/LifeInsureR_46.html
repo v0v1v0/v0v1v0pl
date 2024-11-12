@@ -1,0 +1,333 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ProfitParticipationFunctions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Helper functions for profit participation</h2>
+
+<h3>Description</h3>
+
+<p>Various helper functions for the <code>ProfitParticipation</code> class that
+provide the building blocks for the individual components of profit participation,
+the rates and how the assigned profit is calculated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PP.base.NULL(rates, params, values, ...)
+
+PP.base.PreviousZillmerReserve(rates, params, values, ...)
+
+PP.base.ZillmerReserveT2(rates, params, values, ...)
+
+PP.base.contractualReserve(rates, params, values, ...)
+
+PP.base.previousContractualReserve(rates, params, values, ...)
+
+PP.base.meanContractualReserve(rates, params, values, ...)
+
+PP.base.ZillmerRiskPremium(rates, params, values, ...)
+
+PP.base.sumInsured(rates, params, values, ...)
+
+PP.base.totalProfitAssignment(res, ...)
+
+PP.rate.interestProfit(rates, ...)
+
+PP.rate.riskProfit(rates, ...)
+
+PP.rate.expenseProfit(rates, ...)
+
+PP.rate.sumProfit(rates, ...)
+
+PP.rate.terminalBonus(rates, ...)
+
+PP.rate.terminalBonusFund(rates, ...)
+
+PP.rate.interestProfitPlusGuarantee(rates, ...)
+
+PP.rate.interestProfit2PlusGuarantee(rates, ...)
+
+PP.rate.totalInterest(rates, ...)
+
+PP.rate.totalInterest2(rates, ...)
+
+PP.rate.interestProfit2(rates, ...)
+
+getTerminalBonusReserve(
+  profits,
+  rates,
+  terminalBonus,
+  terminalBonusAccount,
+  params,
+  values,
+  ...
+)
+
+PP.calculate.RateOnBase(base, rate, waiting, rates, params, values, ...)
+
+PP.calculate.RateOnBaseMin0(base, rate, waiting, rates, params, values, ...)
+
+PP.calculate.RatePlusGuaranteeOnBase(
+  base,
+  rate,
+  waiting,
+  rates,
+  params,
+  values,
+  ...
+)
+
+PP.calculate.RateOnBaseSGFFactor(
+  base,
+  rate,
+  waiting,
+  rates,
+  params,
+  values,
+  ...
+)
+
+sumProfits(profits, cols)
+
+PP.benefit.ProfitPlusTerminalBonusReserve(profits, ...)
+
+PP.benefit.Profit(profits, ...)
+
+PP.benefit.ProfitPlusGuaranteedInterest(profits, rates, ...)
+
+PP.benefit.ProfitPlusTotalInterest(profits, rates, params, values)
+
+PP.benefit.ProfitPlusHalfTotalInterest(profits, ...)
+
+PP.benefit.ProfitPlusHalfGuaranteedInterest(profits, rates, ...)
+
+PP.benefit.ProfitPlusInterestMinGuaranteeTotal(profits, rates, ...)
+
+PP.benefit.ProfitPlusHalfInterestMinGuaranteeTotal(profits, rates, ...)
+
+PP.benefit.ProfitGuaranteeSupporting(profits, rates, params, values, ...)
+
+PP.benefit.TerminalBonus5YearsProRata(profits, params, ...)
+
+PP.benefit.TerminalBonus5Years(profits, params, ...)
+
+PP.benefit.TerminalBonus(profits, params, ...)
+
+PP.benefit.None(profits, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>rates</code></td>
+<td>
+<p>data.frame of profit rates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>Contract-specific, full set of parameters of the contract
+(merged parameters of the defaults, the tariff, the profit participation
+scheme and the contract)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Contract values calculated so far (guaranteed component of the
+insurance contract, including cash flows, premiums, reserves etc.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other values that might be used for the calculation (currently unused)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>the data.frame of reserves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>profits</code></td>
+<td>
+<p>The array of profit participation component values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terminalBonus</code></td>
+<td>
+<p>The terminal bonus calculated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terminalBonusAccount</code></td>
+<td>
+<p>The terminal bonus account (like a bank account,
+where terminal bonuses are accrued, potentiall discounted from the maturity)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>The profit calculation base, on which the rate is to be applied</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rate</code></td>
+<td>
+<p>The profit participation rate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>waiting</code></td>
+<td>
+<p>A possible waiting period</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>The columns of the profit values array to be summed (columns given that do not exist in the profits array are ignired)</p>
+</td>
+</tr>
+</table>
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>PP.base.NULL()</code>: Basis for profit: NONE (i.e. always returns 0)
+</p>
+</li>
+<li> <p><code>PP.base.PreviousZillmerReserve()</code>: Basis for profit: Previous Zillmer reserve (no administration cost reserve)
+</p>
+</li>
+<li> <p><code>PP.base.ZillmerReserveT2()</code>: Basis for profit: Zillmer reserve (no administration cost reserve) at time t-2
+</p>
+</li>
+<li> <p><code>PP.base.contractualReserve()</code>: Basis for profit: Contractual reserve (including administration costs) at time t
+</p>
+</li>
+<li> <p><code>PP.base.previousContractualReserve()</code>: Basis for profit: Contractual reserve (including administration costs) at time t-1
+</p>
+</li>
+<li> <p><code>PP.base.meanContractualReserve()</code>: Basis for profit: Contractual reserve (including administration costs) averaged over t and t-1
+</p>
+</li>
+<li> <p><code>PP.base.ZillmerRiskPremium()</code>: Basis for risk/mortality profit: Zillmer Risk Premium of the past year
+</p>
+</li>
+<li> <p><code>PP.base.sumInsured()</code>: Basis for expense/sum profit: sum insured
+</p>
+</li>
+<li> <p><code>PP.base.totalProfitAssignment()</code>: Basis for Terminal Bonus Fund Assignment: total profit assignment of the year
+</p>
+</li>
+<li> <p><code>PP.rate.interestProfit()</code>: Returns the array of interest profit rates (keyed by year)
+</p>
+</li>
+<li> <p><code>PP.rate.riskProfit()</code>: Returns the array of risk profit rates (keyed by year)
+</p>
+</li>
+<li> <p><code>PP.rate.expenseProfit()</code>: Returns the array of expense profit rates (keyed by year)
+</p>
+</li>
+<li> <p><code>PP.rate.sumProfit()</code>: Returns the array of sum profit rates (keyed by year)
+</p>
+</li>
+<li> <p><code>PP.rate.terminalBonus()</code>: Returns the array of terminal bonus rates (keyed by year)
+</p>
+</li>
+<li> <p><code>PP.rate.terminalBonusFund()</code>: Returns the array of terminal bonus rates (keyed by year) as the terminal bonus fund ratio
+</p>
+</li>
+<li> <p><code>PP.rate.interestProfitPlusGuarantee()</code>: Rate for interest on past profits: total credited rate, but at least the guarantee
+</p>
+</li>
+<li> <p><code>PP.rate.interestProfit2PlusGuarantee()</code>: Rate for interest on past profits: total creditedrate2, but at least the guarantee
+</p>
+</li>
+<li> <p><code>PP.rate.totalInterest()</code>: Rate for interest on past profits: total interest rate
+</p>
+</li>
+<li> <p><code>PP.rate.totalInterest2()</code>: Rate for interest on past profits: second total interest rate
+</p>
+</li>
+<li> <p><code>PP.rate.interestProfit2()</code>: Rate for interest on past profits: second interest profit rate (not including guaranteed interest), keyed by year
+</p>
+</li>
+<li> <p><code>getTerminalBonusReserve()</code>: Calculate the terminal bonus reserve.
+</p>
+</li>
+<li> <p><code>PP.calculate.RateOnBase()</code>: Calculate profit by a simple rate applied on the basis (with an optional waiting vector of values 0 or 1)
+</p>
+</li>
+<li> <p><code>PP.calculate.RateOnBaseMin0()</code>: Calculate profit by a simple rate applied on the basis (with an optional waiting vector of values 0 or 1), bound below by 0
+</p>
+</li>
+<li> <p><code>PP.calculate.RatePlusGuaranteeOnBase()</code>: Calculate profit by a rate + guaranteed interest applied on the basis (with an optional waiting vector of values 0 or 1)
+</p>
+</li>
+<li> <p><code>PP.calculate.RateOnBaseSGFFactor()</code>: Calculate profit by a simple rate applied on the basis (with only (1-SGFFactor) put into profit participation, and an optional waiting vector of values 0 or 1)
+</p>
+</li>
+<li> <p><code>sumProfits()</code>: Extract the given columns of the profit participation array of values and sum
+them up. Columns that do not exist, because the profit scheme does not
+provide the corresponding profit component will be silently ignored.
+This allows generic benefit calculation functions to be written that do
+not need to distinguish e.g. whether an old-style terminal bonus or a terminal
+bonus fund is provided.
+</p>
+<p>This function is not meant to be called directly, but within a profit benefit
+calculation function.
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusTerminalBonusReserve()</code>: Calculate survival benefit as total profit amount plus the terminal bonus reserve
+</p>
+</li>
+<li> <p><code>PP.benefit.Profit()</code>: Calculate benefit as total profit accrued so far
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusGuaranteedInterest()</code>: Calculate accrued death benefit as total profit with (guaranteed) interest for one year
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusTotalInterest()</code>: Calculate accrued death benefit as total profit with total interest (interest on profit rate) for one year
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusHalfTotalInterest()</code>: Calculate accrued benefit as total profit with total interest (interest on profit rate) for half a year
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusHalfGuaranteedInterest()</code>: Calculate death benefit as total profit with (guaranteed) interest for one year
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusInterestMinGuaranteeTotal()</code>: Calculate accrued benefit as total profit with interest for one year (max of guarantee and total interest)
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitPlusHalfInterestMinGuaranteeTotal()</code>: Calculate accrued benefit as total profit with interest for half a year (max of guarantee and total interest)
+</p>
+</li>
+<li> <p><code>PP.benefit.ProfitGuaranteeSupporting()</code>: Calculate accrued benefit as regular profit, but used to cover initial Zillmerization
+</p>
+</li>
+<li> <p><code>PP.benefit.TerminalBonus5YearsProRata()</code>: Calculate benefit from terminal bonus as 1/n parts of the terminal bonus reserve during the last 5 years
+</p>
+</li>
+<li> <p><code>PP.benefit.TerminalBonus5Years()</code>: Terminal bonus is only paid out during the last 5 years of the contract (but never during the first 10 years)
+</p>
+</li>
+<li> <p><code>PP.benefit.TerminalBonus()</code>: Calculate benefit from terminal bonus (full bonus), either old-style terminal bonus reserve or Terminal Bonus Fund (TBF)
+</p>
+</li>
+<li> <p><code>PP.benefit.None()</code>: No benefit paid out
+</p>
+</li>
+</ul>
+</div>

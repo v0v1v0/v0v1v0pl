@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.convert_with_rules</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data preparator for LightGBM datasets with rules (integer)</h2>
+
+<h3>Description</h3>
+
+<p>Attempts to prepare a clean dataset to prepare to put in a <code>lgb.Dataset</code>.
+Factor, character, and logical columns are converted to integer. Missing values
+in factors and characters will be filled with 0L. Missing values in logicals
+will be filled with -1L.
+</p>
+<p>This function returns and optionally takes in "rules" the describe exactly
+how to convert values in columns.
+</p>
+<p>Columns that contain only NA values will be converted by this function but will
+not show up in the returned <code>rules</code>.
+</p>
+<p>NOTE: In previous releases of LightGBM, this function was called <code>lgb.prepare_rules2</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.convert_with_rules(data, rules = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or data.table to prepare.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>A set of rules from the data preparator, if already used. This should be an R list,
+where names are column names in <code>data</code> and values are named character
+vectors whose names are column values and whose values are new values to
+replace them with.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the cleaned dataset (<code>data</code>) and the rules (<code>rules</code>).
+Note that the data must be converted to a matrix format (<code>as.matrix</code>) for input in
+<code>lgb.Dataset</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(iris)
+
+str(iris)
+
+new_iris &lt;- lgb.convert_with_rules(data = iris)
+str(new_iris$data)
+
+data(iris) # Erase iris dataset
+iris$Species[1L] &lt;- "NEW FACTOR" # Introduce junk factor (NA)
+
+# Use conversion using known rules
+# Unknown factors become 0, excellent for sparse datasets
+newer_iris &lt;- lgb.convert_with_rules(data = iris, rules = new_iris$rules)
+
+# Unknown factor is now zero, perfect for sparse datasets
+newer_iris$data[1L, ] # Species became 0 as it is an unknown factor
+
+newer_iris$data[1L, 5L] &lt;- 1.0 # Put back real initial value
+
+# Is the newly created dataset equal? YES!
+all.equal(new_iris$data, newer_iris$data)
+
+# Can we test our own rules?
+data(iris) # Erase iris dataset
+
+# We remapped values differently
+personal_rules &lt;- list(
+  Species = c(
+    "setosa" = 3L
+    , "versicolor" = 2L
+    , "virginica" = 1L
+  )
+)
+newest_iris &lt;- lgb.convert_with_rules(data = iris, rules = personal_rules)
+str(newest_iris$data) # SUCCESS!
+
+</code></pre>
+
+
+</div>

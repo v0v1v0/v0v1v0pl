@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>frbe</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuzzy Rule-Based Ensemble (FRBE) of time-series forecasts</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the fuzzy rule-based ensemble of time-series
+forecasts.  Several forecasting methods are used to predict future values of
+given time-series and a weighted sum is computed from them with weights
+being determined from a fuzzy rule base.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">frbe(d, h = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A source time-series in the ts time-series format.  Note that the
+frequency of the time-series must to be set properly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>A forecasting horizon, i.e. the number of values to forecast.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function computes the fuzzy rule-based ensemble of time-series
+forecasts.  The evaluation comprises of the following steps:
+</p>
+
+<ol>
+<li>
+<p> Several features are extracted from the given time-series <code>d</code>:
+</p>
+
+<ul>
+<li>
+<p> length of the time-series;
+</p>
+</li>
+<li>
+<p> strength of trend;
+</p>
+</li>
+<li>
+<p> strength of seasonality;
+</p>
+</li>
+<li>
+<p> skewness;
+</p>
+</li>
+<li>
+<p> kurtosis;
+</p>
+</li>
+<li>
+<p> variation coefficient;
+</p>
+</li>
+<li>
+<p> stationarity;
+</p>
+</li>
+<li>
+<p> frequency.
+These features are used later to infer weights of the forecasting methods.
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Several forecasting methods are applied on the given time-series <code>d</code> to
+obtain forecasts. Actually, the following methods are used:
+</p>
+
+<ul>
+<li>
+<p> ARIMA - by calling <code>forecast::auto.arima()</code>;
+</p>
+</li>
+<li>
+<p> Exponential Smoothing - by calling <code>forecast::ets()</code>;
+</p>
+</li>
+<li>
+<p> Random Walk with Drift - by calling <code>forecast::rwf()</code>;
+</p>
+</li>
+<li>
+<p> Theta - by calling [forecast::thetaf().
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Computed features are input to the fuzzy rule-based inference mechanism
+which yields into weights of the forecasting methods. The fuzzy rule base is
+hardwired in this package and it was obtained by performing data mining with
+the use of the <code>farules()</code> function.
+</p>
+</li>
+<li>
+<p> A weighted sum of forecasts is computed and returned as a result.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>Result is a list of class <code>frbe</code> with the following elements:
+</p>
+
+<ul>
+<li> <p><code>features</code> - a data frame with computed features of the given time-series;
+</p>
+</li>
+<li> <p><code>forecasts</code> - a data frame with forecasts to be ensembled;
+</p>
+</li>
+<li> <p><code>weights</code> - weights of the forecasting methods as inferred from the features
+and the hard-wired fuzzy rule base;
+</p>
+</li>
+<li> <p><code>mean</code> - the resulting ensembled forecast (computed as a weighted sum
+of forecasts).
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>References</h3>
+
+<p>Štěpnička, M., Burda, M., Štěpničková, L. Fuzzy Rule Base
+Ensemble Generated from Data by Linguistic Associations Mining. FUZZY SET
+SYST. 2015.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>evalfrbe()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # prepare data (from the forecast package)
+  library(forecast)
+  horizon &lt;- 10
+  train &lt;- wineind[-1 * (length(wineind)-horizon+1):length(wineind)]
+  test &lt;- wineind[(length(wineind)-horizon+1):length(wineind)]
+
+  # perform FRBE
+  f &lt;- frbe(ts(train, frequency=frequency(wineind)), h=horizon)
+
+  # evaluate FRBE forecasts
+  evalfrbe(f, test)
+
+  # display forecast results
+  f$mean
+
+</code></pre>
+
+
+</div>

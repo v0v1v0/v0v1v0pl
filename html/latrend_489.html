@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transformFitted</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Helper function for custom lcModel classes implementing fitted.lcModel()</h2>
+
+<h3>Description</h3>
+
+<p>A helper function for implementing the <code>fitted.lcModel()</code> method as part of your own <code>lcModel</code> class, ensuring the correct output type and format (see the Value section).
+Note that this function has no use outside of implementing <code>fitted.lcModel</code>.
+</p>
+<p>The function makes it easier to implement <code>fitted.lcModel</code> based on existing implementations that may output their results in different data formats. Furthermore, the function checks whether the input data is valid.
+</p>
+<p>The prediction ordering depends on the ordering of the data observations that was used for fitting the <code>lcModel</code>.
+</p>
+<p>By default, <code>transformFitted()</code> accepts one of the following inputs:
+</p>
+
+<dl>
+<dt><code>data.frame</code></dt>
+<dd>
+<p>A <code>data.frame</code> in long format providing a cluster-specific prediction for each observation per row, with column names <code>"Fit"</code> and <code>"Cluster"</code>. This <code>data.frame</code> therefore has <code>nobs(object) * nClusters(object)</code> rows.</p>
+</dd>
+<dt><code>matrix</code></dt>
+<dd>
+<p>An N-by-K <code>matrix</code> where each row provides the cluster-specific predictions for the respective observation. Here, <code>N = nrow(model.data(object))</code> and <code>K = nClusters(object)</code>.</p>
+</dd>
+<dt><code>list</code></dt>
+<dd>
+<p>A <code>list</code> of cluster-specific prediction <code>vector</code>s. Each prediction vector should be of length <code>nrow(model.data(object))</code>. The overall (named) list of cluster-specific prediction vectors is of length <code>nClusters(object)</code>.</p>
+</dd>
+</dl>
+<p>Users can implement support for other prediction formats by defining the <code>transformFitted</code> method with other signatures.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transformFitted(pred, model, clusters)
+
+## S4 method for signature 'NULL,lcModel'
+transformFitted(pred, model, clusters = NULL)
+
+## S4 method for signature 'matrix,lcModel'
+transformFitted(pred, model, clusters = NULL)
+
+## S4 method for signature 'list,lcModel'
+transformFitted(pred, model, clusters = NULL)
+
+## S4 method for signature 'data.frame,lcModel'
+transformFitted(pred, model, clusters = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>The cluster-specific predictions for each observation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The <code>lcModel</code> by which the prediction was made.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusters</code></td>
+<td>
+<p>The trajectory cluster assignment per observation. Optional.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If the <code>clusters</code> argument was specified, a <code>vector</code> of fitted values conditional on the given cluster assignment. Else, a <code>matrix</code> with the fitted values per cluster per column.
+</p>
+
+
+<h3>Example implementation</h3>
+
+<p>A typical implementation of <code>fitted.lcModel()</code> for your own <code>lcModel</code> class would have the following format:
+</p>
+<pre>
+fitted.lcModelExample &lt;- function(object,
+ clusters = trajectoryAssignments(object)) {
+  # computations of the fitted values per cluster here
+  predictionMatrix &lt;- CODE_HERE
+  transformFitted(pred = predictionMatrix, model = object, clusters = clusters)
+}
+</pre>
+<p>For a complete and runnable example, see the custom models vignette accessible via <code>vignette("custom", package = "latrend")</code>.
+</p>
+
+
+</div>

@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test.LGRF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Test the association between an outcome variable and a region/gene by LGRF
+</h2>
+
+<h3>Description</h3>
+
+<p>Once the model under the null model is fitted using "null.LGRF()", this function tests a specifc region/gene.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">test.LGRF(Z, result.null, Gsub.id=NULL, interGXT = FALSE, similarity = "GR",
+impute.method="fixed")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>Genetic variants in the target region/gene, an m*q matrix where m is the subject ID and q is the total number of genetic variables. Note that the number of rows in Z should be same as the number of subjects.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result.null</code></td>
+<td>
+
+<p>The output of function "null.LGRF()"
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gsub.id</code></td>
+<td>
+
+<p>The subject id corresponding to the genotype matrix, an m dimensional vector. This is in order to match the phenotype and genotype matrix. The default is NULL, where the order is assumed to be matched with Y, X and time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interGXT</code></td>
+<td>
+
+<p>Whether to incorperate the gene-time interaction effect. Incorperating this effect can improve power if there is any gene-time interaction, but has slight power loss otherwise. The default is FALSE. *Please note that the second column of time should be included as a covairate when interGXT is TRUE. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>similarity</code></td>
+<td>
+
+<p>Choose the similarity measurement for the genetic variants. Can be either "GR" for genetic relationship or "IBS" for identity by state. The default is "GR" for better computational efficiency.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute.method</code></td>
+<td>
+
+<p>Choose the imputation method when there is missing genotype. Can be "random", "fixed" or "bestguess". Given the estimated allele frequency, "random" simulates the genotype from binomial distribution; "fixed" uses the genotype expectation; "Best guess" uses the genotype with highest probability.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+
+<p>p-value of the LGRF test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.marker</code></td>
+<td>
+
+<p>number of tested SNPs in the SNP set.
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## null.LGRF fits the null model. 
+# Input: Y, time, X (covariates)
+## test.LGRF tests a region and give p-value. 
+# Input: Z (genetic variants) and result of null.longGRF
+
+library(LGRF)
+
+# Load data example
+# Y: outcomes, n by 1 matrix where n is the total number of observations
+# X: covariates, n by p matrix
+# time: describe longitudinal structure, n by 2 matrix
+# Z: genotype matrix, m by q matrix where m is the total number of subjects
+
+data(LGRF.example)
+Y&lt;-LGRF.example$Y;time&lt;-LGRF.example$time;X&lt;-LGRF.example$X;Z&lt;-LGRF.example$Z
+
+# Fit the null model
+result.null&lt;-null.LGRF(Y,time,X=cbind(X,time[,2]))
+
+# *Please note that the second column of time should be included as a covairate if
+# the gene by time interaction effect will be incorperated.  
+
+# The LGRF-G test
+pLGRF_G&lt;-test.LGRF(Z,result.null)
+
+# The LGRF-GT test
+pLGRF_GT&lt;-test.LGRF(Z,result.null,interGXT=TRUE)
+
+# The LGRF-G test using the IBS similarity
+pLGRF_G_IBS&lt;-test.LGRF(Z,result.null,similarity="IBS")
+
+# The LGRF-GT test, main effect is modeled using the IBS similarity
+pLGRF_GT_IBS&lt;-test.LGRF(Z,result.null,interGXT=TRUE,similarity="IBS")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>step_chains</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct a within-chain step of the ptMCMC algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This set of functions steps the chains forward one iteration 
+of the within-chain component of the ptMCMC algorithm. <code>step_chains</code>
+is the main function, comprised of a proposal (made by <code>prop_step</code>),
+an evaluation of that proposal (made by <code>eval_step</code>), and then an 
+update of the configuration (made by <code>take_step</code>). 
+<br><br>
+This set of functions was designed to work within <code>TS</code> and 
+specifically <code>est_changepoints</code>. They are still hardcoded to
+do so, but have the capacity to be generalized to work with any 
+estimation via ptMCMC with additional coding work.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">step_chains(i, cpts, inputs)
+
+propose_step(i, cpts, inputs)
+
+eval_step(i, cpts, prop_step, inputs)
+
+take_step(cpts, prop_step, accept_step)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p><code>integer</code> iteration index.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpts</code></td>
+<td>
+<p><code>matrix</code> of change point locations across chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p>Class <code>ptMCMC_inputs</code> <code>list</code>, containing the 
+static inputs for use within the ptMCMC algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop_step</code></td>
+<td>
+<p>Proposed step output from <code>propose_step</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accept_step</code></td>
+<td>
+<p><code>logical</code> indicator of acceptance of each chain's
+proposed step.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For each iteration of the ptMCMC algorithm, all of the chains
+have the potential to take a step. The possible step is proposed under
+a proposal distribution (here for change points we use a symmetric
+geometric distribution), the proposed step is then evaluated and either
+accepted or not (following the Metropolis-Hastings rule; Metropolis,
+<em>et al.</em> 1953, Hasting 1960, Gupta <em>et al.</em> 2018), and then
+accordingly taken or not (the configurations are updated).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>step_chains</code>: <code>list</code> of change points, log-likelihoods, 
+and logical indicators of acceptance for each chain. <br><br><code>propose_step</code>: <code>list</code> of change points and 
+log-likelihood values for the proposal. <br><br><code>eval_step</code>: <code>logical</code> vector indicating if each 
+chain's proposal was accepted. <br><br><code>take_step</code>: <code>list</code> of change points, log-likelihoods, 
+and logical indicators of acceptance for each chain.
+</p>
+
+
+<h3>References</h3>
+
+<p>Gupta, S., L. Hainsworth, J. S. Hogg, R. E. C. Lee, and J. R. Faeder. 
+2018. Evaluation of parallel tempering to accelerate Bayesian parameter
+estimation in systems biology. 
+<a href="https://arxiv.org/abs/1801.09831">link</a>.
+</p>
+<p>Hastings, W. K. 1970. Monte Carlo sampling methods using Markov Chains
+and their applications. <em>Biometrika</em> <strong>57</strong>:97-109.
+<a href="https://academic.oup.com/biomet/article-abstract/57/1/97/284580">link</a>.
+</p>
+<p>Metropolis, N., A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and E.
+Teller. 1953. Equations of state calculations by fast computing machines.
+<em>Journal of Chemical Physics</em> <strong>21</strong>: 1087-1092.
+<a href="https://bayes.wustl.edu/Manual/EquationOfState.pdf">link</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  data &lt;- data[order(data[,"newmoon"]), ]
+  saves &lt;- prep_saves(1, TS_control())
+  inputs &lt;- prep_ptMCMC_inputs(data, gamma ~ 1, 1, "newmoon", weights, 
+                               TS_control())
+  cpts &lt;- prep_cpts(data, gamma ~ 1, 1, "newmoon", weights, TS_control())
+  ids &lt;- prep_ids(TS_control())
+  for(i in 1:TS_control()$nit){
+    steps &lt;- step_chains(i, cpts, inputs)
+    swaps &lt;- swap_chains(steps, inputs, ids)
+    saves &lt;- update_saves(i, saves, steps, swaps)
+    cpts &lt;- update_cpts(cpts, swaps)
+    ids &lt;- update_ids(ids, swaps)
+  }
+  # within step_chains()
+  cpts &lt;- prep_cpts(data, gamma ~ 1, 1, "newmoon", weights, TS_control())
+  i &lt;- 1
+  prop_step &lt;- propose_step(i, cpts, inputs)
+  accept_step &lt;- eval_step(i, cpts, prop_step, inputs)
+  take_step(cpts, prop_step, accept_step)
+
+
+</code></pre>
+
+
+</div>

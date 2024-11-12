@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>paste_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Raise lints for several common poor usages of <code>paste()</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>The following issues are linted by default by this linter
+(see arguments for which can be de-activated optionally):
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">paste_linter(
+  allow_empty_sep = FALSE,
+  allow_to_string = FALSE,
+  allow_file_path = c("double_slash", "always", "never")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>allow_empty_sep</code></td>
+<td>
+<p>Logical, default <code>FALSE</code>. If <code>TRUE</code>, usage of
+<code>paste()</code> with <code>sep = ""</code> is not linted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_to_string</code></td>
+<td>
+<p>Logical, default <code>FALSE</code>. If <code>TRUE</code>, usage of
+<code>paste()</code> and <code>paste0()</code> with <code>collapse = ", "</code> is not linted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_file_path</code></td>
+<td>
+<p>String, one of <code>"never"</code>, <code>"double_slash"</code>, or <code>"always"</code>; <code>"double_slash"</code> by default.
+If <code>"never"</code>, usage of <code>paste()</code> and <code>paste0()</code> to construct file paths is not linted. If <code>"double_slash"</code>,
+strings containing consecutive forward slashes will not lint. The main use case here is for URLs – "paths" like
+<code>"https://"</code> will not induce lints, since constructing them with <code>file.path()</code> might be deemed unnatural.
+Lastly, if <code>"always"</code>, strings with consecutive forward slashes will also lint. Note that <code>"//"</code> is never linted
+when it comes at the beginning or end of the input, to avoid requiring empty inputs like
+<code>file.path("", ...)</code> or <code>file.path(..., "")</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> Block usage of <code>paste()</code> with <code>sep = ""</code>. <code>paste0()</code> is a faster, more concise alternative.
+</p>
+</li>
+<li>
+<p> Block usage of <code>paste()</code> or <code>paste0()</code> with <code>collapse = ", "</code>. <code>toString()</code> is a direct
+wrapper for this, and alternatives like <code>glue::glue_collapse()</code> might give better messages for humans.
+</p>
+</li>
+<li>
+<p> Block usage of <code>paste0()</code> that supplies <code style="white-space: pre;">⁠sep=⁠</code> – this is not a formal argument to <code>paste0</code>, and
+is likely to be a mistake.
+</p>
+</li>
+<li>
+<p> Block usage of <code>paste()</code> / <code>paste0()</code> combined with <code>rep()</code> that could be replaced by
+<code>strrep()</code>. <code>strrep()</code> can handle the task of building a block of repeated strings
+(e.g. often used to build "horizontal lines" for messages). This is both more readable and
+skips the (likely small) overhead of putting two strings into the global string cache when only one is needed.
+</p>
+<p>Only target scalar usages – <code>strrep</code> can handle more complicated cases (e.g. <code>strrep(letters, 26:1)</code>,
+but those aren't as easily translated from a <code>paste(collapse=)</code> call.
+</p>
+</li>
+</ol>
+<h3>Tags</h3>
+
+<p>best_practices, configurable, consistency
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = 'paste("a", "b", sep = "")',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste(c("a", "b"), collapse = ", ")',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste0(c("a", "b"), sep = " ")',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste0(rep("*", 10L), collapse = "")',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste0("http://site.com/", path)',
+  linters = paste_linter(allow_file_path = "never")
+)
+
+# okay
+lint(
+  text = 'paste0("a", "b")',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste("a", "b", sep = "")',
+  linters = paste_linter(allow_empty_sep = TRUE)
+)
+
+lint(
+  text = 'toString(c("a", "b"))',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste(c("a", "b"), collapse = ", ")',
+  linters = paste_linter(allow_to_string = TRUE)
+)
+
+lint(
+  text = 'paste(c("a", "b"))',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'strrep("*", 10L)',
+  linters = paste_linter()
+)
+
+lint(
+  text = 'paste0(year, "/", month, "/", day)',
+  linters = paste_linter(allow_file_path = "always")
+)
+
+lint(
+  text = 'paste0("http://site.com/", path)',
+  linters = paste_linter()
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcModelPartition</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a lcModel with pre-defined partitioning</h2>
+
+<h3>Description</h3>
+
+<p>Represents an arbitrary partitioning of a set of trajectories.
+As such, this model has no predictive capabilities. The cluster trajectories are represented by the specified center function (mean by default).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcModelPartition(
+  data,
+  response,
+  trajectoryAssignments,
+  nClusters = NA,
+  clusterNames = character(),
+  time = getOption("latrend.time"),
+  id = getOption("latrend.id"),
+  name = "part",
+  center = meanNA,
+  method = NULL,
+  converged = TRUE,
+  model = NULL,
+  envir = parent.frame()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> representing the trajectory data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>The name of the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trajectoryAssignments</code></td>
+<td>
+<p>A <code>vector</code> of cluster membership per trajectory, a <code>data.frame</code> with an id column and <code>"Cluster"</code> column, or the name of the cluster membership column in the <code>data</code> argument..
+For <code>vector</code> input, the type must be <code>factor</code>, <code>character</code>, or <code>integer</code> (<code>1</code> to <code>nClusters</code>).
+The order of the trajectory, and thus the respective assignments, is determined by the id column of the data.
+Provide a <code>factor</code> id column for the input data to ensure that the ordering is as you aspect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nClusters</code></td>
+<td>
+<p>The number of clusters. Should be <code>NA</code> for trajectory assignments of type <code>factor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterNames</code></td>
+<td>
+<p>The names of the clusters, or a function with input <code>n</code> outputting a <code style="white-space: pre;">⁠character vector⁠</code> of names.
+If unspecified, the names are determined from the <code>trajectoryAssignments</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the trajectory identification variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The name of the method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>The <code>function</code> for computing the longitudinal cluster centers, used for representing the cluster trajectories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Optional <code>lcMethod</code> object that was used for fitting this model to the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+<p>Set the converged state.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>An optional object to attach to the <code>lcModelPartition</code> object, representing the internal model that was used for obtaining the partition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>The <code>environment</code> associated with the model. Used for evaluating the assigned <code>data</code> object by model.data.lcModel.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># comparing a model to the ground truth using the adjusted Rand index
+data(latrendData)
+method &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time")
+model &lt;- latrend(method, latrendData, nClusters = 3)
+
+# extract the reference class from the Class column
+trajLabels &lt;- aggregate(Class ~ Id, head, 1, data = latrendData)
+trajLabels$Cluster &lt;- trajLabels$Class
+refModel &lt;- lcModelPartition(latrendData, response = "Y", trajectoryAssignments = trajLabels)
+
+if (require("mclustcomp")) {
+  externalMetric(model, refModel, "adjustedRand")
+}
+</code></pre>
+
+
+</div>

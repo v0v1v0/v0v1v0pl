@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>network_analysis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct Network analysis based on tax summary object</h2>
+
+<h3>Description</h3>
+
+<p>Conduct Network analysis based on tax summary object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">network_analysis(
+  taxobj,
+  taxlevel,
+  reads = FALSE,
+  n,
+  threshold,
+  rel_threshold = 0,
+  method = "spearman",
+  display = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>taxobj</code></td>
+<td>
+<p>tax summary objects computed by <code>tax_summary</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxlevel</code></td>
+<td>
+<p>taxonomy levels used for analysis. Must be one of c("Domain","Phylum","Class","Order","Family","Genus","Species","Base")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reads</code></td>
+<td>
+<p>Logical,default:FALSE. Taxonomy abundance type used in analysis.FALSE for relative abundance, TRUE for absolute abundance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Numeric. Number of sample size indicating kept asv/otu/gene/taxa appearing. Recommended to set more than half of total sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Numeric.Threshold of absolute correlation value (r value for pearson method and rho value for spearman method).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rel_threshold</code></td>
+<td>
+<p>Numeric.Threshold of relative abundance included in the network analysis.Default:0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Character, default: "spearman". A character indicating which correlation coefficient method to be computed. One of "pearson" or "spearman"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>display</code></td>
+<td>
+<p>Logical, default:TRUE. If display a preview plot of network based on igraph. FALSE for the first attempt is recommended in case of too many vertices and edges.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> We had optimized the correlation algorithm to achieve a faster running speed. It takes less than 2 minute to calculate dataframe correlation and p value which more than 400 samples and 10000 OTUs for computer with dual Core i5 processor.
+However, too many vertices(&gt;2000) or links(&gt;10000) may slow the statistical process and visualization,so we recommend that in your first attempt,set <code>display</code> paramter as <code>F</code> to have a preview.
+Then you can adjust your n/threshold/method paramter to generate a suitable visualization network
+</p>
+</li>
+<li>
+<p> We display a preview plot so as to adjusting your network. Generally a global figure (like we show in examples) with less than 1000 vertices and 5000 edges/links
+is recommended. Further more,we recommend you to output the statistics and adjacency table and use software like cytoscape or gephi for better visualization.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>One list contains nodes information table, adjacency column table, adjacency matrix and 'igraph' object.
+</p>
+
+
+<h3>Note</h3>
+
+
+<ol>
+<li>
+<p> Replicates should be at least 5,more than 8 is recommend.
+</p>
+</li>
+<li>
+<p> In case of too many edges/links or not a global network plot, you can stop the process immediately to provent wasting too much time.
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R">{
+  ### Data preparation ###
+  data("Two_group")
+  set.seed(999)
+  ## Analysis
+  network_results &lt;- network_analysis(
+    taxobj = Two_group,
+    taxlevel = "Genus",
+    n = 10,
+    threshold = 0.8
+  )
+
+  # Nodes information table
+  network_nodes &lt;- network_results$Nodes_info
+  head(network_nodes)
+
+  # Adjacency table
+  network_adjacency &lt;- network_results$Adjacency_column_table
+  head(network_adjacency)
+
+  # Complete adjacency matrix
+  network_matrix &lt;- network_results$Adjacency_matrix
+  print(network_matrix[1:10, 1:10])
+
+  # igraph object
+  igraph_object &lt;- network_results$Igraph_object
+  network_stat(igraph_object)  # In case you want to see statistics again
+  # or do other analysis based on igraph.
+}
+</code></pre>
+
+
+</div>

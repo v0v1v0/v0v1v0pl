@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>locpolSmoothers</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Local Polynomial estimation. </h2>
+
+<h3>Description</h3>
+
+<p>Computes the local polynomial estimation of the regression function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">locCteSmootherC(x, y, xeval, bw, kernel, weig = rep(1, length(y)))
+locLinSmootherC(x, y, xeval, bw, kernel, weig = rep(1, length(y)))
+locCuadSmootherC(x, y, xeval, bw, kernel, weig = rep(1, length(y)))
+locPolSmootherC(x, y, xeval, bw, deg, kernel, DET = FALSE,
+	weig = rep(1, length(y)))
+looLocPolSmootherC(x, y, bw, deg, kernel, weig = rep(1, length(y)),
+        DET = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xeval</code></td>
+<td>
+<p> Vector of evaluation points. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p> Smoothing parameter, bandwidth. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation, see <code>Kernels</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> Vector of weights for observations. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p> Local polynomial estimation degree (<code class="reqn">p</code>). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DET</code></td>
+<td>
+<p> Boolean to ask for the computation of the determinant if the matrix <code class="reqn">X^TWX</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All these function perform the estimation of the regression function
+for different degrees. While <code>locCteSmootherC</code>, <code>locLinSmootherC</code>,
+and <code>locCuadSmootherC</code> uses direct computations for the degrees 0,1
+and 2 respectively, <code>locPolSmootherC</code> implements a general method for any degree.
+Particularly useful can be <code>looLocPolSmootherC</code>(Leave one out) which computes the local polynomial estimator for any degree as <code>locPolSmootherC</code> does, but estimating <code class="reqn">m(x_i)</code> without using <code class="reqn">i</code>–th observation on the computation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame whose components gives the evaluation points, the estimator
+for the regression function <code class="reqn">m(x)</code> and its derivatives at each point, and
+the estimation of the marginal density for <code>x</code> to the <code class="reqn">p+1</code> power.
+These components are given by:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Evaluation points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta0, beta1, beta2,...</code></td>
+<td>
+<p>Estimation of the <code class="reqn">i</code>-th derivative
+of the regression function (<code class="reqn">m^{(i)}(x)</code>) for <code class="reqn">i=0,1,...</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>den</code></td>
+<td>
+<p>Estimation of <code class="reqn">(n*h*f(x))^{p+1}</code>, being <code class="reqn">h</code> the
+bandwidth <code>bw</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Jorge Luis Ojeda Cabrera.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fan, J. and Gijbels, I.
+<em> Local polynomial modelling and its applications\/</em>.
+Chapman &amp; Hall, London (1996).
+</p>
+<p>Wand, M.~P. and Jones, M.~C.
+<em> Kernel smoothing\/</em>.
+Chapman and Hall Ltd., London (1995).
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>locpoly</code> from package <span class="pkg">KernSmooth</span>,
+<code>ksmooth</code> and <code>loess</code> in <span class="pkg">stats</span> (but from earlier package <code>modreg</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">N &lt;- 100
+xeval &lt;- 0:10/10
+d &lt;- data.frame(x = runif(N))
+bw &lt;- 0.125
+fx &lt;- xeval^2 - xeval + 1
+##	Non random
+d$y &lt;- d$x^2 - d$x + 1
+cuest &lt;- locCuadSmootherC(d$x, d$y ,xeval, bw, EpaK)
+lpest2 &lt;- locPolSmootherC(d$x, d$y , xeval, bw, 2, EpaK)
+print(cbind(x = xeval, fx, cuad0 = cuest$beta0,
+lp0 = lpest2$beta0, cuad1 = cuest$beta1, lp1 = lpest2$beta1))
+##	Random
+d$y &lt;- d$x^2 - d$x + 1 + rnorm(d$x, sd = 0.1)
+cuest &lt;- locCuadSmootherC(d$x,d$y , xeval, bw, EpaK)
+lpest2 &lt;- locPolSmootherC(d$x,d$y , xeval, bw, 2, EpaK)
+lpest3 &lt;- locPolSmootherC(d$x,d$y , xeval, bw, 3, EpaK)
+cbind(x = xeval, fx, cuad0 = cuest$beta0, lp20 = lpest2$beta0,
+lp30 = lpest3$beta0, cuad1 = cuest$beta1, lp21 = lpest2$beta1,
+lp31 = lpest3$beta1)
+</code></pre>
+
+
+</div>

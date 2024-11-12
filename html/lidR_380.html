@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>st_hull</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Concave and convex hulls for LAS objects</h2>
+
+<h3>Description</h3>
+
+<p>Concave and convex hulls for LAS objects. <code>st_convex_hull</code> extends <code>sf::st_convex_hull</code> for LAS
+objects. Both functions return a <code>sfc_POLYGON</code>. <code>concaveman</code> is very a fast 2D concave hull algorithm
+for a set of points.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">st_concave_hull(x, method = "concaveman", ...)
+
+## S3 method for class 'LAS'
+st_convex_hull(x)
+
+concaveman(x, y = NULL, concavity = 2, length_threshold = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>An object of class LAS or XY coordinates of points in case of <code>concaveman</code>. This can be
+specified as two vectors x and y, a 2-column matrix x, a list with two components, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>string. currently supports "concaveman".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Propagate to the method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>concavity</code></td>
+<td>
+<p>numeric a relative measure of concavity. 1 results in a relatively detailed shape,
+Infinity results in a convex hull. You can use values lower than 1, but they can produce pretty crazy
+shapes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length_threshold</code></td>
+<td>
+<p>numeric. When a segment length is below this threshold, it stops being
+considered for further detailed processing. Higher values result in simpler shapes.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The concaveman algorithm is based on ideas from Park and Oh (2012). A first implementation in
+JavaScript was proposed by Vladimir Agafonkin in <a href="https://github.com/mapbox/concaveman">mapbox</a>.
+This implementation dramatically improved performance over the one stated in the paper
+using a spatial index. The algorithm was then ported to R by Joël Gombin in the R package
+<a href="https://github.com/joelgombin/concaveman">concaveman</a> that runs the JavaScript
+implementation proposed by Vladimir Agafonkin. Later, a C++ version of Vladimir Agafonkin's
+JavaScript implementation was proposed by Stanislaw Adaszewski in
+<a href="https://github.com/sadaszewski/concaveman-cpp">concaveman-cpp</a>. This concaveman
+function uses Stanislaw Adaszewski's C++ code making the concaveman algorithm an
+order of magnitude (up to 50 times) faster than the Javascript version.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>sfc_POLYGON</code> from <code>sf</code> or a <code>data.frame</code> in the case of <code>concaveman</code>
+</p>
+
+
+<h3>References</h3>
+
+<p>Park, J.-S &amp; Oh, S.-J. (2013). A New Concave Hull Algorithm and Concaveness Measure
+for n-dimensional Datasets. Journal of Information Science and Engineering. 29. 379-392.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- runif(35)
+y &lt;- runif(35)
+hull &lt;- concaveman(x,y)
+plot(x,y, asp = 1)
+lines(hull, lwd = 3, col = "red")
+
+LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+las = readLAS(LASfile, filter = "-drop_z_below 1")
+hull = st_concave_hull(las, length_threshold = 10)
+plot(hull)
+</code></pre>
+
+
+</div>

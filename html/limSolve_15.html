@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Solve.banded</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Solution of a banded system of linear equations
+</h2>
+
+<h3>Description</h3>
+
+<p>Solves the linear system of equations </p>
+<p style="text-align: center;"><code class="reqn">Ax = B</code>
+</p>
+<p> by Gaussion elimination
+</p>
+<p>where <code>A</code> has to be square, and <em>banded</em>, i.e. with the only nonzero
+elements in bands near the diagonal.
+</p>
+<p>The matrix <code>A</code> is either inputted as a full square matrix or as the non-zero
+bands.
+</p>
+<p>uses lapack subroutine dgbsv (FORTRAN)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Solve.banded(abd, nup, nlow, B = rep(0, times = ncol(abd)),
+  full = (nrow(abd) == ncol(abd)))</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>abd </code></td>
+<td>
+<p>either a matrix containing the (nonzero) bands, rotated row-wise
+(anti-clockwise) only, or a full square matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nup </code></td>
+<td>
+<p>number of nonzero bands above the diagonal; ignored if <code>full</code>
+matrix is inputted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlow </code></td>
+<td>
+<p>number of nonzero bands below the diagonal; ignored if <code>full</code>
+matrix is inputted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B </code></td>
+<td>
+<p>Right-hand side of the equations, a vector with length = number
+of rows of <code>A</code>, or a matrix with number of rows = number of rows 
+of <code>A</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full </code></td>
+<td>
+<p>if <code>TRUE</code>: full matrix is inputted,
+if <code>FALSE</code>: banded matrix is input.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the input matrix <code>abd</code> is square, it is assumed that the full,
+square A is inputted, unless <code>full</code> is set to <code>FALSE</code>.
+</p>
+<p>If <code>abd</code> is not square, then the number of columns denote the
+number of unknowns, while the number of rows equals the nonzero bands,
+i.e. nup+nlow+1
+</p>
+
+
+<h3>Value</h3>
+
+<p>matrix with the solution, <code>X</code>, of the banded system of equations A X =B,
+the number of columns of this matrix = number of columns of <code>B</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>A similar function but that requires a totally different input can now 
+also be found in the <code>Matrix</code> package
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karline Soetaert &lt;karline.soetaert@nioz.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>J.J. Dongarra, J.R. Bunch, C.B. Moler, G.W. Stewart,
+LINPACK Users' Guide, SIAM, 1979.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Solve.tridiag</code> to solve a tridiagonal system of linear equations.
+</p>
+<p><code>Solve</code> the generalised inverse solution,
+</p>
+<p><code>solve</code> the R default
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># 1. Generate a banded matrix of random numbers, full format
+nup  &lt;- 2                         # nr nonzero bands above diagonal
+ndwn &lt;- 3                         # nr nonzero bands below diagonal
+nn   &lt;- 10                        # nr rows and columns of A
+A &lt;- matrix(nrow = nn, ncol = nn, data = runif(1 : (nn*nn)))
+A [row(A) &lt; col(A) - nup | row(A) &gt; col(A) + ndwn] &lt;- 0 
+diag(A) &lt;- 1                      # 1 on diagonal is easily recognised 
+
+# right hand side
+B &lt;- runif(nrow(A))                
+
+# solve it, using the default solver and banded (inputting full matrix)
+Full  &lt;- solve(A, B)
+Band1 &lt;- Solve.banded(A, nup, ndwn, B)
+
+# 2. create banded form of matrix A
+Aext &lt;- rbind(matrix(ncol = ncol(A), nrow = nup, 0),
+              A, 
+              matrix(ncol = ncol(A), nrow = ndwn, 0))
+              
+abd  &lt;- matrix(nrow = nup + ndwn + 1, ncol = nn,
+               data = Aext[col(Aext) &lt;= row(Aext) &amp; 
+                           col(Aext) &gt;= row(Aext) - ndwn - nup])
+
+# print both to screen
+A
+abd
+
+# solve problem with banded version
+Band2 &lt;- Solve.banded(abd, nup, ndwn, B)
+
+# compare 3 methods of solution
+cbind(Full, Band1, Band2)
+
+# same, now with 3 different right hand sides
+B3 &lt;- cbind(B, B*2, B*3)
+Solve.banded(abd, nup, ndwn, B3)
+
+</code></pre>
+
+
+</div>

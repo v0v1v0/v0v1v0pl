@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_hexamerScore</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Hexamer Score</h2>
+
+<h3>Description</h3>
+
+<p>This function can compute hexamer score proposed by method CPAT
+(Wang et al. 2013). Hexamer score can be calculated on full sequence or the longest ORF
+region. The step and <em>k</em> of the sliding window can also be customized.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_hexamerScore(
+  Sequences,
+  label = NULL,
+  referFreq,
+  k = 6,
+  step = 1,
+  alphabet = c("a", "c", "g", "t"),
+  on.ORF = FALSE,
+  auto.full = FALSE,
+  parallel.cores = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sequences</code></td>
+<td>
+<p>A FASTA file loaded by function  <code>read.fasta</code> of
+<code>seqinr-package</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Optional. String. Indicate the label of the sequences such as
+"NonCoding", "Coding".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>referFreq</code></td>
+<td>
+<p>A list obtained from function <code>make_referFreq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>An integer that indicates the sliding window size. (Default: <code>6</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>Integer defaulting to <code>1</code> for the window step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphabet</code></td>
+<td>
+<p>A vector of single characters that specify the different character
+of the sequence. (Default: <code>alphabet = c("a", "c", "g", "t")</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>on.ORF</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, hexamer score will be calculated on
+the longest ORF region. NOTE: If <code>TRUE</code>, the input has to be DNA sequences.
+(Default: <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto.full</code></td>
+<td>
+<p>Logical. When <code>on.ORF = TRUE</code> but no ORF can be found,
+if <code>auto.full = TRUE</code>,  hexamer score will be calculated on full sequences automatically;
+if <code>auto.full</code> is <code>FALSE</code>, the sequences that have no ORF will be discarded. Ignored when <code>on.ORF = FALSE</code>.
+(Default: <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>. Users can set as <code>-1</code> to run
+this function with all cores.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can compute hexamer score proposed by CPAT (Wang et al. 2013).
+In CPAT, hexamer score is calculated on the longest ORF region, and the step of the
+sliding window is 3 (i.e. <code>step = 3</code>). Hexamer means six adjoining bases, thus
+<code>k = 6</code>. But in function <code>compute_hexamerScore</code>, both <code>step</code>, <code>k</code>,
+and calculated region (full sequence or ORF)
+can be customized to maximize its availability.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe.
+</p>
+
+
+<h3>References</h3>
+
+<p>Liguo Wang, Hyun Jung Park, Surendra Dasari, Shengqin Wang, JeanPierre Kocher, &amp; Wei Li.
+CPAT: coding-potential assessment tool using an alignment-free logistic regression model.
+<em>Nucleic Acids Research</em>, 2013, 41(6):e74-e74.
+</p>
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>make_referFreq</code>,
+<code>compute_LogDistance</code>,
+<code>compute_EucDistance</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+Seqs &lt;- seqinr::read.fasta(file =
+"http://www.ncbi.nlm.nih.gov/WebSub/html/help/sample_files/nucleotide-sample.txt")
+
+referFreq &lt;- make_referFreq(cds.seq = Seqs, lncRNA.seq = Seqs, k = 6, step = 1,
+                            alphabet = c("a", "c", "g", "t"), on.orf = TRUE,
+                            ignore.illegal = TRUE)
+
+data(demo_DNA.seq)
+Sequences &lt;- demo_DNA.seq
+
+hexamerScore &lt;- compute_hexamerScore(Sequences, label = "NonCoding", referFreq = referFreq,
+                                     k = 6, step = 1, alphabet = c("a", "c", "g", "t"),
+                                     on.ORF = TRUE, auto.full = TRUE, parallel.cores = 2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

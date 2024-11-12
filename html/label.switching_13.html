@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sjw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Probabilistic relabelling algorithm
+</h2>
+
+<h3>Description</h3>
+
+<p>Function to apply the probabilistic relabelling strategy of Sperrin et al (2010). The concept here is to treat the MCMC output as observed data, while the unknown permutations need to be applied to each mcmc data point is treated as unobserved data with associated uncertainty. Then, an EM-type algorithm estimates the weights for each permutation per MCMC data point.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sjw(mcmc.pars, z, complete, x, init, threshold, maxiter)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mcmc.pars</code></td>
+<td>
+
+
+<p><code class="reqn">m\times K\times J</code> array of simulated MCMC parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+
+
+<p><code class="reqn">m\times n</code> integer array of the latent allocation vectors generated from an MCMC algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete</code></td>
+<td>
+
+
+<p>function that returns the complete log-likelihood of the mixture model.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+
+<p><code class="reqn">n</code>-dimensional data vector/array
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+
+
+<p>An (optional) index pointing at the MCMC iteration whose parameters will initialize the algorithm. If it is less or equal to zero, the overall MCMC mean will be used for initialization. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>An (optional) positive number controlling the convergence criterion. Default value: 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+
+<p>An (optional) integer controlling the max number of iterations. Default value: 100.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let <code class="reqn">x=(x_1,\ldots,x_n)</code> denote the observed data and <code class="reqn">\boldsymbol{w},\boldsymbol{\theta}</code> denote the mixture weights and component specific parameters, respectively. Assume that <code class="reqn">K</code> is the the number of components. Then,
+</p>
+<p style="text-align: center;"><code class="reqn">L(\boldsymbol{w},\boldsymbol{\theta}|\boldsymbol{x})=\prod_{i=1}^{n}\sum_{k=1}^{K}w_k f_k(x_i|\theta_k),</code>
+</p>
+ 
+<p><code class="reqn">i=1,\ldots,n</code> is the observed likelihood of the mixture model. Given the latent allocation variables <code class="reqn">\boldsymbol{z}=(z_1,\ldots,z_n)</code>, the complete likelihood of the model is defined as: 
+</p>
+<p style="text-align: center;"><code class="reqn">L_c(\boldsymbol{w},\boldsymbol{\theta}|\boldsymbol{x},\boldsymbol{z})=\prod_{i=1}^{n}w_{z_{i}}f_{z_{i}}(x_i|\theta_{z_{i}}).</code>
+</p>
+
+<p>Then, <code>complete</code> corresponds to the log of <code class="reqn">L_c</code> and should take as input the following: a vector of <code class="reqn">n</code> allocations, the observed data and the parameters of the model as a <code class="reqn">K\times J</code> array where <code class="reqn">J</code> corresponds to the different parameter types of the model. See the example for an implementation at a univariate normal mixture.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>permutations </code></td>
+<td>
+<p><code class="reqn">m\times K</code> dimensional array of permutations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations </code></td>
+<td>
+<p>integer denoting the number of iterations until convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status </code></td>
+<td>
+<p>returns the exit status</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This algorithm is not suggested for large number of components due to the computational overload: <code class="reqn">K!</code> permutation probabilities are computed at each MCMC iteration. Moreover, the useR should carefully provide the complete log-likelihood function of the model as input to the algorithm and this makes its use quite complicated.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>References</h3>
+
+<p>Sperrin M, Jaki T and Wit E (2010). Probabilistic relabelling strategies for the label switching problem in Bayesian mixture models.  Statistics and Computing, 20(3), 357-366.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>permute.mcmc</code>, <code>label.switching</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#load a toy example: MCMC output consists of the random beta model
+# applied to a normal mixture of \code{K=2} components. The number of
+# observations is equal to \code{n=5}. The number of MCMC samples is
+# equal to \code{m=300}.  
+data("mcmc_output")
+mcmc.pars&lt;-data_list$"mcmc.pars"
+z&lt;-data_list$"z"
+K&lt;-data_list$"K"
+x&lt;-data_list$"x"
+
+# mcmc parameters are stored to array \code{mcmc.pars}
+# mcmc.pars[,,1]: simulated means of the two components
+# mcmc.pars[,,2]: simulated variances
+# mcmc.pars[,,3]: simulated weights 
+# The number of different parameters for the univariate
+# normal mixture is equal to J = 3: means, variances 
+# and weights. The generated allocations variables are 
+# stored to \code{z}. The observed data is stored to \code{x}.  
+# The complete data log-likelihood is defined as follows:
+complete.normal.loglikelihood&lt;-function(x,z,pars){
+#	x: data (size = n)
+#	z: allocation vector (size = n)
+#	pars: K\times J vector of normal mixture parameters:
+#		pars[k,1] = mean of the k-normal component
+#		pars[k,2] = variance of the k-normal component
+#		pars[k,3] = weight of the k-normal component
+#			k = 1,...,K
+	g &lt;- dim(pars)[1] #K (number of mixture components)
+	n &lt;- length(x)	#this denotes the sample size
+	logl&lt;- rep(0, n)	
+ 	logpi &lt;- log(pars[,3])
+	mean &lt;- pars[,1]
+	sigma &lt;- sqrt(pars[,2])
+	logl&lt;-logpi[z] + dnorm(x,mean = mean[z],sd = sigma[z],log = TRUE)
+	return(sum(logl))
+}
+
+#run the algorithm:
+run&lt;-sjw(mcmc = mcmc.pars,z = z, 
+complete = complete.normal.loglikelihood,x = x, init=0,threshold = 1e-4)
+# apply the permutations returned by typing:
+reordered.mcmc&lt;-permute.mcmc(mcmc.pars,run$permutations)
+# reordered.mcmc[,,1]: reordered means of the two components
+# reordered.mcmc[,,2]: reordered variances 
+# reordered.mcmc[,,3]: reordered weights
+</code></pre>
+
+
+</div>

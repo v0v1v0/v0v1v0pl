@@ -1,0 +1,334 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>svyassocmod</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Association Models With Complex Survey Data</h2>
+
+<h3>Description</h3>
+
+<p>Fit association models to data from a complex survey
+design, with inverse-probability weighting and (optionally)
+standard errors based on replicate weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">svyrc(formula, design, nd = 1,
+      symmetric = FALSE, diagonal = FALSE,
+      weighting = c("marginal", "uniform", "none"),
+      rowsup = NULL, colsup = NULL,
+      Ntotal = nrow(design), exclude = c(NA, NaN),
+      se = c("none", "replicate"),
+      ncpus = getOption("boot.ncpus"),
+      family = quasipoisson, weights = NULL,
+      start = NULL, etastart = NULL, tolerance = 1e-8,
+      iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+
+svyhmskew(formula, design, nd.symm = NA, diagonal = FALSE,
+          weighting = c("marginal", "uniform", "none"),
+          rowsup = NULL, colsup = NULL,
+          Ntotal = nrow(design), exclude = c(NA, NaN),
+          se = c("none", "replicate"),
+          ncpus = getOption("boot.ncpus"),
+          family = quasipoisson, weights = NULL,
+          start = NULL, etastart = NULL, tolerance = 1e-8,
+          iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+
+svyyrcskew(formula, design, nd.symm = NA, nd.skew = 1, diagonal = FALSE,
+           weighting = c("marginal", "uniform", "none"),
+           rowsup = NULL, colsup = NULL,
+           Ntotal = nrow(design), exclude = c(NA, NaN),
+           se = c("none", "replicate"),
+           ncpus = getOption("boot.ncpus"),
+           family = quasipoisson, weights = NULL,
+           start = NA, etastart = NULL, tolerance = 1e-8,
+           iterMax = 15000, trace = FALSE, verbose = TRUE, ...)
+
+svyrcL(formula, design, nd = 1,
+       layer.effect = c("homogeneous.scores",
+                        "heterogeneous", "none"),
+       symmetric = FALSE,
+       diagonal = c("none", "heterogeneous", "homogeneous"),
+       weighting = c("marginal", "uniform", "none"),
+       Ntotal = nrow(design), exclude = c(NA, NaN),
+       se = c("none", "replicate"),
+       ncpus = getOption("boot.ncpus"),
+       family = quasipoisson, weights = NULL,
+       start = NULL, etastart = NULL, tolerance = 1e-8,
+       iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+
+svyrcL.trans(formula, design, nd = 1,
+             symmetric = FALSE,
+             diagonal = c("none", "heterogeneous", "homogeneous"),
+             weighting = c("marginal", "uniform", "none"),
+             Ntotal = nrow(design), exclude = c(NA, NaN),
+             se = c("none", "replicate"),
+             ncpus = getOption("boot.ncpus"),
+             family = quasipoisson, weights = NULL,
+             start = NULL, etastart = NULL, tolerance = 1e-8,
+             iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+
+svyhmskewL(formula, design, nd.symm = NA,
+           layer.effect.skew = c("homogeneous.scores", "heterogeneous",
+                                 "none"),
+           layer.effect.symm = c("heterogeneous", "uniform",
+                                 "homogeneous.scores", "none"),
+           diagonal = c("none", "heterogeneous", "homogeneous"),
+           weighting = c("marginal", "uniform", "none"),
+           Ntotal = nrow(design), exclude = c(NA, NaN),
+           se = c("none", "replicate"),
+           ncpus = getOption("boot.ncpus"),
+           family = quasipoisson, weights = NULL,
+           start = NULL, etastart = NULL, tolerance = 1e-8,
+           iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> a formula specifying margins for the table (using ‘+’ only)
+on which the model will be fitted (passed to
+<code>svytable</code>); dimensions of the
+resulting table must match the models expectations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p> a survey object; if <code>se == "replicate"</code>, must be of class
+<code>svrepdesign</code> (see “Details” below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nd</code></td>
+<td>
+<p> the number of dimensions to include in the model. Cannot exceed
+<code>min(nrow(tab) - 1, ncol(tab) - 1)</code> if <code>symmetric</code> is <code>FALSE</code> (saturated model),
+and twice this threshold otherwise (quasi-symmetry model).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nd.symm</code></td>
+<td>
+<p> the number of dimensions to include in the <em>symmetric</em> RC(M) association. Cannot exceed
+<code>2 * min(nrow(tab) - 1, ncol(tab) - 1)</code> (quasi-symmetry model).
+If <code>NA</code> (the default), a full quasi-symmetric association is used instead of a RC(M) model; if <code>0</code>,
+quasi-independence is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nd.skew</code></td>
+<td>
+<p> the number of dimensions to include in the <em>skew-symmetric</em> RC(M) association.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer.effect</code></td>
+<td>
+<p> determines the form of the interaction between row-column association and layers.
+See “Details” below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer.effect.skew</code></td>
+<td>
+<p> determines the form of the interaction between skew-symmetric association and layers.
+See “Details” below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer.effect.symm</code></td>
+<td>
+<p> determines the form of the interaction between symmetric row-column association,
+or quasi-symmetric association (if <code>nd.symm = NA</code>) and layers. See “Details” below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symmetric</code></td>
+<td>
+<p> should row and column scores be constrained to be equal? Valid only for square tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p> what type of diagonal-specific parameters to include in the model, if any. Only makes sense
+when <code>nd.symm</code> is not <code>NA</code> (else, diagonal parameters are already included).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p> what weights should be used when normalizing the scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ntotal</code></td>
+<td>
+<p> sum of counts to normalize the table to (passed to <code>svytable</code>).
+See “Details” below..</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclude</code></td>
+<td>
+<p> a vector of values to be exclude when building the table, passed to <code>xtabs</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowsup</code></td>
+<td>
+<p> if present, a matrix with the same columns as <code>tab</code> and rows corresponding to the columns
+of <code>colsup</code>, giving supplementary (passive) rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colsup</code></td>
+<td>
+<p> if present, a matrix with the same rows as <code>tab</code> and columns corresponding to the rows of
+<code>colsup</code>, giving supplementary (passive) columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>whether to compute replicate standard errors or not (only supported for <code>svrepdesign</code> objects).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p> the number of processes to use for jackknife or bootstrap parallel computing. Defaults to
+the number of cores (see <code>detectCores</code>), with a maximum of 5, but falls back to 1
+(no parallelization) if package <code>parallel</code> is not available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p> a specification of the error distribution and link function
+to be used in the model. This can be a character string naming
+a family function; a family function, or the result of a call
+to a family function. See <code>family</code> details of family functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> an optional vector of weights to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>either <code>NA</code> to use optimal starting values, <code>NULL</code> to use
+random starting values, or a vector of starting values for the parameters in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etastart</code></td>
+<td>
+<p> starting values for the linear predictor; set to <code>NULL</code> to use either default
+starting values (if <code>start = NA</code>), or random starting values (in all other cases).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p> a positive numeric value specifying the tolerance level for
+convergence; higher values will speed up the fitting process, but beware of numerical
+instability of estimated scores!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterMax</code></td>
+<td>
+<p> a positive integer specifying the maximum number of main iterations to perform;
+consider raising this value if your model does not converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> a logical value indicating whether the deviance
+should be printed after each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> a logical value indicating whether progress indicators should be printed,
+including a diagnostic error message if the algorithm restarts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> more arguments to be passed to <code>gnm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The model is fitted to a table with probabilities estimated by
+<code>svytable</code> and (when <code>Ntotal = nrow(design)</code>)
+with the sample size equal to the observed sample size, treating the
+resulting table as if it came from iid multinomial sampling, as described
+by Rao and Scott. This assumption affects the fit statistics but not parameter
+point estimates.
+</p>
+<p>Standard errors that do not rely on this assumption can be computed
+by fitting the model using each series of replicate weights. If your
+data does not come with replicate weights, use
+<code>as.svrepdesign</code> to create them first, and pass
+the resulting <code>svrepdesign</code> object via the
+<code>design</code> argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>assocmod</code> object whose exact class depends on the function called.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Note that printed fit statistics and degrees of freedom rely on the
+iid assumption. This is also the case of the variance-covariance matrix
+returned by the <code>vcov.gnm</code> function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>Rao, J.N.K., Scott, A.J. (1984). On Chi-squared Tests For Multiway
+Contingency Tables with Proportions Estimated From Survey Data.
+<em>Annals of Statistics</em> 12, 46-60.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rc</code>, <code>hmskew</code>, <code>yrcskew</code>, <code>rcL</code>,
+<code>rcL.trans</code>, <code>hmskewL</code>
+</p>
+<p><code>svytable</code>, <code>svyloglin</code>,
+<code>svyglm</code>, <code>as.svrepdesign</code>
+</p>
+
+
+</div>

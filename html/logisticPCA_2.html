@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>convexLogisticPCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convex Logistic Principal Component Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Dimensionality reduction for binary data by extending Pearson's
+PCA formulation to minimize Binomial deviance. The convex relaxation
+to projection matrices, the Fantope, is used.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">convexLogisticPCA(x, k = 2, m = 4, quiet = TRUE, partial_decomp = FALSE,
+  max_iters = 1000, conv_criteria = 1e-06, random_start = FALSE, start_H,
+  mu, main_effects = TRUE, ss_factor = 4, weights, M)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix with all binary entries</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>number of principal components to return</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>value to approximate the saturated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>logical; whether the calculation should give feedback</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial_decomp</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, the function uses the rARPACK package
+to quickly initialize <code>H</code> when <code>ncol(x)</code> is large and <code>k</code> is small</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iters</code></td>
+<td>
+<p>number of maximum iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv_criteria</code></td>
+<td>
+<p>convergence criteria. The difference between average deviance
+in successive iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_start</code></td>
+<td>
+<p>logical; whether to randomly inititalize the parameters. If <code>FALSE</code>,
+function will use an eigen-decomposition as starting value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_H</code></td>
+<td>
+<p>starting value for the Fantope matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>main effects vector. Only used if <code>main_effects = TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main_effects</code></td>
+<td>
+<p>logical; whether to include main effects in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ss_factor</code></td>
+<td>
+<p>step size multiplier. Amount by which to multiply the step size. Quadratic
+convergence rate can be proven for <code>ss_factor = 1</code>, but I have found higher values
+sometimes work better. The default is <code>ss_factor = 4</code>.
+If it is not converging, try <code>ss_factor = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional matrix of the same size as the <code>x</code> with non-negative weights</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>depricated. Use <code>m</code> instead</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of class <code>clpca</code> which is a list with the
+following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>the main effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>a rank <code>k</code> Fantope matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>a <code>ceiling(k)</code>-dimentional orthonormal matrix with the loadings</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PCs</code></td>
+<td>
+<p>the princial component scores</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the parameter inputed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iters</code></td>
+<td>
+<p>number of iterations required for convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss_trace</code></td>
+<td>
+<p>the trace of the average negative log likelihood using the Fantope matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proj_loss_trace</code></td>
+<td>
+<p>the trace of the average negative log likelihood using the projection matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop_deviance_expl</code></td>
+<td>
+<p>the proportion of deviance explained by this model.
+If <code>main_effects = TRUE</code>, the null model is just the main effects, otherwise
+the null model estimates 0 for all natural parameters.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Landgraf, A.J. &amp; Lee, Y., 2015. Dimensionality reduction for binary data through 
+the projection of natural parameters. arXiv preprint arXiv:1510.06112.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># construct a low rank matrix in the logit scale
+rows = 100
+cols = 10
+set.seed(1)
+mat_logit = outer(rnorm(rows), rnorm(cols))
+
+# generate a binary matrix
+mat = (matrix(runif(rows * cols), rows, cols) &lt;= inv.logit.mat(mat_logit)) * 1.0
+
+# run convex logistic PCA on it
+clpca = convexLogisticPCA(mat, k = 1, m = 4)
+</code></pre>
+
+
+</div>

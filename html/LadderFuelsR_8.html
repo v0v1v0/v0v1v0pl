@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_layers_lad</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Leaf Area Density (LAD) percentage comprised in each effective fuel layer</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the percentage of Leaf Area Density (LAD) within each fuel layer (first output)
+and removes those fuel layers with LAD percentage less than a specified threshold (default 10
+the depth of the remaining ones (second output).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_layers_lad(LAD_profiles, effective_distances,
+threshold=10, step = 1, min_height= 1.5, verbose=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LAD_profiles</code></td>
+<td>
+<p>Original tree Leaf Area Density (LAD) profile (output of [lad.profile()] function in the <em>leafR</em> package).
+An object of the class text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effective_distances</code></td>
+<td>
+<p>Tree metrics of fuel layers giving the effective distances (&gt; any number of steps) between consecutive fuel layers
+(output of [get_effective_gap()] function). An object of the class text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Numeric value for the minimum required LAD percentage in a fuel layer. The default threshold is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>Numeric value for the actual height bin step (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_height</code></td>
+<td>
+<p>Numeric value for the actual minimum base height (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical, indicating whether to display informational messages (default is TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> treeID: tree ID with strings and numeric values
+</p>
+</li>
+<li>
+<p> treeID1: tree ID with only numeric values
+</p>
+</li>
+<li>
+<p> dptf: Depth of fuel layers (m) after considering distances greater than the actual height bin step
+</p>
+</li>
+<li>
+<p> effdist: Effective distance between consecutive fuel layers (m) after considering distances greater than any number of steps
+</p>
+</li>
+<li>
+<p> Hcbh: Base height of each fuel separated by a distance greater than the certain number of steps
+</p>
+</li>
+<li>
+<p> Hdptf: Height of the depth of fuel layers (m) after considering distances greater than the actual step
+</p>
+</li>
+<li>
+<p> Hdist: Height of the distance (&gt; any number of steps) between consecutive fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hcbh_Hdptf - Percentage of LAD values comprised in each effective fuel layer
+</p>
+</li>
+<li>
+<p> max_height - Maximum height of the tree profile
+</p>
+</li>
+<li>
+<p> nlayers - Number of effective fuel layers
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A data frame identifying the fuel layers with their corresponding LAD percentage.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olga Viedma, Carlos Silva, JM Moreno and A.T. Hudak
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_renamed_df</code>
+</p>
+<p><code>get_effective_gap</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)
+library(gdata)
+library(dplyr)
+library(stringr)
+
+# LAD profiles derived from normalized ALS data after applying [lad.profile()] function
+LAD_profiles &lt;- read.table(system.file("extdata", "LAD_profiles.txt", package = "LadderFuelsR"),
+header = TRUE)
+LAD_profiles$treeID &lt;- factor(LAD_profiles$treeID)
+
+# Before running this example, make sure to run get_effective_gap().
+if (interactive()) {
+effective_distances &lt;- get_effective_gap()
+LadderFuelsR::effective_distances$treeID &lt;- factor(LadderFuelsR::effective_distances$treeID)
+
+trees_name1 &lt;- as.character(effective_distances$treeID)
+trees_name2 &lt;- factor(unique(trees_name1))
+
+LAD_metrics1 &lt;- list()
+LAD_metrics2 &lt;- list()
+
+for (i in levels(trees_name2)) {
+# Filter data for each tree
+tree1 &lt;- LAD_profiles |&gt; dplyr::filter(treeID == i)
+tree2 &lt;- effective_distances |&gt; dplyr::filter(treeID == i)
+
+# Get LAD metrics for each tree
+LAD_metrics &lt;- get_layers_lad(tree1, tree2,
+threshold=10,
+step = 1,min_height= 1.5,
+verbose=TRUE)
+
+LAD_metrics1[[i]] &lt;- LAD_metrics$df1
+LAD_metrics2[[i]] &lt;- LAD_metrics$df2
+}
+
+all_LAD &lt;- dplyr::bind_rows(LAD_metrics1)
+effective_LAD &lt;- dplyr::bind_rows(LAD_metrics2)
+}
+</code></pre>
+
+
+</div>

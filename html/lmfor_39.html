@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>HTest_cps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate forest characteristics of interest in circular plot sampling using a Horvitz–Thompson-like estimator
+</h2>
+
+<h3>Description</h3>
+
+<p><code>HTest_cps</code> calculates Horvitz–Thompson-like estimates of forest characteristics of interest in a specified circular area based on a collection of detected trees and their detection probabilities, or detectabilities. Also produces estimated variances and confidence intervals.
+</p>
+<p><code>detectability_cps</code> calculates detectabilities of trees in a circular plot sample.
+</p>
+<p><code>visibility_thinning_cps</code> takes a tree list and determines if the trees can be detected when a certain visibility-based detection condition is used.
+</p>
+<p><code>ordering_cps</code> is a helper function for preprocessing of tree lists: it takes a tree list and orders the trees based on their distance to plot centre point.
+</p>
+<p><code>polar_to_cart</code> and <code>cart_to_polar</code> are internal functions for transforming polar coordinates to cartesian coordinates and vice versa.
+</p>
+<p><code>triangle_coords</code> is an internal function that, given locations and diameters of discs, returns coordinates needed to define the areas behind the discs that are non-visible from the origin.
+</p>
+<p><code>shades</code> is an internal function that forms polygonal approximations of the planar sets that are non-visible from the origin.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">HTest_cps(data, total=TRUE, confidence.level=0.95)
+detectability_cps(data, plot.radius, alpha=0, polar=TRUE, npoly=1024, delta=NULL)
+visibility_thinning_cps(data, plot.radius, alpha=0, polar=TRUE, npoly=1024, delta=NULL)
+ordering_cps(data, polar=TRUE)
+polar_to_cart(X)
+cart_to_polar(X)
+triangle_coords(X, plot.radius, polar=TRUE)
+shades(X, plot.radius, polar=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>For <code>HTest_cps</code> a matrix where each row corresponds to a tree, the first column contains the detectabilities of the trees calculated with <code>detectability_cps</code>, and other columns correspond to measurements over which estimation is wanted. For <code>detectability_cps</code> a four-column matrix, each row containing the coordinates of a tree, the diameter of the tree, and an indicator if the tree has been detected (1) or not (0). In other words, each row is a vector of the form (r, phi, diameter, detected) if the locations are given in polar coordinates, or (x, y, diameter, detected) if the locations are given in cartesian coordinates. It is assumed that the trees are a sample from circular plot sampling, and that the centre point of the plot is the origin (0,0). For <code>visibility_thinning_cps</code> a three-column matrix, otherwise similar to the matrix needed by <code>detectability_cps</code> but without the ”detected” column.
+For <code>ordering_cps</code> a matrix, each row corresponding to a tree, the first three columns being either (x, y, diameter) or  (r, phi, diameter).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>total</code></td>
+<td>
+
+<p>Do you want to estimate population totals (TRUE) or population means (FALSE)?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confidence.level</code></td>
+<td>
+
+<p>The level of the approximate confidence interval, a value between 0 and 1. For example, <code>confidence.level</code>=0.95 indicates a 95 per cent confidence interval. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.radius</code></td>
+<td>
+
+<p>Radius of the plot in which circular plot sampling has been performed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>A tuning parameter that controls the calculation of detection probabilities, or detectabilities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>polar</code></td>
+<td>
+
+<p>Are the locations of trees given in polar coordinates (TRUE) or cartesian coordinates (FALSE)?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npoly</code></td>
+<td>
+
+<p>Number of edges for the polygonal approximation of the plot boundary and the circles used to calculate the detection probabilities. Used if <code>delta</code>is NULL.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+
+<p>The tolerance of the polygonal approximation of of the plot boundary and the circles used to calculate the detection probabilities: the length of the arc that will be replaced by one edge of the polygon. If given value that is different from NULL tihs will override <code>npoly</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>For <code>polar_to_cart</code> a two-column matrix, each row containing the polar coordinates (r, phi) of a point. For <code>cart_to_polar</code> a two-column matrix, each row containing the cartesian coordinates (x, y) of a point. For <code>triangle_coords</code> and <code>shades</code> a three-column matrix, each row containing either the polar coordinates and a diameter of a tree (r, phi, diameter) or the cartesian coordinates and a diameter of a tree (x, y, diameter). The coordinates define the centre point of the tree.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>HTest_cps</code> produces estimates of forest characteristics of interest in a circular plot sampling situation. More specifically, it is assumed that an observer stands in a point and observes such trees that are within the fixed-area plot and are not hiding behind other trees. It is assumed that observer can record the locations and diameters of the trees that they observe. The observer can be a person or a piece of equipment, such as terrestrial laser scanner or camera.
+</p>
+<p>The estimation is based on a Horvitz–Thompson-like estimator presented by Kansanen et al. (2019). This construction uses approximated detection probabilities, or detectabilities, that depend on the size and distance from the plot centre of the tree for which the probability is calculated, the nonvisible area produced by trees that are closer to the centre point, and a visibility based detection condition.  It is assumed that the centre point of the sampling plot is the origin of the plane (0,0). The function <code>detectability_cps</code> is used to calculate the detectabilities.
+</p>
+<p>The confidence intervals that <code>HTest_cps</code> produces are based on the t-distribution if less than 50 trees have been observed, and the standard normal distribution otherwise.
+</p>
+<p>The parameter <code>alpha</code> is a value between -1 and 1 and it controls the detection condition. alpha=1 means that trees are detected if the stems are fully visible to the observer, alpha=0 means that they are detected if the center point is visible, and alpha=-1 means that a tree is detected if any part of the stem is visible.
+</p>
+<p>The estimation is not possible if the data contains trees that cover the plot centre point. 
+</p>
+<p>All of the variables related to distance and size, meaning the cartesian coordinates, the distance coordinate, <code>plot.radius</code>, <code>delta</code>, and tree diameters, should have the same unit, e.g. they should all be in metres.
+</p>
+<p>The function <code>visibility_thinning_cps</code> is useful for simulation-based testing of the estimator. Given a tree list, it classifies trees as either detected or not detected based on a visibility based detection condition.
+</p>
+<p>The function <code>ordering_cps</code> is a useful preprocessing step for tree lists over which estimation is needed. It reorders the rows of the tree list, corresponding to trees, based on the closest distance from the stem disc to the plot centre point. <code>detectability_cps</code> and <code>visibility_thinning_cps</code> use this ordering for their advantage, as this is the assumed order or sequence of detection. Be warned that even if you do not order the data with <code>ordering_cps</code> these functions will, and will output tree lists with this ordering!
+</p>
+<p>The functions <code>polar_to_cart</code>, <code>cart_to_polar</code>, <code>triangle_coords</code>, and <code>shades</code> are internal functions used by the two main functions. They can be useful for visualizing data.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>HTest_cps</code> returns a four-column matrix, the columns containing an estimate, estimated variance of the estimator, and lower and upper bound of the approximate confidence interval for the estimate. Rows of the matrix correspond to the forest characteristics of interest given in columns <code>2:ncol(data)</code> of the input matrix <code>data</code>. If the input matrix has named columns, these names are used as row names of the output matrix.
+</p>
+<p><code>detectability_cps</code> returns a matrix with the locations and diameters of the trees given as input, the indicators of their detection, and the estimated detection probabilities.
+</p>
+<p><code>visibility_thinning_cps</code> returns a four-column matrix with the locations and diameters of the trees given as input and the indicators of their detection: 1, if a tree has been detected based on the detection condition given by <code>alpha</code>, and 0, otherwise.
+</p>
+<p><code>ordering_cps</code> returns a matrix with same dimensions as the input matrix, rows being reordered in the assumed order of detection.
+</p>
+<p><code>polar_to_cart</code> returns a two-column matrix of cartesian coordinates (x, y).
+</p>
+<p><code>cart_to_polar</code> returns a two-column matrix of polar coordinates (r, phi).
+</p>
+<p><code>triangle_coords</code> returns an eight-column matrix, each row containing cartesian coordinates needed for forming a polygonal representation of an area behind a tree, nonvisible from the origin.
+</p>
+<p><code>shades</code> returns a list of <code>owin</code> objects, each representing an area behind a tree, nonvisible from the origin.
+</p>
+
+
+<h3>Note</h3>
+
+<p>These functions require the package <code>spatstat</code> (Baddeley et al. 2015) to work.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kasper Kansanen &lt;<a href="mailto:kasperkansanen@gmail.com">kasperkansanen@gmail.com</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Baddeley, A., Rubak, E. and Turner, R. (2015) <em>Spatial Point Patterns: Methodology and Applications with R</em>. 
+Chapman and Hall/CRC Press, London. <a href="https://doi.org/10.1201/b19708">doi:10.1201/b19708</a>
+</p>
+<p>Kansanen, K., Packalen, P., Maltamo, M., and Mehtatalo, L. (2020+) <em>Horvitz–Thompson-like estimation 
+with distance-based detection probabilities for circular plot sampling of forests</em>. Biometrics. 
+<a href="https://doi.org/10.1111/biom.13312">doi:10.1111/biom.13312</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Simulate a plot of radius 10 metres and stem density of 1000 trees/ha from the Poisson process:
+set.seed(1)
+N &lt;- rpois(1, lambda=0.1*pi*10^2)
+proc &lt;- cbind(10*sqrt(runif(N, 0 ,1)),  runif(N, -pi, pi), rweibull(N, shape=12, scale=22)/100)
+
+# Preprocess the data to the right order:
+proc &lt;- ordering_cps(proc)
+
+# Thin the data:
+thinned&lt;-visibility_thinning_cps(data=proc, plot.radius=10, alpha=1)
+
+# Calculate the detection probabilities:
+detprob &lt;- detectability_cps(data=thinned, plot.radius=10, alpha=1)
+
+# Calculate estimates of stand density (number of trees) and basal area 
+# (the sum of areas covered by tree stems at breast height):
+mydata&lt;-cbind(detprob[,5], 1, pi*detprob[,3]^2)
+
+HTest_cps(data=mydata)
+
+# Calculate estimate of mean DBH and a 99 per cent approximate confidence interval:
+mydata&lt;-cbind(detprob[,5], detprob[,3])
+
+HTest_cps(data=mydata, total=FALSE, confidence.level=0.99)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

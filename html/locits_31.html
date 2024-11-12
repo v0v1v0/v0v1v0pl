@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>StoreStatistics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Interogates calculation store to see how well we are
+reusing previous calculations (debugging)
+</h2>
+
+<h3>Description</h3>
+
+<p>The computation of the variance of the lacf
+estimator is intensive and we try to speed that up
+by reusing calculations. These calculations are stored
+in internal C arrays. This function interrogates those
+arrays and can provide details on how well the storage
+is working and provide hints if more storage needs to be
+allocated. For very large time series it is possible that
+values need to be calculated that can be stored and this
+function can monitor this.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">StoreStatistics()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>The function prints out the state of the storage.
+Three numbers are reported on. 1. The number of values
+that were calculated but not stored "outside framework".
+Ideally you want this number to be low, if it gets persistently
+high then more storage needs to be allocated in the
+C code (notably MAXELL, MAXJ, MAXK, MAXD for the
+ThmStore and ValExists arrays). 
+</p>
+<p>The other two numbers are "Number stored" and "Number found".
+The first number corresponds to the number of values calculated
+once and then stored. The second number contains the
+number of times the software interogated the store and found
+a value that it did not have to then calculate. So,
+ideally, you'd like the latter number to be a high percentage
+of the former number, as this means the store is working
+efficiently.
+</p>
+<p>Note, this function is definitely not intended for
+casual users. However, for users of very large series,
+who have the computational resources, these storage parameters
+might need to be increased.
+</p>
+<p>The values will be zero if <code>Rvarlacf</code> has not
+yet been called, and only refer to the last call to that function
+(as the function zeroes the store on invocation).
+</p>
+
+
+<h3>Value</h3>
+
+<p>None.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Guy Nason.
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>Rvarlacf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Simulate some data
+#
+x &lt;- tvar1sim()
+#
+# Calculate lacf and confidence intervals
+#
+x.lacf &lt;- Rvarlacf(x=x, nz=50, var.lag.max=20)
+#
+# Find out how the store did
+#
+StoreStatistics()
+#Number calculated outside framework:  0 
+#Number calculated then stored:  154440 
+#Number found in store:  14980680 
+#
+#Overall % calculated:  1.020408 
+#% outside framework:  0 
+</code></pre>
+
+
+</div>

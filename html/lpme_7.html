@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>moderegbwSIMEX</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Validation Bandwidth Selector Using SIMEX for Nonparametric Mode Regression</h2>
+
+<h3>Description</h3>
+
+<p>This function selects the bandwidth (Zhou and Huang, 2016) for the local polynomial estimators for nonparametric modal regression in the presence of measurement error.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">moderegbwSIMEX(Y, W, method="CV-density", p.order=0, sig, B=5, 
+               h1=NULL, h2=NULL, length.h=10, CIregion=0.95, nstart=4)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>         an n by 1 response vector. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>         an n by 1 predictor vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+   <p><code>method="CV-density"</code> is for density-based CV; <code>method="CV-mode"</code> is for mode-based CV; see Zhou and Huang (2016) for details. For measurement error models, <code>method="CV-density"</code> is recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.order</code></td>
+<td>
+<p>   the order of polynomial, up to 1; <code>p.order=0</code> returns local constant estimators and <code>p.order=1</code> returns local linear estimators. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig</code></td>
+<td>
+<p>      standard deviation of the measurement error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>        total number of cross-validation criteria to average over; defualt is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h1</code></td>
+<td>
+<p>       bandwidth vector for h1; default is <code>NULL</code>, and h1 is chosen automatically. See Zhou and Huang (2016) for details. It is recommended to carefully specify a fine grid for h1. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h2</code></td>
+<td>
+<p>      bandwidth vector for h2; default is <code>NULL</code>, and h2 is chosen automatically. See Zhou and Huang (2016) for details. It is recommended to carefully specify a fine grid for h2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length.h</code></td>
+<td>
+<p> number of grid points for each of h1 and h2; default is 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIregion</code></td>
+<td>
+<p> used to determine the interval on which the mode is estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>    the starting number of modes for each grid value.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The results include the bandwidth <code>bw</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Haiming Zhou and Xianzheng Huang
+</p>
+
+
+<h3>References</h3>
+
+<p>Zhou. H. and Huang, X. (2016). Nonparametric modal regression in the presence of measurement error. <em>Electronic Journal of Statistics</em>, 10: 3579-3620.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>modereg, moderegbw</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lpme)
+
+rlaplace=function (use.n, location = 0, scale = 1) 
+{
+  location &lt;- rep(location, length.out = use.n)
+  scale &lt;- rep(scale, length.out = use.n)
+  rrrr &lt;- runif(use.n)
+  location - sign(rrrr - 0.5) * scale * 
+    (log(2) + ifelse(rrrr &lt; 0.5, log(rrrr), log1p(-rrrr)))
+}
+
+## sample size:
+n =100;
+## Function m(x) to estimate#
+gofx1  = function(x){ (x+x^2) }
+gofx2  = function(x){ (x+x^2)-6 }
+xgrid	= seq(-2, 2, length.out=100); 
+ngrid	= length(xgrid)
+
+## Sample X
+X = rnorm(n, 0, 1); sigma_x=1;
+## Sample Y
+Y = rep(0, n);
+U = runif(n);
+for(i in 1:n){
+  if(U[i]&lt;0.5){
+    Y[i] = rnorm(1, gofx1(X[i]), 1);
+  }else{
+    Y[i] = rnorm(1, gofx2(X[i]), 1);
+  }
+}
+## reliability ratio
+lambda=0.9;
+sigma_u  = sqrt(1/lambda-1)*sigma_x;
+W=X+rlaplace(n,0,sigma_u/sqrt(2));
+
+## mode estimates
+hhxy = c(0.15, 1)
+## Note you needs to use the following code to calculate bandwidth
+## It is not run here due to the time constrain of runing examples. 
+#hhxy = moderegbwSIMEX(Y, W, method="CV-density", p.order=0, 
+#                      sig=sigma_u, B=5, length.h=10)$bw;
+fit = modereg(Y, W, xgrid=xgrid, bw=hhxy, sig=sigma_u, p.order=0,
+              PLOT=TRUE);
+
+## Plot
+plot(xgrid, gofx1(xgrid), "l", lwd="2", ylim=c(-9,7), xlim=c(-2,2));
+lines(xgrid, gofx2(xgrid), "l", lwd="2");
+points(rep(fit$xgrid,fit$x.num), fit$mode, col="3",lwd="2")
+</code></pre>
+
+
+</div>

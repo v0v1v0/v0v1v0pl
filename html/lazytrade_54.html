@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>write_command_via_csv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Write csv files with indicated commands to the external system</h2>
+
+<h3>Description</h3>
+
+<p>Function is capable to read the data and  writing multiple files
+e.g. 'SystemControl8139124.csv'
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">write_command_via_csv(x, path_terminal = "", fileName = "SystemControl")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<ul><li>
+<p> dataframe object with resulting command e.g. 1 - enable; 0 - disable
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_terminal</code></td>
+<td>
+
+<ul><li>
+<p> path to the terminal
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fileName</code></td>
+<td>
+
+<ul><li>
+<p> desired control file prefix e.g. 'SystemControl'
+</p>
+</li></ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Function is writing multiple files e.g. 'SystemControl8139124.csv' to the Sandbox
+</p>
+<p>typical content of the file:
+"Magic","IsEnabled"
+8139124,1
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2019, 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(readr)
+library(lubridate)
+library(lazytrade)
+
+path_sbxm &lt;- normalizePath(tempdir(),winslash = "/")
+
+file.copy(from = system.file("extdata", "OrdersResultsT1.csv", package = "lazytrade"),
+          to = file.path(path_sbxm, "OrdersResultsT1.csv"), overwrite = TRUE)
+
+DFT1 &lt;- import_data(path_sbxm = path_sbxm,
+                    trade_log_file = "OrdersResultsT1.csv")
+
+DFT1 %&gt;%
+group_by(MagicNumber) %&gt;% select(MagicNumber) %&gt;% mutate(IsEnabled = 0) %&gt;%
+# head to shorten time of this example
+head(2) %&gt;%
+# write commands to disable/enable systems
+write_command_via_csv(path_terminal = path_sbxm)
+
+
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hwt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute a Haar wavelet transform for data of arbitrary n length
+</h2>
+
+<h3>Description</h3>
+
+<p>Function computes Haar wavelet and scaling function coefficients
+for data set of any length. Algorithm computes every possible
+coefficient that it can for both decimated and nondecimated
+versions of the transform.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hwt(x, type = c("wavelet", "station"), reindex = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of length n, where n is a positive integer.
+This is the data that you wish to compute the Haar wavelet
+transform for.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of transform, either the decimated or nondecimated
+algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reindex</code></td>
+<td>
+<p>If TRUE then the routine attempts to match scales
+with the usual dyadic transform, <code>wd</code>. If FALSE then the
+coefficients that are returned are "as is"
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Essentially, this algorithm attempts to compute every
+possible Haar wavelet coefficient. For example, if the length
+of the input series was 6 then this means that three coefficients
+at the finest scale can be computed using the first, second and
+third pair of input data points using the weights
+<code>c(1, -1)/sqrt(2)</code>. However, from the three coefficients
+that result from this, there is only one pair, so only one
+"next coarser" coefficient can be computed.
+</p>
+<p>The <code>reindex</code> option is subtle. Essentially, it tries to
+ensure that the returned coefficients end up at the same
+scales as if a data set of the next highest dyadic length was
+analyzed by the wd function. E.g. if the length of the
+series was 10 then with <code>reindex=FALSE</code> (default)
+only three levels are returned for each of the wavelet and
+scaling coefficients. If <code>reindex=TRUE</code> then the number
+of levels returned would be as if <code>wd</code> analysed a data set
+of length 16 (the smallest dyadic number larger than 10).
+The wd levels would be zero to three and this is what
+would be returned in this function if <code>reindex=TRUE</code>.
+However, note, in this case, the coarsest level coefficient
+happens to be NULL (or not computable). One can view the algorithm
+as computing a partial transform of 10 of the 16 elements and
+substituting NA for anything it can't compute. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class hwtANYN which is a list with the following
+components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+<p>The scaling function coefficients. This is a list of length
+<code>nlevels</code> which contains the scaling function coefficients.
+The coarsest scale coefficients are to be found in the lowest-indexed
+slots of the list (e.g. c[[1]]) and increasing slot index corresponds
+to finer scales. So, <code>c[[length(c)]]</code> corresponds to the finest
+coefficients. Note, an entry in the slot can also be NULL. This
+indicates that no coefficients could be calculated at this scale,
+usually the coarsest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A for <code>c</code> but for wavelet coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlevels</code></td>
+<td>
+<p>The number of scale levels in the Haar wavelet decomposition.
+if <code>reindex=TRUE</code> then this number will be the log to base 2
+of the smallest power of two larger than the length of the input
+vector <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Whether a decimated wavelet transform has been computed
+(<code>"wavelet"</code>) or a nondecimated transform (<code>"station"</code>).
+Note, the name of the argument <code>"station"</code> has been chosen
+to coincide with the <code>type</code> in the regular wavelet
+transform computed by <code>wd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reindex</code></td>
+<td>
+<p>Either <code>TRUE</code> or <code>FALSE</code>. If <code>TRUE</code> then
+the scale levels correspond directly to those computed by
+<code>wd</code>, the regular wavelet transform. If <code>FALSE</code> then
+the levels returned in <code>c</code> and <code>d</code> are just indexed from
+the first non-null level.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>G. P. Nason
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a>
+</p>
+<p>Priestley, M.B. and Subba Rao (1969) A test for non-stationarity of
+time series. <em>J. R. Statist. Soc. B</em>, <b>31</b>, 140-149.
+</p>
+<p>von Sachs, R. and Neumann, M.H. (2000) A wavelet-based test for
+stationarity. <em>J. Time Ser. Anal.</em>, <b>21</b>,
+597-613.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>hwtos</code>,
+<code>plot.hwtANYN</code>, <code>print.hwtANYN</code>,
+<code>summary.hwtANYN</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Generate test data set of length 5 (note, NOT a power of two)
+#
+v2 &lt;- rnorm(5)
+#
+# Compute its Haar transform
+#
+v2hwt &lt;- hwt(v2)
+#
+# How many levels does it have?
+#
+nlevelsWT(v2hwt)
+#
+# What are the coarsest scale wavelet coefficients
+#
+v2hwt$d[[1]]
+#
+# What are the finest scale scaling function coefficients
+#
+v2hwt$c[[nlevels(v2hwt$c)-1]]
+</code></pre>
+
+
+</div>

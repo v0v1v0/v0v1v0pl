@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>delta.iptw.km</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimates survival and treatment effect using inverse probability of treatment weighted (IPTW) Kaplan-Meier estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the probability of survival past some specified time and the treatment effect, defined as the difference in survival at the specified time, using inverse probability of treatment weighted (IPTW) Kaplan-Meier estimation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">delta.iptw.km(tl, dl, treat, tt, var = FALSE, conf.int = FALSE, ps.weights = NULL, 
+weight.perturb = NULL, perturb.ps = FALSE, cov.for.ps = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tl</code></td>
+<td>
+
+<p>observed event time of primary outcome, equal to min(T, C) where T is the event time and C is the censoring time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dl</code></td>
+<td>
+
+<p>event indicator, equal to I(T&lt;C) where T is the event time and C is the censoring time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+
+<p>treatment indicator, should be 0/1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tt</code></td>
+<td>
+
+<p>the time of interest, function estimates the probability of survival past this time	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+
+<p>TRUE or FALSE; indicates whether variance estimates for the treatment effect and survival in each group are requested, default is FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+
+<p>TRUE or FALSE; indicates whether 95% confidence intervals for the treatment effect and survival in each group are requested, default is FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ps.weights</code></td>
+<td>
+
+<p>propensity score (or inverse probability of treatment) weights
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.perturb</code></td>
+<td>
+
+<p>a (n1+n0) by x matrix of weights where n1 = length of tl for treatment group 1 and n0 =  length of tl for treatment group 0; used for perturbation-resampling, default is null. If var or conf.int is TRUE and weight.perturb is not provided, the function generates exponential(1) weights. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perturb.ps</code></td>
+<td>
+
+<p>TRUE or FALSE indicating whether the weight.perturb matrix includes the perturbed propensity score (or inverse probability of treatment) weights; if cov.for.ps is supplied instead of ps.weights, this is forced to be TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.for.ps</code></td>
+<td>
+
+<p>matrix of covariates to be used to estimate propensity score (or inverse probability of treatment) weights; either ps.weights or cov.for.ps must be supplied. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let  <code class="reqn">T_{Li}</code> denote the time of the primary event of interest for person <code class="reqn">i</code>, <code class="reqn">C_i</code> denote the censoring time,  <code class="reqn">Z_{i}</code> denote the vector of baseline (pretreatment) covariates, and <code class="reqn">G_i</code> be the treatment group indicator such that <code class="reqn">G_i = 1</code> indicates treatment and <code class="reqn">G_i = 0</code> indicates control. Due to censoring, we observe <code class="reqn">X_{Li}= min(T_{Li}, C_{i})</code> and <code class="reqn">\delta_{Li} = I(T_{Li}\leq C_{i})</code>. This function estimates survival at time t within each treatment group, <code class="reqn">S_j(t) = P(T_{L} &gt; t | G = j)</code> for <code class="reqn">j = 1,0</code> and the treatment effect defined as <code class="reqn">\Delta(t) = S_1(t) - S_0(t)</code>.
+</p>
+<p>The inverse probability of treatment weighted (IPTW) Kaplan-Meier (KM) estimate of survival at time t for each treatment group is 
+</p>
+<p style="text-align: center;"><code class="reqn"> \hat{S}_{IPTW,KM, j}(t) = 
+       \prod _{t_{kj} \leq t} \left [1-\frac{d_{kj}^w}{y_{kj}^w}\right ]  \mbox{ if } t\geq t_{1j}, \mbox{ or } 
+         1  \mbox{ if } t&lt;t_{1j}</code>
+</p>
+      
+<p>where <code class="reqn">t_{1j},...,t_{Dj}</code> are the distinct observed event times of the primary outcome in treatment group j, <code class="reqn">d_{kj}^w = \sum_{i: X_{Li} = t_{kj}, \delta_{Li} = 1} {\hat{W}_j(Z_i)}^{-1}\delta_{Li} I(G_i = j)</code> and  <code class="reqn">y_{kj}^w = \sum_{i: X_{Li}  \geq  t_{kj}} {\hat{W}_j(Z_i)}^{-1} I(G_i = j), W_j(Z_i) = {P(G_{i} = j | Z_i)}</code>, and <code class="reqn">\hat{W}_j(Z_i)</code> is the estimated propensity score (see ps.wgt.fun for more information).  The IPTW KM estimate of treatment effect at time t is <code class="reqn">\hat{\Delta}_{IPTW,KM}(t) = \hat{S}_{IPTW,KM, 1}(t) - \hat{S}_{IPTW,KM, 0}(t)</code>.
+</p>
+<p>To obtain variance estimates and construct confidence intervals, we  use a perturbation-resampling method. Specifically, let <code class="reqn">\{V^{(b)}=(V_1^{(b)}, . . . ,V_n^{(b)})^{T}, b=1,...B\}</code> be 
+<code class="reqn">n\times B</code> independent copies of a positive random variable U from a known distribution with unit mean and unit variance such as an Exp(1) distribution.  To estimate the variance of our estimates, we appropriately weight the estimates using these perturbation weights to obtain perturbed values: <code class="reqn">\hat{S}_{IPTW,KM,0} (t)^{(b)}</code>, <code class="reqn">\hat{S}_{IPTW,KM,1} (t)^{(b)}</code>, and <code class="reqn">\hat{\Delta}_{IPTW,KM} (t)^{(b)}, b=1,...B</code>. We then estimate the variance of each estimate as the empirical variance of the perturbed quantities. To construct confidence intervals, one can either use the empirical percentiles of the perturbed samples  or a normal approximation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>S.estimate.1</code></td>
+<td>
+<p>the estimate of survival at the time of interest for treatment group 1, <code class="reqn">\hat{S}_1(t) = P(T&gt;t | G=1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.estimate.0</code></td>
+<td>
+<p>the estimate of survival at the time of interest for treatment group 0, <code class="reqn">\hat{S}_0(t) = P(T&gt;t | G=0)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.estimate</code></td>
+<td>
+<p>the estimate of treatment effect at the time of interest</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var.1 </code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{S}_1(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var.0 </code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{S}_0(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.var</code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{\Delta}(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>the p-value from testing <code class="reqn">\Delta(t) = 0</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.S.1</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_1(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.S.0</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_0(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.delta</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{\Delta}(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.S.1</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_1(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.S.0</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_0(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.delta</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{\Delta}(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Layla Parast
+</p>
+
+
+<h3>References</h3>
+
+<p>Xie, J., &amp; Liu, C. (2005). Adjusted Kaplan-Meier estimator and log-rank test with inverse probability of treatment weighting for survival data. Statistics in Medicine, 24(20), 3089-3110.
+</p>
+<p>Rosenbaum, P. R., &amp; Rubin, D. B. (1983). The central role of the propensity score in observational studies for causal effects. Biometrika, 70(1), 41-55.
+</p>
+<p>Rosenbaum, P. R., &amp; Rubin, D. B. (1984). Reducing bias in observational studies using subclassification on the propensity score. Journal of the American Statistical Association, 79(387), 516-524.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(example_obs)
+W.weight = ps.wgt.fun(treat = example_obs$treat, cov.for.ps = as.matrix(example_obs$Z))	
+delta.iptw.km(tl=example_obs$TL, dl = example_obs$DL, treat = example_obs$treat, tt=2, 
+ps.weights = W.weight) 
+delta.iptw.km(tl=example_obs$TL, dl = example_obs$DL, treat = example_obs$treat, tt=2,
+cov.for.ps = as.matrix(example_obs$Z)) 
+</code></pre>
+
+
+</div>

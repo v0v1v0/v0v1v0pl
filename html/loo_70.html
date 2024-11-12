@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loo_predictive_metric</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate leave-one-out predictive performance..</h2>
+
+<h3>Description</h3>
+
+<p>The <code>loo_predictive_metric()</code> function computes estimates of leave-one-out
+predictive metrics given a set of predictions and observations. Currently
+supported metrics are mean absolute error, mean squared error and root mean
+squared error for continuous predictions and accuracy and balanced accuracy
+for binary classification. Predictions are passed on to the <code>E_loo()</code>
+function, so this function assumes that the PSIS approximation is working
+well.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loo_predictive_metric(x, ...)
+
+## S3 method for class 'matrix'
+loo_predictive_metric(
+  x,
+  y,
+  log_lik,
+  ...,
+  metric = c("mae", "rmse", "mse", "acc", "balanced_acc"),
+  r_eff = 1,
+  cores = getOption("mc.cores", 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric matrix of predictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed on to <code>E_loo()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric vector of observations. Length should be equal to the
+number of rows in <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_lik</code></td>
+<td>
+<p>A matrix of pointwise log-likelihoods. Should be of same
+dimension as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>The type of predictive metric to be used. Currently
+supported options are <code>"mae"</code>, <code>"rmse"</code> and <code>"mse"</code> for regression and
+for binary classification <code>"acc"</code> and <code>"balanced_acc"</code>.
+</p>
+
+<dl>
+<dt><code>"mae"</code></dt>
+<dd>
+<p>Mean absolute error.
+</p>
+</dd>
+<dt><code>"mse"</code></dt>
+<dd>
+<p>Mean squared error.
+</p>
+</dd>
+<dt><code>"rmse"</code></dt>
+<dd>
+<p>Root mean squared error, given by as the square root of <code>MSE</code>.
+</p>
+</dd>
+<dt><code>"acc"</code></dt>
+<dd>
+<p>The proportion of predictions indicating the correct outcome.
+</p>
+</dd>
+<dt><code>"balanced_acc"</code></dt>
+<dd>
+<p>Balanced accuracy is given by the average of true positive and true
+negative rates.
+</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff</code></td>
+<td>
+<p>A Vector of relative effective sample size estimates containing
+one element per observation. See <code>psis()</code> for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization of <code style="white-space: pre;">⁠[psis()]⁠</code>.
+See <code>psis()</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+
+<dl>
+<dt><code>estimate</code></dt>
+<dd>
+<p>Estimate of the given metric.
+</p>
+</dd>
+<dt><code>se</code></dt>
+<dd>
+<p>Standard error of the estimate.
+</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (requireNamespace("rstanarm", quietly = TRUE)) {
+# Use rstanarm package to quickly fit a model and get both a log-likelihood
+# matrix and draws from the posterior predictive distribution
+library("rstanarm")
+
+# data from help("lm")
+ctl &lt;- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt &lt;- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+d &lt;- data.frame(
+  weight = c(ctl, trt),
+  group = gl(2, 10, 20, labels = c("Ctl","Trt"))
+)
+fit &lt;- stan_glm(weight ~ group, data = d, refresh = 0)
+ll &lt;- log_lik(fit)
+r_eff &lt;- relative_eff(exp(-ll), chain_id = rep(1:4, each = 1000))
+
+mu_pred &lt;- posterior_epred(fit)
+# Leave-one-out mean absolute error of predictions
+mae &lt;- loo_predictive_metric(x = mu_pred, y = d$weight, log_lik = ll,
+                            pred_error = 'mae', r_eff = r_eff)
+# Leave-one-out 90%-quantile of mean absolute error
+mae_90q &lt;- loo_predictive_metric(x = mu_pred, y = d$weight, log_lik = ll,
+                                pred_error = 'mae', r_eff = r_eff,
+                                type = 'quantile', probs = 0.9)
+}
+
+</code></pre>
+
+
+</div>

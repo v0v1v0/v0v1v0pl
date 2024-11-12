@@ -1,0 +1,305 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>qua2ci.cov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a Confidence Interval for Quantiles of a Parent Distribution using Sample Variance-Covariances of L-moments</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the lower and upper limits of a specified confidence interval for aribitrary quantile values for a sample <code class="reqn">x</code> and a specified distribution form. The estimation is based on the sample variance-covariance structure of the L-moments (<code>lmoms.cov</code>) through a Monte Carlo approach. The quantile values, actually the nonexceedance probabilities (<code class="reqn">F</code> for <code class="reqn">0 \le F \le 1</code>), are specified by the user. The user provides type of parent distribution distribution and this form which will be fitted internal to the function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">qua2ci.cov(x,f, type=NULL, nsim=1000,
+                interval=c("confidence", "none"), level=0.90, tol=1E-6,
+                asnorm=FALSE, altlmoms=NULL, flip=NULL, dimless=TRUE,
+                usefastlcov=TRUE, nmom=5, getsimlmom=FALSE, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probabilities (<code class="reqn">0 \le F \le 1</code>) of the quantiles for which the confidence interval is needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Three character distribution type (for example, type='gev').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of simulations to perform. Large numbers produce more refined confidence limit estimates at the cost of CPU time. The default is anticipated to be large enough to semi-quantitatively interpret results without too much computational delay. Larger simulation numbers are recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>The type of interval to compute. If <code>"none"</code>, then the simulated quantiles are returned at which point <em>only</em> the first value in <code class="reqn">f</code> or <code>f[1]</code> will be considered but a warning will be issued to remind the user. This option is nice for making boxplots of the quantile distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>The confidence interval (<code class="reqn">0 \le </code> <code>level</code> <code class="reqn"> &lt; 1</code>). The interval is specified as the size of the interval for which the default is 0.90 or the 90th percentile. The function will return the 5th [<code class="reqn">(1-0.90)/2</code>] and 95th [<code class="reqn">(1-(1-0.90)/2)</code>] percentile cumulative probability of the simulated quantile distribution as specified by the nonexceedance probability argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The tolerance argument of same name and default to feed to <code>MASS::mvrnorm()</code> and try increasing this tolerance if the error “'Sigma' is not positive definite” occurs (see <b>Note</b> for more discussion).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asnorm</code></td>
+<td>
+<p>Use the mean and standard deviation of the simulated quantiles as parameters of the Normal distribution to estimate the confidence interval. Otherwise, a Bernstein polynomial approximation (<code>dat2bernqua</code>) to the empirical distribution of the simulated quantile distribution is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>altlmoms</code></td>
+<td>
+<p>Alternative L-moments to rescale the simulated L-moments from the variance-covariance structure of the sample L-moments in <code>x</code>. These L-moments need to be an <span class="pkg">lmomco</span> package L-moment object (e.g. <code>lmoms</code>). The presence of alternative L-moments will result in <code>dimless=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flip</code></td>
+<td>
+<p>A flipping or reflection value denoted as <code class="reqn">\eta</code>. The values in <code>x</code> are flipped by this value (<code class="reqn">y = \eta - x</code>) and analysis proceeds with flipped information, and then results are flipped back just prior to returning values with the exception that if <code>getsimlmom=TRUE</code> then the simultated L-moments are in “flipped space.”</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dimless</code></td>
+<td>
+<p>Perform the simulations in dimensionless space meaning that values in <code>x</code> are converted by <code class="reqn">y = (x-\lambda_1)/\lambda_2</code> and simulation based on <code class="reqn">y</code> and scale is returned on output according to the L-moments of <code>x</code> or the alternative L-moments in <code>altlmoms</code>. Scale is returned to the simulated L-moments, if returned by <code>getsimlmom=TRUE</code>, which is not fully parallel with the returned behavior when flipping is involved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usefastlcov</code></td>
+<td>
+<p>A logical to use the function <code>Lmomcov()</code> from the <span class="pkg">Lmoments</span> package to compute the sample variance-covariance matrices and not the much slower function <code>lmoms.cov</code> in the <span class="pkg">lmomco</span> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>The number of L-moments involved. This argument needs to be high enough to permit parameterization of the distribution in <code>type</code> but computational effort increases as <code>nmom</code> gets large.  This option is provided in conjunction with <code>getsimlmom=TRUE</code> to be able to get a “wider set” of simulated L-moments returned than precisely required by the distribution. Also, some distributions might as part of their specific fitting algorithms, require inspection of higher L-moments than seemingly required than their numer of parameters suggests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getsimlmom</code></td>
+<td>
+<p>A logical controlling whether the simulated L-moment matrix having <code>nsim</code> rows and <code>nmom</code> columns is returned instead of confidence limits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The verbosity of the operation of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass such as to <code>lmom2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>data.frame</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lwr</code></td>
+<td>
+<p>The lower value of the confidence interval having nonexceedance probability equal to <code class="reqn">(1-</code><code>level</code><code class="reqn">)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>The fit of the quantile based on the L-moments of <code>x</code> and possibly by reflection controlled by <code>flip</code> or based on the alternative L-moments in <code>altlmoms</code> and again by the reflection controlled by <code>flip</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upr</code></td>
+<td>
+<p>The upper  value of the confidence interval having nonexceedance probability equal to <code class="reqn">1-(1-</code><code>level</code><code class="reqn">)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qua_med</code></td>
+<td>
+<p>The median of the simulated quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qua_mean</code></td>
+<td>
+<p>The mean of the simulated quantiles for which the median and mean should be very close if the simulation size is large enough and the quantile distribution is symmetrical.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qua_var</code></td>
+<td>
+<p>The variance (<code class="reqn">\sigma^2(F)</code>) of the simulated quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qua_lam2</code></td>
+<td>
+<p>The L-scale (<code class="reqn">\lambda_2(F)</code>) of the simulated quantiles for which <code class="reqn">\sigma^2(F) \approx \pi\times\lambda^2_2(F)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>These particular data set needs further evaluation as these particular sample can produce non-positive definite matrix being fed to <code>MASS:mvrnorm()</code>. It is noted that there are no ties in this data set.
+</p>
+<pre>
+  test_dat &lt;- c(0.048151736, 0.036753258, 0.034895847, 0.082792447, 0.096984927,
+                0.213977450, 0.020264292, 0.269585438, 0.304746113, 0.066339093,
+                0.015651114, 0.025122412, 0.184095698, 0.047167958, 0.049824752,
+                0.043390768, 0.055228680, 0.009325696, 0.042145010, 0.008113992,
+                0.118901521, 0.050399301, 0.049646181, 0.032299402, 0.015229284,
+                0.013684668, 0.049371734, 0.068426211, 0.207159600, 0.087228473,
+                0.306276783, 0.024870356, 0.016946801, 0.051553444, 0.017654117)
+  qua2ci.cov(test_dat, 0.5, type="pe3", tol=1E-6, nmom=5) # fails
+
+  lams &lt;- lmoms(    test_dat)$lambdas
+  lamc &lt;- lmoms.cov(test_dat)
+  n &lt;- 100
+  set.seed(1)
+  MV1 &lt;- mvtnorm::rmvnorm(n, mean=lams, sigma=lamc, method="eigen")
+  MV1 &lt;- mvtnorm::rmvnorm(n, mean=lams, sigma=lamc, method="chol")
+  MV1 &lt;- mvtnorm::rmvnorm(n, mean=lams, sigma=lamc, method="svd")
+  colnames(MV1) &lt;- paste0(rep("lam",5),1:5)
+  set.seed(1)
+  MV2 &lt;- MASS::mvrnorm(n, lams, lamc, tol=5E-2)
+  set.seed(1)
+  MV3 &lt;- MASS::mvrnorm(n, lams, lamc, tol=Inf)
+
+  summary(MV2-MV3)
+  summary(MV1)
+  summary(MV2)
+  plotlmrdia(lmrdia(), xlim=c(0.3,0.7), ylim=c(0,.6))
+  points(MV1[,3]/MV1[,2], MV1[,4]/MV1[,2], col="red",  cex=0.5)
+  points(MV2[,3]/MV2[,2], MV2[,4]/MV2[,2], col="blue", cex=0.5)
+</pre>
+<p>Next we, try focusing on the upper left corner of the matrix, after all we do not need beyond the 3rd moment because the Pearson III is being used.
+</p>
+<pre>
+  qua2ci.cov(test_dat, 0.5, type="pe3", tol=1E-6, nmom=3) # fails
+</pre>
+<p>Now try increasing the tolerance setting on the matrix postive definite test in the <code>MASS::mvrnorm()</code> function.
+</p>
+<pre>
+  qua2ci.cov(test_dat, 0.5, type="pe3", tol=1E-4, nmom=5) # fails
+</pre>
+<p>Now try again just focusing on the upper left corner that we really need.
+</p>
+<pre>
+  set.seed(1)
+  qua2ci.cov(test_dat, 0.5, type="pe3", tol=1E-4, nmom=3) # IT WORKS
+  # nonexceed     lwr      fit      upr  qua_med qua_mean   qua_var qua_lam2
+  #       0.5 0.02762 0.044426 0.061189 0.044322 0.044319 0.0001019 0.005672
+</pre>
+<p>Let us now try a hack of smoothing the data through the Bernstein polynomial. Perhaps subtle issues in the data can be “fixed” by this and the seed has been set to have the <code>MASS::mvrnorm()</code> see the same seed although the variance-covariance matrix is slightly changing. Notice that the tolerance now returns to the default and that we are requesting up through the 5th L-moment.
+</p>
+<pre>
+  set.seed(1)
+  n &lt;- length(test_dat)
+  smth_dat &lt;- dat2bernqua((1:n)/(n+1), test_dat)
+  qua2ci.cov(smth_dat, 0.5, type="pe3", tol=1E-6, nmom=5) # IT WORKS
+  # nonexceed     lwr      fit     upr  qua_med qua_mean   qua_var  qua_lam2
+  #       0.5 0.02864 0.048288 0.06778 0.048406 0.048201 0.0001405 0.0066678
+</pre>
+<p>A quick look at the smoothing. The author is not advocating for this but this trick might be useful in data-mining scale work where for some samples, we need something back. The user might then consider using the differences <code>upr</code><code class="reqn">-</code><code>fit</code> and <code>fit</code><code class="reqn">-</code><code>lwr</code> to reconstruct the interval from a fit based on the original sample.
+</p>
+<pre>
+  plot( (1:n)/(n+1), sort(test_dat))
+  lines((1:n)/(n+1), smth_dat, col=2)
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmoms</code>, <code>lmoms.cov</code>, <code>qua2ci.simple</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+samsize &lt;- 128; nsim &lt;- 2000; f &lt;- 0.999
+wei &lt;- parwei(vec2lmom(c(100,75,-.3)))
+set.seed(1734); X &lt;- rlmomco(samsize, wei); set.seed(1734)
+tmp &lt;- qua2ci.cov(X, f, type="wei", nsim=nsim)
+print(tmp) # show results of one 2000 replicated Monte Carlo
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#     0.999   310.4  333.2  360.2    333.6     334.3    227.3    8.4988
+set.seed(1734)
+qf &lt;- qua2ci.cov(X, f, type="wei", nsim=nsim, interval="none") # another
+boxplot(qf)
+message(" quantile variance: ", round(tmp$qua_var,  digits=2),
+        " compared to ", round(var(qf, na.rm=TRUE), digits=2))
+set.seed(1734)
+genci.simple(wei, n=samsize, f=f)
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#     0.999   289.7  312.0  337.7    313.5     313.6    213.5    8.2330
+
+#----------------------------------------
+# Using X from above example, demonstrate that using dimensionless
+# simulation that the results are the same.
+set.seed(145); qua2ci.cov(X, 0.1, type="wei") # both outputs same
+set.seed(145); qua2ci.cov(X, 0.1, type="wei", dimless=TRUE)
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#       0.1  -78.62 -46.01 -11.39   -43.58    -44.38   416.04     11.54
+
+#----------------------------------------
+# Using X again, demonstration application of the flip and notice that just
+# simple reversal is occurring and that the Weibull is a reversed GEV.
+eta &lt;- 0
+set.seed(145); qua2ci.cov(X, 0.9, type="wei", nsim=nsim)
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#       0.9   232.2  244.2  255.9    244.3     244.1    51.91    4.0635
+set.seed(145); qua2ci.cov(X, 0.9, type="gev", nsim=nsim, flip=eta)
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#       0.9   232.2  244.2  256.2    244.2     244.3    53.02    4.1088
+# The values are slightly different, which likely represents a combination
+# of numerics of the variance-covariance matrix because the Monte Carlo
+# is seeded the same.
+
+#----------------------------------------
+# Using X again, removed dimension and have the function add it back.
+lmr &lt;- lmoms(X); Y &lt;- (X - lmr$lambdas[1])/lmr$lambdas[2]
+set.seed(145); qua2ci.cov(Y, 0.9, type="wei", altlmoms=lmr, nsim=nsim)
+# nonexceed     lwr    fit    upr  qua_med  qua_mean  qua_var  qua_lam2
+#       0.9   232.2  244.2  255.9    244.3     244.1    51.91   4.0635
+## End(Not run)
+</code></pre>
+
+
+</div>

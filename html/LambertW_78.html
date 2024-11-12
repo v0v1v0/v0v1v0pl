@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>analyze_convergence</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Analyze convergence of Lambert W estimators</h2>
+
+<h3>Description</h3>
+
+<p>Analyzes the feasibility of a Lambert W x F distribution for a
+given dataset based on bootstrapping.  In particular it checks whether
+parameter estimates support the hypothesis that the data indeed follows a
+Lambert W x F distribution with finite mean and variance of the input
+distribution, which is an implicit assumption of Lambert W x F random
+variables in Goerg (2011).
+</p>
+<p>See Goerg (2016) for an alternative definition that does not rely on fnite
+second order moments (set <code>use.mean.variance = FALSE</code> to use that type
+of Lambert W <code class="reqn">\times</code> F distributions).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">analyze_convergence(
+  LambertW_fit,
+  sample.sizes = round(seq(0.2, 1, length = 5) * length(LambertW_fit$data)),
+  ...
+)
+
+## S3 method for class 'convergence_LambertW_fit'
+summary(object, type = c("basic", "norm", "perc", "bca"), ...)
+
+## S3 method for class 'convergence_LambertW_fit'
+plot(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LambertW_fit, object, x</code></td>
+<td>
+<p>an object of class <code>"LambertW_fit"</code> with an
+<code>IGMM</code> or <code>MLE_LambertW</code> estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample.sizes</code></td>
+<td>
+<p>sample sizes for several steps of the convergence
+analysis.  By default, one of them equals the length of the original
+data, which leads to improved plots (see
+<code>plot.convergence_LambertW_fit</code>); it is not necessary,
+though.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to <code>bootstrap</code> or
+<code>boot.ci</code> in <span class="pkg">boot</span> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of confidence interval from bootstrap estimates. Passes this
+argument along to <code>boot.ci</code>.  However, contrary to 
+the <code>type</code> argument in <code>boot.ci</code>, the <code>summary</code>
+function can only take one of <code>c("basic", "norm", "perc", "bca")</code>.
+See <code>boot.ci</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Stehlik and Hermann (2015) show that when researchers use the IGMM algorithm
+outlined in Goerg (2011) erroneously on data that does not have finite
+input variance (and hence mean), the algorithm estimates do not converge.
+</p>
+<p>In practice, researchers should of course first check if a given model is
+appropriate for their data-generating process.  Since original Lambert W x F
+distributions assume that mean and variance are finite, it is not a given
+that for a specific dataset the Lambert W x F setting makes sense.
+</p>
+<p>The bootstrap analysis reverses Stehlik and Hermann's argument and checks
+whether the IGMM estimates <code class="reqn">\lbrace \hat{\tau}^{(n)} \rbrace_{n}</code>
+converge for increasing (bootstrapped) sample size <code class="reqn">n</code>: if they do,
+then modeling the data with a Lambert W x F distribution is appropriate;
+if estimates do not converge, then this indicates that the input data is
+too heavy tailed for a classic skewed location-scale Lambert W x F
+framework. In this case, take a look at (double-)heavy tailed Lambert W x
+F distributions (<code>type = 'hh'</code>) or unrestricted location-scale
+Lambert W x F distributions (<code>use.mean.variance = FALSE</code>). For
+details see Goerg (2016).
+</p>
+
+
+<h3>References</h3>
+
+<p>Stehlik and Hermann (2015). “Letter to the Editor”. Ann. Appl. Stat. 9
+2051. doi:10.1214/15-AOAS864 – <a href="https://projecteuclid.org/euclid.aoas/1453994190">https://projecteuclid.org/euclid.aoas/1453994190</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+sim.data &lt;- list("Lambert W x Gaussian" = 
+                    rLambertW(n = 100, distname = "normal", 
+                              theta = list(gamma = 0.1, beta = c(1, 2))),
+                 "Cauchy" = rcauchy(n = 100))
+# do not use lapply() as it does not work well with match.call() in
+# bootstrap()
+igmm.ests &lt;- list()
+conv.analyses &lt;- list()
+for (nn in names(sim.data)) {
+  igmm.ests[[nn]] &lt;- IGMM(sim.data[[nn]], type = "s")
+  conv.analyses[[nn]] &lt;- analyze_convergence(igmm.ests[[nn]])
+}
+plot.lists &lt;- lapply(conv.analyses, plot)
+for (nn in names(plot.lists)) {
+  plot.lists[[nn]] &lt;- lapply(plot.lists[[nn]], "+", ggtitle(nn))
+}
+
+require(gridExtra)
+for (jj in seq_along(plot.lists[[1]])) {
+  grid.arrange(plot.lists[[1]][[jj]], plot.lists[[2]][[jj]], ncol = 2)
+}
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

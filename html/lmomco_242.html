@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parnor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Normal Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Normal distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The relation between distribution parameters and L-moments is seen under <code>lmomnor</code>. 
+</p>
+<p>There are interesting parallels between <code class="reqn">\lambda_2</code> (L-scale) and <code class="reqn">\sigma</code> (standard deviation). The <code class="reqn">\sigma</code> estimated from this function will not necessarily equal the output of the <code>sd</code> function of <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>, and in fact such equality is not expected. This disconnect between the parameters of the Normal distribution and the moments (sample) of the same name can be most confusing to young trainees in statistics. The Pearson Type III is similar. See the extended example for further illustration.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parnor(lmom, checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code>
+or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>nor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “parnor”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+<p>Hosking, J.R.M., 1996, FORTRAN routines for use with the method of L-moments: Version 3, IBM Research Report RC20525, T.J. Watson Research Center,
+Yorktown Heights, New York.
+</p>
+<p>Hosking, J.R.M., and Wallis, J.R., 1997, Regional frequency analysis—An approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomnor</code>,
+<code>cdfnor</code>, <code>pdfnor</code>, <code>quanor</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(rnorm(20))
+parnor(lmr)
+
+# A more extended example to explore the differences between an
+# L-moment derived estimate of the standard deviation and R's sd()
+true.std &lt;- 15000 # select a large standard deviation
+std         &lt;- vector(mode = "numeric") # vector of sd()
+std.by.lmom &lt;- vector(mode = "numeric") # vector of L-scale values
+sam &lt;- 7   # number of samples to simulate
+sim &lt;- 100 # perform simulation sim times
+for(i in seq(1,sim)) {
+  Q &lt;- rnorm(sam,sd=15000) # draw random normal variates
+  std[i] &lt;- sd(Q) # compute standard deviation
+  lmr &lt;- lmoms(Q) # compute the L-moments
+  std.by.lmom[i] &lt;- lmr$lambdas[2] # save the L-scale value
+}
+# convert L-scale values to equivalent standard deviations
+std.by.lmom      &lt;- sqrt(pi)*std.by.lmom
+
+# compute the two biases and then output
+# see how the standard deviation estimated through L-scale
+# has a smaller bias than the usual (product moment) standard
+# deviation. The unbiasness of L-moments is demonstrated.
+std.bias         &lt;- true.std - mean(std)
+std.by.lmom.bias &lt;- true.std - mean(std.by.lmom)
+cat(c(std.bias,std.by.lmom.bias,"\n"))
+</code></pre>
+
+
+</div>

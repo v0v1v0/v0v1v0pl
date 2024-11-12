@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>twCoefLogitnormN</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>twCoefLogitnormN</h2>
+
+<h3>Description</h3>
+
+<p>Estimating coefficients from a vector of quantiles and percentiles (non-vectorized).	</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">twCoefLogitnormN(quant, perc = c(0.5, 0.975), 
+    method = "BFGS", theta0 = c(mu = 0, sigma = 1), 
+    returnDetails = FALSE, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>quant</code></td>
+<td>
+<p>the quantile values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perc</code></td>
+<td>
+<p>the probabilities for which the quantiles were specified</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method of optimization (see <code>optim</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta0</code></td>
+<td>
+<p>starting parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnDetails</code></td>
+<td>
+<p>if TRUE, the full output of optim is returned instead of only entry par</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further parameters passed to optim, e.g. <code>control = list(maxit = 1000)</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>named numeric vector with estimated parameters of the logitnormal distribution.
+names: <code>c("mu","sigma")</code></p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thomas Wutzler</p>
+
+
+<h3>See Also</h3>
+
+<p><code>logitnorm</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># experiment of re-estimation the parameters from generated observations
+thetaTrue &lt;- c(mu = 0.8, sigma = 0.7)
+obsTrue &lt;- rlogitnorm(thetaTrue["mu"],thetaTrue["sigma"], n = 500)
+obs &lt;- obsTrue + rnorm(100, sd = 0.05)        # some observation uncertainty
+plot(density(obsTrue),col = "blue"); lines(density(obs))
+
+# re-estimate parameters based on the quantiles of the observations
+(theta &lt;- twCoefLogitnorm( median(obs), quantile(obs,probs = 0.9), perc = 0.9))
+
+# add line of estimated distribution
+x &lt;- seq(0,1,length.out = 41)[-c(1,41)]	# plotting grid
+dx &lt;- dlogitnorm(x,mu = theta[1],sigma = theta[2])
+lines( dx ~ x, col = "orange")
+</code></pre>
+
+
+</div>

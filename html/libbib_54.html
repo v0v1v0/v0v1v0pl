@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>worldcat_api_bib_read_info_by</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get bibliographic info from a standard number</h2>
+
+<h3>Description</h3>
+
+<p>Access the results of a WorldCat bib read API search by ISBN, ISSN,
+or OCLC number. The MARCXML returned by the API is parsed and the
+function returns a <code>data.table</code> containing the oclc number,
+ISBN, ISSN, title, author, MARC leader, and the 008 control field,
+respectively.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">worldcat_api_bib_read_info_by_oclc(
+  x,
+  wskey = getOption("libbib.wskey", NULL),
+  more = FALSE,
+  debug = FALSE
+)
+
+worldcat_api_bib_read_info_by_isbn(
+  x,
+  wskey = getOption("libbib.wskey", NULL),
+  more = FALSE,
+  debug = FALSE
+)
+
+worldcat_api_bib_read_info_by_issn(
+  x,
+  wskey = getOption("libbib.wskey", NULL),
+  more = FALSE,
+  debug = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A string representation of the standard number that the function
+chosen accepts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wskey</code></td>
+<td>
+<p>A WorldCat API key (default is <code>getOption("libbib.wskey")</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>more</code></td>
+<td>
+<p>A logical indicating whether more infomation from the MARCXML
+should be returned (publisher, bib level etc....) In the
+interest of memory consumption, the default is <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>A logical indicating whether the HTTP and bib read API
+responses should be printed (for debugging)
+(default is <code>FALSE</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Though this function gets all standard numbers (OCLC, ISBN, ISSN)
+from the MARCXML, the standard number that was supplied to the function
+will be the one in the returned <code>data.table</code>. For example, if
+you use <code>worldcat_api_bib_read_info_by_isbn</code>, the returned
+<code>data.table</code> will have that ISBN in the ISBN column, not the
+ISBN in the MARC record.
+</p>
+<p>If something went wrong, all columns (except the one corresponding to
+the supplied standard number) will be NA.
+</p>
+<p>This function is helpful to call before attempting to use
+the Location and Classify API functions as it will ensure that
+the supplied standard number actually resolves to a OCLC work.
+</p>
+<p>As with all API access functions in this package, it's up to the
+user to limit their API usage so as to not get blocked. These
+functions are deliberately not vectorized for this reason; they
+only accept one standard number at a time.
+</p>
+<p>This (and other) WorldCat API communication functions require a
+WorldCat API key. The easiest way to use these functions is to
+set a global options with your key:
+<code>options("libbib.wskey"="YOUR KEY HERE")</code>
+</p>
+<p>Final note: all of these API functions seem to work better with
+OCLC numbers than any other standard number. If multiple standard
+numbers are available, using the OCLC number is always preferred.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.table</code> containing the OCLC number, ISBN, ISSN,
+title, author, MARC leader, and the 008 control field,
+respectively,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+worldcat_api_bib_read_info_by_isbn("9780984201006")
+#         oclc          isbn   issn                        title
+#       &lt;char&gt;        &lt;char&gt; &lt;char&gt;                       &lt;char&gt;
+# 1: 462894360 9780984201006   &lt;NA&gt; The Great Debate about Art /
+#          author                   leader
+#          &lt;char&gt;                   &lt;char&gt;
+# 1: Harris, Roy, 00000cam a2200000 a 4500
+#                                        oh08
+#                                      &lt;char&gt;
+# 1: 091031s2010    ilua     b    000 0 eng c
+
+worldcat_api_bib_read_info_by_issn("13602365")
+#        oclc   isbn     issn                        title author
+#      &lt;char&gt; &lt;char&gt;   &lt;char&gt;                       &lt;char&gt; &lt;char&gt;
+# 1: 37787277   &lt;NA&gt; 14664410 The journal of architecture.   &lt;NA&gt;
+#                      leader                                     oh08
+#                      &lt;char&gt;                                   &lt;char&gt;
+# 1: 00000cas a2200000 a 4500 971015c19969999enkbx pso     0   a0eng c
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

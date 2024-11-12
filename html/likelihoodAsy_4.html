@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logMPL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Modified profile likelihood computation
+</h2>
+
+<h3>Description</h3>
+
+<p>This function evaluates the Modified Profile Likelihood (MPL) for a subset of the 
+model parameter. The result is optionally returned with a minus sign, so the function 
+can be used directly as input to a general-purpose optimizer.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logMPL(psival, data, mle, floglik, fscore=NULL, indpsi, datagen, R=500, seed=NULL, 
+       minus=FALSE, onestep=FALSE, jhat=NULL, trace=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>psival</code></td>
+<td>
+
+<p>A numerical vector containing the value of the parameter of interest.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data as a list. All the elements required to compute the likelihood function 
+at a given parameter value should be included in this list. The required format of such list 
+will be determined by the user-provided function <code>floglik</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle</code></td>
+<td>
+
+<p>A numerical vector, containing the maximum likelihood estimate of the entire model parameter. 	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floglik</code></td>
+<td>
+
+<p>A function which returns the log likelihood function at a given parameter value. 
+In particular, for a certain parameter value contained in a numerical vector <code>theta</code>,
+a call <code>floglik(theta, data)</code> should return a scalar numerical value, the log likelihood
+function at <code>theta</code>. Note that the parameter of interest should be a subset of the coordinates
+of <code>theta</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fscore</code></td>
+<td>
+
+<p>An optional function which returns the score function at a given parameter value. It must return a numerical
+vector of the same length of <code>mle</code>. For a certain parameter value contained in a numerical vector <code>theta</code>,
+a call <code>fscore(theta, data)</code> should return the gradient of the log likelihood function at <code>theta</code>. Default 
+is <code>NULL</code>, implying that numerical differentiation will be employed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indpsi</code></td>
+<td>
+
+<p>A vector of integers in the range <code>1:length(theta)</code> containing the indexes of the parameter of interest, so
+that the parameter of interest will be given by <code>theta[indpsi]</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datagen</code></td>
+<td>
+
+<p>A function which simulates a data set. A call  <code>datagen(theta, data)</code> will generate a copy of the <code>data</code> list, 
+with the values of the response variable replaced by a set of values simulated from the parametric statistical model assumed 
+for the response variable. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>The number of Monte Carlo replicates used for computing the modified profile likelihood. A positive integer, default 
+is <code>500</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>Optional positive integer, the random seed for the Monte Carlo computation. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minus</code></td>
+<td>
+
+<p>Logical. Should the modified profile likelihood be multiplied by -1? This may be useful for usage with 
+optimizers.  Default is <code>FALSE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onestep</code></td>
+<td>
+
+<p>Logical. If set to <code>TRUE</code> the constrained estimate of the nuisance parameter is replaced by a one-step approximation around the 
+maximum likelihood estimate. Default is <code>FALSE</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jhat</code></td>
+<td>
+
+<p>A squared matrix with dimension equal to <code>length(mle)</code> containing the observed information matrix evaluated at <code>mle</code>.
+It is employed only when <code>onestep=TRUE</code>. Default is <code>NULL</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>Logical. When set to <code>TRUE</code> will cause the printing of the MPL value, which can be useful to monitor 
+optimization. Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function  implements the Modified Profile Likelihood employing the approximation to sample space
+derivatives proposed in Skovgaard (1996). The function 
+is designed to be used with external functions, such as optimizers and evaluators over a grid of points.  
+</p>
+
+
+<h3>Value</h3>
+
+<p>A scalar value, minus the modified profile likelihood at <code>psival</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Severini, T.A. (2000). Likelihood Methods in Statistics. Oxford University Press.
+</p>
+<p>Skovgaard, I.M. (1996) An explicit large-deviation approximation to one-parameter tests. 
+<em>Bernoulli</em>, <b>2</b>, 145–165.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Approximating the conditional likelihood for logistic regression
+# Let us define the various functions	
+# Log likelihood for logistic regression
+loglik.logit&lt;- function(theta, data) 
+{
+  y &lt;- data$y
+  den &lt;- data$den
+  X &lt;- data$X
+  eta &lt;- X %*% theta
+  p &lt;- plogis(eta)
+  l &lt;- sum(y * log(p) + (den - y) * log(1-p))
+  return(l)
+}
+# Score function
+grad.logit&lt;- function(theta, data) 
+{
+  y &lt;- data$y
+  den &lt;- data$den
+  X &lt;- data$X
+  eta &lt;- X %*% theta
+  p &lt;- plogis(eta)
+  out &lt;- t(y - p * den) %*% X
+  return(drop(out))
+}
+# Data generator
+gendat.logit&lt;- function(theta, data)
+{
+  X &lt;- data$X
+  eta &lt;- X %*% theta
+  p &lt;- plogis(eta)
+  out &lt;- data
+  out$y &lt;- rbinom(length(data$y), size = data$den, prob = p)
+  return(out) 
+}		
+# Famous crying babies data
+data(babies)	
+mod.glm &lt;- glm(formula = cbind(r1, r2) ~ day + lull - 1, family = binomial, 
+               data = babies)
+data.obj &lt;- list(y = babies$r1, den = babies$r1 + babies$r2, 
+                 X = model.matrix(mod.glm))	
+# Numerical optimization of profile and modified profile log likelihoods
+max.prof &lt;- nlminb(0, logPL, data=data.obj, thetainit=coef(mod.glm), 
+                  floglik=loglik.logit, fscore=grad.logit, indpsi=19, minus=TRUE, trace=FALSE)
+max.mpl &lt;- nlminb(0, logMPL, data=data.obj, mle=coef(mod.glm), 
+                  floglik=loglik.logit, fscore=grad.logit, datagen=gendat.logit,
+                  indpsi=19, R=50, seed=2020, minus=TRUE, trace=FALSE)
+c(max.prof$par, max.mpl$par)                 
+# We can plot the profile likelihood and the modified profile likelihood
+# R=50 suffices for the modified profile likelihood as the model is a full exp. family
+psi.vals &lt;- seq(-0.3, 3.7, l=20)
+obj.prof &lt;- sapply(psi.vals, logPL, data=data.obj, thetainit=coef(mod.glm), 
+                floglik=loglik.logit, fscore=grad.logit, indpsi=19, trace=FALSE)
+obj.mpl &lt;- sapply(psi.vals, logMPL, data=data.obj, mle=coef(mod.glm), 
+                floglik=loglik.logit, fscore=grad.logit, datagen=gendat.logit,
+                indpsi=19, trace=FALSE, R=50, seed=2020)
+par(pch="s")
+plot(psi.vals, obj.prof - max(obj.prof), type="l", xlab=expression(psi), 
+     ylab="log likelihood", lwd=2, las=1)
+lines(psi.vals, obj.mpl - max(obj.mpl), col="red", lwd=2)
+legend("topright", col=c(1, 2), lty=1, lwd=2, legend=c("Profile","MPL"), bty="n")
+  
+</code></pre>
+
+
+</div>

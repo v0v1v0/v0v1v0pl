@@ -1,0 +1,1526 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LaplacesDemon</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Laplace's Demon</h2>
+
+<h3>Description</h3>
+
+<p>The <code>LaplacesDemon</code> function is the main function of Laplace's
+Demon. Given data, a model specification, and initial values,
+<code>LaplacesDemon</code> maximizes the logarithm of the unnormalized joint
+posterior density with MCMC and provides samples of the marginal
+posterior distributions, deviance, and other monitored variables.
+</p>
+<p>The <code>LaplacesDemon.hpc</code> function extends <code>LaplacesDemon</code> to
+parallel chains for multicore or cluster high performance computing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LaplacesDemon(Model, Data, Initial.Values, Covar=NULL, Iterations=10000,
+     Status=100, Thinning=10, Algorithm="MWG", Specs=list(B=NULL),
+     Debug=list(DB.chol=FALSE, DB.eigen=FALSE, DB.MCSE=FALSE,
+     DB.Model=TRUE), LogFile="", ...)
+LaplacesDemon.hpc(Model, Data, Initial.Values, Covar=NULL,
+     Iterations=10000, Status=100, Thinning=10, Algorithm="MWG",
+     Specs=list(B=NULL), Debug=list(DB.chol=FALSE, DB.eigen=FALSE,
+     DB.MCSE=FALSE, DB.Model=TRUE), LogFile="", Chains=2, CPUs=2,
+     Type="PSOCK", Packages=NULL, Dyn.libs=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Model</code></td>
+<td>
+<p>This required argument receives the model from a
+user-defined function that must be named Model. The user-defined
+function is where the model is specified. <code>LaplacesDemon</code>
+passes two arguments to the model function, <code>parms</code> and
+<code>Data</code>, and receives five arguments from the model function:
+<code>LP</code> (the logarithm of the unnormalized joint posterior),
+<code>Dev</code> (the deviance), <code>Monitor</code> (the monitored variables),
+<code>yhat</code> (the variables for posterior predictive checks), and
+<code>parm</code>, the vector of parameters, which may be constrained in
+the model function. More information on the Model specification
+function may be found in the "LaplacesDemon Tutorial" vignette, and
+the <code>is.model</code> function. Many examples of model
+specification functions may be found in the "Examples" vignette.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data</code></td>
+<td>
+<p>This required argument accepts a list of data. The list of
+data must contain <code>mon.names</code> which contains monitored variable
+names, and must contain <code>parm.names</code> which contains parameter
+names. The <code>as.parm.names</code> function may be helpful for
+preparing the data, and the <code>is.data</code> function may be
+helpful for checking data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Initial.Values</code></td>
+<td>
+<p>For <code>LaplacesDemon</code>, this argument requires
+a vector of initial values equal in length to the number of
+parameters. For <code>LaplacesDemon.hpc</code>, this argument also accepts
+a vector, in which case the same initial values will be applied to
+all parallel chains, or the argument accepts a matrix in which each
+row is a parallel chain and the number of columns is equal in length
+to the number of parameters. When a matrix is supplied for
+<code>LaplacesDemon.hpc</code>, each parallel chain begins with its own
+initial values that are preferably dispersed. For both
+<code>LaplacesDemon</code> and <code>LaplacesDemon.hpc</code>, each initial
+value will be the starting point for an adaptive chain or a
+non-adaptive Markov chain of a parameter. Parameters are assumed to
+be continuous, unless specified to be discrete (see <code>dparm</code>
+below), which is not accepted by all algorithms (see
+<code>dcrmrf</code> for an alternative). If all initial values are
+set to zero, then Laplace's Demon will attempt to optimize the
+initial values with the <code>LaplaceApproximation</code>
+function. After Laplace's Demon finishes updating, it may be desired
+to continue updating from where it left off. To continue, this
+argument should receive the last iteration of the previous update.
+For example, if the output object is called Fit, then
+<code>Initial.Values=as.initial.values(Fit)</code>. Initial values may be
+generated randomly with the <code>GIV</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Covar</code></td>
+<td>
+<p>This argument defaults to <code>NULL</code>, but may otherwise
+accept a <code class="reqn">K \times K</code> proposal covariance matrix
+(where <code class="reqn">K</code> is the number of dimensions or parameters), a
+variance vector, or a list of covariance matrices (for blockwise
+sampling in some algorithms). When the model is updated for the
+first time and prior variance or covariance is unknown, then
+<code>Covar=NULL</code> should be used. Some algorithms require
+covariance, some only require variance, and some require neither.
+Laplace's Demon automatically converts the user input to the
+required form. Once Laplace's Demon has finished updating, it may
+be desired to continue updating where it left off, in which case
+the proposal covariance matrix from the last run can be input into
+the next run. The covariance matrix may also be input from the
+<code>LaplaceApproximation</code> function, if used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Iterations</code></td>
+<td>
+<p>This required argument accepts integers larger than
+10, and determines the number of iterations that Laplace's Demon
+will update the parameters while searching for target
+distributions. The required amount of computer memory will increase
+with <code>Iterations</code>. If computer memory is exceeded, then all
+will be lost. The <code>Combine</code> function can be used later
+to combine multiple updates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Status</code></td>
+<td>
+<p>This argument accepts an integer between 1 and the
+number of iterations, and indicates how often, in iterations, the
+user would like the status printed to the screen or log
+file. Usually, the following is reported: the number of iterations,
+the proposal type (for example, multivariate or componentwise, or
+mixture, or subset), and LP. For example, if a model is updated for
+1,000 iterations and <code>Status=200</code>, then a status message will
+be printed at the following iterations: 200, 400, 600, 800, and
+1,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Thinning</code></td>
+<td>
+<p>This argument accepts integers between 1 and the
+number of iterations, and indicates that every nth iteration will be
+retained, while the other iterations are discarded. If
+<code>Thinning=5</code>, then every 5th iteration will be
+retained. Thinning is performed to reduce autocorrelation and the
+number of marginal posterior samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Algorithm</code></td>
+<td>
+<p>This argument accepts the abbreviated name of the
+MCMC algorithm, which must appear in quotes. A list of MCMC
+algorithms appears below in the Details section, and the
+abbreviated name is in parenthesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Specs</code></td>
+<td>
+<p>This argument defaults to <code>NULL</code>, and accepts a list
+of specifications for the MCMC algorithm declared in the
+<code>Algorithm</code> argument. The specifications associated with each
+algorithm may be seen below in the examples, must appear in the
+order shown, and are described in the details section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Debug</code></td>
+<td>
+<p>This argument accepts a list of logical scalars that
+control whether or not errors or warnings are reported due to a
+<code>try</code> function or non-finite values. List components include
+<code>DB.chol</code> regarding <code>chol</code>, <code>DB.eigen</code> regarding
+<code>eigen</code>, <code>DB.MCSE</code> regarding <code>MCSE</code>, and
+<code>DB.Model</code> regarding the Model specification function. Errors
+and warnings should be investigated, but do not necessarily indicate
+a faulty Model specification function or a bug in the software. For
+example, a sampler may make a proposal that would result in a matrix
+that is not positive definite, when it should be. This kind of error
+or warning is acceptable, provided the sampler handles it correctly
+by rejecting the proposal, and provided the Model specification
+function is not causing the issue. Oftentimes, blockwise sampling
+with carefully chosen blocks will mostly or completely eliminate
+errors or warnings that occur otherwise in larger, multivariate
+proposals. Similarly, debugged componentwise algorithms tend to
+provide more information than multivariate algorithms, since
+usually the parameter and both its current and proposed values may
+be reported. If confident in the Model specification function, and
+errors or warnings are produced frequently that are acceptable,
+then consider setting <code>DB.Model=FALSE</code> for cleaner output and
+faster sampling. If the Model specification function is not faulty
+and there is a bug in <code>LaplacesDemon</code>, then please report it
+with a bug description and reproducible code on 
+<a href="https://github.com/LaplacesDemonR/LaplacesDemon/issues">https://github.com/LaplacesDemonR/LaplacesDemon/issues</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LogFile</code></td>
+<td>
+<p>This argument is used to specify a log file name in
+quotes in the working directory as a destination, rather than the
+console, for the output messages of <code>cat</code> and <code>stop</code>
+commands. It is helpful to assign a log file name when
+using multiple cores, such as with <code>LaplacesDemon.hpc</code>. Doing
+so allows the user to check the progress in the log. A number of log
+files are created, one for each chain, and one for the overall
+process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Chains</code></td>
+<td>
+<p>This argument is required only for
+<code>LaplacesDemon.hpc</code>, and indicates the number of parallel
+chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CPUs</code></td>
+<td>
+<p>This argument is required for parallel independent or
+interactive chains in <code>LaplacesDemon</code> or
+<code>LaplacesDemon.hpc</code>, and indicates the number of central
+processing units (CPUs) of the computer or cluster. For example,
+when a user has a quad-core computer, <code>CPUs=4</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Type</code></td>
+<td>
+<p>This argument defaults to <code>"PSOCK"</code> and uses the
+Simple Network of Workstations (SNOW) for parallelization.
+Alternatively, <code>Type="MPI"</code> may be specified to use Message
+Passing Interface (MPI) for parallelization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Packages</code></td>
+<td>
+<p>This optional argument is for use with parallel
+independent or interacting chains, and defaults to <code>NULL</code>. This
+argument accepts a vector of package names to load into each
+parallel chain. If the <code>Model</code> specification depends on any
+packages, then these package names need to be in this vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Dyn.libs</code></td>
+<td>
+<p>This optional argument is for use with parallel
+independent or interacting chain, and defaults to <code>NULL</code>. This
+argument accepts a vector of the names of dynamic link libraries
+(shared objects) to load into each parallel chain. The libraries
+must be located in the working directory.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments are unused.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>LaplacesDemon</code> offers numerous MCMC algorithms for numerical
+approximation in Bayesian inference. The algorithms are
+</p>
+
+<ul>
+<li>
+<p> Adaptive Directional Metropolis-within-Gibbs (ADMG)
+</p>
+</li>
+<li>
+<p> Adaptive Griddy-Gibbs (AGG)
+</p>
+</li>
+<li>
+<p> Adaptive Hamiltonian Monte Carlo (AHMC)
+</p>
+</li>
+<li>
+<p> Adaptive Metropolis (AM)
+</p>
+</li>
+<li>
+<p> Adaptive Metropolis-within-Gibbs (AMWG)
+</p>
+</li>
+<li>
+<p> Adaptive-Mixture Metropolis (AMM)
+</p>
+</li>
+<li>
+<p> Affine-Invariant Ensemble Sampler (AIES)
+</p>
+</li>
+<li>
+<p> Componentwise Hit-And-Run Metropolis (CHARM)
+</p>
+</li>
+<li>
+<p> Delayed Rejection Adaptive Metropolis (DRAM)
+</p>
+</li>
+<li>
+<p> Delayed Rejection Metropolis (DRM)
+</p>
+</li>
+<li>
+<p> Differential Evolution Markov Chain (DEMC)
+</p>
+</li>
+<li>
+<p> Elliptical Slice Sampler (ESS)
+</p>
+</li>
+<li>
+<p> Gibbs Sampler (Gibbs)
+</p>
+</li>
+<li>
+<p> Griddy-Gibbs (GG)
+</p>
+</li>
+<li>
+<p> Hamiltonian Monte Carlo (HMC)
+</p>
+</li>
+<li>
+<p> Hamiltonian Monte Carlo with Dual-Averaging (HMCDA)
+</p>
+</li>
+<li>
+<p> Hit-And-Run Metropolis (HARM)
+</p>
+</li>
+<li>
+<p> Independence Metropolis (IM)
+</p>
+</li>
+<li>
+<p> Interchain Adaptation (INCA)
+</p>
+</li>
+<li>
+<p> Metropolis-Adjusted Langevin Algorithm (MALA)
+</p>
+</li>
+<li>
+<p> Metropolis-Coupled Markov Chain Monte Carlo (MCMCMC)
+</p>
+</li>
+<li>
+<p> Metropolis-within-Gibbs (MWG)
+</p>
+</li>
+<li>
+<p> Multiple-Try Metropolis (MTM)
+</p>
+</li>
+<li>
+<p> No-U-Turn Sampler (NUTS)
+</p>
+</li>
+<li>
+<p> Oblique Hyperrectangle Slice Sampler (OHSS)
+</p>
+</li>
+<li>
+<p> Preconditioned Crank-Nicolson (pCN)
+</p>
+</li>
+<li>
+<p> Random Dive Metropolis-Hastings (RDMH)
+</p>
+</li>
+<li>
+<p> Random-Walk Metropolis (RWM)
+</p>
+</li>
+<li>
+<p> Reflective Slice Sampler (RSS)
+</p>
+</li>
+<li>
+<p> Refractive Sampler (Refractive)
+</p>
+</li>
+<li>
+<p> Reversible-Jump (RJ)
+</p>
+</li>
+<li>
+<p> Robust Adaptive Metropolis (RAM)
+</p>
+</li>
+<li>
+<p> Sequential Adaptive Metropolis-within-Gibbs (SAMWG)
+</p>
+</li>
+<li>
+<p> Sequential Metropolis-within-Gibbs (SMWG)
+</p>
+</li>
+<li>
+<p> Slice Sampler (Slice)
+</p>
+</li>
+<li>
+<p> Stochastic Gradient Langevin Dynamics (SGLD)
+</p>
+</li>
+<li>
+<p> Tempered Hamiltonian Monte Carlo (THMC)
+</p>
+</li>
+<li>
+<p> t-walk (twalk)
+</p>
+</li>
+<li>
+<p> Univariate Eigenvector Slice Sampler (UESS)
+</p>
+</li>
+<li>
+<p> Updating Sequential Adaptive Metropolis-within-Gibbs (USAMWG)
+</p>
+</li>
+<li>
+<p> Updating Sequential Metropolis-within-Gibbs (USMWG)
+</p>
+</li>
+</ul>
+<p>It is a goal for the documentation in the <span class="pkg">LaplacesDemon</span> to be
+extensive. However, details of MCMC algorithms are best explored
+online at <a href="https://web.archive.org/web/20150206014000/http://www.bayesian-inference.com/mcmc">https://web.archive.org/web/20150206014000/http://www.bayesian-inference.com/mcmc</a>, as well
+as in the "LaplacesDemon Tutorial" vignette, and the "Bayesian
+Inference" vignette. Algorithm specifications (<code>Specs</code>) are
+listed below:
+</p>
+
+<ul>
+<li> <p><code>A</code> is used in AFSS, HMCDA, MALA, NUTS, OHSS, and UESS. In
+MALA, it is the maximum acceptable value of the Euclidean norm of
+the adaptive parameters mu and sigma, and the Frobenius norm of the
+covariance matrix. In AFSS, HMCDA, NUTS, OHSS, and UESS, it is the
+number of initial, adaptive iterations to be discarded as burn-in.
+</p>
+</li>
+<li> <p><code>Adaptive</code> is the iteration in which adaptation begins,
+and is used in AM, AMM, DRAM, INCA, and Refractive. Most of these
+algorithms adapt according to an observed covariance matrix, and
+should sample before beginning to adapt.
+</p>
+</li>
+<li> <p><code>alpha.star</code> is the target acceptance rate in MALA and
+RAM, and is optional in CHARM and HARM. The recommended value for
+multivariate proposals is <code>alpha.star=0.234</code>, for componentwise
+proposals is <code>alpha.star=0.44</code>, and for MALA is
+<code>alpha.star=0.574</code>.
+</p>
+</li>
+<li> <p><code>at</code> affects the traverse move in twalk. <code>at=6</code> is
+recommended. It helps when some parameters are highly correlated,
+and the correlation structure may change through the
+state-space. The traverse move is associated with an acceptance rate
+that decreases as the number of parameters increases, and is the
+reason that <code>n1</code> is used to select a subset of parameters each
+iteration. If adjusted, it is recommended to stay in the interval
+[2,10].
+</p>
+</li>
+<li> <p><code>aw</code> affects the walk move in twalk, and <code>aw=1.5</code> is
+recommended. If adjusted, it is recommended to stay in the
+interval [0.3,2].
+</p>
+</li>
+<li> <p><code>beta</code> is a scale parameter for AIES, and defaults to 2,
+or an autoregressive parameter for pCN.
+</p>
+</li>
+<li> <p><code>bin.n</code> is the scalar size parameter for a binomial prior
+distribution of model size for the RJ algorithm.
+</p>
+</li>
+<li> <p><code>bin.p</code> is the scalar probability parameter for a
+binomial prior distribution of model size for the RJ algorithm.
+</p>
+</li>
+<li> <p><code>B</code> is a list of blocked parameters. Each component of
+the list represents a block of parameters, and contains a vector in
+which each element is the position of the associated parameter in
+parm.names. This function is optional in the AFSS, AMM, AMWG, ESS,
+HARM, MWG, RAM, RWM, Slice, and UESS algorithms. For more
+information on blockwise sampling, see the <code>Blocks</code>
+function.
+</p>
+</li>
+<li> <p><code>Begin</code> indicates the time-period in which to begin
+updating (filtering or predicting) in the USAMWG and USMWG
+algorithms.
+</p>
+</li>
+<li> <p><code>Bounds</code> is used in the Slice algorithm. It is a vector
+of length two with the lower and upper boundary of the slice. For
+continuous parameters, it is often set to negative and positive
+infinity, while for discrete parameters it is set to the minimum
+and maximum discrete values to be sampled. When blocks are used,
+this must be supplied as a list with the same number of list
+components as the number of blocks.
+</p>
+</li>
+<li> <p><code>delta</code> is used in HMCDA, MALA, and NUTS. In HMCDA and
+NUTS, it is the target acceptance rate, and the recommended value is
+0.65 in HMCDA and 0.6 in NUTS. In MALA, it is a constant in the
+bounded drift function, may be in the interval [1e-10,1000], and 1
+is the default.
+</p>
+</li>
+<li> <p><code>Dist</code> is the proposal distribution in RAM, and may
+either be <code>Dist="t"</code> for t-distributed or <code>Dist="N"</code> for
+normally-distributed.
+</p>
+</li>
+<li> <p><code>dparm</code> accepts a vector of integers that indicate
+discrete parameters. This argument is for use with the AGG or GG
+algorithm.
+</p>
+</li>
+<li> <p><code>Dyn</code> is a <code class="reqn">T \times K</code> matrix of dynamic
+parameters, where <code class="reqn">T</code> is the number of time-periods and <code class="reqn">K</code>
+is the number of dynamic parameters. <code>Dyn</code> is used by SAMWG,
+SMWG, USAMWG, and USMWG. Non-dynamic parameters are updated first in
+each sampler iteration, then dynamic parameters are updated in a
+random order in each time-period, and sequentially by time-period.
+</p>
+</li>
+<li> <p><code>epsilon</code> is used in AHMC, HMC, HMCDA, MALA, NUTS, SGLD,
+and THMC. It is the step-size in all algorithms except MALA. It is
+a vector equal in length to the number of parameters in AHMC, HMC,
+and THMC. It is a scalar in HMCDA and NUTS. It is either a scalar
+or a vector equal in length to the number of iterations in SGLD.
+When <code>epsilon=NULL</code> in HMCDA or NUTS (only), a reasonable
+initial value is found. In MALA, it is a vector of length two. The
+first element is the acceptable minimum of adaptive scale sigma, and
+the second element is added to the diagonal of the covariance matrix
+for regularization.
+</p>
+</li>
+<li> <p><code>FC</code> is used in Gibbs and accepts a function that
+receives two arguments: the vector of all parameters and the list of
+data (similar to the Model specification function). FC must return
+the updated vector of all parameters. The user specifies FC to
+calculate the full conditional distribution of one or more
+parameters.
+</p>
+</li>
+<li> <p><code>file</code> is the quoted name of a numeric matrix of data,
+without headers, for SGLD. The big data set must be a .csv
+file. This matrix has <code>Nr</code> rows and <code>Nc</code> columns. Each
+iteration, SGLD will randomly select a block of rows, where the
+number of rows is specified by the <code>size</code> argument.
+</p>
+</li>
+<li> <p><code>Fit</code> is an object of class <code>demonoid</code> in the USAMWG
+and USMWG algorithms. Posterior samples before the time-period
+specified in the <code>Begin</code> argument are not updated, and are used
+instead from <code>Fit</code>.
+</p>
+</li>
+<li> <p><code>gamma</code> controls the step size in DEMC or the decay of
+adaptation in MALA and RAM. In DEMC, it is positive and defaults to
+<code class="reqn">2.38 / \sqrt{2J}</code> when <code>NULL</code>, where
+<code class="reqn">J</code> is the length of initial values. For RAM, it is in the
+interval (0.5,1], and 0.66 is recommended. For MALA, it is in the
+interval (1,<code>Iterations</code>), and defaults to 1.
+</p>
+</li>
+<li> <p><code>Grid</code> accepts either a vector or a list of vectors of
+evenly-spaced points on a grid for the AGG or GG algorithm. When the
+argument is a vector, the same grid is applied to all
+parameters. When the argument is a list, each component in the list
+has a grid that is applied to the corresponding parameter. The
+algorithm will evaluate each continuous parameter at the latest
+value plus each point in the grid, or each discrete parameter (see
+<code>dparm</code>) at each grid point (which should be each discrete
+value).
+</p>
+</li>
+<li> <p><code>K</code> is a scalar number of proposals in MTM.
+</p>
+</li>
+<li> <p><code>L</code> is a scalar number of leapfrog steps in AHMC, HMC, and
+THMC. When <code>L=1</code>, the algorithm reduces to Langevin Monte Carlo
+(LMC).
+</p>
+</li>
+<li> <p><code>lambda</code> is used in HMCDA and MCMCMC. In HMCDA, it is a
+scalar trajectory length. In MCMCMC, it is either a scalar that
+controls temperature spacing, or a vector of temperature spacings.
+</p>
+</li>
+<li> <p><code>Lmax</code> is a scalar maximum for <code>L</code> (see above) in
+HMCDA and NUTS.
+</p>
+</li>
+<li> <p><code>m</code> is used in the AFSS, AHMC, HMC, Refractive, RSS, Slice,
+THMC, and UESS algorithms. In AHMC, HMC, and THMC, it is a
+<code class="reqn">J \times J</code> mass matrix for <code class="reqn">J</code> initial values. In
+AFSS and UESS, it is a scalar, and is the maximum number of steps
+for creating the slice interval. In Refractive and RSS, it is a
+scalar, and is the number of steps to take per iteration. In Slice,
+it is either a scalar or a list with as many list components as
+blocks. It must be an integer in [1,Inf], and indicates the maximum
+number of steps for creating the slice interval.
+</p>
+</li>
+<li> <p><code>mu</code> is a vector that is equal in length to the initial
+values. This vector will be used as the mean of the proposal
+distribution, and is usually the posterior mode of a
+previously-updated <code>LaplaceApproximation</code>.
+</p>
+</li>
+<li> <p><code>MWG</code> is used in Gibbs to specify a vector of parameters
+that are to receive Metropolis-within-Gibbs updates. Each element is
+an integer that indicates the parameter.
+</p>
+</li>
+<li> <p><code>Nc</code> is either the number of (un-parallelized) parallel
+chains in DEMC (and must be at least 3) or the number of columns of
+big data in SGLD.
+</p>
+</li>
+<li> <p><code>Nr</code> is the number of rows of big data in SGLD.
+</p>
+</li>
+<li> <p><code>n</code> is the number of previous iterations in ADMG, AFSS,
+AMM, AMWG, OHSS, RAM, and UESS.
+</p>
+</li>
+<li> <p><code>n1</code> affects the size of the subset of each set of points
+to adjust, and is used in twalk. It relates to the number of
+parameters, and <code>n1=4</code> is recommended. If adjusted, it is
+recommended to stay in the interval [2,20].
+</p>
+</li>
+<li> <p><code>parm.p</code> is a vector of probabilities for parameter
+selection in the RJ algorithm, and must be equal in length to
+the number of initial values.
+</p>
+</li>
+<li> <p><code>r</code> is a scalar used in the Refractive algorithm to
+indicate the ratio between r1 and r2.
+</p>
+</li>
+<li> <p><code>Periodicity</code> specifies how often in iterations the
+adaptive algorithm should adapt, and is used by AHMC, AM, AMM, AMWG,
+DRAM, INCA, SAMWG, and USAMWG. If <code>Periodicity=10</code>, then the
+algorithm adapts every 10th iteration. A higher <code>Periodicity</code>
+is associated with an algorithm that runs faster, because it does
+not have to calculate adaptation as often, though the algorithm
+adapts less often to the target distributions, so it is a
+trade-off. It is recommended to use the lowest value that runs
+fast enough to suit the user, or provide sufficient adaptation.
+</p>
+</li>
+<li> <p><code>selectable</code> is a vector of indicators of whether or not
+a parameter is selectable for variable selection in the RJ
+algorithm. Non-selectable parameters are assigned a zero, and are
+always in the model. Selectable parameters are assigned a one. This
+vector must be equal in length to the number of initial values.
+</p>
+</li>
+<li> <p><code>selected</code> is a vector of indicators of whether or not
+each parameter is selected when the RJ algorithm begins, and
+must be equal in length to the number of initial values.
+</p>
+</li>
+<li> <p><code>SIV</code> stands for secondary initial values and is used by
+twalk. <code>SIV</code> must be the same length as <code>Initial.Values</code>,
+and each element of these two vectors must be unique from each
+other, both before and after being passed to the <code>Model</code>
+function. <code>SIV</code> defaults to <code>NULL</code>, in which case values
+are generated with <code>GIV</code>.
+</p>
+</li>
+<li> <p><code>size</code> is the number of rows of big data to be read into
+SGLD each iteration.
+</p>
+</li>
+<li> <p><code>smax</code> is the maximum allowable tuning parameter sigma,
+the standard deviation of the conditional distribution, in the AGG
+algorithm.
+</p>
+</li>
+<li> <p><code>Temperature</code> is used in the THMC algorithm to heat up
+the momentum in the first half of the leapfrog steps, and then cool
+down the momentum in the last half. <code>Temperature</code> must be
+positive. When greater than 1, THMC should explore more diffuse
+distributions, and may be helpful with multimodal distributions.
+</p>
+</li>
+<li> <p><code>Type</code> is used in the Slice algorithm. It is either a
+scalar or a list with the same number of list components as blocks.
+This accepts <code>"Continuous"</code> for continuous parameters,
+<code>"Nominal"</code> for discrete parameters that are unordered, and
+<code>"Ordinal"</code> for discrete parameters that are ordered.
+</p>
+</li>
+<li> <p><code>w</code> is used in AFSS, AMM, DEMC, Refractive, RSS, and
+Slice. It is a mixture weight for both the AMM and DEMC algorithms,
+and in these algorithms it is in the interval (0,1]. For AMM, it is
+recommended to use <code>w=0.05</code>, as per Roberts and Rosenthal
+(2009). The two mixture components in AMM are adaptive multivariate
+and static/symmetric univariate proposals. The mixture is determined
+at each iteration with mixture weight <code>w</code>. In the AMM
+algorithm, a higher value of <code>w</code> is associated with more
+static/symmetric univariate proposals, and a lower <code>w</code> is
+associated with more adaptive multivariate proposals. AMM will be
+unable to include the multivariate mixture component until it has
+accumulated some history, and models with more parameters will take
+longer to be able to use adaptive multivariate proposals. In DEMC,
+it indicates the probability that each iteration uses a snooker
+update, rather than a projection update, and the recommended default
+is <code>w=0.1</code>. In the Refractive algorithm, <code>w</code> is a scalar
+step size parameter. In AFSS, RSS, and the Slice algorithms, this is
+a step size interval for creating the slice interval. In AFSS and
+RSS, a scalar or vector equal in length the number of initial values
+is accepted. In Slice, a scalar or a list with a number of list
+components equal to the number of blocks is accepted.
+</p>
+</li>
+<li> <p><code>Z</code> accepts a <code class="reqn">T \times J</code> matrix or <code class="reqn">T
+    \times J \times Nc</code> array of thinned samples for <code class="reqn">T</code>
+thinned iterations, <code class="reqn">J</code> parameters, and <code class="reqn">Nc</code> chains for
+DEMC. <code>Z</code> defaults to <code>NULL</code>. The matrix of thinned
+posterior samples from a previous run may be used, in which case the
+samples are copied across the chains.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p><code>LaplacesDemon</code> returns an object of class <code>demonoid</code>, and
+<code>LaplacesDemon.hpc</code> returns an object of class
+<code>demonoid.hpc</code> that is a list of objects of class
+<code>demonoid</code>, where the number of components in the list
+is the number of parallel chains. Each object of class <code>demonoid</code> 
+is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Acceptance.Rate</code></td>
+<td>
+<p>This is the acceptance rate of the MCMC
+algorithm, indicating the percentage of iterations in which the
+proposals were accepted. For more information on acceptance rates,
+see the <code>AcceptanceRate</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Algorithm</code></td>
+<td>
+<p>This reports the specific algorithm used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Call</code></td>
+<td>
+<p>This is the matched call of <code>LaplacesDemon</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Covar</code></td>
+<td>
+<p>This stores the <code class="reqn">K \times K</code> proposal
+covariance matrix (where <code class="reqn">K</code> is the dimension or number of
+parameters), variance vector, or list of covariance matrices.
+If variance or covariance is used for adaptation, then this
+covariance is returned. Otherwise, the variance of the samples of
+each parameter is returned. If the model is updated in the future,
+then this vector, matrix, or list can be used to start the next
+update where the last update left off. Only the diagonal of this
+matrix is reported in the associated <code>print</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CovarDHis</code></td>
+<td>
+<p>This <code class="reqn">N \times K</code> matrix stores the
+diagonal of the proposal covariance matrix of each adaptation in
+each of <code class="reqn">N</code> rows for <code class="reqn">K</code> dimensions, where the dimension is
+the number of parameters or length of the initial values vector. The
+proposal covariance matrix should change less over time. An
+exception is that the AHMC algorithm stores an algorithm
+specification here, which is not the diagonal of the proposal
+covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Deviance</code></td>
+<td>
+<p>This is a vector of the deviance of the model, with a
+length equal to the number of thinned samples that were retained.
+Deviance is useful for considering model fit, and is equal to the
+sum of the log-likelihood for all rows in the data set, which is
+then multiplied by negative two.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DIC1</code></td>
+<td>
+<p>This is a vector of three values: Dbar, pD, and DIC. Dbar
+is the mean deviance, pD is a measure of model complexity indicating
+the effective number of parameters, and DIC is the Deviance
+Information Criterion, which is a model fit statistic that is the
+sum of Dbar and pD. <code>DIC1</code> is calculated over all retained
+samples. Note that pD is calculated as <code>var(Deviance)/2</code> as in
+Gelman et al. (2004).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DIC2</code></td>
+<td>
+<p>This is identical to <code>DIC1</code> above, except that it is
+calculated over only the samples that were considered by the
+<code>BMK.Diagnostic</code> to be stationary for all parameters. If
+stationarity (or a lack of trend) is not estimated for all
+parameters, then <code>DIC2</code> is set to missing values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Initial.Values</code></td>
+<td>
+<p>This is the vector of <code>Initial.Values</code>,
+which may have been optimized with the
+<code>IterativeQuadrature</code> or
+<code>LaplaceApproximation</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Iterations</code></td>
+<td>
+<p>This reports the number of <code>Iterations</code> for
+updating.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LML</code></td>
+<td>
+<p>This is an approximation of the logarithm of the marginal
+likelihood of the data (see the <code>LML</code> function for more
+information). <code>LML</code> is estimated only with stationary samples,
+and only with a non-adaptive algorithm, including Adaptive
+Griddy-Gibbs (AGG), Affine-Invariant Ensemble Sampler (AIES),
+Componentwise Hit-And-Run (CHARM), Delayed Rejection Metropolis
+(DRM), Elliptical Slice Sampling (ESS), Gibbs Sampler (Gibbs),
+Griddy-Gibbs (GG), Hamiltonian Monte Carlo (HMC), Hit-And-Run
+Metropolis (HARM), Independence Metropolis (IM), Metropolis-Coupled
+Markov Chain Monte Carlo (MCMCMC), Metropolis-within-Gibbs (MWG),
+Multiple-Try Metropolis, No-U-Turn Sampler (NUTS), Random Dive
+Metropolis-Hastings (RDMH), Random-Walk Metropolis (RWM), Reflective
+Slice Sampler (RSS), Refractive Sampler (Refractive),
+Reversible-Jump (RJ), Sequential Metropolis-within-Gibbs (SMWG),
+Slice Sampler (Slice), Stochastic Gradient Langevin Dynamics (SGLD),
+Tempered Hamiltonian Monte Carlo (THMC), or t-walk (twalk).
+<code>LML</code> is estimated with nonparametric self-normalized
+importance sampling (NSIS), given LL and the marginal posterior
+samples of the parameters. <code>LML</code> is useful for comparing
+multiple models with the <code>BayesFactor</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Minutes</code></td>
+<td>
+<p>This indicates the number of minutes that
+<code>LaplacesDemon</code> was running, and includes the initial checks as
+well as time it took the <code>LaplaceApproximation</code>
+function, assessing stationarity, effective sample size (ESS), and
+creating summaries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Model</code></td>
+<td>
+<p>This contains the model specification <code>Model</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Monitor</code></td>
+<td>
+<p>This is a vector or matrix of one or more monitored
+variables, which are variables that were specified in the
+<code>Model</code> function to be observed as chains (or Markov chains,
+if <code>Adaptive=0</code>), but that were not deviance or parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Parameters</code></td>
+<td>
+<p>This reports the number of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Posterior1</code></td>
+<td>
+<p>This is a matrix of marginal posterior distributions
+composed of thinned samples, with a number of rows equal to the
+number of thinned samples and a number of columns equal to the
+number of parameters. This matrix includes all thinned samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Posterior2</code></td>
+<td>
+<p>This is a matrix equal to <code>Posterior1</code>, except
+that rows are included only if stationarity (a lack of trend) is
+indicated by the <code>BMK.Diagnostic</code> for all parameters.
+If stationarity did not occur, then this matrix is missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rec.BurnIn.Thinned</code></td>
+<td>
+<p>This is the recommended burn-in for the
+thinned samples, where the value indicates the first row that was
+stationary across all parameters, and previous rows are discarded
+as burn-in. Samples considered as burn-in are discarded because they
+do not represent the target distribution and have not adequately
+forgotten the initial value of the chain (or Markov chain, if
+<code>Adaptive=0</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rec.BurnIn.UnThinned</code></td>
+<td>
+<p>This is the recommended burn-in for all
+samples, in case thinning will not be necessary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rec.Thinning</code></td>
+<td>
+<p>This is the recommended value for the
+<code>Thinning</code> argument according to the autocorrelation in the
+thinned samples, and it is limited to the interval [1,1000].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Specs</code></td>
+<td>
+<p>This is an optional list of algorithm specifications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Status</code></td>
+<td>
+<p>This is the value in the <code>Status</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Summary1</code></td>
+<td>
+<p>This is a matrix that summarizes the marginal
+posterior distributions of the parameters, deviance, and monitored
+variables over all samples in <code>Posterior1</code>. The following
+summary statistics are included: mean, standard deviation, MCSE
+(Monte Carlo Standard Error), ESS is the effective sample size due
+to autocorrelation, and finally the 2.5%, 50%, and 97.5%
+quantiles are reported. MCSE is essentially a standard deviation
+around the marginal posterior mean that is due to uncertainty
+associated with using MCMC. The acceptable size of the MCSE
+depends on the acceptable uncertainty associated around the
+marginal posterior mean. Laplace's Demon prefers to continue
+updating until each MCSE is less than 6.27% of each marginal
+posterior standard deviation (see the <code>MCSE</code> and
+<code>Consort</code> functions). The default <code>IMPS</code> method
+is used. Next, the desired precision of ESS depends on the user's
+goal, and Laplace's Demon prefers to continue until each ESS is at
+least 100, which should be enough to describe 95% boundaries of an
+approximately Gaussian distribution (see the <code>ESS</code> for
+more information).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Summary2</code></td>
+<td>
+<p>This matrix is identical to the matrix in
+<code>Summary1</code>, except that it is calculated only on the
+stationary samples found in <code>Posterior2</code>. If universal
+stationarity was not estimated for the parameters, then this matrix
+is set to missing values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Thinned.Samples</code></td>
+<td>
+<p>This is the number of thinned samples that
+were retained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Thinning</code></td>
+<td>
+<p>This is the value of the <code>Thinning</code> argument.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC.,
+Silvere Vialet-Chabrand <a href="mailto:silvere@vialet-chabrand.com">silvere@vialet-chabrand.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Atchade, Y.F. (2006). "An Adaptive Version for the Metropolis Adjusted
+Langevin Algorithm with a Truncated Drift". <em>Methodology and
+Computing in Applied Probability</em>, 8, p. 235–254.
+</p>
+<p>Bai, Y. (2009). "An Adaptive Directional Metropolis-within-Gibbs
+Algorithm". Technical Report in Department of Statistics at the
+University of Toronto.
+</p>
+<p>Beskos, A., Roberts, G.O., Stuart, A.M., and Voss, J. (2008). "MCMC
+Methods for Diffusion Bridges". Stoch. Dyn., 8, p. 319–350.
+</p>
+<p>Boyles, L.B. and Welling, M. (2012). "Refractive Sampling".
+</p>
+<p>Craiu, R.V., Rosenthal, J., and Yang, C. (2009). "Learn From Thy
+Neighbor: Parallel-Chain and Regional Adaptive MCMC". <em>Journal
+of the American Statistical Assocation</em>, 104(488), p. 1454–1466.
+</p>
+<p>Christen, J.A. and Fox, C. (2010). "A General Purpose Sampling
+Algorithm for Continuous Distributions (the t-walk)". <em>Bayesian
+Analysis</em>, 5(2), p. 263–282.
+</p>
+<p>Dutta, S. (2012). "Multiplicative Random Walk Metropolis-Hastings
+on the Real Line". <em>Sankhya B</em>, 74(2), p. 315–342.
+</p>
+<p>Duane, S., Kennedy, A.D., Pendleton, B.J., and Roweth, D. (1987).
+"Hybrid Monte Carlo". <em>Physics Letters</em>, B, 195, p. 216–222.
+</p>
+<p>Gelman, A., Carlin, J., Stern, H., and Rubin, D. (2004). "Bayesian
+Data Analysis, Texts in Statistical Science, 2nd ed.". Chapman and
+Hall, London.
+</p>
+<p>Geman, S. and Geman, D. (1984). "Stochastic Relaxation, Gibbs
+Distributions, and the Bayesian Restoration of Images". <em>IEEE
+Transactions on Pattern Analysis and Machine Intelligence</em>, 6(6),
+p. 721–741.
+</p>
+<p>Geyer, C.J. (1991). "Markov Chain Monte Carlo Maximum Likelihood". In
+Keramidas, E.M. Computing Science and Statistics: Proceedings of the
+23rd Symposium of the Interface. Fairfax Station VA: Interface
+Foundation. p. 156–163.
+</p>
+<p>Goodman J, and Weare, J. (2010). "Ensemble Samplers with Affine
+Invariance". <em>Communications in Applied Mathematics and
+Computational Science</em>, 5(1), p. 65–80.
+</p>
+<p>Green, P.J. (1995). "Reversible Jump Markov Chain Monte Carlo
+Computation and Bayesian Model Determination". <em>Biometrika</em>,
+82, p. 711–732.
+</p>
+<p>Haario, H., Laine, M., Mira, A., and Saksman, E. (2006). "DRAM:
+Efficient Adaptive MCMC". <em>Statistical Computing</em>, 16,
+p. 339–354.
+</p>
+<p>Haario, H., Saksman, E., and Tamminen, J. (2001). "An Adaptive
+Metropolis Algorithm". <em>Bernoulli</em>, 7, p. 223–242.
+</p>
+<p>Hoffman, M.D. and Gelman. A. (2012). "The No-U-Turn Sampler:
+Adaptively Setting Path Lengths in Hamiltonian Monte
+Carlo". <em>Journal of Machine Learning Research</em>, p. 1–30.
+</p>
+<p>Kass, R.E. and Raftery, A.E. (1995). "Bayes Factors". <em>Journal
+of the American Statistical Association</em>, 90(430), p. 773–795.
+</p>
+<p>Lewis, S.M. and Raftery, A.E. (1997). "Estimating Bayes Factors via
+Posterior Simulation with the Laplace-Metropolis Estimator".
+<em>Journal of the American Statistical Association</em>, 92,
+p. 648–655.
+</p>
+<p>Liu, J., Liang, F., and Wong, W. (2000). "The Multiple-Try Method and
+Local Optimization in Metropolis Sampling". <em>Journal of the
+American Statistical Association</em>, 95, p. 121–134.
+</p>
+<p>Metropolis, N., Rosenbluth, A.W., Rosenbluth, M.N., and Teller,
+E. (1953). "Equation of State Calculations by Fast Computing
+Machines". <em>Journal of Chemical Physics</em>, 21, p. 1087–1092.
+</p>
+<p>Mira, A. (2001). "On Metropolis-Hastings Algorithms with Delayed
+Rejection". <em>Metron</em>, Vol. LIX, n. 3-4, p. 231–241.
+</p>
+<p>Murray, I., Adams, R.P., and MacKay, D.J. (2010). "Elliptical Slice
+Sampling". <em>Journal of Machine Learning Research</em>, 9,
+p. 541–548.
+</p>
+<p>Neal, R.M. (2003). "Slice Sampling" (with discussion). <em>Annals of
+Statistics</em>, 31(3), p. 705–767.
+</p>
+<p>Ritter, C. and Tanner, M. (1992), "Facilitating the Gibbs Sampler: the
+Gibbs Stopper and the Griddy-Gibbs Sampler", <em>Journal of the
+American Statistical Association</em>, 87, p. 861–868.
+</p>
+<p>Roberts, G.O. and Rosenthal, J.S. (2009). "Examples of Adaptive
+MCMC". <em>Computational Statistics and Data Analysis</em>, 18,
+p. 349–367.
+</p>
+<p>Roberts, G.O. and Tweedie, R.L. (1996). "Exponential Convergence of
+Langevin Distributions and Their Discrete Approximations".
+<em>Bernoulli</em>, 2(4), p. 341–363.
+</p>
+<p>Rosenthal, J.S. (2007). "AMCMC: An R interface for adaptive MCMC".
+<em>Computational Statistics and Data Analysis</em>, 51, p. 5467–5470.
+</p>
+<p>Smith, R.L. (1984). "Efficient Monte Carlo Procedures for Generating
+Points Uniformly Distributed Over Bounded Region". <em>Operations
+Research</em>, 32, p. 1296–1308.
+</p>
+<p>Ter Braak, C.J.F. and Vrugt, J.A. (2008). "Differential Evolution
+Markov Chain with Snooker Updater and Fewer Chains", <em>Statistics
+and Computing</em>, 18(4), p. 435–446.
+</p>
+<p>Tibbits, M., Groendyke, C., Haran, M., Liechty, J. (2014). "Automated
+Factor Slice Sampling". <em>Journal of Computational and Graphical
+Statistics</em>, 23(2), p. 543–563.
+</p>
+<p>Thompson, M.D. (2011). "Slice Sampling with Multivariate Steps".
+<a href="http://hdl.handle.net/1807/31955">http://hdl.handle.net/1807/31955</a>
+</p>
+<p>Vihola, M. (2011). "Robust Adaptive Metropolis Algorithm with Coerced
+Acceptance Rate". <em>Statistics and Computing</em>. Springer,
+Netherlands.
+</p>
+<p>Welling, M. and Teh, Y.W. (2011). "Bayesian Learning via Stochastic
+Gradient Langevin Dynamics". <em>Proceedings of the 28th
+International Conference on Machine Learning (ICML)</em>, p. 681–688.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>AcceptanceRate</code>,
+<code>as.initial.values</code>,
+<code>as.parm.names</code>,
+<code>BayesFactor</code>,
+<code>Blocks</code>,
+<code>BMK.Diagnostic</code>,
+<code>Combine</code>,
+<code>Consort</code>,
+<code>dcrmrf</code>,
+<code>ESS</code>,
+<code>GIV</code>,
+<code>is.data</code>,
+<code>is.model</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon.RAM</code>,
+<code>LML</code>, and
+<code>MCSE</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The accompanying Examples vignette is a compendium of examples.
+####################  Load the LaplacesDemon Library  #####################
+library(LaplacesDemon)
+
+##############################  Demon Data  ###############################
+data(demonsnacks)
+y &lt;- log(demonsnacks$Calories)
+X &lt;- cbind(1, as.matrix(log(demonsnacks[,c(1,4,10)]+1)))
+J &lt;- ncol(X)
+for (j in 2:J) X[,j] &lt;- CenterScale(X[,j])
+
+#########################  Data List Preparation  #########################
+mon.names &lt;- "LP"
+parm.names &lt;- as.parm.names(list(beta=rep(0,J), sigma=0))
+pos.beta &lt;- grep("beta", parm.names)
+pos.sigma &lt;- grep("sigma", parm.names)
+PGF &lt;- function(Data) {
+     beta &lt;- rnorm(Data$J)
+     sigma &lt;- runif(1)
+     return(c(beta, sigma))
+     }
+MyData &lt;- list(J=J, PGF=PGF, X=X, mon.names=mon.names,
+     parm.names=parm.names, pos.beta=pos.beta, pos.sigma=pos.sigma, y=y)
+
+##########################  Model Specification  ##########################
+Model &lt;- function(parm, Data)
+     {
+     ### Parameters
+     beta &lt;- parm[Data$pos.beta]
+     sigma &lt;- interval(parm[Data$pos.sigma], 1e-100, Inf)
+     parm[Data$pos.sigma] &lt;- sigma
+     ### Log-Prior
+     beta.prior &lt;- sum(dnormv(beta, 0, 1000, log=TRUE))
+     sigma.prior &lt;- dhalfcauchy(sigma, 25, log=TRUE)
+     ### Log-Likelihood
+     mu &lt;- tcrossprod(Data$X, t(beta))
+     LL &lt;- sum(dnorm(Data$y, mu, sigma, log=TRUE))
+     ### Log-Posterior
+     LP &lt;- LL + beta.prior + sigma.prior
+     Modelout &lt;- list(LP=LP, Dev=-2*LL, Monitor=LP,
+          yhat=rnorm(length(mu), mu, sigma), parm=parm)
+     return(Modelout)
+     }
+#library(compiler)
+#Model &lt;- cmpfun(Model) #Consider byte-compiling for more speed
+
+set.seed(666)
+
+############################  Initial Values  #############################
+Initial.Values &lt;- GIV(Model, MyData, PGF=TRUE)
+
+###########################################################################
+# Examples of MCMC Algorithms                                             #
+###########################################################################
+
+####################  Automated Factor Slice Sampler  #####################
+Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+     Algorithm="AFSS", Specs=list(A=Inf, B=NULL, m=100, n=0, w=1))
+Fit
+print(Fit)
+#Consort(Fit)
+#plot(BMK.Diagnostic(Fit))
+#PosteriorChecks(Fit)
+#caterpillar.plot(Fit, Parms="beta")
+#BurnIn &lt;- Fit$Rec.BurnIn.Thinned
+#plot(Fit, BurnIn, MyData, PDF=FALSE)
+#Pred &lt;- predict(Fit, Model, MyData, CPUs=1)
+#summary(Pred, Discrep="Chi-Square")
+#plot(Pred, Style="Covariates", Data=MyData)
+#plot(Pred, Style="Density", Rows=1:9)
+#plot(Pred, Style="ECDF")
+#plot(Pred, Style="Fitted")
+#plot(Pred, Style="Jarque-Bera")
+#plot(Pred, Style="Predictive Quantiles")
+#plot(Pred, Style="Residual Density")
+#plot(Pred, Style="Residuals")
+#Levene.Test(Pred)
+#Importance(Fit, Model, MyData, Discrep="Chi-Square")
+
+#############  Adaptive Directional Metropolis-within-Gibbs  ##############
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="ADMG", Specs=list(n=0, Periodicity=50))
+
+########################  Adaptive Griddy-Gibbs  ##########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AGG", Specs=list(Grid=GaussHermiteQuadRule(3)$nodes,
+#     dparm=NULL, smax=Inf, CPUs=1, Packages=NULL, Dyn.libs=NULL))
+
+##################  Adaptive Hamiltonian Monte Carlo  #####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AHMC", Specs=list(epsilon=0.02, L=2, m=NULL,
+#     Periodicity=10))
+
+##########################  Adaptive Metropolis  ##########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AM", Specs=list(Adaptive=500, Periodicity=10))
+
+###################  Adaptive Metropolis-within-Gibbs  ####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AMWG", Specs=list(B=NULL, n=0, Periodicity=50))
+
+######################  Adaptive-Mixture Metropolis  ######################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AMM", Specs=list(Adaptive=500, B=NULL, n=0,
+#     Periodicity=10, w=0.05))
+
+###################  Affine-Invariant Ensemble Sampler  ###################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="AIES", Specs=list(Nc=2*length(Initial.Values), Z=NULL,
+#     beta=2, CPUs=1, Packages=NULL, Dyn.libs=NULL))
+
+#################  Componentwise Hit-And-Run Metropolis  ##################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="CHARM", Specs=NULL)
+
+###########  Componentwise Hit-And-Run (Adaptive) Metropolis  #############
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="CHARM", Specs=list(alpha.star=0.44))
+
+#################  Delayed Rejection Adaptive Metropolis  #################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="DRAM", Specs=list(Adaptive=500, Periodicity=10))
+
+#####################  Delayed Rejection Metropolis  ######################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="DRM", Specs=NULL)
+
+##################  Differential Evolution Markov Chain  ##################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="DEMC", Specs=list(Nc=3, Z=NULL, gamma=NULL, w=0.1))
+
+#######################  Elliptical Slice Sampler  ########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="ESS", Specs=list(B=NULL))
+
+#############################  Gibbs Sampler  #############################
+### NOTE: Unlike the other samplers, Gibbs requires specifying a
+### function (FC) that draws from full conditionals.
+#FC &lt;- function(parm, Data)
+#     {
+#     ### Parameters
+#     beta &lt;- parm[Data$pos.beta]
+#     sigma &lt;- interval(parm[Data$pos.sigma], 1e-100, Inf)
+#     sigma2 &lt;- sigma*sigma
+#     ### Hyperparameters
+#     betamu &lt;- rep(0,length(beta))
+#     betaprec &lt;- diag(length(beta))/1000
+#     ### Update beta
+#     XX &lt;- crossprod(Data$X)
+#     Xy &lt;- crossprod(Data$X, Data$y)
+#     IR &lt;- backsolve(chol(XX/sigma2 + betaprec), diag(length(beta)))
+#     btilde &lt;- crossprod(t(IR)) %*% (Xy/sigma2 + betaprec %*% betamu)
+#     beta &lt;- btilde + IR %*% rnorm(length(beta))
+#     return(c(beta,sigma))
+#     }
+##library(compiler)
+##FC &lt;- cmpfun(FC) #Consider byte-compiling for more speed
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="Gibbs", Specs=list(FC=FC, MWG=pos.sigma))
+
+
+#############################  Griddy-Gibbs  ##############################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="GG", Specs=list(Grid=seq(from=-0.1, to=0.1, len=5),
+#     dparm=NULL, CPUs=1, Packages=NULL, Dyn.libs=NULL))
+
+#######################  Hamiltonian Monte Carlo  #########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="HMC", Specs=list(epsilon=0.001, L=2, m=NULL))
+
+#############  Hamiltonian Monte Carlo with Dual-Averaging  ###############
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=1, Thinning=1,
+#     Algorithm="HMCDA", Specs=list(A=500, delta=0.65, epsilon=NULL,
+#     Lmax=1000, lambda=0.1))
+
+#######################  Hit-And-Run Metropolis  ##########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="HARM", Specs=NULL)
+
+##################  Hit-And-Run (Adaptive) Metropolis  ####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="HARM", Specs=list(alpha.star=0.234, B=NULL))
+
+########################  Independence Metropolis  ########################
+### Note: the mu and Covar arguments are populated from a previous Laplace
+### Approximation.
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=Fit$Covar, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="IM",
+#     Specs=list(mu=Fit$Summary1[1:length(Initial.Values),1]))
+
+#########################  Interchain Adaptation  #########################
+#Initial.Values &lt;- rbind(Initial.Values, GIV(Model, MyData, PGF=TRUE))
+#Fit &lt;- LaplacesDemon.hpc(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="INCA", Specs=list(Adaptive=500, Periodicity=10),
+#     LogFile="MyLog", Chains=2, CPUs=2, Type="PSOCK", Packages=NULL,
+#     Dyn.libs=NULL)
+
+################  Metropolis-Adjusted Langevin Algorithm  #################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="MALA", Specs=list(A=1e7, alpha.star=0.574, gamma=1,
+#          delta=1, epsilon=c(1e-6,1e-7)))
+
+#############  Metropolis-Coupled Markov Chain Monte Carlo  ###############
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="MCMCMC", Specs=list(lambda=1, CPUs=2, Packages=NULL,
+#     Dyn.libs=NULL))
+
+#######################  Metropolis-within-Gibbs  #########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="MWG", Specs=list(B=NULL))
+
+########################  Multiple-Try Metropolis  ########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="MTM", Specs=list(K=4, CPUs=1, Packages=NULL, Dyn.libs=NULL))
+
+##########################  No-U-Turn Sampler  ############################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=1, Thinning=1,
+#     Algorithm="NUTS", Specs=list(A=500, delta=0.6, epsilon=NULL,
+#     Lmax=Inf))
+
+#################  Oblique Hyperrectangle Slice Sampler  ##################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="OHSS", Specs=list(A=Inf, n=0))
+
+#####################  Preconditioned Crank-Nicolson  #####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="pCN", Specs=list(beta=0.1))
+
+######################  Robust Adaptive Metropolis  #######################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="RAM", Specs=list(alpha.star=0.234, B=NULL, Dist="N",
+#     gamma=0.66, n=0))
+
+###################  Random Dive Metropolis-Hastings  ####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="RDMH", Specs=NULL)
+
+##########################  Refractive Sampler  ###########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="Refractive", Specs=list(Adaptive=1, m=2, w=0.1, r=1.3))
+
+###########################  Reversible-Jump  #############################
+#bin.n &lt;- J-1
+#bin.p &lt;- 0.2
+#parm.p &lt;- c(1, rep(1/(J-1),(J-1)), 1)
+#selectable &lt;- c(0, rep(1,J-1), 0)
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="RJ", Specs=list(bin.n=bin.n, bin.p=bin.p,
+#          parm.p=parm.p, selectable=selectable,
+#          selected=c(0,rep(1,J-1),0)))
+
+########################  Random-Walk Metropolis  #########################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="RWM", Specs=NULL)
+
+########################  Reflective Slice Sampler  #######################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="RSS", Specs=list(m=5, w=1e-5))
+
+##############  Sequential Adaptive Metropolis-within-Gibbs  ##############
+#NOTE: The SAMWG algorithm is only for state-space models (SSMs)
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="SAMWG", Specs=list(Dyn=Dyn, Periodicity=50))
+
+##################  Sequential Metropolis-within-Gibbs  ###################
+#NOTE: The SMWG algorithm is only for state-space models (SSMs)
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="SMWG", Specs=list(Dyn=Dyn))
+
+#############################  Slice Sampler  #############################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=1, Thinning=1,
+#     Algorithm="Slice", Specs=list(B=NULL, Bounds=c(-Inf,Inf), m=100,
+#     Type="Continuous", w=1))
+
+#################  Stochastic Gradient Langevin Dynamics  #################
+#NOTE: The Data and Model functions must be coded differently for SGLD.
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=10, Thinning=10,
+#     Algorithm="SGLD", Specs=list(epsilon=1e-4, file="X.csv", Nr=1e4,
+#     Nc=6, size=10))
+
+###################  Tempered Hamiltonian Monte Carlo  ####################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="THMC", Specs=list(epsilon=0.001, L=2, m=NULL,
+#     Temperature=2))
+
+###############################  t-walk  #################################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="twalk", Specs=list(SIV=NULL, n1=4, at=6, aw=1.5))
+
+#################  Univariate Eigenvector Slice Sampler  #################
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values,
+#     Covar=NULL, Iterations=1000, Status=100, Thinning=1,
+#     Algorithm="UESS", Specs=list(A=Inf, B=NULL, m=100, n=0))
+
+##########  Updating Sequential Adaptive Metropolis-within-Gibbs  #########
+#NOTE: The USAMWG algorithm is only for state-space model updating
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values, 
+#     Covar=NULL, Iterations=100000, Status=100, Thinning=100,
+#     Algorithm="USAMWG", Specs=list(Dyn=Dyn, Periodicity=50, Fit=Fit,
+#     Begin=T.m))
+
+##############  Updating Sequential Metropolis-within-Gibbs  ##############
+#NOTE: The USMWG algorithm is only for state-space model updating
+#Fit &lt;- LaplacesDemon(Model, Data=MyData, Initial.Values, 
+#     Covar=NULL, Iterations=100000, Status=100, Thinning=100,
+#     Algorithm="USMWG", Specs=list(Dyn=Dyn, Fit=Fit, Begin=T.m))
+
+#End
+</code></pre>
+
+
+</div>

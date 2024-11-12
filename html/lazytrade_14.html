@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>encrypt_api_key</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Encrypt api keys</h2>
+
+<h3>Description</h3>
+
+<p>Provide easy interface to encrypt the api key.
+In order to use function simply provide a string with an API key.
+In addition provide the path to the .ssh folder and names of the private and public keys
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">encrypt_api_key(
+  api_key,
+  enc_name = "api_key.enc.rds",
+  path_ssh = "path_ssh",
+  file_rsa = "id_api",
+  file_rsa_pub = "id_api.pub"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>api_key</code></td>
+<td>
+<p>String with API key</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>enc_name</code></td>
+<td>
+<p>String with a name of the file with encrypted key. Default name is 'api_key.enc.rds'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_ssh</code></td>
+<td>
+<p>String with path to the file with rsa keys. Same place will be used to store encrypted data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_rsa</code></td>
+<td>
+<p>String with a name of the file with a private key. Default name is 'id_api'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file_rsa_pub</code></td>
+<td>
+<p>String with a name of the file with a public key. Default name is 'id_api.pub'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Make sure to clean the history of the R session
+</p>
+
+
+<h3>Value</h3>
+
+<p>Writes a file with encrypted key
+</p>
+
+
+<h3>References</h3>
+
+<p>for more info on how to use RSA cryptography in R check my course
+on Udemy
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(openssl)
+library(magrittr)
+library(readr)
+path_ssh &lt;- normalizePath(tempdir(),winslash = "/")
+rsa_keygen() %&gt;% write_pem(path = file.path(path_ssh, 'id_api'))
+# extract and write your public key
+read_key(file = file.path(path_ssh, 'id_api'), password = "") %&gt;%
+`[[`("pubkey") %&gt;% write_pem(path = file.path(path_ssh, 'id_api.pub'))
+
+
+path_private_key &lt;- file.path(path_ssh, "id_api")
+path_public_key &lt;- file.path(path_ssh, "id_api.pub")
+
+#encrypting string 'my_key'...
+encrypt_api_key(api_key = 'my_key', enc_name = 'api_key.enc.rds',path_ssh = path_ssh)
+
+out &lt;- read_rds(file.path(path_ssh, "api_key.enc.rds"))
+
+# decrypting the password using public data list and private key
+api_key &lt;- decrypt_envelope(out$data,
+                            out$iv,
+                            out$session,
+                            path_private_key, password = "") %&gt;%
+           unserialize()
+
+# outcome of the encryption will be a string 'my_key'
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LPD_CombAssess</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LPD_CombAssess</h2>
+
+<h3>Description</h3>
+
+<p>LPD_CombAssess combines a 'LandProd_change' map (SpatRaster) with a 'LandProd_current'
+map (SpatRaster), giving a 5-classes map ranging from declining to increasing land
+productivity. 'LandProd_current' is reclassified into two classes: pixels with less than 'local_prod_threshold'
+(in percentage; 50 by default) of potential local productivity (within the EFT) and pixels with more or equal to
+'local_prod_threshold'.
+</p>
+<p>If 'LandProd_current' = NULL, 'LandProd_change' is directly reclassified into the same 5-classes map
+without using 'LandProd_current'. See the ATBD for the way pixels are reclassified.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LPD_CombAssess(
+  LandProd_change = NULL,
+  LandProd_current = NULL,
+  local_prod_threshold = 50,
+  filename = ""
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LandProd_change</code></td>
+<td>
+<p>SpatRaster object (or its file name). Land Productivity Long Term Change Map</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LandProd_current</code></td>
+<td>
+<p>SpatRaster object (or its file name). Land Productivity Current Status Map</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>local_prod_threshold</code></td>
+<td>
+<p>Numeric. Potential local productivity threshold (within the Ecosystem Functional Type) in percentage. Optional. Default = 50</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Character. Output filename. Optional</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>LandProd_change c(1:6, 8:9)       &amp;  LandProd_current  &lt; 'local_prod_threshold'  &lt;- 1 Declining land productivity
+</p>
+<p>LandProd_change c(3, 6)           &amp;  LandProd_current &gt;= 'local_prod_threshold'  &lt;- 1 Declining land productivity
+</p>
+<p>LandProd_change c(7)              &amp;  LandProd_current  &lt; 'local_prod_threshold'  &lt;- 2 Early signs of decline of land productivity
+</p>
+<p>LandProd_change c(1:2, 4:5, 8:9)  &amp;  LandProd_current &gt;= 'local_prod_threshold'  &lt;- 2 Early signs of decline of land productivity
+</p>
+<p>LandProd_change c(7)              &amp;  LandProd_current &gt;= 'local_prod_threshold'  &lt;- 3 Negative fluctuation (stable, but stressed land prod.)
+</p>
+<p>LandProd_change c(10:12)                                     &lt;- 3 Negative fluctuation (stable, but stressed land prod.)
+LandProd_change c(13:15)                                     &lt;- 4 Positive fluctuation (stable, not stressed land prod.)
+</p>
+<p>LandProd_change c(16:17, 19)      &amp;  LandProd_current  &lt; 'local_prod_threshold'  &lt;- 4 Positive fluctuation (stable, not stressed land prod.)
+</p>
+<p>LandProd_change c(18, 20:22)      &amp;  LandProd_current  &lt; 'local_prod_threshold'  &lt;- 5 Increasing land productivity
+</p>
+<p>LandProd_change c(16:22)          &amp;  LandProd_current &gt;= 'local_prod_threshold'  &lt;- 5 Increasing land productivity
+</p>
+<p>Values = 0 in the final map indicates that there is a scarcity of data in the productivity variable
+(i.e. only 1 year with data), so that the indicator cannot be calculated
+</p>
+<p>'local_prod_threshold' is the threshold used to classify 'LandProd_current' into pixels with low or high
+potential productivity within its Ecosystem Functional Type
+</p>
+
+
+<h3>Value</h3>
+
+<p>SpatRaster
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xavier Rotllan-Puig
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LongTermChange</code>; <code>LNScaling</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+sb &lt;- terra::rast(paste0(system.file(package='LPDynR'), "/extdata/sb_cat.tif"))
+SteadinessIndex_raster &lt;- steadiness(obj2process = sb)
+BaselineLevels_raster &lt;- baseline_lev(obj2process = sb,
+                                      yearsBaseline = 3,
+                                      drylandProp = 0.4)
+StateChange_raster &lt;- state_change(obj2process = sb,
+                                   yearsBaseline = 3)
+LandProd_change_raster &lt;- LongTermChange(SteadinessIndex = SteadinessIndex_raster,
+                                         BaselineLevels = BaselineLevels_raster,
+                                         StateChange = StateChange_raster)
+
+dirctry &lt;- paste0(system.file(package='LPDynR'), "/extdata")
+variables_noCor &lt;- rm_multicol(dir2process = dirctry,
+                               multicol_cutoff = 0.7)
+EFTs_raster &lt;- EFT_clust(obj2clust = variables_noCor,
+                         n_clust = 10)
+
+LandProd_current_raster &lt;- LNScaling(EFTs = EFTs_raster[[1]],
+                                     ProdVar = sb)
+
+LPD_CombAssess(LandProd_change = LandProd_change_raster,
+               LandProd_current = LandProd_current_raster)
+
+
+</code></pre>
+
+
+</div>

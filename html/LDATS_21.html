@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>count_trips</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Count trips of the ptMCMC particles</h2>
+
+<h3>Description</h3>
+
+<p>Count the full trips (from one extreme temperature chain to
+the other and back again; Katzgraber <em>et al.</em> 2006) for each of the
+ptMCMC particles, as identified by their id on initialization.
+<br><br>
+This function was designed to work within <code>TS</code> and process
+the output of <code>est_changepoints</code> as a component of 
+<code>diagnose_ptMCMC</code>, but has been generalized
+and would work with any output from a ptMCMC as long as <code>ids</code>
+is formatted properly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">count_trips(ids)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p><code>matrix</code> of identifiers of the particles in each chain for 
+each iteration of the ptMCMC algorithm (rows: chains, 
+columns: iterations).</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p><code>list</code> of [1] <code>vector</code> of within particle trip counts 
+(<code>$trip_counts</code>), and [2] <code>vector</code> of within-particle average 
+trip rates (<code>$trip_rates</code>).
+</p>
+
+
+<h3>References</h3>
+
+<p>Katzgraber, H. G., S. Trebst, D. A. Huse. And M. Troyer. 2006. 
+Feedback-optimized parallel tempering Monte Carlo. <em>Journal of 
+Statistical Mechanics: Theory and Experiment</em> <strong>3</strong>:P03018
+<a href="https://iopscience.iop.org/article/10.1088/1742-5468/2006/03/P03018">link</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  data &lt;- data[order(data[,"newmoon"]), ]
+  rho_dist &lt;- est_changepoints(data, gamma ~ 1, 1, "newmoon", weights,
+                               TS_control())
+  count_trips(rho_dist$ids)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmrdia46</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L-moment Ratio Diagram Components of Tau4 and Tau6</h2>
+
+<h3>Description</h3>
+
+<p>This function returns a list of the L-kurtosis (<code class="reqn">\tau_4</code> and sixth L-moment ratio <code class="reqn">\tau_6</code>, respectively) ordinates for construction of L-moment Ratio (L-moment diagrams) that are useful in selecting a distribution to model the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmrdia46()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>The <code>lmrdia46</code> returns a list of the tables for drawing the trajectories of the distributions by its access of <code>.lmomcohash$</code><code>t46list</code> created by the <code>inst/doc/SysDataBuilder02.R</code> script for <code>sysdata.rda</code> construction used by the <span class="pkg">lmomco</span> package itself. The lookup table references below are pointing to the <code>inst/doc/t4t6</code> subdirectory of the package.
+</p>
+<p>A lookup table for the Exponential Power distribution is provided as <code>PowerExponential.txt</code> (<code>.lmomcohash$</code><code>tau46list$</code><code>pwrexp</code>), and this distribution is a special case of the Asymmetric Exponential Power4 (<code>lmomaep4</code>) (<code>.lmomcohash$</code><code>tau46list$</code><code>aep4</code>).
+</p>
+<p>A lookup table for the Symmetric Stable distribution is provided as <code>StableDistribution.txt</code> (<code>.lmomcohash$</code><code>tau46list$</code><code>symstable</code>).
+</p>
+<p>A lookup table for the Student t distribution is provided as <code>StudentT.txt</code><br>(<code>.lmomcohash$</code><code>tau46list$</code><code>st2</code>), and this distribution is the same as the Student 3t (<code>lmomst3</code>) (<code>.lmomcohash$</code><code>tau46list$</code><code>st3</code>).
+</p>
+<p>A lookup table for the Tukey Lamda  distribution is provided as <code>SymTukeyLambda.txt</code> <br>(<code>.lmomcohash$</code><code>tau46list$</code><code>tukeylam</code>), and this distribution is not quite the same as the Generalized Lambda distribution (<code>lmomgld</code>) (<code>.lmomcohash$</code><code>tau46list$</code><code>gld</code>).
+</p>
+<p>The normal distribution plots as a point in a Tau4-Tau6 L-moment ratio diagram as<br><code>.lmomcohash$</code><code>tau46list$</code><code>nor</code> for which <code class="reqn">\tau_4^\mathrm{nor} = 30/\pi\times \mathrm{atan}(\sqrt{2}) - 9</code> <code class="reqn">= 0.1226017</code> and <br><code class="reqn">\tau_6^\mathrm{nor} = 0.04365901</code> (numerical integration).
+</p>
+<p>Finally, the Cauchy and Slade distributions are symmetrical and can be plotted as well on Tau4-Tau6 L-moment ratio diagram if we permit their trim=1 TL-moments to be shown instead. These are inserted into the returned list as part of the operation of <code>lmrdia46()</code>.
+</p>
+<p><b>Tukey Lambda Notes</b>—The Tukey Lambda distribution is a simpler formulation than the Generalized Lambda.
+</p>
+<p style="text-align: center;"><code class="reqn">Q(F) = \frac{1}{\lambda} \biggl[F^\lambda - (1-F)^\lambda \biggr]\mbox{,}</code>
+</p>
+
+<p>for nonexceedance probability <code class="reqn">F</code> and <code class="reqn">\lambda \ne 0</code> and
+</p>
+<p style="text-align: center;"><code class="reqn">Q(F) = \mathrm{log}\biggl(\frac{F}{1-F}\biggr)\mbox{,}</code>
+</p>
+
+<p>for <code class="reqn">\lambda = 0</code> using the natural logarithm.
+</p>
+<p>Inspection of the distribution formulae inform us that the variation in the distribution, the scaling factor <code class="reqn">1/\lambda</code> to far left in the first definition, for instance, implies that the L-scale (<code class="reqn">\lambda_2</code>) is not constant and varies with <code class="reqn">\lambda</code>. The second L-moment of the Tukey Lambda (all odd order L-moments are zero) is
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_2 = \frac{2}{\lambda}\biggl[ -\frac{1}{1+\lambda} + \frac{2}{2+\lambda}\biggr]\mbox{, and}</code>
+</p>
+
+<p>the fourth and sixth L-moments are
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_4 = \frac{2}{\lambda}\biggl[ -\frac{1}{1+\lambda} + \frac{12}{2+\lambda} - \frac{30}{3+\lambda} + \frac{20}{4+\lambda}\biggr]\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_6 = \frac{2}{\lambda}\biggl[ -\frac{1}{1+\lambda} + \frac{30}{2+\lambda} - \frac{210}{3+\lambda} + \frac{560}{4+\lambda} - \frac{630}{5+\lambda} + \frac{252}{6+\lambda}\biggr]\mbox{\, and}</code>
+</p>
+
+<p><code class="reqn">\tau_4 = \lambda_4 / \lambda_2</code> and <code class="reqn">\tau_6 = \lambda_6 / \lambda_2</code>. The Tukey Lambda is not separately implemented in the <span class="pkg">lmomco</span> package. It is provided herein for theoretical completeness, but it is possible to implement the Tukey Lambda by the following example:
+</p>
+<pre>
+  tukeylam &lt;- .lmomcohash$tau46list$gld_byt6tukeylam
+  lmr1 &lt;- tukeylam[tukeylam$lambda2 == 1, ] # L-scale equal to one (for instance)
+  lmr1 &lt;- vec2lmom(c(0, lmr1$lambda2, 0, lmr1$tau4, 0, lmr1$tau6))
+  tuk1 &lt;- pargld(lmr1, aux="tau6")
+  print(tuk1$para, 12)
+  #                 xi              alpha              kappa                  h
+  #  2.50038766315e-04 -5.82180675380e+03 -1.71745206920e-04 -1.71702273015e-04
+  lambda &lt;- mean(tuk1$para[3:4]) # remember optimization is used for parameters in
+  # GLD parlance and so the two shape parameters are not constrained in pargld()
+  # to be numerically identical. So, here, let us compute a mean of the two and then
+  # use that as the Lambda in the distribution.
+  eps &lt;- 1/tuk1$para[2] - lambda
+  message("EPS should be very close to zero, eps = ", eps, " !!!!!")
+  tuk2 &lt;- vec2par(c(0, 1/lambda, lambda, lambda), type="gld") # now Tukey Lambda
+  lmr2 &lt;- lmomgld(tuk2)
+
+  "ofunc" &lt;- function(lambda, lambda2=NA) {
+    tukeyL2 &lt;- ( 2 / lambda ) * ( -1 / (1+lambda) + 2 / (2+lambda) )
+    return(lambda2 - tukeyL2)
+  }
+  lam  &lt;- uniroot(ofunc, interval=c(-1, 1), lambda2=1)$root
+  tuk3 &lt;- vec2par(c(0, 20/lam, lam, lam), type="gld")
+  lmr3 &lt;- lmomgld(tuk3)
+
+  gld5 &lt;- pargld(lmr3, aux="tau5"); gldlmr5 &lt;- theoLmoms(gld5, nmom=6)
+  gld6 &lt;- pargld(lmr3, aux="tau6"); gldlmr6 &lt;- theoLmoms(gld6, nmom=6)
+  plotlmrdia46(lmrdia46(), nogld_byt5opt=FALSE)
+  points(gldlmr5$ratios[4], gldlmr5$ratios[6], pch=16, col="purple")
+  points(gldlmr6$ratios[4], gldlmr6$ratios[6], pch=21, col="purple", bg="white")
+  # See how GLD by tau5 optimization, which leaves Tau6 to float plots on the
+  # "gld_byt5opt" trajectory, but GLD by tau6 optimization, plots on the Tukey
+  # Lambda line, and gld6$para[2] / (1/gld6$para[3]) is equal to the 20 in the
+  # parameter setting for tuk3.
+</pre>
+<p>The finally differences in the L-moments between the two <code>lmr</code> objects are all are reasonably close to zero with the recognition that <code>optim()</code> has been involved getting us close to the Tukey Lambda that we desire as a GLD with fixed shape parameters and scale factor equal to the inverse of the shape parameter. The demonstration to how to thus acquire a Tukey Lambda from GLD implementation in the <span class="pkg">lmomco</span> package is thus shown.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>aep4</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the 4-parameter Asymmetric Exponential Power (AEP4) distribution given L-skew set as <code class="reqn">\tau_3 = 0</code>. This becomes then the (Symmetrical) Exponential Power. The complementary entry <code>pwrexp</code> are the effectively the same curve for the power exponential distribution based on lookup table archived in the <span class="pkg">lmomco</span> package. The table stems from <code>inst/doc/SysDataBuilder02.R</code>. The <code>aep4</code> and not <code>pwrexp</code> is used in the line drawing by <code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gld_byt5opt</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Generalized Lambda (GLD) distribution given L-skew set as <code class="reqn">\tau_3 = 0</code> and optimized by <code>pargld</code> with <code>pargld(..., aux="tau5")</code> with <code class="reqn">\tau_5 = 0</code>. The table stems from <code>inst/doc/SysDataBuilder02.R</code>. The table <code>gld_byt5opt</code> is used in the line drawing by <code>plotlmrdia46</code> in relation to the argument therein of <code>nogld_byt5opt</code>. This is the trajectory of the symmetrical GLD having constant L-scale (<code class="reqn">\lambda_2</code>); this is different than the structurally similar by not identical Tukey Lambda distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gld_byt6tukeylam</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Generalized Lambda distribution given L-skew set as <code class="reqn">\tau_3 = 0</code> and optimized by <code>pargld</code> with <code>pargld(..., aux="tau6")</code> with <code class="reqn">\tau_6(\tau_4)</code> (<code class="reqn">\tau_6</code> as a function of <code class="reqn">\tau_4</code>, see <code>gld_byt6tukeylam</code> table). The table stems from <code>inst/</code><code>doc/</code><br><code>SysDataBuilder02.R</code>. The <code>gld_byt6tukeylam</code> is used in the line drawing by <code>plotlmrdia46</code> in relation to the argument therein of <code>notukey</code>. This relation between <code class="reqn">\{\tau_4, \tau_6\}</code> is that of the Tukey Lambda distribution; this is the trajectory of the symmetrical GLD having nonconstant L-scale (<code class="reqn">\lambda_2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nor</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Normal distribution. The table stems from <code>inst/doc/</code><br><code>SysDataBuilder02.R</code>. The <code>nor</code> is used in the point drawing by <br><code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdq4</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Polynomial Density-Quantile4 distribution, which implicitly is symmetrical, and therefore L-skew set as <code class="reqn">\tau_3 = 0</code>. The table stems from <code>inst/doc/SysDataBuilder02.R</code>. The <code>pdq4</code> is used in the line drawing by<br><code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pwrexp</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Power Exponential distribution of which the Asymmetric Exponential Power distribution (see also <code>lmomaep4</code>). The lookup table archive in the <span class="pkg">lmomco</span> package for the Power Exponential (<code>PowerExponential.txt</code>) is confirmed to match the computation in <code>aep4</code> based on the AEP4 instead. The table stems from <code>inst/doc/</code><br><code>SysDataBuilder02.R</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st2</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the well-known Student t distribution. The lookup table archive in the <span class="pkg">lmomco</span> package for the Student t (<code>StudentT.txt</code>) is confirmed to match the computation in <code>st3</code> based on the ST3 instead. The table stems from <br><code>inst/doc/SysDataBuilder02.R</code>. The <code>st3</code> and not <code>st2</code> is used in the line drawing by <code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st3</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Student 3t distribution (<code>lmomst3</code>). The table stems from <br><code>inst/doc/SysDataBuilder02.R</code>. The <code>st3</code> and not <code>st2</code> is used in the line drawing by <code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symstable</code></td>
+<td>
+<p><code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Stable distribution, which is not otherwise supported in <span class="pkg">lmomco</span>. The lookup table archive in the <span class="pkg">lmomco</span> package for the Symmetrical Stable distribution is <code>StableDistribution.txt</code>. The table stems from <br><code>inst/doc/SysDataBuilder02.R</code>. The <code>symstable</code> is used in the line drawing by <code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tukeylam</code></td>
+<td>
+<p>(reference copy of <code>gld_byt6tukeylam</code>) <code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> of the Tukey Lambda distribution (<a href="https://en.wikipedia.org/wiki/Tukey_lambda_distribution">https://en.wikipedia.org/wiki/Tukey_lambda_distribution</a>) that is not supported per se in <span class="pkg">lmomco</span> because the Generalized Lambda distribution is instead. The <code>SymTukeyLambda.txt</code> is the lookup table archive in the <span class="pkg">lmomco</span> package for the Tukey Lambda distribution confirmed to match the mathematics shown herein. The measure <code class="reqn">L-scale</code> or the second L-moment is not constant for the Symmetric Tukey Lambda as formulated. So, the trajectory of this distribution is not for a constant L-scale, which is unlike that for the Generalized Lambda. The table stems from <code>inst/doc/SysDataBuilder02.R</code>. The <code>tukeylam</code> is used in the line drawing by <code>plotlmrdia46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cau</code></td>
+<td>
+<p><code class="reqn">\tau^{(1)}_4 = 0.34280842</code> and <code class="reqn">\tau^{(1)}_6 = 0.20274358</code> (trim=1 TL-moments) of the Cauchy distribution (TL-moment [trim=1]) (see <b>Examples</b> <code>lmomcau</code> for source).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sla</code></td>
+<td>
+<p><code class="reqn">\tau^{(1)}_4 = 0.30420472</code> and <code class="reqn">\tau^{(1)}_6 = 0.18900723</code> (trim=1 TL-moments) of the Slash distribution (TL-moment [trim=1]) (see <b>Examples</b> <code>lmomsla</code> for source).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plotlmrdia46</code>, <code>lmrdia</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lratios &lt;- lmrdia46()
+</code></pre>
+
+
+</div>

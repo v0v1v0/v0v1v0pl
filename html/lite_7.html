@@ -1,0 +1,287 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>blite</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bayesian threshold-based inference for time series extremes</h2>
+
+<h3>Description</h3>
+
+<p>Performs threshold-based Bayesian inference for 3 aspects of stationary
+time series extremes: the probability that the threshold is exceeded, the
+marginal distribution of threshold excesses and the extent of clustering of
+extremes, as summarised by the extremal index.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">blite(
+  data,
+  u,
+  cluster,
+  k = 1,
+  inc_cens = TRUE,
+  ny,
+  gp_prior = revdbayes::set_prior(prior = "mdi", model = "gp"),
+  b_prior = revdbayes::set_bin_prior(prior = "jeffreys"),
+  theta_prior_pars = c(1, 1),
+  n = 1000,
+  type = c("vertical", "none"),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A numeric vector or numeric matrix of raw data.  If <code>data</code>
+is a matrix then the log-likelihood is constructed as the sum of
+(independent) contributions from different columns. A common situation is
+where each column relates to a different year.
+</p>
+<p>If <code>data</code> contains missing values then
+<code>split_by_NAs</code> isvused to divide the data further into
+sequences of non-missing values, stored in different columns in a matrix.
+Again, the log-likelihood is constructed as a sum of contributions from
+different columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>A numeric scalar.  The extreme value threshold applied to the data.
+See <strong>Details</strong> for information about choosing <code>u</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>This argument is used to set the argument <code>cluster</code> to
+<code>meatCL</code>, which calculates the matrix <code class="reqn">V</code>
+passed as the argument <code>V</code> to <code>adjust_loglik</code>.
+If <code>data</code> is a matrix and <code>cluster</code> is missing then
+<code>cluster</code> is set so that data in different columns are in different
+clusters.  If <code>data</code> is a vector and <code>cluster</code> is missing then
+cluster is set so that each observation forms its own cluster.
+</p>
+<p>If <code>cluster</code> is supplied then it must have the same structure as
+<code>data</code>: if <code>data</code> is a matrix then <code>cluster</code> must be a
+matrix with the same dimensions as <code>data</code> and if  <code>data</code> is a
+vector then <code>cluster</code> must be a vector of the same length as
+<code>data</code>.  Each entry in <code>cluster</code> sets the cluster of the
+corresponding component of <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k, inc_cens</code></td>
+<td>
+<p>Arguments passed to <code>kgaps</code>.
+<code>k</code> sets the value of the run parameter <code class="reqn">K</code> in the <code class="reqn">K</code>-gaps
+model for the extremal index.
+<code>inc_cens</code> determines whether contributions from right-censored
+inter-exceedance times are used. See <strong>Details</strong> for information
+about choosing <code>k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ny</code></td>
+<td>
+<p>A numeric scalar.  The (mean) number of observations per year.
+Setting this appropriately is important when making predictive inferences
+using <code>predict.blite</code>, but <code>ny</code> is not used by
+<code>blite</code> so it need not be supplied now.  If <code>ny</code> is supplied to
+<code>blite</code> then it is stored for use by <code>predict.blite</code>.
+Alternatively, <code>ny</code> can be supplied in a later call to
+<code>predict.blite</code>.  If <code>ny</code> is supplied to
+both <code>blite</code> and <code>predict.blite</code> then the value supplied
+to <code>predict.blite</code> will take precedence, with no warning
+given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gp_prior</code></td>
+<td>
+<p>A list to specify a prior distribution for the GP parameters
+(<code class="reqn">\sigma</code><sub>u</sub>,
+<code class="reqn">\xi</code>), set using <code>set_prior</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b_prior</code></td>
+<td>
+<p>A list to specify a prior distribution for the Bernoulli
+parameter <code class="reqn">p</code><sub>u</sub>, set
+using <code>set_bin_prior</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_prior_pars</code></td>
+<td>
+<p>A numerical vector of length 2 containing the
+respective values of the parameters <code class="reqn">\alpha</code> and <code class="reqn">\beta</code> of a
+Beta(<code class="reqn">\alpha</code>, <code class="reqn">\beta</code>) prior for the extremal index <code class="reqn">\theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>An integer scalar.  The size of posterior sample required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character scalar.  Either <code>"vertical"</code> to adjust the
+independence log-likelihood vertically, or <code>"none"</code> for no
+adjustment.  Horizontal adjustment is not offered because it does not
+preserve the correct support of the posterior distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to the function
+<code>meatCL</code> in the sandwich package.
+In particular, the clustering adjustment argument <code>cadjust</code>
+may make a difference if the number of clusters is not large.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>flite</code> for details of the (adjusted) likelihoods
+on which these Bayesian inferences are based.
+</p>
+<p>The likelihood is based on a model for 3 independent aspects.
+</p>
+
+<ol>
+<li>
+<p>A Bernoulli(<code class="reqn">p</code><sub>u</sub>) model
+for whether a given observation exceeds the threshold <code class="reqn">u</code>.
+</p>
+</li>
+<li>
+<p>A generalised Pareto,
+GP(<code class="reqn">\sigma</code><sub>u</sub>,
+<code class="reqn">\xi</code>), model for the marginal distribution of threshold
+excesses.
+</p>
+</li>
+<li>
+<p>The <code class="reqn">K</code>-gaps model for the extremal index <code class="reqn">\theta</code>.
+</p>
+</li>
+</ol>
+<p>The general approach follows Fawcett and Walshaw (2012).
+</p>
+<p>The contributions to the likelihood for
+<code class="reqn">p</code><sub>u</sub> and
+(<code class="reqn">\sigma</code><sub>u</sub>, <code class="reqn">\xi</code>)
+are based on the vertically-adjusted likelihoods described in
+<code>flite</code>.  This is an example of Bayesian inference using a
+composite likelihood Ribatet et al (2012). Priors for
+<code class="reqn">p</code><sub>u</sub>
+(<code class="reqn">\sigma</code><sub>u</sub>, <code class="reqn">\xi</code>)
+and <code class="reqn">\theta</code> are set using the arguments <code>gp_prior</code>,
+<code>b_prior</code> and <code>theta_prior_pars</code>.
+Currently, only priors where
+<code class="reqn">p</code><sub>u</sub>
+(<code class="reqn">\sigma</code><sub>u</sub>, <code class="reqn">\xi</code>)
+and <code class="reqn">\theta</code> are independent a priori are allowed.
+</p>
+<p>Two tuning parameters need to be chosen: a threshold <code class="reqn">u</code> and the
+<code class="reqn">K</code>-gaps run parameter <code class="reqn">K</code>.  The <code>exdex</code>
+package has a function <code>choose_uk</code> to inform this
+choice.
+</p>
+<p>Random samples are simulated from the posteriors for
+<code class="reqn">p</code><sub>u</sub> and
+(<code class="reqn">\sigma</code><sub>u</sub>, <code class="reqn">\xi</code>)
+(using <code>ru</code>) and <code class="reqn">\theta</code> (using
+<code>kgaps_post</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>c("blite", "lite", "chandwich")</code>.
+This object is an <code>n</code> <code class="reqn">\times 4</code> matrix containing the
+posterior samples, with column names
+<code>c("p[u]", "sigma[u]", "xi", "theta")</code>.
+</p>
+<p>The object also has the attributes <code>"Bernoulli"</code>, <code>"gp"</code>,
+<code>"theta"</code>, which provide the fitted model objects returned from
+<code>adjust_loglik</code> (for <code>"Bernoulli"</code> and
+<code>"gp"</code>) and <code>kgaps</code> (for <code>"theta"</code>).
+The named input arguments are returned in a list as the attribute
+<code>inputs</code>.  If <code>ny</code> was not supplied then its value is <code>NA</code>.
+The call to <code>blite</code> is provided in the attribute <code>"call"</code>.
+A call to <code>flite</code> is used to create adjusted log-likelihoods
+for <code class="reqn">p</code><sub>u</sub> and
+(<code class="reqn">\sigma</code><sub>u</sub>, <code class="reqn">\xi</code>).
+The object returned from the call is provided as the attribute
+<code>"flite_object"</code>.
+</p>
+<p>Objects inheriting from class <code>"blite"</code> have <code>coef</code>,
+<code>nobs</code>, <code>plot</code>, <code>summary</code>, <code>vcov</code> and <code>confint</code>
+methods.  See <code>bliteMethods</code>.
+</p>
+<p><code>predict.blite</code> can be used to make predictive inferences about
+the largest value to be observed in <em>N</em> years.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fawcett, L. and Walshaw, D. (2012), Estimating return levels
+from serially dependent extremes. <em>Environmetrics</em>, <strong>23</strong>,
+272-283. <a href="https://doi.org/10.1002/env.2133">doi:10.1002/env.2133</a>
+</p>
+<p>Ribatet, M., Cooley, D., &amp; Davison, A. C. (2012). Bayesian
+inference from composite likelihoods, with an application to spatial
+extremes. <em>Statistica Sinica</em>, <strong>22</strong>(2), 813-845.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>bliteMethods</code>, including plotting the posterior
+samples.
+</p>
+<p><code>predict.blite</code> to make predictive inferences about
+future extreme values.
+</p>
+<p><code>flite</code> for frequentist threshold-based inference
+for time series extremes.
+</p>
+<p><code>choose_uk</code> to inform the choice of the
+threshold <code class="reqn">u</code> and run parameter <code class="reqn">K</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Cheeseboro wind gusts
+
+cdata &lt;- exdex::cheeseboro
+# Each column of the matrix cdata corresponds to data from a different year
+# blite() sets cluster automatically to correspond to column (year)
+cpost &lt;- blite(cdata, u = 45, k = 3)
+summary(cpost)
+
+## Plots of posterior samples
+plot(cpost)
+
+## Credible intervals
+confint(cpost)
+</code></pre>
+
+
+</div>

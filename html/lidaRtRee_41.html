@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rasters2Cor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Correlation between two rasters</h2>
+
+<h3>Description</h3>
+
+<p>computes correlation between two rasters, based on the extent of the smallest 
+one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rasters2Cor(raster_b, raster_s, mask = NULL, small.SC = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>raster_b</code></td>
+<td>
+<p>SpatRaster. raster to correlate with largest extent</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>raster_s</code></td>
+<td>
+<p>SpatRaster. raster to correlate with smallest extent</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mask</code></td>
+<td>
+<p>SpatRaster. mask of area to correlate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>small.SC</code></td>
+<td>
+<p>boolean. is the small raster already standardized and 
+centered ?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rasters_moving_cor</code> to compute correlation between rasters
+for different translations
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># create raster
+r_b &lt;- terra::rast(xmin = 0, xmax = 40, ymin =0 , ymax = 40,
+resolution = 1, crs = NA)
+xy &lt;- terra::xyFromCell(r_b, 1:(nrow(r_b) * ncol(r_b)))
+
+# add Gaussian surface and noise
+z &lt;- 3 * exp(-((xy[, 1] - 20)^2 + (xy[, 2] - 20)^2 / 2) / 6)
+r_b &lt;- terra::rast(cbind(xy, z), type = "xyz")
+
+# create circular mask of radius 5
+z_mask &lt;- (xy[, 1] - 20)^2 + (xy[, 2] - 20)^2 &lt; 5^2
+r_mask &lt;- terra::rast(cbind(xy, z_mask), type = "xyz")
+
+# create small raster of size 20
+r_s &lt;- terra::crop(r_b, terra::ext(c(10, 30, 10, 30)))
+
+# add noise to small raster
+terra::values(r_s) &lt;- terra::values(r_s) + rnorm(ncol(r_s) * nrow(r_s), 0, 0.5)
+r_mask &lt;- terra::crop(r_mask, terra::ext(c(10, 30, 10, 30)))
+
+# compute correlation on masked area where signal to noise ratio is lower
+rasters2Cor(r_b, r_s, r_mask, small.SC = FALSE)
+
+# compute correlation for whole small raster
+rasters2Cor(r_b, r_s, small.SC = FALSE)
+
+# display large raster
+terra::plot(r_b, main = "Large raster")
+# display small raster
+terra::plot(r_s, main = "Small raster")
+# display mask
+terra::plot(r_mask, main = "Computation mask")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,252 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>deterministic.g.function_template</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Deterministic g/Q functions - examples and templates</h2>
+
+<h3>Description</h3>
+
+<p>Template for the <code>deterministic.g.function</code> 
+argument to <code>ltmle</code> or <code>ltmleMSM</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">deterministic.g.function_template(data, current.node, nodes)
+
+deterministic.Q.function_template(
+  data,
+  current.node,
+  nodes,
+  called.from.estimate.g
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the 'data' data.frame passed to <code>ltmle</code> or <code>ltmleMSM</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>current.node</code></td>
+<td>
+<p>the column index of data corresponding to the A or C
+node (for g) or L or Y node (for Q)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>list of column indicies, components: </p>
+ <ul>
+<li> <p><code>A</code>
+Anodes (treatment) </p>
+</li>
+<li> <p><code>C</code> Cnodes (censoring) </p>
+</li>
+<li> <p><code>L</code> Lnodes
+(time-varying covariates) </p>
+</li>
+<li> <p><code>Y</code> Ynodes (events) </p>
+</li>
+<li> <p><code>AC</code>
+Anodes and Cnodes combined and sorted </p>
+</li>
+<li> <p><code>LY</code> Lnodes and Ynodes
+combined, sorted, "blocks" removed - see <code>ltmle</code> </p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>called.from.estimate.g</code></td>
+<td>
+<p>TRUE or FALSE - your function will be called
+with <code>called.from.estimate.g=TRUE</code> during estimation of g and
+<code>called.from.estimate.g=FALSE</code> during estimation of Q.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>MaintainTreatment</code> and <code>MaintainControl</code> are two commonly used
+<code>deterministic.g.function</code>s.
+</p>
+<p>The intended use of the templates is for the user to copy and paste the
+function arguments and body and then fill in the required sections. They
+will not run as-is. Note that there are no comments in the functions as
+saved. Versions with comments may be found in Examples section below.
+</p>
+<p>MaintainTreatment and MaintainControl may be passed as-is for the
+<code>deterministic.g.function</code> argument to <code>ltmle</code> or
+<code>ltmleMSM</code>
+</p>
+<p>Note that censoring nodes in <code>data</code> may be passed as binaries but they
+are converted to the preferred format of factors with levels "censored" and
+"uncensored" before deterministic functions are called.  Also note that
+nodes may be passed to ltmle as either the names of nodes or numerical
+column indicies, but they are all converted to numerical indicies before
+deterministic functions are called.  If the <code>survivalFunction</code> argument
+to <code>ltmle</code> or <code>ltmleMSM</code> is <code>TRUE</code>, the package automatically
+assumes that once Y jumps to 1, all future Y nodes stay 1 and treatment does
+not change. It is not necessary to specify this in deterministic functions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A deterministic.g.function should return a list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>is.deterministic </code></td>
+<td>
+<p>vector of logicals, length=nrow(data)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob1
+</code></td>
+<td>
+<p>the probability that data[is.deterministic, current.node] == 1, vector of
+length 1 or length(which(is.deterministic))</p>
+</td>
+</tr>
+</table>
+<p> A deterministic.Q.function
+should return a list with components: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>is.deterministic </code></td>
+<td>
+<p>vector of
+logicals, length=nrow(data)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q.value</code></td>
+<td>
+<p>the iterated expectation of the
+final Y, vector of length 1 or length(which(is.deterministic))</p>
+</td>
+</tr>
+</table>
+<p>NOTE: The <code>Q.value</code> component is not used or required when
+<code>called.from.estimate.g</code> is <code>TRUE</code>
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>deterministic.Q.function_template()</code>: Template for the <code>deterministic.Q.function</code> 
+argument to <code>ltmle</code> or <code>ltmleMSM</code>.
+</p>
+</li></ul>
+<h3>Author(s)</h3>
+
+<p>Joshua Schwab <a href="mailto:jschwab77@berkeley.edu">jschwab77@berkeley.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ltmle</code>, <code>ltmleMSM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Show template for a deterministic.g.function (comments will not be
+# shown, see below for comments)
+deterministic.g.function_template
+
+# Show template for a deterministic.Q.function (comments will not be
+# shown, see below for comments)
+deterministic.Q.function_template
+
+# Use MaintainTreatment
+set.seed(1)
+rexpit &lt;- function(x) rbinom(n = length(x), size = 1, prob = plogis(x))
+n &lt;- 100
+W &lt;- rnorm(n)
+A1 &lt;- rexpit(W)
+A2 &lt;- as.numeric(rexpit(W) | A1)  #treatment at time 1 implies treatment at time 2
+Y &lt;- rexpit(W + A1 + A2 + rnorm(n))
+data &lt;- data.frame(W, A1, A2, Y)
+
+result &lt;- ltmle(data, Anodes = c("A1", "A2"), Ynodes = "Y", abar = c(1, 1), 
+    deterministic.g.function = MaintainTreatment)
+
+# deterministic.g.function_template with comments:
+
+deterministic.g.function_template &lt;- function(data, current.node, nodes) {
+    # data: the 'data' data.frame passed to ltmle/ltmleMSM current.node: the
+    # column index of data corresponding to the A or C node (see
+    # is.deterministic below) nodes: list of column indicies, components: A,
+    # C, L, Y, AC (Anodes and Cnodes combined and sorted), LY (Lnodes and
+    # Ynodes combined, sorted, 'blocks' removed - see ?ltmle) Note that nodes
+    # may be passed to ltmle as either the names of nodes or numerical column
+    # indicies, but they are all converted to numerical indicies before
+    # deterministic.g.function is called
+    
+    # deterministic.g.function will be called at all Anodes and Cnodes
+    # return(NULL) is equivalent to return(list(is.deterministic=rep(FALSE,
+    # nrow(data)), prob1=numeric(0)))
+    
+    # define is.deterministic here: vector of logicals, length=nrow(data)
+    # define prob1 here: the probability that data[is.deterministic,
+    # current.node] == 1, vector of length 1 or
+    # length(which(is.deterministic))
+    is.deterministic &lt;- stop("replace me!")
+    prob1 &lt;- stop("replace me!")
+    return(list(is.deterministic = is.deterministic, prob1 = prob1))
+}
+
+# deterministic.Q.function_template with comments:
+
+deterministic.Q.function_template &lt;- function(data, current.node, nodes, 
+    called.from.estimate.g) {
+    # data: the 'data' data.frame passed to ltmle/ltmleMSM current.node: the
+    # column index of data corresponding to the A or C node (see
+    # is.deterministic below) nodes: list of column indicies, components: A,
+    # C, L, Y, AC (Anodes and Cnodes combined and sorted), LY (Lnodes and
+    # Ynodes combined, sorted, 'blocks' removed - see ?ltmle)
+    # called.from.estimate.g: TRUE or FALSE - your function will be called
+    # with called.from.estimate.g=TRUE during estimation of g and
+    # called.from.estimate.g=FALSE during estimation of Q. During estimation
+    # of g, only the is.deterministic element of the return list will be
+    # used.  Note that nodes may be passed to ltmle as either the names of
+    # nodes or numerical column indicies, but they are all converted to
+    # numerical indicies before deterministic.Q.function is called
+    
+    # It is not necessary to specify that deterministic Y events (Y==1)
+    # indicate a deterministic Q value of 1; this is automatic 
+    # if the survivalFunction input to ltmle/ltmleMSM is TRUE.
+    # deterministic.Q.function will be called at all Lnodes and Ynodes (after
+    # removing 'blocks') and Anodes and Cnodes (see called.from.estimate.g
+    # above) return(NULL) is equivalent to
+    # return(list(is.deterministic=rep(FALSE, nrow(data)),
+    # Q.value=numeric(0)))
+    
+    # define is.deterministic here: vector of logicals, length=nrow(data)
+    # define Q.value here: the iterated expectation of the final Y, vector of
+    # length 1 or length(which(is.deterministic))
+    is.deterministic &lt;- stop("replace me!")
+    Q.value &lt;- stop("replace me!")
+    return(list(is.deterministic = is.deterministic, Q.value = Q.value))
+}
+
+</code></pre>
+
+
+</div>

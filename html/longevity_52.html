@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nc_score_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Score test of Northrop and Coleman</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the score test
+with the piecewise generalized Pareto distribution
+under the null hypothesis that the generalized Pareto
+with a single shape parameter is an adequate simplification.
+The score test statistic is calculated using the observed information
+matrix; both hessian and score vector are obtained through numerical differentiation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nc_score_test(
+  time,
+  time2 = NULL,
+  event = NULL,
+  thresh = 0,
+  ltrunc = NULL,
+  rtrunc = NULL,
+  type = c("right", "left", "interval", "interval2"),
+  weights = rep(1, length(time))
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>excess time of the event of follow-up time, depending on the value of event</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>ending excess time of the interval for interval censored data only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>status indicator, normally 0=alive, 1=dead. Other choices are <code>TRUE</code>/<code>FALSE</code> (<code>TRUE</code> for death).
+For interval censored data, the status indicator is 0=right censored, 1=event at time, 2=left censored, 3=interval censored.
+Although unusual, the event indicator can be omitted, in which case all subjects are assumed to have experienced an event.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>a vector of thresholds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ltrunc</code></td>
+<td>
+<p>lower truncation limit, default to <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rtrunc</code></td>
+<td>
+<p>upper truncation limit, default to <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character string specifying the type of censoring. Possible values are "<code>right</code>", "<code>left</code>", "<code>interval</code>", "<code>interval2</code>".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>weights for observations</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The score test is much faster and perhaps less fragile than the likelihood ratio test:
+fitting the piece-wise generalized Pareto model is difficult due to the large number of
+parameters and multimodal likelihood surface.
+</p>
+<p>The reference distribution is chi-square
+</p>
+
+
+<h3>Value</h3>
+
+<p>the value of a call to <code>nc_test</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(1234)
+n &lt;- 100L
+x &lt;- samp_elife(n = n,
+                scale = 2,
+                shape = -0.2,
+                lower = low &lt;- runif(n),
+                upper = upp &lt;- runif(n, min = 3, max = 20),
+                type2 = "ltrt",
+                family = "gp")
+test &lt;- nc_test(
+  time = x,
+  ltrunc = low,
+  rtrunc = upp,
+  thresh = quantile(x, seq(0, 0.5, by = 0.1)))
+print(test)
+plot(test)
+
+</code></pre>
+
+
+</div>

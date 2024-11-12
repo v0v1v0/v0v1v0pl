@@ -1,0 +1,275 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cdfkmu</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cumulative Distribution Function of the Kappa-Mu Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the cumulative probability or nonexceedance probability of the Kappa-Mu (<code class="reqn">\kappa:\mu</code>)  distribution given parameters (<code class="reqn">\kappa</code> and <code class="reqn">\mu</code>) computed by <code>parkmu</code>. The cumulative distribution function is complex and numerical integration of the probability density function <code>pdfkmu</code> is used. Alternatively, the cumulative distribution function may be defined in terms of the Marcum Q function
+</p>
+<p style="text-align: center;"><code class="reqn">
+F(x) = 1 - Q_\nu\biggl(\sqrt{2\kappa\mu},\, x\sqrt{2(1+\kappa)\mu}\biggr)\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">F(x)</code> is the nonexceedance probability for quantile <code class="reqn">x</code> and <code class="reqn">Q_v(a,b)</code> is the Marcum Q function defined by
+</p>
+<p style="text-align: center;"><code class="reqn">
+Q_\nu(a,b) = \frac{1}{\alpha^{\nu-1}}\int_b^\infty t^\nu \, \exp(-(t^2 + a^2)/2) \, I_{\nu-1}(at)\; \mathrm{d}t\mbox{,}
+</code>
+</p>
+
+<p>which can be numerically difficult to work with and particularly so with real number values for <code class="reqn">\nu</code>. <code class="reqn">I_\nu(a)</code>  is the “<code class="reqn">\nu</code>th-order modified Bessel function of the first kind.”
+</p>
+<p>Following an apparent breakthrough(?) by Shi (2012), <code class="reqn">\nu</code> can be written as <code class="reqn">\nu = n + \Delta</code> where <code class="reqn">n</code> is an integer and <code class="reqn">0 &lt; \Delta \le 1</code>. The author of <span class="pkg">lmomco</span> refers to this alternative formulation as the “delta nu method”. The Marcum Q function for <code class="reqn">\nu &gt; 0</code> (<code class="reqn">n = 1,2,3, \cdots)</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">
+Q_\nu(a,b) = Q_\Delta(a,b) + \exp(-(a^2 + b^2)/2) \, \sum_{i=0}^{n-1}\biggl(\frac{b}{a}\biggr)^{i+\Delta} \, I_{i+\Delta}(ab)\mbox{,}
+</code>
+</p>
+
+<p>and the function for <code class="reqn">\nu \le 0</code> (<code class="reqn">n=-1,-2,-3,\cdots</code>) is
+</p>
+<p style="text-align: center;"><code class="reqn">
+Q_\nu(a,b) = Q_\Delta(a,b) - \mathrm{exp}(-(a^2 + b^2)/2) \times \sum_{i=n}^{-1}\biggl(\frac{b}{a}\biggr)^{i+\Delta} \mathrm{I}_{i+\Delta}(ab)\mbox{,}
+</code>
+</p>
+
+<p>and the function for <code class="reqn">\nu = 0</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">
+Q_\nu(a,b) = Q_\Delta(a,b) + \mathrm{exp}(-(a^2 + b^2)/2)\mbox{.}
+</code>
+</p>
+
+<p>Shi (2012) concludes that the “merit” of these two expressions is that the evaulation of the Marcum Q function is reduced to the numerical evaluation of <code class="reqn">Q_\Delta(a,b)</code>. This difference can result in measurably faster computation times (confirmed by limited analysis by the author of <span class="pkg">lmomco</span>) and possibly better numerical performance.
+</p>
+<p>Shi (2012) uses notation and text that implies evaluation of the far-right additive term (the summation) for <code class="reqn">n=0</code> as part of the condition <code class="reqn">\nu &gt; 0</code>. To clarify, Shi (2012) implies for <code class="reqn">\nu &gt; 0; n = 0</code> (but <code class="reqn">n=0</code> occurs also for <code class="reqn">-1 &lt; \nu &lt;= 0</code>) the following computation
+</p>
+<p style="text-align: center;"><code class="reqn">
+Q_\nu(a,b) = Q_\Delta(a,b) + \mathrm{exp}(-(a^2 + b^2)/2) \times \biggl[\biggl(\frac{b}{a}\biggr)^{\Delta} \mathrm{I}_{\Delta}(ab) + \biggl(\frac{b}{a}\biggr)^{\Delta-1} \mathrm{I}_{\Delta-1}(ab)\biggr]
+</code>
+</p>
+
+<p>This result produces incompatible cumulative distribution functions of the distribution using <code class="reqn">Q_\nu(a,b)</code> for <code class="reqn">-1 &lt; \nu &lt; 1</code>. Therefore, the author of <span class="pkg">lmomco</span> concludes that Shi (2012) is in error (or your author misinterprets the summation notation) and that the specific condition for <code class="reqn">\nu = 0</code> shown above and lacking <code class="reqn">\sum</code> is correct; there are three individual and separate conditions to support the Marcum Q function using the “delta nu method”: <code class="reqn">\nu \le -1</code>, <code class="reqn">-1 &lt; \nu &lt; 1</code>, and <code class="reqn">\nu \ge -1</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cdfkmu(x, para, paracheck=TRUE, getmed=TRUE, qualo=NA, quahi=NA,
+                marcumQ=TRUE, marcumQmethod=c("chisq", "delta", "integral"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parkmu</code> or  <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters and checked for validity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getmed</code></td>
+<td>
+<p>Numerical problems rolling onto the distribution from the right can result in erroneous <code class="reqn">F</code> being integrated of <code>pdfkmu</code>. This option is used to interrupt recurrsion, but if <code>TRUE</code>, then the median will be computed and for those <code class="reqn">x</code> values less than the median and <code class="reqn">F</code> initially computing as greater than 50 percent, are reset to 0.  Users are unlikely to need this option changed. But the hack can be turned off by setting <code>getmed=FALSE</code> as the user level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qualo</code></td>
+<td>
+<p>A lower limit of the range of <code class="reqn">x</code> to look for a <code>uniroot</code> of <code class="reqn">F(x) = 0.5</code> to estimate the median quantile that is used to mitigate for erroneous numerical results. This argument is passed along to <code>quakmu</code> but also used as a truncation point for which <code class="reqn">F=1</code> is returned if <code class="reqn">x &lt;</code> <code>qualo</code>. Lastly, see the last example below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quahi</code></td>
+<td>
+<p>An upper limit of the range of <code class="reqn">x</code> to look for a <code>uniroot</code> of <code class="reqn">F(x) = 0.5</code> to estimate the median quantile that is used to mitigate for erroneous numerical results. This argument is passed along to <code>quakmu</code> but also used as a truncation point for which <code class="reqn">F=1</code> is returned if <code class="reqn">x &gt;</code> <code>quahi</code>. Lastly, see the last example below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marcumQ</code></td>
+<td>
+<p>A logical controlling whether the Marcum Q function is used instead of numerical integration of <code>pdfkmu</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>marcumQmethod</code></td>
+<td>
+<p>Which method for Marcum Q computation is to be used (see source code).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Nonexceedance probability (<code class="reqn">F</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Code developed from Weinberg (2006). The biascor feature is of my own devise and this Poisson method does not seem to accommodate nu &lt; 1 although Chornoboy claims valid for non-negative integer. The example implementation here will continue to use real values of nu.
+</p>
+<pre>
+See NEWS file and entries for version 2.0.1 for this "R Marcum"
+"marcumq" &lt;- function(a, b, nu=1) {
+	      pchisq(b^2, df=2*nu, ncp=a^2, lower.tail=FALSE) }
+
+"marcumq.poissons" &lt;-
+   function(a,b, nu=NULL, nsim=10000, biascor=0.5) {
+   asint &lt;- as.logical(nu 
+   biascor &lt;- ifelse(! asint, 0, biascor)
+   marcumQint &lt;- marcumq(a, b, nu=nu)
+   B &lt;- rpois(nsim, b^2/2)
+   A &lt;- nu - 1 + biascor + rpois(nsim, a^2/2)
+   L &lt;- B &lt;= A
+   marcumQppois &lt;- length(L[L == TRUE])/nsim
+   z &lt;- list(MarcumQ.by.usingR = marcumQint,
+             MarcumQ.by.poisson = marcumQppois)
+   return(z)
+}
+x &lt;- y &lt;- vector()
+for(i in 1:10000) {
+   nu &lt;- i/100
+   z &lt;- marcumq.poissons(12.4, 12.5, nu=nu)
+   x[i] &lt;- z$MarcumQ.by.usingR
+   y[i] &lt;- z$MarcumQ.by.poisson
+}
+plot(x,y, pch=16, col=rgb(x,0,0,.2),
+     xlab="Marcum Q-function using R (ChiSq distribution)",
+     ylab="Marcum Q-function by two Poisson random variables")
+abline(0,1, lty=2)
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Shi, Q., 2012, Semi-infinite Gauss-Hermite quadrature based approximations to the generalized Marcum and Nuttall Q-functions and further applications: First IEEE International Conference on Communications in China—Communications Theory and Security (CTS), pp. 268–273, ISBN 978–1–4673–2815–9,12.
+</p>
+<p>Weinberg, G.V., 2006, Poisson representation and Monte Carlo estimation of generalized Marcum Q-function: IEEE Transactions on Aerospace and Electronic Systems, v. 42, no. 4, pp. 1520–1531.
+</p>
+<p>Yacoub, M.D., 2007, The kappa-mu distribution and the eta-mu distribution: IEEE Antennas and Propagation Magazine, v. 49, no. 1, pp. 68–81.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pdfkmu</code>, <code>quakmu</code>, <code>lmomkmu</code>, <code>parkmu</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+x &lt;- seq(0,3, by=0.5)
+para &lt;- vec2par(c(0.69, 0.625), type="kmu")
+cdfkmu(x, para, marcumQ=TRUE, marcumQmethod="chisq")
+cdfkmu(x, para, marcumQ=TRUE, marcumQmethod="delta")
+cdfkmu(x, para, marcumQ=FALSE) # about 3 times slower
+## End(Not run)
+## Not run: 
+para &lt;- vec2par(c(0.69, 0.625), type="kmu")
+quahi &lt;- supdist(para, delexp=.1)$support[2]
+cdfkmu(quahi, para, quahi=quahi)
+
+## End(Not run)
+## Not run: 
+delx &lt;- 0.01
+x &lt;- seq(0,3, by=delx)
+
+plot(c(0,3), c(0,1), xlab="RHO", ylab="cdfkmu(RHO)", type="n")
+para &lt;- list(para=c(0, 0.75), type="kmu")
+cdf &lt;- cdfkmu(x, para)
+lines(x, cdf, col=2, lwd=4)
+para &lt;- list(para=c(1, 0.5625), type="kmu")
+cdf &lt;- cdfkmu(x, para)
+lines(x, cdf, col=3, lwd=4)
+
+kappas &lt;- c(0.00000001, 0.69, 1.37,  2.41, 4.45, 10.48, 28.49)
+mus    &lt;- c(0.75, 0.625,  0.5,  0.375, 0.25,  0.125, 0.05)
+for(i in 1:length(kappas)) {
+   kappa &lt;- kappas[i]
+   mu    &lt;- mus[i]
+   para &lt;- list(para=c(kappa, mu), type="kmu")
+   cdf &lt;- cdfkmu(x, para)
+   lines(x, cdf, col=i)
+}
+
+## End(Not run)
+## Not run: 
+delx &lt;- 0.005
+x &lt;- seq(0,3, by=delx)
+nx &lt;- 20*log10(x)
+plot(c(-30,10), 10^c(-4,0), log="y", xaxs="i", yaxs="i",
+     xlab="RHO", ylab="cdfkmu(RHO)", type="n")
+m &lt;- 1.25
+mus &lt;- c(0.25, 0.50, 0.75, 1, 1.25, 0)
+for(mu in mus) {
+   col &lt;- 1
+   kappa &lt;- m/mu - 1 + sqrt((m/mu)*((m/mu)-1))
+   para &lt;- vec2par(c(kappa, mu), type="kmu")
+   if(! is.finite(kappa)) {
+      para &lt;- vec2par(c(Inf,m), type="kmu")
+      col &lt;- 2
+   }
+   lines(nx, cdfkmu(x, para), col=col)
+}
+mtext("Yacoub (2007, figure 4)")
+
+## End(Not run)
+## Not run: 
+# The Marcum Q use for the CDF avoid numerical integration of pdfkmu(), but
+# below is an example for which there is some failure that remains to be found.
+para &lt;- vec2par(c(10, 23), type="kmu")
+# The following are reliable but slower as they avoid the Marcum Q function
+# and use traditional numerical integration of the PDF function.
+A &lt;- cdfkmu(c(0.10, 0.35, 0.9, 1, 1.16), para, marcumQ=FALSE)
+# Continuing, the first value in c() has an erroneous value for the next call.
+B &lt;- cdfkmu(c(0.10, 0.35, 0.9, 1, 1.16), para, marcumQ=TRUE)
+# But this distribution is tightly peaks and well away from the origin, so in
+# order to snap the erroneous value to zero, we need a successful median
+# computation.  We can try again using the qualo argument to pass through to
+# quakmu() like the following:
+C &lt;- cdfkmu(c(0.10, 0.35, 0.9, 1, 1.16), para, marcumQ=TRUE, qualo=0.4)
+# The existance of the median for the last one also triggers a truncation of
+# the CDF to 0 when negative solution results for the 0.35, although the
+# negative is about -1E-14.
+
+## End(Not run)
+## Not run: 
+# Does the discipline of the signal litature just "know" about the apparent
+# upper support of the Kappa-Mu being quite near or even at pi?
+"simKMU" &lt;- function() {
+   km &lt;- 10^runif(2, min=-3, max=3)
+   f &lt;- cdfkmu(pi, vec2par(km, type="kmu"))
+   return(c(km, f))
+}
+EndStudy &lt;- sapply(1:1000, function(i) { simKMU() } )
+boxplot(EndStudy[3,])
+
+## End(Not run)
+</code></pre>
+
+
+</div>

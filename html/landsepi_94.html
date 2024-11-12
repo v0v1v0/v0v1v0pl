@@ -1,0 +1,677 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simul_landsepi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation with input parameters as data.frames.</h2>
+
+<h3>Description</h3>
+
+<p>Stochastic, spatially-explicit, demo-genetic model simulating the spread and evolution
+of a pathogen in a heterogeneous landscape and generating a wide range of epidemiological, evolutionary
+and economic outputs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simul_landsepi(
+  seed = 12345,
+  time_param = list(Nyears = 5, nTSpY = 120),
+  croptype_names = c("Susceptible crop"),
+  croptypes_cultivars_prop = data.frame(croptypeID = 0, cultivarID = 0, proportion = 1),
+  cultivars = data.frame(cultivarName = "Susceptible", initial_density = 0.1, max_density
+    = 2, growth_rate = 0.1, reproduction_rate = 0, yield_H = 2.5, yield_L = 0, yield_I =
+    0, yield_R = 0, planting_cost = 225, market_value = 200),
+  cultivars_genes_list = list(numeric(0)),
+  genes = data.frame(geneName = character(0), mutation_prob = numeric(0), efficiency =
+    numeric(0), tradeoff_strength = numeric(0), Nlevels_aggressiveness = numeric(0),
+    adaptation_cost = numeric(0), relative_advantage = numeric(0), age_of_activ_mean =
+    numeric(0), age_of_activ_var = numeric(0), target_trait = character(0),
+    recombination_sd = numeric(0)),
+  landscape = NULL,
+  area = 1e+06,
+  rotation = data.frame(year_1 = c(0), year_2 = c(0), year_3 = c(0), year_4 = c(0),
+    year_5 = c(0), year_6 = c(0)),
+  basic_patho_param = list(name = "rust", survival_prob = 1e-04, repro_sex_prob = 0,
+    infection_rate = 0.4, propagule_prod_rate = 3.125, latent_period_mean = 10,
+    latent_period_var = 9, infectious_period_mean = 24, infectious_period_var = 105,
+    sigmoid_kappa = 5.333, sigmoid_sigma = 3, sigmoid_plateau = 1,
+    sex_propagule_viability_limit = 1, sex_propagule_release_mean = 1,
+    clonal_propagule_gradual_release = 0),
+  disp_patho_clonal = c(1),
+  disp_patho_sex = c(1),
+  disp_host = c(1),
+  treatment = list(treatment_degradation_rate = 0.1, treatment_efficiency = 0,
+    treatment_timesteps = logical(0), treatment_cultivars = logical(0), treatment_cost =
+    0, treatment_application_threshold = logical(0)),
+  pI0 = c(5e-04),
+  epid_outputs = "all",
+  evol_outputs = "all",
+  thres_breakdown = 50000,
+  audpc100S = 0.76,
+  writeTXT = TRUE,
+  graphic = TRUE,
+  videoMP4 = FALSE,
+  keepRawResults = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>an integer used as seed value (for random number generator).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_param</code></td>
+<td>
+<p>a list of simulation parameters:</p>
+
+<ul>
+<li>
+<p> Nyears = number cropping seasons,
+</p>
+</li>
+<li>
+<p> nTSpY = number of time-steps per cropping season.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>croptype_names</code></td>
+<td>
+<p>a vector of croptypes names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>croptypes_cultivars_prop</code></td>
+<td>
+<p>a dataframe with three columns named 'croptypeID' for croptype index,
+'cultivarID' for cultivar index and 'proportion' for the proportion of the cultivar within the croptype.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cultivars</code></td>
+<td>
+<p>a dataframe of parameters associated with each host genotype (i.e. cultivars)
+when cultivated in pure crops. Columns of the dataframe are:</p>
+
+<ul>
+<li>
+<p> cultivarName: cultivar names,
+</p>
+</li>
+<li>
+<p> initial_density: host densities (per square meter) at the beginning of the cropping season
+as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> max_density: maximum host densities (per square meter) at the end of the cropping season
+as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> growth_rate: host growth rates,
+</p>
+</li>
+<li>
+<p> reproduction rate: host reproduction rates,
+</p>
+</li>
+<li>
+<p> yield_H: theoretical yield (in weight or volume units / ha / cropping season) associated with
+hosts in sanitary status H as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> yield_L: theoretical yield (in weight or volume units / ha / cropping season) associated with
+hosts in sanitary status L as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> yield_I: theoretical yield (in weight or volume units / ha / cropping season) associated with
+hosts in sanitary status I as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> yield_R: theoretical yield (in weight or volume units / ha / cropping season) associated with
+hosts in sanitary status R as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> planting_cost = planting costs (in monetary units / ha / cropping season) as if cultivated in pure crop,
+</p>
+</li>
+<li>
+<p> market_value = market values of the production (in monetary units / weight or volume unit).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cultivars_genes_list</code></td>
+<td>
+<p>a list containing, for each host genotype, the indices of carried resistance genes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genes</code></td>
+<td>
+<p>a data.frame of parameters associated with each resistance gene and with the evolution of
+each corresponding pathogenicity gene. Columns of the dataframe are:</p>
+
+<ul>
+<li>
+<p> geneName: names of resistance genes,
+</p>
+</li>
+<li>
+<p> target_trait: aggressiveness components (IR, LAT, IP, or PR) targeted by resistance genes,
+</p>
+</li>
+<li>
+<p> efficiency: resistance gene efficiencies (percentage of reduction of targeted aggressiveness components:
+IR, 1/LAT, IP and PR),
+</p>
+</li>
+<li>
+<p> age_of_activ_mean: expected delays to resistance activation (for APRs),
+</p>
+</li>
+<li>
+<p> age_of_activ_var: variances of the delay to resistance activation (for APRs),
+</p>
+</li>
+<li>
+<p> mutation_prob: mutation probabilities for pathogenicity genes (each of them corresponding to a resistance gene),
+</p>
+</li>
+<li>
+<p> Nlevels_aggressiveness: number of adaptation levels related to each resistance gene (i.e. 1 + number
+of required mutations for a pathogenicity gene to fully adapt to the corresponding resistance gene),
+</p>
+</li>
+<li>
+<p> adaptation_cost: fitness penalties paid by pathogen genotypes fully adapted
+to the considered resistance genes on all hosts,
+</p>
+</li>
+<li>
+<p> relative_advantage: fitness advantages of pathogen genotype fully adapted to the considered resistance
+genes on hosts carrying these genes, relative to those that do not carry these genes,
+</p>
+</li>
+<li>
+<p> tradeoff_strength: strengths of the trade-off relationships between the level of aggressiveness
+on hosts that do and do not carry the resistance genes.
+</p>
+</li>
+<li>
+<p> recombination_sd: standard deviation of the normal distribution used for recombination of quantitative traits during sexual reproduction (infinitesimal model)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>landscape</code></td>
+<td>
+<p>a sp object containing the landscape (required only if videoMP4=TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>a vector containing polygon areas (must be in square meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotation</code></td>
+<td>
+<p>a dataframe containing for each field (rows) and year (columns, named "year_1", "year_2", etc.),
+the index of the cultivated croptype. Importantly, the matrix must contain 1 more column than the real number
+of simulated years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basic_patho_param</code></td>
+<td>
+<p>a list of i. pathogen aggressiveness parameters on a susceptible host
+for a pathogen genotype not adapted to resistance and ii. sexual reproduction parameters: </p>
+
+<ul>
+<li>
+<p> infection_rate = maximal expected infection rate of a propagule on a healthy host,
+</p>
+</li>
+<li>
+<p> propagule_prod_rate = maximal expected effective propagule production rate of an infectious host per time step,
+</p>
+</li>
+<li>
+<p> latent_period_mean = minimal expected duration of the latent period,
+</p>
+</li>
+<li>
+<p> latent_period_var = variance of the latent period duration,
+</p>
+</li>
+<li>
+<p> infectious_period_mean = maximal expected duration of the infectious period,
+</p>
+</li>
+<li>
+<p> infectious_period_var = variance of the infectious period duration,
+</p>
+</li>
+<li>
+<p> survival_prob = probability for a propagule to survive the off-season (can be entered as a matrix
+to give a different probability for every year (rows) and every croptype (columns)),
+</p>
+</li>
+<li>
+<p> repro_sex_prob = probability for an infectious host to reproduce via sex rather than via cloning
+(can be entered as a vector of size <code>time_param$nSTpY+1</code> to give a different probability for every time step),
+</p>
+</li>
+<li>
+<p> sigmoid_kappa = kappa parameter of the sigmoid contamination function,
+</p>
+</li>
+<li>
+<p> sigmoid_sigma = sigma parameter of the sigmoid contamination function,
+</p>
+</li>
+<li>
+<p> sigmoid_plateau = plateau parameter of the sigmoid contamination function,
+</p>
+</li>
+<li>
+<p> sex_propagule_viability_limit = maximum number of cropping seasons up to which a sexual propagule is viable
+</p>
+</li>
+<li>
+<p> sex_propagule_release_mean = average number of seasons after which a sexual propagule is released,
+</p>
+</li>
+<li>
+<p> clonal_propagule_gradual_release = Whether or not clonal propagules surviving the bottleneck are gradually released along the following cropping season.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp_patho_clonal</code></td>
+<td>
+<p>a vectorized matrix giving the probability of pathogen dispersal
+from any field of the landscape to any other field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp_patho_sex</code></td>
+<td>
+<p>a vectorized matrix giving the probability of pathogen dispersal for sexual propagules
+from any field of the landscape to any other field.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>disp_host</code></td>
+<td>
+<p>a vectorized matrix giving the probability of host dispersal
+from any field of the landscape to any other field</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treatment</code></td>
+<td>
+<p>list of parameters related to pesticide treatments: </p>
+
+<ul>
+<li>
+<p> treatment_degradation_rate = degradation rate (per time step) of chemical concentration,
+</p>
+</li>
+<li>
+<p> treatment_efficiency = maximal efficiency of chemical treatments (i.e. fractional reduction
+of pathogen infection rate at the time of application),
+</p>
+</li>
+<li>
+<p> treatment_timesteps = vector of time-steps corresponding to treatment application dates,
+</p>
+</li>
+<li>
+<p> treatment_cultivars = vector of indices of the cultivars that receive treatments,
+</p>
+</li>
+<li>
+<p> treatment_cost = cost of a single treatment application (monetary units/ha)
+</p>
+</li>
+<li>
+<p> treatment_application_threshold = vector of thresholds (i.e. disease severity, one for each treated cultivar)
+above which the treatment is applied in a polygon
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pI0</code></td>
+<td>
+<p>probability for the first cultivar to be infected (and infectious, i.e. state I) by the
+first pathogen genotype in all polygons of the landscape at t=0 (i.e. the beginning of the simulation).
+It can also be entered as a vector of length Nhost<em>Npatho</em>Npoly giving the probability
+for each cultivar, pathogen genotype and polygon (independently from the possible presence of
+cultivars carrying resistance genes).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epid_outputs</code></td>
+<td>
+<p>a character string (or a vector of character strings if several outputs are to be computed)
+specifying the type of epidemiological and economic outputs to generate (see details):
+</p>
+
+<ul>
+<li>
+<p> "audpc" : Area Under Disease Progress Curve (average number of diseased host individuals
+per time step and square meter)
+</p>
+</li>
+<li>
+<p> "audpc_rel" : Relative Area Under Disease Progress Curve (average proportion of diseased host
+individuals relative to the total number of existing hosts)
+</p>
+</li>
+<li>
+<p> "gla" : Green Leaf Area (average number of healthy host individuals per time step and square meter)
+</p>
+</li>
+<li>
+<p> "gla_rel" : Relative Green Leaf Area (average proportion of healthy host individuals relative to the
+total number of existing hosts)
+</p>
+</li>
+<li>
+<p> "eco_yield" : total crop yield (in weight or volume units per ha)
+</p>
+</li>
+<li>
+<p> "eco_cost" : operational crop costs (in monetary units per ha)
+</p>
+</li>
+<li>
+<p> "eco_product" : total crop products (in monetary units per ha)
+</p>
+</li>
+<li>
+<p> "eco_margin" : Margin (products - operational costs, in monetary units per ha)
+</p>
+</li>
+<li>
+<p> "contrib": contribution of pathogen genotypes to LIR dynamics
+</p>
+</li>
+<li>
+<p> "HLIR_dynamics", "H_dynamics", "L_dynamics", "IR_dynamics", "HLI_dynamics", etc.: Epidemic dynamics
+related to the specified sanitary status (H, L, I or R and all their combinations). Graphics only,
+works only if graphic=TRUE.
+</p>
+</li>
+<li>
+<p> "all" : compute all these outputs (default)
+</p>
+</li>
+<li>
+<p> "" : none of these outputs will be generated.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evol_outputs</code></td>
+<td>
+<p>a character string (or a vector of character strings if several outputs are to be computed)
+specifying the type of evolutionary outputs to generate :</p>
+
+<ul>
+<li>
+<p> "evol_patho": Dynamics of pathogen genotype frequencies
+</p>
+</li>
+<li>
+<p> "evol_aggr": Evolution of pathogen aggressiveness
+</p>
+</li>
+<li>
+<p> "durability": Durability of resistance genes
+</p>
+</li>
+<li>
+<p> "all": compute all these outputs (default)
+</p>
+</li>
+<li>
+<p> "": none of these outputs will be generated.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thres_breakdown</code></td>
+<td>
+<p>an integer (or vector of integers) giving the threshold (i.e. number of infections)
+above which a pathogen genotype is unlikely to go extinct, used to characterise the time to invasion
+of resistant hosts (several values are computed if several thresholds are given in a vector).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>audpc100S</code></td>
+<td>
+<p>the audpc in a fully susceptible landscape (used as reference value for graphics).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>writeTXT</code></td>
+<td>
+<p>a logical indicating if outputs must be written in text files (TRUE, default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graphic</code></td>
+<td>
+<p>a logical indicating if graphics must be generated (TRUE, default) or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>videoMP4</code></td>
+<td>
+<p>a logical indicating if a video must be generated (TRUE) or not (FALSE, default).
+Works only if graphic=TRUE and epid_outputs="audpc_rel" (or epid_outputs="all").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepRawResults</code></td>
+<td>
+<p>a logical indicating if binary files must be kept after the end of the simulation (default=FALSE).
+Careful, many files may be generated if keepRawResults=TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>?landsepi</code> for details on the model and assumptions.
+Briefly, the model is stochastic, spatially explicit (the basic spatial unit is an individual field), based on a SEIR
+(‘susceptible-exposed-infectious-removed’, renamed HLIR for 'healthy-latent-infectious-removed' to avoid confusions
+with 'susceptible host') structure with a discrete time step. It simulates the spread and
+evolution (via mutation, recombination through sexual reproduction, selection and drift)
+of a pathogen in a heterogeneous cropping landscape, across cropping seasons split by host harvests which impose
+potential bottlenecks to the pathogen. A wide array of resistance deployment strategies
+(possibly including chemical treatments) can be simulated and evaluated using several possible
+outputs to assess the epidemiological, evolutionary and economic performance
+of deployment strategies (See <code>?epid_output</code> and <code>?evol_output</code> for details).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing all outputs that have been required via "epid_outputs" and "evol_outputs".
+A set of text files, graphics and a video showing epidemic dynamics can be generated.
+If keepRawResults=TRUE, a set of binary files is generated for every year of simulation and
+every compartment: </p>
+
+<ul>
+<li>
+<p> H: healthy hosts,
+</p>
+</li>
+<li>
+<p> Hjuv: juvenile healthy hosts (for host reproduction),
+</p>
+</li>
+<li>
+<p> L: latently infected hosts,
+</p>
+</li>
+<li>
+<p> I: infectious hosts,
+</p>
+</li>
+<li>
+<p> R: removed hosts,
+</p>
+</li>
+<li>
+<p> P: propagules.</p>
+</li>
+</ul>
+<p>Each file indicates for every time-step the number of individuals in each field, and when appropriate for
+each host and pathogen genotype. Additionally, a binary file called TFI is
+generated and gives the Treatment Frequency Indicator (expressed as the number of treatment applications
+per polygon).
+</p>
+
+
+<h3>References</h3>
+
+<p>Rimbaud L., Papaïx J., Rey J.-F., Barrett L. G. and Thrall P. H. (2018).
+Assessing the durability andefficiency of landscape-based strategies to deploy
+plant resistance to pathogens. <em>PLoS Computational Biology</em> 14(4):e1006067.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>model_landsepi, epid_output, evol_output, video, runSimul
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#### Spatially-implicit simulation with a single 1-km^2 patch 100% cultivated 
+# with a susceptible cultivar
+
+simul_landsepi()
+
+#### Spatially-implicit simulation with 2 patches (S + R) during 3 years ####
+
+## Simulation parameters
+time_param &lt;- list(Nyears = 3, nTSpY = 120)
+area &lt;- c(100000, 100000)
+rotation &lt;- data.frame(year_1 = c(0, 1), year_2 = c(0, 1), year_3 = c(0, 1), year_4 = c(0, 1))
+croptype_names &lt;- c("Susceptible crop", "Resistant crop")
+croptypes_cultivars_prop &lt;- data.frame(
+croptypeID = c(0, 1),
+cultivarID = c(0, 1),
+proportion = c(1, 1)
+)
+cultivars &lt;- rbind(
+loadCultivar(name = "Susceptible", type = "growingHost"),
+loadCultivar(name = "Resistant", type = "growingHost")
+)
+genes &lt;- loadGene(name = "MG", type = "majorGene")
+cultivars_genes_list &lt;- list(numeric(0), 0)
+
+## Run simulation
+simul_landsepi(
+seed = 12345, time_param, croptype_names, croptypes_cultivars_prop, cultivars,
+cultivars_genes_list, genes, landscape = NULL, area, rotation,
+basic_patho_param = loadPathogen(disease = "rust"),
+disp_patho_clonal = c(0.99, 0.01, 0.01, 0.99),
+disp_patho_sex = c(0.99, 0.01, 0.01, 0.99),
+disp_host = c(1, 0, 0, 1),
+pI0 = c(5e-4)
+)
+
+
+#### Spatially-explicit simulation with built-in landscape during 10 years ####
+# Generate a mosaic of four croptypes in balanced proportions
+# and medium level of spatial aggregation
+
+## Simulation and Landscape parameters
+Nyears &lt;- 10
+nTSpY &lt;- 120
+landscape &lt;- loadLandscape(1)
+Npoly &lt;- length(landscape)
+library(sf)
+area &lt;- st_area(st_as_sf(landscape))
+rotation &lt;- AgriLand(landscape, Nyears,
+rotation_period = 1, rotation_realloc = FALSE,
+rotation_sequence = c(0, 1, 2, 3),
+prop = rep(1 / 4, 4), aggreg = 0.5, graphic = TRUE, outputDir = getwd()
+)
+rotation &lt;- data.frame(rotation)[, 1:(Nyears + 1)]
+croptype_names &lt;- c("Susceptible crop"
+, "Resistant crop 1"
+, "Resistant crop 2"
+, "Resistant crop 3")
+croptypes_cultivars_prop &lt;- data.frame(croptypeID = c(0, 1, 2, 3), cultivarID = c(0, 1, 2, 3),
+proportion = c(1, 1, 1, 1))
+cultivars &lt;- data.frame(rbind(
+loadCultivar(name = "Susceptible", type = "growingHost"),
+loadCultivar(name = "Resistant1", type = "growingHost"),
+loadCultivar(name = "Resistant2", type = "growingHost"),
+loadCultivar(name = "Resistant3", type = "growingHost")
+), stringsAsFactors = FALSE)
+Nhost &lt;- nrow(cultivars)
+genes &lt;- data.frame(rbind(
+loadGene(name = "MG 1", type = "majorGene"),
+loadGene(name = "MG 2", type = "majorGene"),
+loadGene(name = "MG 3", type = "majorGene")
+), stringsAsFactors = FALSE)
+cultivars_genes_list &lt;- list(numeric(0), 0, 1, 2)
+Npatho &lt;- prod(genes$Nlevels_aggressiveness)
+
+## Run simulation
+simul_landsepi(
+seed = 12345, time_param = list(Nyears = Nyears, nTSpY = nTSpY),
+croptype_names, croptypes_cultivars_prop, cultivars,
+cultivars_genes_list, genes, landscape, area, rotation,
+basic_patho_param = loadPathogen(disease = "rust"),
+disp_patho_clonal = loadDispersalPathogen(1)[[1]],
+disp_patho_sex = as.numeric(diag(Npoly)),
+disp_host = as.numeric(diag(Npoly)),
+pI0 = c(5E-4)
+)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

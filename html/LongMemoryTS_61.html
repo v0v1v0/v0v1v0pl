@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MLWS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>MLWS test for multivariate spurious long memory.</h2>
+
+<h3>Description</h3>
+
+<p>Multivariate local Whittle Score type test for the null hypothesis of true long
+memory against the alternative of spurious long memory suggested by Sibbertsen, 
+Leschinski and Holzhausen (2018).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MLWS(X, m, epsilon = c(0.02, 0.05), coint.elements = NULL, B = NULL,
+  prewhite = c("none", "uni", "multi"), eta = rep(1/sqrt(min(dim(X))),
+  min(dim(X))), rep = FALSE, approx = 100, split = 1,
+  T_limdist = 1000, M_limdist = 5000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>data matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>bandwith parameter specifying the number of Fourier frequencies used 
+for the estimation usually <code>floor(1+T^delta)</code>, where 0.5&lt;delta&lt;0.8 for consistency.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>trimming parameter <code>epsilon=0.05</code> by default. Determines
+minimum number of Fourier frequencies used in test statistic. For T&gt;500 it is recommended 
+to use <code>epsilon=0.02</code>. Confer Sibbertsen, Leschinski, Holzhausen (2018) for further details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coint.elements</code></td>
+<td>
+<p>Vector specifying which elements in the vector series are in a cointegrating relationship. By default <code>NULL</code>. Cf details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>cointegrating matrix, if known. Default is <code>B=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prewhite</code></td>
+<td>
+<p>specifies the form of pre-whitening applied. One of <code>c("none","uni","multi")</code>. 
+If <code>uni</code> is selected the univariate a univariate of maximal order (1,d,1) is selected using the AIC. 
+If <code>multi</code> is selected <code>VARFIMA_est</code> is used to fit a VARFIMA(1,d,1) in final equations form.
+Default is <code>none</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>vector of weights. Default is <code>rep(1/sqrt(min(dim(X))),min(dim(X)))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>if <code>prewhite="multi"</code> is selected, rep specifies whether the current parameter values are 
+displayed to the user during optimization procedure. Default is <code>rep=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approx</code></td>
+<td>
+<p>if <code>prewhite="multi"</code> is selected, approx specifies the order of the AR-approximation
+used in <code>VARFIMA_est</code>. Default is <code>approx=100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split</code></td>
+<td>
+<p>if <code>prewhite="multi"</code> is selected, <code>split</code> whether the sample should be split into
+subsamples to speed up the estimation. Default is <code>split=1</code>, so that the whole sample is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T_limdist</code></td>
+<td>
+<p>number of increments used in simulation if limit distribution. 
+Only relevant for component-wise version of the test. Default is <code>T_limdist=1000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M_limdist</code></td>
+<td>
+<p>number of replications for simulation of the limit distribution.
+Default is <code>M_limdist=5000</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Sibbertsen, P., Leschinski, C. H., Holzhausen, M., (2018): A Multivariate Test 
+Against Spurious Long Memory. Journal of Econometrics, Vol. 203, No. 1, pp. 33 - 49.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">T&lt;-500
+m&lt;-floor(1+T^0.75)
+series&lt;-FI.sim(T=T,q=2,rho=0.7,d=c(0.4,0.2))
+ts.plot(series, col=1:2)
+MLWS(X=series, m=m, epsilon=0.05)
+
+shift.series&lt;-series+ARRLS.sim(T=T, phi=0, sig.shift=2, prob=5/T)
+ts.plot(shift.series, col=1:2)
+MLWS(X=shift.series, m=m, epsilon=0.05)
+
+T&lt;-500
+m&lt;-floor(T^0.75)
+series&lt;-FI.sim(T=T,q=2,rho=0,d=c(0.1,0.4), B=rbind(c(1,-1),c(0,1)))
+ts.plot(series, col=1:2)
+MLWS(series, m=m)
+MLWS(series, m=m, coint.elements=c(1,2))
+</code></pre>
+
+
+</div>

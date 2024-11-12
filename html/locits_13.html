@@ -1,0 +1,313 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hwtos2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test of second-order stationarity using wavelets.
+</h2>
+
+<h3>Description</h3>
+
+<p>The main function to perform a test of second-order
+stationarity as outlined in Nason (2012). Essentially,
+this routine computes an evolutionary wavelet spectral
+estimate and then computes the Haar wavelet coefficients
+of each scale of the spectral estimate. Any large Haar
+coefficients are indicative of nonstationarity. A multiple
+hypothesis test assesses whether any of the Haar coefficients
+are large enough to reject the null hypothesis of stationarity.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hwtos2(x, alpha = 0.05, filter.number = 1, family = "DaubExPhase",
+    lowlev = 3, WTscale = NULL, maxSD = NULL, verbose = FALSE,
+    silent = FALSE, UseCForVarip2 = TRUE, OPLENGTH = 1e+05)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The time series you want to test for second order
+stationarity. This should be a stochastic series. The function
+will report an error if <code>x</code> is a constant function. The
+function might not work properly if it contains a significant trend
+or patches of non-stochastic observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The overall (nominal) size of the test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.number</code></td>
+<td>
+<p>The index number of the wavelet used
+to compute the evolutionary spectral estimate with.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The family of wavelet used to compute
+the evolutionary spectral estimate.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowlev</code></td>
+<td>
+<p>Do not compute Haar wavelet coefficients on
+evolutionary wavelet spectra at level lower than <code>lowlev</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WTscale</code></td>
+<td>
+<p>The theory of the test shows that the Haar wavelet
+coefficients of the raw wavelet periodogram are asymptotically
+normal as long as the scale of the Haar wavelet is
+‘coarse’ enough. Roughly, speaking <code>WTscale</code>
+is internally coded to be the log of the square root of T,
+the length of the series (J/2), but you can set another
+value. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxSD</code></td>
+<td>
+<p>As part of its execution, this function computes an
+evolutionary wavelet spectral estimate from the time series.
+Since the test is based on the assumption of stationarity, the
+EWS is averaged over time. There will be <code class="reqn">J = \log_2 T</code>
+scale levels and, if <code>maxSD = NULL</code> then all of the <code class="reqn">J</code>
+levels get used for later functions, such as computing the
+variance of Haar wavelet coefficients. This argument
+permits you to restrict the number of coarse scales going into
+further calculations (e.g. removes the coarser scales from
+further examination). Mostly, the default will be fine and maximises
+the use of the available information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code> then informative error messages are printed.
+If <code>FALSE</code> they are not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>If <code>TRUE</code> then no informative messages are printed.
+If <code>FALSE</code> then a limited amout of informative is printed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UseCForVarip2</code></td>
+<td>
+<p>If <code>TRUE</code> then fast C code is use to
+compute wavelet coefficients' variance. If <code>FALSE</code> then
+R code is used wholly throughout, but the execution will be much
+slower.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OPLENGTH</code></td>
+<td>
+<p>The <code>PsiJ</code> and <code>PsiJmat</code> routines both
+used preallocated storage. This argument can be provided to
+increase the amount of storage. Note, you should not need to change
+this unless the routine as whole stops and tells you to rerun it
+with increased storage.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function looks at the Haar wavelet coefficients
+of an evolutionary wavelet spectrum. This is a modification
+of the principle of von Sachs and Neumann (2000) which
+worked with the Haar wavelet coefficients of a local
+Fourier spectrum.
+</p>
+<p>See also, the <code>stationarity</code> test which implements
+the Priestley-Subba Rao (1969) test. This function
+is contained in the <code>fractal</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>tos</code>, a list containing the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nreject</code></td>
+<td>
+<p>The number of FDR rejections</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rejpval</code></td>
+<td>
+<p>The p-value associated with FDR rejections</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spvals</code></td>
+<td>
+<p>A vector of p-values from all of the tests, sorted in
+ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sTS</code></td>
+<td>
+<p>A vector of sorted test statistics from all of the tests,
+sorted into the same order as <code>spvals</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AllTS</code></td>
+<td>
+<p>A list containing all of the test statistics.
+The first entry contains test statistics corresponding
+to the coarsest scale, the last entry corresponds to the
+finest scale. Each component in the list is either empty
+(because the scale was omitted because it was less than
+<code>lowlev</code>) or contains a <code>wd</code> class object. The
+<code>wd</code> class object contains the test statistics for
+each Haar wavelet coefficient (not the coefficients).
+Hence, the value of the test statistic for any scale/location
+or level of the wavelet periodogram can easily be extracted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AllPVal</code></td>
+<td>
+<p>As <code>AllTS</code> except the values stored are
+the p-values, not the test statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The nominal size of the overall hypothesis test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The original time series that was analyzed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xSD</code></td>
+<td>
+<p>A vector containing <code>J</code> levels, which is the
+EWS estimate averaged across time.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Guy Nason.
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a>
+</p>
+<p>Priestley, M.B. and Subba Rao (1969) A test for non-stationarity of
+time series. <em>J. R. Statist. Soc. B</em>, <b>31</b>, 140-149.
+</p>
+<p>von Sachs, R. and Neumann, M.H. (2000) A wavelet-based test for
+stationarity. <em>J. Time Ser. Anal.</em>, <b>21</b>,
+597-613.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>varip2</code>, <code>stationarity</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# First, test a set of iid Gaussians: should be stationary!
+#
+hwtos2(rnorm(256))
+#  8    7    6    5    4    3  
+#Class 'tos' : Stationarity Object :
+#       ~~~~  : List with 9 components with names
+#              nreject rejpval spvals sTS AllTS AllPVal alpha x xSD 
+#
+#
+#summary(.):
+#----------
+#There are  186  hypothesis tests altogether
+#There were  0  FDR rejects
+#No p-values were smaller than the FDR val of:   
+#Using Bonferroni rejection p-value is  0.0002688172 
+#And there would be  0  rejections.
+#
+#  NOTE: the summary indicates that nothing was rejected: hence stationary!
+#
+# Second, example. Concatenated Gaussians with different variances
+#
+hwtos2(c(rnorm(256), rnorm(256,sd=2)))
+#  9    8    7    6    5    4    3  
+#Class 'tos' : Stationarity Object :
+#       ~~~~  : List with 9 components with names
+#              nreject rejpval spvals sTS AllTS AllPVal alpha x xSD 
+#
+#
+#summary(.):
+#----------
+#There are  441  hypothesis tests altogether
+#There were  5  FDR rejects
+#The rejection p-value was  3.311237e-06 
+#Using Bonferroni rejection p-value is  0.0001133787 
+#And there would be  5  rejections.
+#Listing FDR rejects... (thanks Y&amp;Y!)
+#P: 5 HWTlev:  0  indices on next line...[1] 1
+#P: 6 HWTlev:  0  indices on next line...[1] 1
+#P: 7 HWTlev:  0  indices on next line...[1] 1
+#P: 8 HWTlev:  0  indices on next line...[1] 1
+#P: 9 HWTlev:  0  indices on next line...[1] 1
+#
+# NOTE: This time 5 Haar wavelet coefficients got rejected: hence series
+# is not stationary.
+
+</code></pre>
+
+
+</div>

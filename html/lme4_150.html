@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmList</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit List of lm or glm Objects with a Common Model</h2>
+
+<h3>Description</h3>
+
+<p>Fit a list of <code>lm</code> or <code>glm</code> objects with a
+common model for different subgroups of the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmList(formula, data, family, subset, weights, na.action,
+       offset, pool = !isGLM || .hasScale(family2char(family)),
+       warn = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a linear <code>formula</code> object of the form
+<code>y ~ x1+...+xn | g</code>.  In the formula object, <code>y</code>
+represents the response, <code>x1,...,xn</code> the covariates,
+and <code>g</code> the grouping factor specifying the
+partitioning of the data according to which different
+<code>lm</code> fits should be performed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>an optional <code>family</code> specification for a
+generalized linear model (<code>glm</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame containing the
+variables named in <code>formula</code>.  By default the
+variables are taken from the environment from which
+<code>lmer</code> is called.  See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional expression indicating the
+subset of the rows of <code>data</code> that should be used in
+the fit.  This can be a logical vector, or a numeric
+vector indicating which observation numbers are to be
+included, or a character vector of the row names to be
+included.  All observations are included by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional vector of ‘prior
+weights’ to be used in the fitting process.  Should be
+<code>NULL</code> or a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function that indicates what should
+happen when the data contain <code>NA</code>s.  The default
+action (<code>na.omit</code>, inherited from the ‘factory
+fresh’ value of <code>getOption("na.action")</code>) strips any
+observations with any missing values in any variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>this can be used to specify an <em>a
+priori</em> known component to be included in the linear
+predictor during fitting.  This should be <code>NULL</code> or a
+numeric vector of length equal to the number of cases.
+One or more <code>offset</code> terms can be included in
+the formula instead or as well, and if more than one is
+specified their sum is used.  See
+<code>model.offset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pool</code></td>
+<td>
+<p>logical scalar indicating if the variance estimate should
+pool the residual sums of squares.  By default true if the model has
+a scale parameter (which includes all linear, <code>lmer()</code>, ones).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn</code></td>
+<td>
+<p>indicating if errors in the single fits should signal a
+“summary” <code>warning</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional, optional arguments to be passed to
+the model function or family evaluation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> While <code>data</code> is optional, the package authors
+<em>strongly</em> recommend its use, especially when later applying
+methods such as <code>update</code> and <code>drop1</code> to the fitted model
+(<em>such methods are not guaranteed to work properly if
+<code>data</code> is omitted</em>).  If <code>data</code> is omitted, variables will
+be taken from the environment of <code>formula</code> (if specified as a
+formula) or from the parent frame (if specified as a character vector).
+</p>
+</li>
+<li>
+<p> Since <span class="pkg">lme4</span> version 1.1-16, if there are errors (see
+<code>stop</code>) in the single (<code>lm()</code> or <code>glm()</code>)
+fits, they are summarized to a warning message which is returned as
+attribute <code>"warnMessage"</code> and signalled as <code>warning()</code>
+when the <code>warn</code> argument is true.
+</p>
+<p>In previous <span class="pkg">lme4</span> versions, a general (different) warning had
+been signalled in this case.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>an object of <code>class</code> <code>lmList4</code> (see
+there, notably for the <code>methods</code> defined).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmList4</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fm.plm  &lt;- lmList(Reaction ~ Days | Subject, sleepstudy)
+coef(fm.plm)
+fm.2  &lt;- update(fm.plm, pool = FALSE)
+## coefficients are the same, "pooled or unpooled":
+stopifnot( all.equal(coef(fm.2), coef(fm.plm)) )
+
+(ci &lt;- confint(fm.plm)) # print and rather *see* :
+plot(ci)                # how widely they vary for the individuals
+</code></pre>
+
+
+</div>

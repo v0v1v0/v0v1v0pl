@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>z.par2cdf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Blipping Cumulative Distribution Functions</h2>
+
+<h3>Description</h3>
+
+<p>This function acts as a front end or dispatcher to the distribution-specific cumulative distribution functions but also provides for blipping according to
+</p>
+<p style="text-align: center;"><code class="reqn">F(x) = 0</code>
+</p>
+
+<p>for <code class="reqn">x \le z</code> and
+</p>
+<p style="text-align: center;"><code class="reqn">F(x) = p + (1-p)G(x)</code>
+</p>
+
+<p>for <code class="reqn">x &gt; z</code> where <code class="reqn">z</code> is a threshold value. The <code class="reqn">z</code> is not tracked as part of the parameter object. This might arguably be a design flaw, but the function will do its best to test whether the <code class="reqn">z</code> given is compatable (but not necessarily equal to <code class="reqn">\hat{x} = x(0)</code>) with the quantile function <code class="reqn">x(F)</code> (<code>z.par2qua</code>). Lastly, please refer to the finiteness check in the Examples to see how one might accommodate <code class="reqn">-\infty</code> for <code class="reqn">F = 0</code> on a standard normal variate plot.
+</p>
+<p>A recommended practice when working with this function is the insertion of the <code class="reqn">x</code> value at <code class="reqn">F=p</code>. Analogous practice is suggested for <code>z.par2qua</code> (see that documentation).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">z.par2cdf(x, p, para, z=0, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Nonexceedance probability of the <code>z</code> value. This probability could simply be the portion of record having zero values if <code>z=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>lmom2par</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>Threshold value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The additional arguments are passed to the cumulative distribution function such as <code>paracheck=FALSE</code> for the Generalized Lambda distribution (<code>cdfgld</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>) for <code>x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>z.par2qua</code>, <code>par2cdf</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(21)
+the.gpa   &lt;- vec2par(c(100,1000,0.1),type='gpa')
+fake.data &lt;- rlmomco(30,the.gpa) # simulate some data
+fake.data &lt;- sort(c(fake.data,rep(0,10))) # add some zero observations
+# going to tick to the inside and title right axis as well, so change some
+# plotting parameters
+par(mgp=c(3,0.5,0), mar=c(5,4,4,3))
+# next compute the parameters for the positive data
+gpa.all &lt;- pargpa(lmoms(fake.data))
+gpa.nzo &lt;- pargpa(lmoms(fake.data[fake.data &gt; 0]))
+n   &lt;- length(fake.data) # sample size
+p   &lt;- length(fake.data[fake.data == 0])/n # est. prob of zero value
+F   &lt;- nonexceeds(sig6=TRUE); F &lt;- sort(c(F,p)); qF &lt;- qnorm(F)
+# The following x vector obviously contains zero, so no need to insert it.
+x   &lt;- seq(-100, max(fake.data)) # absurd for x&lt;0, but testing implementation
+PP  &lt;- pp(fake.data) # compute plotting positions of sim. sample
+plot(fake.data, qnorm(PP), xlim=c(0,4000), yaxt="n", ylab="") # plot the sample
+add.lmomco.axis(las=2, tcl=0.5, side=2, twoside=FALSE,
+                                        side.type="NPP", otherside.type="SNV")
+lines(quagpa(F,gpa.all), qF) # the parent (without zeros)
+cdf &lt;- qnorm(z.par2cdf(x,p,gpa.nzo))
+cdf[! is.finite(cdf)] &lt;- min(fake.data,qnorm(PP)) # See above documentation
+lines(x, cdf,lwd=3) # fitted model with zero conditional
+# now repeat the above code over and over again and watch the results
+par(mgp=c(3,1,0), mar=c(5,4,4,2)+0.1) # restore defaults
+</code></pre>
+
+
+</div>

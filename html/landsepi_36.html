@@ -1,0 +1,89 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getMatrixPolyPatho</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get the "polygon/pathogen genotype" compatibility matrix.</h2>
+
+<h3>Description</h3>
+
+<p>Build the matrix indicating if infection is possible at the beginning of the season
+for every combination of polygon (rows) and pathogen genotype (columns).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getMatrixPolyPatho(params)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a LandsepiParams object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>For each polygon, there is either possibility of infection by the pathogen genotype
+(value of 1), either complete protection (value of 0)
+</p>
+
+
+<h3>Value</h3>
+
+<p>an interaction matrix composed of 0 and 1 values.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>getMatrixGenePatho, getMatrixCultivarPatho, getMatrixCroptypePatho
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+simul_params &lt;- createSimulParams()
+simul_params &lt;- setTime(simul_params, Nyears = 1, nTSpY = 80)
+simul_params &lt;- setLandscape(simul_params, loadLandscape(id = 1))
+gene1 &lt;- loadGene(name = "MG 1", type = "majorGene")
+gene2 &lt;- loadGene(name = "MG 2", type = "majorGene")
+genes &lt;- data.frame(rbind(gene1, gene2), stringsAsFactors = FALSE)
+simul_params &lt;- setGenes(simul_params, genes)
+cultivar1 &lt;- loadCultivar(name = "Susceptible", type = "wheat")
+cultivar2 &lt;- loadCultivar(name = "Resistant1", type = "wheat")
+cultivar3 &lt;- loadCultivar(name = "Resistant2", type = "wheat")
+cultivar4 &lt;- loadCultivar(name = "Pyramid", type = "wheat")
+cultivars &lt;- data.frame(rbind(cultivar1, cultivar2, cultivar3, cultivar4)
+, stringsAsFactors = FALSE)
+simul_params &lt;- setCultivars(simul_params, cultivars)
+simul_params &lt;- allocateCultivarGenes(simul_params, "Resistant1", c("MG 1"))
+simul_params &lt;- allocateCultivarGenes(simul_params, "Resistant2", c("MG 2"))
+simul_params &lt;- allocateCultivarGenes(simul_params, "Pyramid", c("MG 1", "MG 2"))
+croptypes &lt;- loadCroptypes(simul_params,
+                           names = c("Susceptible crop",
+                                     "Resistant crop 1",
+                                     "Mixture S+R",
+                                     "Mixture R1+R2",
+                                     "Pyramid crop"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Susceptible crop", "Susceptible")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop 1", "Resistant1")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Mixture S+R", c("Susceptible", "Resistant1"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Mixture R1+R2", c("Resistant1", "Resistant2"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Pyramid crop", c("Pyramid"))
+simul_params &lt;- setCroptypes(simul_params, croptypes)
+simul_params &lt;- allocateLandscapeCroptypes(simul_params, rotation_period = 0,
+prop=rep(1/5,5), aggreg=3 , rotation_sequence = croptypes$croptypeID)
+getMatrixPolyPatho(simul_params)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

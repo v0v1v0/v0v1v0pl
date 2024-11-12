@@ -1,0 +1,76 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dsm_point2raster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Digital Surface Model Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function is made to be used in rasterize_canopy. It implements an algorithm for digital
+surface model computation based on a points-to-raster method: for each pixel of the output raster
+the function attributes the height of the highest point found. The <code>subcircle</code> tweak replaces
+each point with 8 points around the original one. This allows for virtual 'emulation' of the fact
+that a lidar point is not a point as such, but more realistically a disc. This tweak densifies the
+point cloud and the resulting canopy model is smoother and contains fewer 'pits' and empty pixels.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">p2r(subcircle = 0, na.fill = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>subcircle</code></td>
+<td>
+<p>numeric. Radius of the circles. To obtain fewer empty pixels the algorithm
+can replace each return with a circle composed of 8 points (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.fill</code></td>
+<td>
+<p>function. A function that implements an algorithm to compute spatial interpolation
+to fill the empty pixel often left by points-to-raster methods. <code>lidR</code> has knnidw,
+tin, and kriging (see also rasterize_terrain for more details).</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>Other digital surface model algorithms: 
+<code>dsm_pitfree</code>,
+<code>dsm_tin</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+las &lt;- readLAS(LASfile)
+col &lt;- height.colors(50)
+
+# Points-to-raster algorithm with a resolution of 1 meter
+chm &lt;- rasterize_canopy(las, res = 1, p2r())
+plot(chm, col = col)
+
+# Points-to-raster algorithm with a resolution of 0.5 meters replacing each
+# point by a 20 cm radius circle of 8 points
+chm &lt;- rasterize_canopy(las, res = 0.5, p2r(0.2))
+plot(chm, col = col)
+
+## Not run: 
+chm &lt;- rasterize_canopy(las, res = 0.5, p2r(0.2, na.fill = tin()))
+plot(chm, col = col)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

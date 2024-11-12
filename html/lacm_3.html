@@ -1,0 +1,419 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lacm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fitting Latent Autoregressive Count Models by Maximum Pairwise Likelihood
+</h2>
+
+<h3>Description</h3>
+
+<p>Fits latent autoregressive count models by maximum pairwise likelihood.   
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lacm(formula, data, subset, offset, contrasts = NULL, start.theta = NULL, fixed, d = 1,
+     kernel.type = c("Rectangular", "Trapezoidal"), fit = TRUE, gh.num = 20,
+     reltol.opt = 1e-06, opt.method = c("BFGS", "Nelder-Mead"), maxit.opt = 1000,
+     sandwich.lag = NULL, bread.method = c("Outer-product", "Hessian"), ...) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class <code>"formula"</code> (or one that
+can be coerced to that class): a symbolic description of the
+model to be fitted.  The details of model specification are given
+under ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object
+coercible by <code>as.data.frame</code> to a data frame) containing
+the variables in the model.  If not found in <code>data</code>, the
+variables are taken from <code>environment(formula)</code>,
+typically the environment from which <code>lacm</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>this can be used to specify an <em>a priori</em> known
+component to be included in the linear predictor during fitting.
+This should be <code>NULL</code> or a numeric vector of length equal to
+the number of cases.  One or more <code>offset</code> terms can be
+included in the formula instead or as well, and if more than one is
+specified their sum is used.  See <code>model.offset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+<p>an optional list. See the <code>contrasts.arg</code>
+of <code>model.matrix.default</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.theta</code></td>
+<td>
+
+<p>optional numeric vector with starting values for the model parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>optional numeric vector of the same length as the total number of parameters. If supplied, only <code>NA</code> entries in fixed will be varied. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>order of the pairwise likelihood. Defaults to 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel.type</code></td>
+<td>
+
+<p>one of <code>"Rectangular", "Trapezoidal"</code> indicating the type of kernel weights to be used in the weighted pairwise likelihood specification. The default <code>"Rectangular"</code> corresponds to equal contribution from all pairs of observations that are distant apart up to lag <code>d</code>. Can be abbreviated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>a logical value indicating whether to compute the maximum pairwise likelihood estimates or not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gh.num</code></td>
+<td>
+
+<p>number of the Gauss-Hermite quadrature nodes. Defaults to 20.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol.opt</code></td>
+<td>
+
+<p>relative convergence tolerance to be passed to <code>optim</code>. Defaults to 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.method</code></td>
+<td>
+
+<p>one of <code>"BFGS"</code> or <code>"Nelder-Mead"</code> indicating the optimization method to be passed to <code>optim</code>. Can be abbreviated. See <code>optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit.opt</code></td>
+<td>
+ 
+<p>the maximum number of iterations to be passed to <code>optim</code>. Defaults to 1000.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sandwich.lag</code></td>
+<td>
+ 
+<p>the lag length used for computing the bandwith of the sandwich variance. See ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bread.method</code></td>
+<td>
+
+<p>one of <code>"Outer-product"</code> or <code>"Hessian"</code> indicating whether the bread matrix of the sandwich variance is estimated with the outer-product of the individual gradients or with a numerical approximation of the Hessian matrix.  Can be abbreviated. See ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>further arguments passed to or from other methods.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>lacm</code> performs maximum pairwise likelihood estimation in latent autoressive count models, see Pedeli and Varin (2020) for details.
+</p>
+<p>Evaluation of the pairwise likelihood is performed through double Gauss-Hermite quadrature with the <code>gh.num</code> nodes and weights calculated by <code>gauss.quad</code>. 
+</p>
+<p>Standard formula <code>y ~ x1 + x2</code> indicates that the mean response is modelled as a function of covariates <code>x1</code> and <code>x2</code> through a log link function. 
+</p>
+<p>Starting values supplied by the user can be specified through <code>start.theta</code>. If <code>start.theta=NULL</code>, then starting values are obtained using the method-of-moments as discussed in Ng et al. (2011).
+</p>
+<p>Sandwich standard errors that are robust to heteroschedasticity and autocorrelation (HAC-type) are computed. The "meat matrix" is estimated using a lag length equal to <code>sandwich.lag</code>. If <code>sandwich.lag</code> is <code>NULL</code>, then <code>L</code> is set equal to <code>10 * log10(n)</code>, where <code>n</code> is the time series length and <code>d</code> is the pairwise likelihood order. The "bread matrix" is computed with the average of outer products of the individual grandients (<code>bread.matrix = "Outer-product"</code>) or with a numerical approximation of the Hessian (<code>bread.method = "Hessian"</code>).  Details are given in Pedeli and Varin (2020). 
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"lacm"</code> with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>the number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>the number of regressors, including the intercept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>the order of the pairwise likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>the number of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>the response used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>the model matrix used for the mean response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>the offset used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sandwich.lag</code></td>
+<td>
+<p>the lag length used for the bandwith of the HAC-type standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>logical. Was the model fitted or not?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gh.num</code></td>
+<td>
+<p>number of Gauss-Hermite nodes used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>the <code>terms</code> object  used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latent</code></td>
+<td>
+<p>logical. Does the model include the latent part?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>the numeric vector indicating which parameters are constants.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifree</code></td>
+<td>
+<p>indeces of the free parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kweights</code></td>
+<td>
+<p>the kernel weights used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.theta</code></td>
+<td>
+<p>the starting values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objfun</code></td>
+<td>
+<p>function computing the logarithm of the pairwise likelihood of order d.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grad</code></td>
+<td>
+<p>function computing the gradient of the pairwise likelihood of order d.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gh</code></td>
+<td>
+<p>Gauss-Hermite nodes and weights used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt.method</code></td>
+<td>
+<p>a character string specifying the method argument passed to optim. The default optimization routine is the quasi-Newton algorithm BFGS. See <code>optim</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>an integer code indicating convergence of the optimizer. See <code>link{optim}</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gh</code></td>
+<td>
+<p>a list with components the Gauss-Hermite <code>nodes</code> and the <code>weights</code> used for approximating the pairwise likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plik</code></td>
+<td>
+<p>the maximum pairwise likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>the maximum pairwise likelihood estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jacobian</code></td>
+<td>
+<p>the jacobian of the individual pairwise likelihood terms.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outer-product</code></td>
+<td>
+<p>logical. Was the bread matrix of the sandwich variance computed with the outer product of the individual scores?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>the bread matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>the meat matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>the variance-covariance matrix of the maximum pairwise likelihood estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CLIC</code></td>
+<td>
+<p>the composite likelihood information criterion.</p>
+</td>
+</tr>
+</table>
+<p>Functions <code>summary.lacm</code>, <code>coefficients</code> and <code>vcov.lacm</code> can be used to obtain or print a summary of the results, extract coefficients and their estimated variance-covariance matrix of the model fitted by <code>lacm</code>. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xanthi Pedeli and Cristiano Varin.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ng, C., Joe, H., Karlis, D., and Liu, J. (2011). Composite likelihood for time series models with a latent autoregressive process. <em>Statistica Sinica</em>, <b>21</b>, 279–305.
+</p>
+<p>Pedeli, X. and Varin, C. (2020). Pairwise likelihood estimation of latent autoregressive count models. <em>Statistical Methods in Medical Research</em>.doi: <a href="https://doi.org/10.1177/0962280220924068">10.1177/0962280220924068</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>CLIC</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("polio", package = "lacm")
+## model components
+trend &lt;- 1:length(polio)
+sin.term &lt;- sin(2 * pi * trend / 12)
+cos.term &lt;- cos(2 * pi * trend / 12)
+sin2.term &lt;- sin(2 * pi * trend / 6)
+cos2.term &lt;- cos(2 * pi * trend / 6)
+## fit model with pairwise likelihood of order 1
+mod1 &lt;- lacm(polio ~ I(trend * 10^(-3)) + sin.term + cos.term + sin2.term + cos2.term)
+mod1
+summary(mod1)
+## refit with d = 3
+mod3 &lt;- update(mod1, d = 3)
+summary(mod3)
+
+</code></pre>
+
+
+</div>

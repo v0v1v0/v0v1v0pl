@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>S.n</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Density goodness-of-fit test statistic based on discretized L2 distance</h2>
+
+<h3>Description</h3>
+
+<p>Implements the density goodness of fit test statistic <code class="reqn">\hat{S}_n(h)</code> of Bagkavos, Patil and Wood (2021), based on aggregation of local discrepancies between the fitted parametric density and a nonparametric empirical density estimator.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">S.n(xin, h,  dist, p1, p2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>A vector of data points - the available sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The bandwidth to use, typically the output of <code>hopt.edgeworth</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1</code></td>
+<td>
+<p>Parameter 1 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p2</code></td>
+<td>
+<p>Parameter 2 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implements the test statistic used for testing the hypothesis
+</p>
+<p style="text-align: center;"><code class="reqn">H_0: f(x) = f_0(x, p1, p2) \;\; vs \;\; H_a: f(x) \neq f_0(x, p1, p2).</code>
+</p>
+
+<p>This density goodness-of-fit test is based on a discretized approximation of the L2 distance. Assuming that <code class="reqn">n</code> is the number of observations and <code class="reqn">g = (max(xin)-min(xin))/n^{-drate}</code> is the number of bins in which the range of the data is split, the test statistic is:
+</p>
+<p style="text-align: center;"><code class="reqn"> S_n(h) = n \Delta^2 h^{-1/2} {\sum\sum}_{i \neq j} K \{ (X_i-X_j)h^{-1}\} \{Y_i -f_0(X_i) \}\{Y_j -f_0(X_j) \} </code>
+</p>
+
+<p>where <code class="reqn">K</code> is the Epanechnikov kernel implemented in this package with the <code>Epanechnikov</code> function. The null model <code class="reqn">f_0</code> is specified through the <code>dist</code> argument with parameters passed through the  <code>p1</code> and <code>p2</code> arguments.  The test is implemented either with bandwidth <code>hopt.edgeworth</code> or with  bandwidth <code>hopt.be</code> which provide the value of <code class="reqn">h</code> needed for calculation of <code class="reqn"> S_n(h)</code> and the critical value used to determine acceptance or rejection of the null hypothesis. See the example below for an application to a real world dataset.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with the value of the test statistic as well as the Delta value used for its calculation
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>R implementation and documentation: Dimitrios Bagkavos &lt;dimitrios.bagkavos@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Bagkavos, Patil and Wood: Nonparametric goodness-of-fit testing for a continuous multivariate parametric model, (2021), under review.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>S.n.Boot</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(fGarch)
+library(boot)
+ ## Not run: data(EuStockMarkets)
+DAX &lt;- as.ts(EuStockMarkets[,"DAX"])
+dax &lt;-  diff(log(DAX))#[,"DAX"]
+
+# Fit a GARCH(1,1) model to dax returns:
+lll&lt;-garchFit(~ garch(1,1), data = as.ts(dax), trace = FALSE, cond.dist ="std")
+# define the model innovations, to be used as input to the test statistic
+xin&lt;-lll@residuals /lll@sigma.t
+# exclude smallest value - only for uniform presentation of results
+#(this step can be excluded):
+xin = xin[xin!= min(xin)]
+
+#inputs for the test statistic:
+#kernel function to use in implementing the statistic
+#and functional estimates for optimal h:
+kfun&lt;-"epanechnikov"
+a.sig&lt;-0.05 #define the significance level
+#null hypothesis is that the innovations are normaly distributed:
+Nulldist&lt;-"normal"
+
+p1&lt;-mean(xin)
+p2&lt;- sd(xin)
+#Power optimal bandwidth:
+h&lt;-hopt.edgeworth(xin,   Nulldist, kfun, p1, p2, a.sig )
+h.be &lt;- hopt.be(xin)
+# Edgeworth cutoff point:
+cutoff&lt;-cutoff.edgeworth(xin,   Nulldist, kfun, p1, p2, a.sig )
+# Bootstrap cutoff point:
+cutoff.boot&lt;-cutoff.bootstrap(xin, 100,  "permutation", Nulldist, h.be, kfun, p1, p2, a.sig)
+# Asympt. Norm. cutoff point:
+cutoff.asympt&lt;-cutoff.asymptotic( Nulldist,   p1, p2, a.sig )
+
+TestStatistic&lt;-S.n(xin, h, Nulldist, p1, p2)
+TestStatistic.be&lt;-S.n(xin, h.be, Nulldist, p1, p2)
+
+cat("L2 test statistic value with power opt. band:", TestStatistic[1],
+"\nL2 test statistic value Barry-Essen bandwidth:", TestStatistic.be[1],
+"\ncritical value asymptotic:", round(cutoff.asympt,3), "critical value bootstrap:",
+round(cutoff.boot,3),  "critical value Edgeworth:", round(cutoff,3), "\n")
+#L2 test statistic value Edgeworth: 7.257444
+#L2 test statistic value Berry-Esseen bandwidth: 10.97069
+# critical value Asymptotically Norm.:  1.801847
+# critical value Edgeworth: 2.140446
+# critical value bootstrap: 6.040048
+# L2 test statistic &gt;  critical value on all occasions, hence normality is rejected
+## End(Not run)
+</code></pre>
+
+
+</div>

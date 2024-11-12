@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>metab.mle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Metabolism calculated from the maximum likelihood estimates of the parameters in a standard linear regression model</h2>
+
+<h3>Description</h3>
+
+<p>Process-error-only model with parameters fitted via maximum likelihood estimation (MLE). This function runs the maximum likelihood metabolism model on the supplied gas concentration and other supporting data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">metab.mle(do.obs, do.sat, k.gas, z.mix, irr, wtr, error.type = "OE", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>do.obs</code></td>
+<td>
+<p>Vector of dissolved oxygen concentration observations, <code class="reqn">mg O[2] L^{-1}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.sat</code></td>
+<td>
+<p>Vector of dissolved oxygen saturation values based on water temperature. Calculate using o2.at.sat</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.gas</code></td>
+<td>
+<p>Vector of kGAS values calculated from any of the gas flux models
+(e.g., k.cole) and converted to kGAS using k600.2.kGAS</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.mix</code></td>
+<td>
+<p>Vector of mixed-layer depths in meters. To calculate, see ts.meta.depths</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>irr</code></td>
+<td>
+<p>Vector of photosynthetically active radiation in <code class="reqn">\mu mol\ m^{-2} s^{-1}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtr</code></td>
+<td>
+<p>Vector of water temperatures in <code class="reqn">^{\circ}C</code>. Used in scaling respiration with temperature</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error.type</code></td>
+<td>
+<p>Option specifying if model should assume pure Process Error 'PE' or Observation Error 'OE'. Defaults to observation error 'OE'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments; currently "datetime" is the only recognized argument passed through <code>...</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The model has the three parameters, <code class="reqn">c_1, c_2, epsilon</code>, and has the form
+</p>
+<p style="text-align: center;"><code class="reqn">v=k.gas/z.mix</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">a_t = c_1*irr_{t-1} + c_2*log_e(wtr_{t-1}) + v_{t-1}*do.sat_{t-1}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">beta = e^{-v}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">do.obs_t = a_t/v_{t-1} + -e^{-v_{t-1}}*a_t/v_{t-1} + beta_{t-1}*do.obs_{t-1} + epsilon_t</code>
+</p>
+
+<p>The above model is used during model fitting, but if gas flux is not integrated between time steps, those equations simplify to the following:
+</p>
+<p style="text-align: center;"><code class="reqn">F_{t-1} = k.gas_{t-1}*(do.sat_{t-1} - do.obs_{t-1})/z.mix_{t-1}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">do.obs_t=do.obs_{t-1}+c_1*irr_{t-1}+c_2*log_e(wtr_{t-1}) + F_{t-1} + epsilon_t</code>
+</p>
+
+<p>The parameters are fit using maximum likelihood, and the optimization (minimization of the negative log likelihood function) is performed by <code>optim</code> using default settings.
+</p>
+<p>GPP is then calculated as <code>mean(c1*irr, na.rm=TRUE)*freq</code>, where <code>freq</code> is the number of observations per day, as estimated from the typical size between time steps. Thus, generally <code>freq==length(do.obs)</code>.
+</p>
+<p>Similarly, R is calculated as <code>mean(c2*log(wtr), na.rm=TRUE)*freq</code>.
+</p>
+<p>NEP is the sum of GPP and R.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame with columns corresponding to components of metabolism
+</p>
+
+<dl>
+<dt>GPP</dt>
+<dd>
+<p>numeric estimate of Gross Primary Production, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+<dt>R</dt>
+<dd>
+<p>numeric estimate of Respiration, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+<dt>NEP</dt>
+<dd>
+<p>numeric estimate of Net Ecosystem production, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+</dl>
+<p>The maximum likelihood estimates of model parameters can be accessed via <code>attributes(metab.mle(...))[["params"]]</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>Currently, missing values in any arguments will result in an error, so freq must always equal nobs.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Luke A Winslow, Ryan Batt, GLEON Fellows
+</p>
+
+
+<h3>References</h3>
+
+<p>Hanson, PC, SR Carpenter, N Kimura, C Wu, SP Cornelius, TK Kratz. 2008
+<em>Evaluation of metabolism models for free-water dissolved oxygen in lakes</em>.
+Limnology and Oceanography: Methods 6: 454:465.
+</p>
+<p>Solomon CT, DA Bruesewitz, DC Richardson, KC Rose, MC Van de Bogert, PC Hanson, TK Kratz, B Larget,
+R Adrian, B Leroux Babin, CY Chiu, DP Hamilton, EE Gaiser, S Hendricks, V Istvanovics, A Laas, DM O'Donnell,
+ML Pace, E Ryder, PA Staehr, T Torgersen, MJ Vanni, KC Weathers, G Zhuw. 2013.
+<em>Ecosystem Respiration: Drivers of Daily Variability and Background Respiration in Lakes around the Globe</em>.
+Limnology and Oceanography 58 (3): 849:866. doi:10.4319/lo.2013.58.3.0849.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>metab, metab.bookkeep, metab.ols, metab.kalman, metab.bayesian
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(rLakeAnalyzer)
+doobs = load.ts(system.file('extdata',
+                           'sparkling.doobs', package="LakeMetabolizer"))
+wtr = load.ts(system.file('extdata',
+                         'sparkling.wtr', package="LakeMetabolizer"))
+wnd = load.ts(system.file('extdata',
+                         'sparkling.wnd', package="LakeMetabolizer"))
+irr = load.ts(system.file('extdata',
+                         'sparkling.par', package="LakeMetabolizer"))
+
+#Subset a day
+mod.date = as.POSIXct('2009-07-08', 'GMT')
+doobs = doobs[trunc(doobs$datetime, 'day') == mod.date, ]
+wtr = wtr[trunc(wtr$datetime, 'day') == mod.date, ]
+wnd = wnd[trunc(wnd$datetime, 'day') == mod.date, ]
+irr = irr[trunc(irr$datetime, 'day') == mod.date, ]
+z.mix = ts.thermo.depth(wtr)
+
+k600 = k.cole.base(wnd[,2])
+k.gas = k600.2.kGAS.base(k600, wtr[,3], 'O2')
+do.sat = o2.at.sat.base(wtr[,3], altitude=300)
+
+metab.mle(doobs[,2], do.sat, k.gas, z.mix[,2], irr[,2], wtr[,3])
+</code></pre>
+
+
+</div>

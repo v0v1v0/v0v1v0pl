@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read.3d.lsd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Read one instance of LSD variables (time series) from multiple LSD results files into a 3D array
+</h2>
+
+<h3>Description</h3>
+
+<p>This function reads the data series associated to a specific instance of each selected variable from a set of LSD results files (.res) and saves them into a 3-dimensional array (time step x variable x file).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read.3d.lsd( files, col.names = NULL, nrows = -1, skip = 0,
+             check.names = TRUE, instance = 1, nnodes = 1,
+             posit = NULL, posit.match = c( "fixed", "glob", "regex" ) )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>files</code></td>
+<td>
+
+<p>a character vector containing the names of the LSD results files which the data are to be read from. If they do not contain an absolute path, the file names are relative to the current working directory, <code>getwd()</code>. These can be compressed files and must include the appropriated extension (usually <code>.res</code> or <code>.res.gz</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+
+<p>a vector of optional names for the variables. The default is to read all variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrows</code></td>
+<td>
+
+<p>integer: the maximum number of time steps (rows) to read in. Negative and other invalid values are ignored. The default is to read all rows.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+
+<p>integer: the number of time steps (rows) of the results file to skip before beginning to read data. The default is to read from the first time step (t = 1).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.names</code></td>
+<td>
+
+<p>logical. If <code>TRUE</code> the names of the variables are checked to ensure that they are syntactically valid variable names. If necessary they are adjusted (by make.names) so that they are, and also to ensure that there are no duplicates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>instance</code></td>
+<td>
+
+<p>integer: the instance of the variable to be read, for variables that exist in more than one object. This number is based on the position (column) of the variable in the results file. The default (1) is to read first instances.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nnodes</code></td>
+<td>
+
+<p>integer: the maximum number of parallel computing nodes (parallel threads) in the current computer to be used for reading the files. The default, <code>nnodes = 1</code>, means single thread processing (no parallel threads). If equal to zero, creates up to one node per CPU core. Only <code>PSOCK</code> clusters are used, to ensure compatibility with any platform. Please note that each node requires its own memory space, so memory usage increases linearly with the number of nodes.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posit</code></td>
+<td>
+
+<p>a string, a vector of strings or an integer vector describing the LSD object position of the variable(s) to select. If an integer vector, it should define the position of a SINGLE LSD object. If a string or vector of strings, each element should define one or more different LSD objects, so the returning matrix may contain variables from more than one object. By setting <code>posit.match</code>, globbing (wildcard), and regular expressions can be used to select multiple objects at once.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posit.match</code></td>
+<td>
+
+<p>a string defining how the <code>posit</code> argument, if provided, should be matched against the LSD object positions. If equal to <code>"fixed"</code>, the default, only exact matching is done. <code>"glob"</code> allows using simple wildcard characters ('*' and '?') in <code>posit</code> for matching. If <code>posit.match="regex"</code> interpret <code>posit</code> as POSIX 1003.2 extended regular expression(s). See <code>regular expressions</code> for details of the different types of regular expressions. Options can be abbreviated.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Selection restriction arguments can be provided as needed; when not specified, all available cases are considered, but just one <code>instance</code> is considered.
+</p>
+<p>When <code>posit</code> is supplied together with <code>col.names</code> or <code>instance</code>, the selection process is done in two steps. Firstly, the column names and the instance position set by <code>col.names</code> and <code>instance</code> are selected. Secondly, the instances defined by <code>posit</code> are selected from the first selection set.
+</p>
+<p>See <code>select.colnames.lsd</code> and <code>select.colattrs.lsd</code> for examples on how to apply advanced selection options.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a 3D array containing data series from the selected variables.
+</p>
+<p>The array dimension order is: time x variable x file.
+</p>
+
+
+<h3>Note</h3>
+
+<p>If the selected files don't have the same columns available (names and instances), after column selection, an error is produced.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marcelo C. Pereira</p>
+
+
+<h3>See Also</h3>
+
+<p><code>list.files.lsd()</code>
+<code>read.4d.lsd()</code>,
+<code>read.single.lsd()</code>,
+<code>read.multi.lsd()</code>,
+<code>read.list.lsd()</code>,
+<code>read.raw.lsd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># get the list of file names of example LSD results
+files &lt;- list.files.lsd( system.file( "extdata", package = "LSDinterface" ) )
+
+# read first instance of all variables from files (one level each),
+# pasting the directory where the example files are (not required if in working dir)
+inst1Array &lt;- read.3d.lsd( files )
+print( inst1Array[ 5 : 10, 1 : 7, 1 ] )
+print( inst1Array[ 5 : 10, 1 : 7, 2 ] )
+print( inst1Array[ 5 : 10, 1 : 7, 3 ] )
+
+# read first instance of a set of variables named _A1p and _growth1
+ab1Array &lt;- read.3d.lsd( files, c( "_A1p", "_growth1" ) )
+print( ab1Array[ 20 : 25, , 1 ] )
+print( ab1Array[ 20 : 25, , 2 ] )
+print( ab1Array[ 20 : 25, , 3 ] )
+
+# read instance 2 of all variables, skipping the initial 20 time steps
+# and keeping up to 30 time steps (from t = 21 up to t = 30)
+inst2Array21_30 &lt;- read.3d.lsd( files, skip = 20, nrows = 30, instance = 2 )
+print( inst2Array21_30[ , , "Sim1_1" ] )   # use the file name to retrieve
+print( inst2Array21_30[ , , "Sim1_2" ] )
+
+# read instance 5 of all variables in second-level objects, using up to 2 cores
+inst5array2 &lt;- read.3d.lsd( files, instance = 2, posit = "*_*",
+                            posit.match = "glob", nnodes = 2 )
+print( inst5array2[ 11 : 20, , 1 ] )
+</code></pre>
+
+
+</div>

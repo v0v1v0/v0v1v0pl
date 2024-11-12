@@ -1,0 +1,282 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lslin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear Method for Matching Peak and Load Factor</h2>
+
+<h3>Description</h3>
+
+<p><code>lslin</code> applies linear method to a reference load
+shape to match the peak and load factor to target values. See "Details"
+for the algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lslin(x, target_max = 10000, target_lf = 0.7)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric array, representing reference load shape.
+All values must be strictly positive containing no <code>NA</code>(s).
+The length of <code>x</code>
+must be greater &gt; 167.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_max</code></td>
+<td>
+<p>Target peak value of resultant load shape, must
+be &gt; 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_lf</code></td>
+<td>
+<p>Target load factor of resultant load shape, must be
+numeric in between 0 and 1 (exclusive).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm first evaluates the load factor of the
+reference load shape <code>x</code>, which is
+defined by the ratio of average to peak value. If the target load
+factor is greater than reference level, then all base
+values are multiplied by a number <code> &gt; 1</code>. If the target
+load factor is less than reference level, then all base values are
+multiplied by a number <code> &lt; 1</code>. The multipliers increase/decrease
+linearly and are applied to the based values after ordered.
+</p>
+<p>If <code class="reqn">x'</code> is the ordered version of <code class="reqn">x</code>, then <code class="reqn">x'_{i}</code>
+will be multiplied by <code class="reqn">1-(i-1)*\beta</code>, where <code class="reqn">\beta</code> is
+a constant calculated as:
+</p>
+<p style="text-align: center;"><code class="reqn">\beta = \frac{\sum_{i=1}^n x'_{i} - target\ load\ factor }
+{\sum_{i=1}^n x'_{i}(i-1)}</code>
+</p>
+
+<p>The load factor of the derived series matches the target.
+For <code class="reqn">target &lt; base</code>, <code class="reqn">\beta</code> is positive and vice-versa.
+</p>
+<p>The algorithm attempts hard to match the load factor of the derived
+load shape to the base load factor. <code class="reqn">\beta</code> becomes large in
+magnitude for large difference of base and target load factor.
+In case <code class="reqn">\beta &gt; 1</code>, it is possible to get negative
+multipliers which force the values to be negative. This particular
+situation can occur when target load factor is significantly smaller
+than the base load factor.
+</p>
+<p>If the target load factor is much bigger than the base
+load factor, one/both of the followings can occur:
+</p>
+
+<ul>
+<li>
+<p> As a  linearly increasing function is multiplied
+by a  decreasing function (<code class="reqn">x'</code>), it is possible
+that the maximum of the product can exceed the maximum value
+of the base  (<code class="reqn">x'</code>), resulting in a different load factor.
+</p>
+</li>
+<li>
+<p> As a  linearly increasing function is multiplied
+by a  decreasing function (<code class="reqn">x'</code>), it is possible
+that the product is not strictly decreasing. The product
+array is re-ordered to produce the final values.
+</p>
+</li>
+</ul>
+<p>The return object contains a data frame <code>df</code>, having the
+following columns:
+</p>
+
+<ul>
+<li>
+<p><code>x_index</code>: An index given to the original load
+shape <code>x</code>, starting from 1 to <code>length(x)</code>.
+</p>
+</li>
+<li>
+<p><code>x</code>: The original array <code>x</code>, unaltered.
+</p>
+</li>
+<li>
+<p><code>x_rank</code>: The rank of the data points of the
+given array <code>x</code>, from 1 for the peak to
+<code>length(x)</code> for the lowest value.
+</p>
+</li>
+<li>
+<p><code>x_ordered</code>: Sorted <code>x</code> (largest to smallest).
+</p>
+</li>
+<li>
+<p><code>x_pu</code>: Per unit <code>x</code>, derived by diving <code>x</code>
+by <code>max(x)</code>.
+</p>
+</li>
+<li>
+<p><code>x_ordered_pu</code>: Per unit <code>x</code>, sorted from largest
+to smallest.
+</p>
+</li>
+<li>
+<p><code>mult</code>: Derived multipliers, would be applied to
+sorted per unit <code>x</code>.
+</p>
+</li>
+<li>
+<p><code>y_ordered_pu</code>: Product of per unit sorted <code>x</code>
+and <code>mult</code>.
+</p>
+</li>
+<li>
+<p><code>y_ordered_pu2</code>: <code>y_ordered_pu</code>, sorted again,
+in case <code>y_ordered_pu</code> does not become decreasing.
+</p>
+</li>
+<li>
+<p><code>y_pu</code>: Resultant load shape in per unit. This is
+derived by re-ordering <code>y_ordered_pu2</code> with respect to their
+original rank.
+</p>
+</li>
+<li>
+<p><code>y</code>: Resultant load shape. This is derived by
+multiplying <code>y_pu</code> by <code>taget_max</code> / <code>base_max</code>
+
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list of class <code>"lslin"</code>, having following elements:
+</p>
+
+<ul>
+<li>
+<p><code>df</code>: A data frame. See "Details".
+</p>
+</li>
+<li>
+<p><code>beta</code>: Slope of the linearly increasing/decreasing multipliers.
+See "Details".
+</p>
+</li>
+<li>
+<p><code>max_mult</code>: Maximum of the multipliers.
+</p>
+</li>
+<li>
+<p><code>min_mult</code>: Minimum of the multipliers.
+</p>
+</li>
+<li>
+<p><code>base_load_factor</code>: Load factor of the reference load
+shape <code>x</code>.
+</p>
+</li>
+<li>
+<p><code>target_load_factor</code>: Target load factor.
+</p>
+</li>
+<li>
+<p><code>derived_load_factor</code>: Load factor of the derived load shape
+(<code>object$df$y</code>).
+</p>
+</li>
+<li>
+<p><code>base_max</code>: Peak value of the base load shape, <code>x</code>
+</p>
+</li>
+<li>
+<p><code>target_max</code>: Target peak value of the new load shape.
+</p>
+</li>
+<li>
+<p><code>derived_max</code>: Peak value of the derived load shape
+(<code>object$df$y</code>) 
+</p>
+</li>
+<li>
+<p><code>base_min</code>: Minimum value of the base load shape, <code>x</code>
+</p>
+</li>
+<li>
+<p><code>derived_min</code>: Minimum value of the derived load shape
+(<code>object$df$y</code>) 
+</p>
+</li>
+<li>
+<p><code>dec_flag</code>: A logical flag  stating
+whether the multipliers resulted in strictly decreasing values.
+<code>TRUE</code> indicates the order was not preserved.
+Only applicable for <code>target_max</code> &gt; <code>base_max</code>.
+See "Details".
+</p>
+</li>
+<li>
+<p><code>lf_flag</code>: A logical flag indicating if the
+load factor of the derived shape differs from the target
+by more than 1%.
+
+</p>
+</li>
+<li>
+<p><code>min_pu_flag</code>: A logical flag indicating existence of
+negative values in the derived load shape. <code>TRUE</code> indicates
+the existence of negative values.
+Only applicable for <code>target_max</code> &lt; <code>base_max</code>.
+See "Details".
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>lslog</code>,
+<code>print.lslin</code>,
+<code>summary.lslin</code>,
+<code>plot.lslin</code>,
+<code>lscore</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">loads &lt;- ercot[ercot$Year == 2019, ]$COAST
+plot(loads, type = "l")
+linear_loadshape &lt;- lslin(loads, target_lf = 0.50)
+summary(linear_loadshape)
+#-------------------------------------
+loads2 &lt;- ercot[ercot$Year == 2020, ]$ERCOT
+plot(loads2, type = "l")
+linear_loadshape2 &lt;- lslin(loads2, target_lf = 0.7)
+summary(linear_loadshape2)#'
+#-------------------------------------
+loads3 &lt;- ercot[ercot$Year == 2020, ]$ERCOT
+plot(loads3, type = "l")
+linear_loadshape3 &lt;- lslin(loads3, target_lf = 0.95)
+summary(linear_loadshape3)
+#-------------------------------------
+loads4 &lt;- ercot[ercot$Year == 2020, ]$SCENT
+plot(loads3, type = "l")
+linear_loadshape4 &lt;- lslin(loads4, target_lf = 0.3)
+summary(linear_loadshape4)
+
+
+
+</code></pre>
+
+
+</div>

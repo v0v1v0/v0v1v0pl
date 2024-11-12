@@ -1,0 +1,545 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>laGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Localized Approximate GP Prediction At a Single Input Location
+</h2>
+
+<h3>Description</h3>
+
+<p>Build a sub-design of <code>X</code> of size <code>end</code>, and infer parameters,
+for approximate Gaussian process prediction at reference location(s) 
+<code>Xref</code>. Return the moments of those predictive equations, and indices
+into the local design
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">laGP(Xref, start, end, X, Z, d = NULL, g = 1/10000,
+     method = c("alc", "alcopt", "alcray", "mspe", "nn", "fish"), Xi.ret = TRUE,
+     close = min((1000+end)*if(method[1] %in% c("alcray", "alcopt")) 10 else 1, nrow(X)), 
+     alc.gpu = FALSE, numstart = if(method[1] == "alcray") ncol(X) else 1, 
+     rect = NULL, lite = TRUE, verb = 0)
+laGP.R(Xref, start, end, X, Z, d = NULL, g = 1/10000,
+     method = c("alc", "alcopt", "alcray", "mspe", "nn", "fish"), 
+     Xi.ret = TRUE, pall = FALSE, 
+     close = min((1000+end)*if(method[1] %in% c("alcray", "alcopt")) 10 else 1, nrow(X)),
+     parallel = c("none", "omp", "gpu"), 
+     numstart = if(method[1] == "alcray") ncol(X) else 1, 
+     rect = NULL, lite = TRUE, verb = 0)
+laGPsep(Xref, start, end, X, Z, d = NULL, g = 1/10000,
+     method = c("alc", "alcopt", "alcray", "nn"), Xi.ret = TRUE, 
+     close = min((1000+end)*if(method[1] %in% c("alcray", "alcopt")) 10 else 1, nrow(X)), 
+     alc.gpu = FALSE, numstart = if(method[1] == "alcray") ncol(X) else 1, 
+     rect = NULL, lite = TRUE, verb=0)
+laGPsep.R(Xref, start, end, X, Z, d = NULL, g = 1/10000,
+     method = c("alc", "alcopt", "alcray", "nn"), 
+     Xi.ret = TRUE, pall = FALSE, 
+     close = min((1000+end)*if(method[1] %in% c("alcray", "alcopt")) 10 else 1, nrow(X)),
+     parallel = c("none", "omp", "gpu"), 
+     numstart = if(method[1] == "alcray") ncol(X) else 1, 
+     rect = NULL, lite = TRUE, verb = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Xref</code></td>
+<td>
+
+<p>a vector of length <code>ncol(X)</code> containing a single reference
+location; or a <code>matrix</code> with <code>ncol(Xref) = ncol(X)</code> containing
+multiple reference locations (unless <code>method = "alcray"</code>) 
+for simultaneous sub-design and prediction
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>the number of Nearest Neighbor (NN) locations for initialization; must
+specify <code>start &gt;= 6</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+
+<p>the total size of the local designs; must have <code>start &lt; end</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>a vector of responses/dependent values with <code>length(Z) = nrow(X)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>a prior or initial setting for the lengthscale
+parameter for a Gaussian correlation function; a (default)
+<code>NULL</code> value causes a sensible regularization (prior) and
+initial setting to be generated via <code>darg</code>;
+a scalar specifies an initial value, causing <code>darg</code>
+to only generate the prior; otherwise, a list or partial list matching the output
+of <code>darg</code> can be used to specify a custom prior.  In the
+case of a partial list, the only the missing entries will be
+generated. Note that a default/generated list specifies MLE/MAP
+inference for this parameter. With 
+<code>laGPsep</code>, the starting values can be an
+<code>ncol(X)</code>-by-<code>nrow(XX)</code> <code>matrix</code> or <code>ncol(X)</code> vector
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>a prior or initial setting for the nugget parameter; a 
+<code>NULL</code> value causes a sensible regularization (prior) and
+initial setting to be generated via <code>garg</code>; a scalar
+(default <code>g = 1/10000</code>) specifies an initial value, 
+causing <code>garg</code> to only generate the prior; otherwise, a
+list or partial list matching the output of <code>garg</code> 
+can be used to specify a custom prior.  In the case of a partial list,
+only the missing entries will be generated. Note that a 
+default/generated list specifies <em>no</em> inference for this
+parameter; i.e., it is fixed at its starting or default value, 
+which may be appropriate for emulating 
+deterministic computer code output.  In such situations a 
+value much smaller than the default may work even better (i.e., 
+yield better out-of-sample predictive performance).  
+The default was chosen conservatively
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Specifies the method by which <code>end-start</code> candidates from
+<code>X</code> are chosen in order to predict at <code>Xref</code>. In brief, ALC
+(<code>"alc"</code>, default) minimizes predictive variance; ALCRAY 
+(<code>"alcray")</code>) executes a thrifty ALC-based search focused on 
+rays emanating from the reference location [must have <code>nrow(Xref) = 1</code>]; 
+ALCOPT (<code>"alcopt"</code>) optimizes a continuous ALC analog via derivatives to
+and snaps the solution back to the candidate grid; 
+MSPE (<code>"mspe"</code>) augments ALC 
+with extra derivative information to minimize mean-squared prediction 
+error (requires extra computation);
+NN (<code>"nn"</code>) uses nearest neighbor; and EFI (<code>"fish"</code>) uses
+the expected Fisher information - essentially <code>1/G</code> from
+Gramacy &amp; Apley (2015) - which is global heuristic, i.e., not
+localized to <code>Xref</code>.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xi.ret</code></td>
+<td>
+
+<p>A scalar logical indicating whether or not a vector of indices
+into <code>X</code>, specifying the chosen sub-design, should be returned on
+output
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pall</code></td>
+<td>
+<p>a scalar logical (for <code>laGP.R</code> only) offering the
+ability to obtain predictions after every update (for progress
+indication and debugging), rather than after just the last update</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>close</code></td>
+<td>
+
+<p>a non-negative integer <code>end &lt; close &lt;= nrow(X)</code> 
+specifying the number of NNs (to <code>Xref</code>) in 
+<code>X</code> to consider when searching for elements of the sub-design; 
+<code>close = 0</code> specifies all.  For <code>method="alcray"</code> and 
+<code>method="alcopt"</code>, this argument specifies the scope used to snap 
+solutions obtained via analog continuous searches back to elements of <code>X</code>, 
+otherwise there are no restrictions on those searches.  Since these
+approximate searches are cheaper, they can afford a larger 
+“snapping scope” hence the larger default</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alc.gpu</code></td>
+<td>
+
+<p>a scalar <code>logical</code> indicating if a GPU should be used to
+parallelize the evaluation of the ALC criteria (<code>method = "alc"</code>).
+Requires the package be compiled with CUDA flags; see README/INSTALL 
+in the package source for more details; currently only available 
+for <code>nrow(Xref) == 1</code> 
+via <code>laGP</code>, not <code>laGPsep</code> or the <code>.R</code> variants,
+and only supports off-loading ALC calculation to the GPU
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+
+<p>a switch indicating if any parallel calculation of 
+the criteria is desired.  Currently parallelization at this level is only 
+provided for option <code>method = "alc"</code>). 
+For <code>parallel = "omp"</code>, the package must be compiled with OMP flags;
+for <code>parallel = "gpu"</code>, the package must be compiled with CUDA
+flags see README/INSTALL
+in the package source for more details; currently only available 
+via <code>laGP.R</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numstart</code></td>
+<td>
+<p> a scalar integer indicating the number of rays for each
+greedy search when <code>method="alcray"</code> or the number of restarts
+when <code>method="alcopt"</code>.  More rays or restarts
+leads to a more thorough, but more computational intensive search.
+This argument is not involved in other methods </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rect</code></td>
+<td>
+
+<p>an optional <code>2</code>-by-<code>ncol(X)</code> <code>matrix</code> describing a bounding
+rectangle for <code>X</code> that is used by the <code>"alcray"</code> method.  
+If not specified, the rectangle is calculated from <code>range</code> applied
+to the columns of <code>X</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lite</code></td>
+<td>
+<p> Similar to the <code>predGP</code> option of the same name,
+this argument specifies whether (<code>TRUE</code>, the default) or not (<code>FALSE</code>) to return
+a full covariance structure is returned, as opposed the diagonal only.  A full covariance
+structure requires more computation and more storage.  This option is
+only relevant when <code>nrow(Xref) &gt; 1</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer specifying the verbosity level; <code>verb = 0</code>
+is quiet, and larger values cause more progress information to be
+printed to the screen
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A sub-design of <code>X</code> of size <code>end</code> is built-up according to
+the criteria prescribed by the <code>method</code> and then used to predict at
+<code>Xref</code>.  The first <code>start</code> locations are NNs in order to
+initialize the first GP, via <code>newGP</code> or <code>newGPsep</code>, 
+and thereby initialize the
+search.  Each subsequent addition is found via the chosen criterion
+(<code>method</code>), and the GP fit is updated via <code>updateGP</code>
+or <code>updateGPsep</code>
+</p>
+<p>The runtime is cubic in <code>end</code>, although
+the multiplicative “constant” out front depends on the
+<code>method</code> chosen, the size of the design <code>X</code>, and
+<code>close</code>.  The <code>"alcray"</code> method has a smaller constant
+since it does not search over all candidates exhaustively.
+</p>
+<p>After building the sub-design, local MLE/MAP lengthscale (and/or
+nugget) parameters are estimated, depending on the <code>d</code> and
+<code>g</code> arguments supplied.  This is facilitated by calls to
+<code>mleGP</code> or <code>jmleGP</code>.
+</p>
+<p>Finally <code>predGP</code> is called on the resulting local GP
+model, and the parameters of the resulting Student-t distribution(s)
+are returned.  Unless <code>Xi.ret = FALSE</code>, the indices of the
+local design are also returned.
+</p>
+<p><code>laGP.R</code> and <code>laGPsep.R</code> are a prototype <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-only version for
+debugging and transparency purposes.  They are slower than
+<code>laGP</code> and <code>laGPsep</code>, which are primarily in C, and may not
+provide identical output in all cases due to differing library implementations
+used as subroutines; see note below for an example.  <code>laGP.R</code> and other
+<code>.R</code> functions in the package may be useful for developing new programs
+that involve similar subroutines. The current version of <code>laGP.R</code>
+allows OpenMP and/or GPU parallelization of the criteria (<code>method</code>) if
+the package is compiled with the appropriate flags.  See README/INSTALL in
+the package source for more information.  For algorithmic details, see
+Gramacy, Niemi, &amp; Weiss (2014) </p>
+
+
+<h3>Value</h3>
+
+<p>The output is a <code>list</code> with the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>a vector of predictive means of length <code>nrow(Xref)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s2</code></td>
+<td>
+<p>a vector of Student-t scale parameters of length
+<code>nrow(Xref)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>a Student-t degrees of freedom scalar (applies to all
+<code>Xref</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>llik</code></td>
+<td>
+<p>a scalar indicating the maximized log likelihood or log posterior
+probability of the data/parameter(s) under the chosen sub-design;
+provided up to an additive constant</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>a scalar giving the passage of wall-clock time elapsed
+for (substantive parts of) the calculation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a copy of the <code>method</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>a full-list version of the <code>d</code> argument, possibly completed by <code>darg</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>a full-list version of the <code>g</code> argument, possibly
+completed by <code>garg</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle </code></td>
+<td>
+<p>if <code>d$mle</code> and/or <code>g$mle</code> are <code>TRUE</code>, then
+<code>mle</code> is a <code>data.frame</code> containing the values found for
+these parameters, and the number of required iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xi</code></td>
+<td>
+<p>when <code>Xi.ret = TRUE</code>, this field contains a vector of
+indices of length <code>end</code> into <code>X</code> indicating the sub-design chosen</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>close</code></td>
+<td>
+<p>a copy of the input argument</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p><code>laGPsep</code> provides the same functionality as <code>laGP</code> but deploys
+a separable covariance function.  However criteria (<code>method</code>s) EFI and
+MSPE are not supported.  This is considered “beta” functionality
+at this time.
+</p>
+<p>Note that using <code>method="NN"</code> gives the same result as specifying
+<code>start=end</code>, however at some extra computational expense.
+</p>
+<p>Handling multiple reference locations
+(<code>nrow(Xref) &gt; 1</code>) is “beta” functionality.  In this case
+the initial <code>start</code> locations are chosen by applying NN to the
+average distances to all <code>Xref</code> locations.  Using 
+<code>method="alcopt"</code> causes exhaustive search to be approximated by
+a continuous analog via closed form derivatives.  
+See <code>alcoptGP</code> for more details.   Although the approximation
+provided has a spirit similar to <code>method="alcray"</code>, in that 
+both methods are intended to offer a thrifty alternative, 
+<code>method="alcray"</code> is not applicable when <code>nrow(Xref) &gt; 1</code>.
+</p>
+<p>Differences between the C <code>qsort</code> function and <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>'s
+<code>order</code> function may cause chosen designs returned from
+<code>laGP</code> and <code>laGP.R</code> (code and <code>laGPsep</code> and <code>laGPsep.R</code>)
+to differ when multiple <code>X</code> values are equidistant to <code>Xref</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a> and Furong Sun <a href="mailto:furongs@vt.edu">furongs@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 9.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>F. Sun, R.B. Gramacy, B. Haaland, E. Lawrence, and A. Walker (2019).
+<em>Emulating satellite drag from large simulation experiments</em>,
+SIAM/ASA Journal on Uncertainty Quantification, 7(2), pp. 720-759;
+preprint on arXiv:1712.00182;
+<a href="https://arxiv.org/abs/1712.00182">https://arxiv.org/abs/1712.00182</a>
+</p>
+<p>R.B. Gramacy (2016). <em><span class="pkg">laGP</span>: Large-Scale Spatial Modeling via 
+Local Approximate Gaussian Processes in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.</em>, Journal of Statistical 
+Software, 72(1), 1-46; <a href="https://doi.org/10.18637/jss.v072.i01">doi:10.18637/jss.v072.i01</a> 
+or see <code>vignette("laGP")</code>
+</p>
+<p>R.B. Gramacy and B. Haaland (2016).
+<em>Speeding up neighborhood search in local Gaussian process prediction.</em>
+Technometrics, 58(3), pp. 294-303;
+preprint on arXiv:1409.0074 
+<a href="https://arxiv.org/abs/1409.0074">https://arxiv.org/abs/1409.0074</a>
+</p>
+<p>R.B. Gramacy and D.W. Apley (2015).
+<em>Local Gaussian process approximation for large computer
+experiments.</em> Journal of Computational and Graphical Statistics, 
+24(2), pp. 561-678; preprint on arXiv:1303.0383;
+<a href="https://arxiv.org/abs/1303.0383">https://arxiv.org/abs/1303.0383</a>
+</p>
+<p>R.B. Gramacy, J. Niemi, R.M. Weiss (2014).
+<em>Massively parallel approximate Gaussian process regression.</em>
+SIAM/ASA Journal on Uncertainty Quantification, 2(1), pp. 568-584;
+preprint on arXiv:1310.5182;
+<a href="https://arxiv.org/abs/1310.5182">https://arxiv.org/abs/1310.5182</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>aGP</code>, <code>newGP</code>, <code>updateGP</code>,
+<code>predGP</code>, <code>mleGP</code>, <code>jmleGP</code>,
+<code>alcGP</code>, <code>mspeGP</code>, <code>alcrayGP</code>,
+<code>randLine</code> ## path-based local prediction via <code>laGP</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## examining a particular laGP call from the larger analysis provided
+## in the aGP documentation
+
+## A simple 2-d test function used in Gramacy &amp; Apley (2014);
+## thanks to Lee, Gramacy, Taddy, and others who have used it before
+f2d &lt;- function(x, y=NULL)
+  {
+    if(is.null(y)) {
+      if(!is.matrix(x) &amp;&amp; !is.data.frame(x)) x &lt;- matrix(x, ncol=2)
+      y &lt;- x[,2]; x &lt;- x[,1]
+    }
+    g &lt;- function(z)
+      return(exp(-(z-1)^2) + exp(-0.8*(z+1)^2) - 0.05*sin(8*(z+0.1)))
+    z &lt;- -g(x)*g(y)
+  }
+
+## build up a design with N=~40K locations
+x &lt;- seq(-2, 2, by=0.02)
+X &lt;- as.matrix(expand.grid(x, x))
+Z &lt;- f2d(X)
+
+## optional first pass of nearest neighbor
+Xref &lt;- matrix(c(-1.725, 1.725), nrow=TRUE)
+out &lt;- laGP(Xref, 6, 50, X, Z, method="nn")
+
+## second pass via ALC, ALCOPT, MSPE, and ALC-ray respectively,
+## conditioned on MLE d-values found above
+out2 &lt;- laGP(Xref, 6, 50, X, Z, d=out$mle$d)
+# out2.alcopt &lt;- laGP(Xref, 6, 50, X, Z, d=out2$mle$d, method="alcopt")
+out2.mspe &lt;- laGP(Xref, 6, 50, X, Z, d=out2$mle$d, method="mspe")
+out2.alcray &lt;- laGP(Xref, 6, 50, X, Z, d=out2$mle$d, method="alcray")
+
+## look at the different designs
+plot(rbind(X[out2$Xi,], X[out2.mspe$Xi,]), type="n",
+     xlab="x1", ylab="x2", main="comparing local designs")
+points(Xref[1], Xref[2], col=2, cex=0.5)
+text(X[out2$Xi,], labels=1:50, cex=0.6)
+# text(X[out2.alcopt$Xi,], labels=1:50, cex=0.6, col="forestgreen")
+text(X[out2.mspe$Xi,], labels=1:50, cex=0.6, col="blue")
+text(X[out2.alcray$Xi,], labels=1:50, cex=0.6, col="red")
+legend("right", c("ALC", "ALCOPT", "MSPE", "ALCRAY"),
+       text.col=c("black", "forestgreen", "blue", "red"), bty="n")
+
+## compare computational time
+c(nn=out$time, alc=out2$time, # alcopt=out2.alcopt$time, 
+  mspe=out2.mspe$time, alcray=out2.alcray$time)
+
+## Not run: 
+  ## Joint path sampling: a comparison between ALC-ex, ALC-opt and NN
+
+  ## defining a predictive path
+  wx &lt;- seq(-0.85, 0.45, length=100)
+  W &lt;- cbind(wx-0.75, wx^3+0.51)
+
+  ## three comparators from Sun, et al. (2017)
+  ## larger-than-default "close" argument to capture locations nearby path
+  p.alc &lt;- laGPsep(W, 6, 100, X, Z, close=10000, lite=FALSE)
+  p.alcopt &lt;- laGPsep(W, 6, 100, X, Z, method="alcopt", lite=FALSE)
+  ## note that close=10*(1000+end) would be the default for method = "alcopt"
+  p.nn &lt;- laGPsep(W, 6, 100, X, Z, method="nn", close=10000, lite=FALSE)
+
+  ## time comparison
+  c(alc=p.alc$time, alcopt=p.alcopt$time, nn=p.nn$time)
+
+  ## visualization
+  plot(W, type="l", xlab="x1", ylab="x2", xlim=c(-2.25,0), ylim=c(-0.75,1.25), lwd=2)
+  points(X[p.alc$Xi,], col=2, cex=0.6)
+  lines(W[,1]+0.25, W[,2]-0.25, lwd=2)
+  points(X[p.nn$Xi,1]+0.25, X[p.nn$Xi,2]-0.25, pch=22, col=3, cex=0.6)
+  lines(W[,1]-0.25, W[,2]+0.25, lwd=2) 
+  points(X[p.alcopt$Xi,1]-0.25, X[p.alcopt$Xi,2]+0.25, pch=23, col=4, cex=0.6)
+  legend("bottomright", c("ALC-opt", "ALC-ex", "NN"), pch=c(22, 21, 23), col=c(4,2,3))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

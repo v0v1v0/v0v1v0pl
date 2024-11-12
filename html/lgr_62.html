@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LogEvent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LogEvents - The atomic unit of logging</h2>
+
+<h3>Description</h3>
+
+<p>A <code>LogEvent</code> is a single unit of data that should be logged. <code>LogEvents</code> are
+usually created by a Logger, and then processed by one more Appenders.
+They do not need to be instantiated manually except for testing and
+experimentation; however, if you plan on writing your own Appenders or
+Layouts you need to understand LogEvents.
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>level</code></dt>
+<dd>
+<p><code>integer</code>. The log_level / priority of the LogEvent. Use the
+active binding <code>level_name</code> to get the <code>character</code> representation
+instead.</p>
+</dd>
+<dt><code>timestamp</code></dt>
+<dd>
+<p><code>POSIXct</code>. The time when then the
+LogEvent was created.</p>
+</dd>
+<dt><code>caller</code></dt>
+<dd>
+<p><code>character</code>. The name of the calling function.</p>
+</dd>
+<dt><code>msg</code></dt>
+<dd>
+<p><code>character</code>. The log message.</p>
+</dd>
+<dt><code>.logger</code></dt>
+<dd>
+<p>Logger. A reference to the Logger that created the
+event (equivalent to <code>get_logger(event$logger)</code>).</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>values</code></dt>
+<dd>
+<p><code>list</code>. All values stored in the <code>LogEvent</code>, including
+all <em>custom fields</em>, but not including <code>event$.logger</code>.</p>
+</dd>
+<dt><code>level_name</code></dt>
+<dd>
+<p><code>character</code>. The log_level / priority of the LogEvent labelled
+according to <code>getOption("lgr.log_levels")</code></p>
+</dd>
+<dt><code>logger</code></dt>
+<dd>
+<p><code>character</code> scalar. The name of the Logger that
+created this event, equivalent to <code>event$.logger$name</code>)</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-LogEvent-new"><code>LogEvent$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LogEvent-clone"><code>LogEvent$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-LogEvent-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>The arguments to <code>LogEvent$new()</code> directly translate to the fields stored
+in the <code>LogEvent</code>. Usually these values will be scalars, but (except for
+<code>"logger"</code>) they can also be vectors if they are all of the same length (or
+scalars that will be recycled). In this case the event will be treated by
+the Appenders and Layouts as if several separate events.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LogEvent$new(
+  logger,
+  level = 400,
+  timestamp = Sys.time(),
+  caller = NA,
+  msg = NA,
+  ...
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>logger, level, timestamp, caller, msg</code></dt>
+<dd>
+<p>see <strong>Public fields</strong>.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p>All named arguments in <code>...</code> will be added to the LogEvent
+as <strong>custom fields</strong>. You can store arbitrary <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> objects in LogEvents
+this way, but not all Appenders will support them. See AppenderJson for</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-LogEvent-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LogEvent$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>See Also</h3>
+
+<p><code>as.data.frame.LogEvent()</code>
+</p>
+<p>Other docs relevant for extending lgr: 
+<code>as_LogEvent()</code>,
+<code>event_list()</code>,
+<code>standardize_threshold()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lg &lt;- get_logger("test")
+lg$error("foo bar")
+
+# The last LogEvent produced by a Logger is stored in its `last_event` field
+lg$last_event  # formatted console output
+lg$last_event$values  # values stored in the event
+
+# Also contains the Logger that created it as .logger
+lg$last_event$logger
+# equivalent to
+lg$last_event$.logger$name
+
+# This is really a reference to the complete Logger, so the following is
+# possible (though nonsensical)
+lg$last_event$.logger$last_event$msg
+identical(lg, lg$last_event$.logger)
+lg$config(NULL)  # reset logger config
+</code></pre>
+
+
+</div>

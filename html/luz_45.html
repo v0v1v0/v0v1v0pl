@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_metric_multiclass_auroc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes the multi-class AUROC</h2>
+
+<h3>Description</h3>
+
+<p>The same definition as <a href="https://www.tensorflow.org/api_docs/python/tf/keras/metrics/AUC">Keras</a>
+is used by default. This is equivalent to the <code>'micro'</code> method in SciKit Learn
+too. See <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html">docs</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_metric_multiclass_auroc(
+  num_thresholds = 200,
+  thresholds = NULL,
+  from_logits = FALSE,
+  average = c("micro", "macro", "weighted", "none")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>num_thresholds</code></td>
+<td>
+<p>Number of thresholds used to compute confusion matrices.
+In that case, thresholds are created by getting <code>num_thresholds</code> values linearly
+spaced in the unit interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholds</code></td>
+<td>
+<p>(optional) If threshold are passed, then those are used to compute the
+confusion matrices and <code>num_thresholds</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from_logits</code></td>
+<td>
+<p>If <code>TRUE</code> then we call <code>torch::nnf_softmax()</code> in the predictions
+before computing the metric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>average</code></td>
+<td>
+<p>The averaging method:
+</p>
+
+<ul>
+<li> <p><code>'micro'</code>: Stack all classes and computes the AUROC as if it was a binary
+classification problem.
+</p>
+</li>
+<li> <p><code>'macro'</code>: Finds the AUCROC for each class and computes their mean.
+</p>
+</li>
+<li> <p><code>'weighted'</code>: Finds the AUROC for each class and computes their weighted
+mean pondering by the number of instances for each class.
+</p>
+</li>
+<li> <p><code>'none'</code>: Returns the AUROC for each class in a list.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Note</strong> that class imbalance can affect this metric unlike
+the AUC for binary classification.
+</p>
+<p>Currently the AUC is approximated using the 'interpolation' method described in
+<a href="https://www.tensorflow.org/api_docs/python/tf/keras/metrics/AUC">Keras</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other luz_metrics: 
+<code>luz_metric_accuracy()</code>,
+<code>luz_metric_binary_accuracy_with_logits()</code>,
+<code>luz_metric_binary_accuracy()</code>,
+<code>luz_metric_binary_auroc()</code>,
+<code>luz_metric_mae()</code>,
+<code>luz_metric_mse()</code>,
+<code>luz_metric_rmse()</code>,
+<code>luz_metric()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (torch::torch_is_installed()) {
+library(torch)
+actual &lt;- c(1, 1, 1, 0, 0, 0) + 1L
+predicted &lt;- c(0.9, 0.8, 0.4, 0.5, 0.3, 0.2)
+predicted &lt;- cbind(1-predicted, predicted)
+
+y_true &lt;- torch_tensor(as.integer(actual))
+y_pred &lt;- torch_tensor(predicted)
+
+m &lt;- luz_metric_multiclass_auroc(thresholds = as.numeric(predicted),
+                                 average = "micro")
+m &lt;- m$new()
+
+m$update(y_pred[1:2,], y_true[1:2])
+m$update(y_pred[3:4,], y_true[3:4])
+m$update(y_pred[5:6,], y_true[5:6])
+m$compute()
+}
+</code></pre>
+
+
+</div>

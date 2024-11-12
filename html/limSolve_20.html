@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>xranges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculates ranges of the unknowns of a linear inverse problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Given the linear constraints
+</p>
+<p style="text-align: center;"><code class="reqn">Ex=f</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Gx&gt;=h</code>
+</p>
+
+<p>finds the minimum and maximum values of all elements of vector <code class="reqn">x</code>
+</p>
+<p>This is done by successively minimising and maximising each <code>x</code>, 
+using linear programming. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">xranges(E = NULL, F = NULL, G = NULL, H = NULL, 
+        ispos = FALSE, tol = 1e-8, central = FALSE, full=FALSE,
+        verbose = TRUE, lower = NULL, upper = NULL)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>E </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the equalities
+<code class="reqn">Ex=F</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the equalities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the inequalities
+<code class="reqn">Gx&gt;=H</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the inequalities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ispos </code></td>
+<td>
+<p>if <code>TRUE</code>, it is imposed that unknowns are positive
+quantities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol </code></td>
+<td>
+<p>tolerance for equality and inequality constraints.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>central </code></td>
+<td>
+<p>if TRUE, the mean value of all range solutions is also
+outputted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full </code></td>
+<td>
+<p>if <code>TRUE</code>, all range solutions are also outputted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose </code></td>
+<td>
+<p>logical to print warnings and messages.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper, lower </code></td>
+<td>
+<p>vector containing upper and lower bounds 
+on the unknowns. If one value, it is assumed to apply to all unknowns.
+If a vector, it should have a length equal to the number of unknowns; this
+vector can contain NA for unbounded variables. 
+The upper and lower bounds are added to the inequality conditions G*x&gt;=H.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The ranges are estimated by successively minimising and maximising each
+unknown, and using linear programming (based on function <code>lp</code> from 
+R-package <code>lpSolve</code>.
+</p>
+<p>By default linear programming assumes that all unknowns are positive.
+If all unknowns are indeed to be positive, then it will generally be faster
+to set <code>ispos</code> equal to TRUE
+If <code>ispos</code> is <code>FALSE</code>, then a system double the size of the 
+original system must be solved.
+</p>
+<p><code>xranges</code> outputs only the minimum and maximum value of each flow unless:
+</p>
+<p><code>full</code> is <code>TRUE</code>. In this case, all the results of the successive
+minimisation and maximisation will be outputted, i.e. for each linear
+programming application, not just the value of the unknown being optimised
+but also the corresponding values of the other unknowns will be outputted.
+</p>
+<p>If <code>central</code> is <code>TRUE</code>, then the mean of all the results of the
+linear programming will be outputted.
+This may be a good starting value for <code>xsample</code>
+</p>
+<p>Note: the columns corresponding to the <code>central</code> value and the
+<code>full</code> results are valid solutions of the equations <code class="reqn">Ex=F</code>
+and <code class="reqn">Gx&gt;=H</code>. This is not the case for the first two columns (with
+the minimal and maximal values).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a matrix with at least two columns:
+</p>
+<p>column 1 and 2: the minimum and maximum value of each <code>x</code>
+</p>
+<p>if <code>central</code> is TRUE: column 3 = the central value
+</p>
+<p>if <code>full</code> is TRUE: next columns contain all valid range solutions
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karline Soetaert &lt;karline.soetaert@nioz.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Michel Berkelaar and others (2010). lpSolve:
+Interface to Lp_solve v. 5.5 to solve linear/integer
+programs. R package version 5.6.5.
+http://CRAN.R-project.org/package=lpSolve
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Minkdiet</code>, for a description of the Mink diet example.
+</p>
+<p><code>varranges</code>, for range estimation of variables,
+</p>
+<p><code>xsample</code>, to randomly sample the lsei problem
+</p>
+<p><code>lp</code>: linear programming from package lpSolve
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Estimate the ranges in the Diet Composition of Mink
+E &lt;- rbind(Minkdiet$Prey, rep(1, 7))
+F &lt;- c(Minkdiet$Mink, 1)
+(DC &lt;- xranges(E, F, ispos = TRUE))
+
+# The same, but explicitly imposing positivity using G and H
+xranges(E, F, G = diag(7), H = rep(0, 7))
+
+# and using lower bound
+xranges(E, F, lower = 0, verbose = FALSE)
+
+</code></pre>
+
+
+</div>

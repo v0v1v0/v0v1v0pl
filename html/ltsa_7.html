@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>exactLoglikelihood</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exact log-likelihood and MLE for variance</h2>
+
+<h3>Description</h3>
+
+<p>Provides an exact log-likelihood that is exactly equal to the value of the
+probability density function with the random variables replaced by data and the
+parameters replaced by their estimated value. The corresponding estimate of the
+variance term is return.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">exactLoglikelihood(r, z, innovationVarianceQ = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>the portion of autocovariance function which when multiplied by
+the variance term equals the full autocovariance function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>the time series assumed to have mean zero
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innovationVarianceQ</code></td>
+<td>
+
+<p>When TRUE, the variance term is the innovation variance and when FALSE it is the
+variance of the time series. For ARFIMA models, set to TRUE. But FGN requires
+setting innovationVarianceQ to FALSE since only the innovation variance is not
+known and so the likelihood has a slightly different form.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function uses the trench algorithm that is implememented in C.
+This function is provided to include all multiplicative constants.
+For many purposes, such as MLE, we only need to likelihood function up to
+a multiplicative constant. But for information criteria, we may need the constant
+terms so we can compare our results with other types of models or with other software
+such as arima(). The arima() function also computes the exact log-likelihood
+and uses it in the computation of the AIC and BIC.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LL </code></td>
+<td>
+<p>exact log-likelihood</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmaSq </code></td>
+<td>
+<p>MLE for the variance term. If innovationVarianceQ is TRUE, is the an
+estimate of the residual variance otherwise it is an estimate of the variance of the time series.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>A. I. McLeod, aimcleod@uwo.ca
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>TrenchLoglikelihood</code>,
+<code>DLLoglikelihood</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(7773311)
+n &lt;- 200
+z &lt;- arima.sim(model=list(ar=0.9, ma=-0.6), n=n, n.start=10^4)
+out &lt;- arima(z, order=c(1,0,1), include.mean=FALSE)
+out
+#note
+#sigma^2 estimated as 0.9558:  log likelihood = -279.66,  aic = 565.31
+r &lt;- tacvfARMA(phi=coef(out)[1], theta=-coef(out)[2], maxLag=n-1)
+exactLoglikelihood(r, z, innovationVarianceQ = TRUE)
+#agrees!
+</code></pre>
+
+
+</div>

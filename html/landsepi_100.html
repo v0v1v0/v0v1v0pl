@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>updateSurvivalProb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Update pathogen survival probability during the off-season</h2>
+
+<h3>Description</h3>
+
+<p>update survival probability of the pathogen with a probability value for every
+simulated year (number of years = Nyears) and every croptype (number of croptypes = Ncroptypes).
+Note that time parameters, pathogen and croptypes must be set before updating
+survival probabilities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">updateSurvivalProb(params, mat_year = NULL, mat_croptype = NULL, mat = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a LandsepiParams object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mat_year</code></td>
+<td>
+<p>a vector of size Nyear, giving survival probabilities for every year
+(replicated for every croptype).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mat_croptype</code></td>
+<td>
+<p>a vector of size Ncroptypes, giving survival probabilities for
+every croptype (replicated for every year).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+<p>a matrix of dimension (Nyears, Ncroptypes) giving survival probabilities
+for every year (rows)
+and every croptype (columns).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Unless the matrix <code>mat</code> is filled, the matrix containing the survival
+probability during the offseason
+is computed for every year and croptype with
+<code>mat[year, croptype] = mat_year[year] * mat_croptype[croptype]</code>. <br></p>
+
+
+<h3>Value</h3>
+
+<p>a LandsepiParams object updated.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>survivalProbToMatrix
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+simul_params &lt;- createSimulParams()
+simul_params &lt;- setTime(simul_params, Nyears=10, nTSpY=120)
+simul_params &lt;- setPathogen(simul_params, loadPathogen("rust"))
+
+cultivar1 &lt;- loadCultivar(name = "Susceptible", type = "wheat")
+cultivar2 &lt;- loadCultivar(name = "Resistant", type = "wheat")
+cultivars &lt;- data.frame(rbind(cultivar1, cultivar2), stringsAsFactors = FALSE)
+simul_params &lt;- setCultivars(simul_params, cultivars)
+
+croptypes &lt;- loadCroptypes(simul_params
+, names = c("Susceptible crop", "Resistant crop", "Mixture"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Susceptible crop", "Susceptible")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop", "Resistant")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Mixture", c("Susceptible", "Resistant"))
+simul_params &lt;- setCroptypes(simul_params, croptypes)
+Ncroptypes &lt;- nrow(simul_params@Croptypes)
+Nyears &lt;- simul_params@TimeParam$Nyears
+
+## Same probability in every croptype:
+simul_params &lt;- updateSurvivalProb(simul_params, mat_year=1:Nyears/100)
+simul_params@Pathogen
+## Same probability every year:
+simul_params &lt;- updateSurvivalProb(simul_params, mat_croptype=1:Ncroptypes/10)
+simul_params@Pathogen
+## specific probability for different croptypes and years:
+simul_params &lt;- updateSurvivalProb(simul_params
+, mat_year=1:Nyears/100, mat_croptype=1:Ncroptypes/10)
+simul_params@Pathogen
+## One probability per year and per croptype:
+simul_params &lt;- updateSurvivalProb(simul_params
+, mat=matrix(runif(Nyears*Ncroptypes), ncol=Ncroptypes))
+simul_params@Pathogen
+survivalProbToMatrix(simul_params)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

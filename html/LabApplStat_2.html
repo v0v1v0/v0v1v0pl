@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DD</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Design diagram for a linear model</h2>
+
+<h3>Description</h3>
+
+<p><code>DD</code> computes the Design Diagram for a linear model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">DD(fixed, random = NULL, data, keep = ~1, center = FALSE, eps = 1e-12)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>formula with fixed effects. A response may the specified, but this optional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>formula with random effects. Defaults to <code>NULL</code> meaning that there are no other random effects than the residual, which is added to all designs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame with the explanatory variables and the response (if specified).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep</code></td>
+<td>
+<p>formula which effects that will not be removed in the collinarity analysis. Defaults to <code>~1</code> meaning that the intercept will be kept if it is present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center</code></td>
+<td>
+<p>boolean deciding whether to centralize numerical predictors when an intercept is present. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>threshold for deeming singular values to be "zero". Defaults to 1e-12.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>designDiagram-class</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bo Markussen
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>minimum</code>, <code>plot.designDiagram</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># 3-way ANOVA
+x &lt;- factor(rep(rep(1:4,times=4),times=4))
+y &lt;- factor(rep(rep(1:4,times=4),each=4))
+z &lt;- factor(rep(rep(1:4,each=4),each=4))
+myDD &lt;- DD(~x*y*z,data=data.frame(x=x,y=y,z=z))
+summary(myDD)
+
+#Making the factor diagram closed under minima
+mydata &lt;- data.frame(age=rep(c("boy","girl","adult","adult"),4),
+                     gender=rep(c("child","child","man","woman"),4))
+myDD &lt;- DD(~0+age+gender,data=mydata)
+plot(myDD)
+
+# Example of collinearity
+mydata &lt;- data.frame(age=rnorm(102),edu=rnorm(102),sex=factor(rep(c(1,2),51)))
+mydata &lt;- transform(mydata,exper=age-edu+0.1*rnorm(102))
+mydata &lt;- transform(mydata,wage=2*edu+2*exper+rnorm(102))
+summary(myDD &lt;- DD(wage~sex*(age+exper+edu),data=mydata))
+
+# growth of rats
+antibiotica &lt;- factor(rep(c(0,40),each=6))
+vitamin &lt;- factor(rep(rep(c(0,5),each=3),2))
+growth &lt;- c(1.30,1.19,1.08,1.26,1.21,1.19,1.05,1.00,1.05,1.52,1.56,1.55)
+mydata &lt;- data.frame(antibiotica=antibiotica,vitamin=vitamin,growth=growth)
+myDD &lt;- DD(growth~antibiotica*vitamin,data=mydata)
+plot(myDD,"MSS")
+plot(myDD,"I2")
+
+
+  # ANCOVA: Non-orthogonal design
+  library(isdals)
+  data(birthweight)
+  plot(DD(weight~sex*I(age-42),data=birthweight),"MSS")
+  plot(DD(weight~I(age-42)+sex:I(age-42)+sex,data=birthweight),"MSS")
+
+
+</code></pre>
+
+
+</div>

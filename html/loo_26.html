@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_log_lik</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract pointwise log-likelihood from a Stan model</h2>
+
+<h3>Description</h3>
+
+<p>Convenience function for extracting the pointwise log-likelihood
+matrix or array from a <code>stanfit</code> object from the <span class="pkg">rstan</span> package.
+Note: recent versions of <span class="pkg">rstan</span> now include a <code>loo()</code> method for
+<code>stanfit</code> objects that handles this internally.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_log_lik(stanfit, parameter_name = "log_lik", merge_chains = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>stanfit</code></td>
+<td>
+<p>A <code>stanfit</code> object (<span class="pkg">rstan</span> package).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameter_name</code></td>
+<td>
+<p>A character string naming the parameter (or generated
+quantity) in the Stan model corresponding to the log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge_chains</code></td>
+<td>
+<p>If <code>TRUE</code> (the default), all Markov chains are
+merged together (i.e., stacked) and a matrix is returned. If <code>FALSE</code>
+they are kept separate and an array is returned.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Stan does not automatically compute and store the log-likelihood. It
+is up to the user to incorporate it into the Stan program if it is to be
+extracted after fitting the model. In a Stan model, the pointwise log
+likelihood can be coded as a vector in the transformed parameters block
+(and then summed up in the model block) or it can be coded entirely in the
+generated quantities block. We recommend using the generated quantities
+block so that the computations are carried out only once per iteration
+rather than once per HMC leapfrog step.
+</p>
+<p>For example, the following is the <code style="white-space: pre;">⁠generated quantities⁠</code> block for
+computing and saving the log-likelihood for a linear regression model with
+<code>N</code> data points, outcome <code>y</code>, predictor matrix <code>X</code>,
+coefficients <code>beta</code>, and standard deviation <code>sigma</code>:
+</p>
+<p><code style="white-space: pre;">⁠vector[N] log_lik;⁠</code>
+</p>
+<p><code>for (n in 1:N) log_lik[n] = normal_lpdf(y[n] | X[n, ] * beta, sigma);</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>merge_chains=TRUE</code>, an <code class="reqn">S</code> by <code class="reqn">N</code> matrix of
+(post-warmup) extracted draws, where <code class="reqn">S</code> is the size of the posterior
+sample and <code class="reqn">N</code> is the number of data points. If
+<code>merge_chains=FALSE</code>, an <code class="reqn">I</code> by <code class="reqn">C</code> by <code class="reqn">N</code> array, where
+<code class="reqn">I \times C = S</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Stan Development Team (2017). The Stan C++ Library, Version 2.16.0.
+<a href="https://mc-stan.org/">https://mc-stan.org/</a>
+</p>
+<p>Stan Development Team (2017). RStan: the R interface to Stan, Version 2.16.1.
+<a href="https://mc-stan.org/">https://mc-stan.org/</a>
+</p>
+
+
+</div>

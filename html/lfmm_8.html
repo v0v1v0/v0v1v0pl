@@ -1,0 +1,165 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lfmm_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Statistical tests with latent factor mixed models (linear models)</h2>
+
+<h3>Description</h3>
+
+<p>This function returns significance values for the association between each column of the
+response matrix, Y, and the explanatory variables, X, including correction for unobserved confounders
+(latent factors). The test is based on an LFMM fitted with a ridge or lasso penalty (linear model).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lfmm_test(Y, X, lfmm, calibrate = "gif")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a response variable matrix with n rows and p columns.
+Each column is a response variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an explanatory variable matrix with n rows and d columns.
+Each column corresponds to an explanatory variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfmm</code></td>
+<td>
+<p>an object of class <code>lfmm</code> returned by the lfmm_lasso
+or lfmm_ridge function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calibrate</code></td>
+<td>
+<p>a character string, "gif" or "median+MAD". If the "gif" option is set (default),
+significance values are calibrated by using the genomic control method. Genomic control
+uses a robust estimate of the variance of z-scores called "genomic inflation factor".
+If the "median+MAD" option is set, the pvalues are calibrated by computing the median and MAD of the zscores. If <code>NULL</code>, the
+pvalues are not calibrated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The response variable matrix Y and the explanatory variable are centered.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list with the following attributes:
+</p>
+
+<ul>
+<li>
+<p> B the effect size matrix with dimensions p x d.
+</p>
+</li>
+<li>
+<p> score a p x d matrix which contains z-scores for each explanatory variable (columns of X),
+</p>
+</li>
+<li>
+<p> pvalue a p x d matrix which contains p-values for each explanatory variable,
+</p>
+</li>
+<li>
+<p> calibrated.pvalue a p x d matrix which contains calibrated p-values for each explanatory variable,
+</p>
+</li>
+<li>
+<p> gif a numeric value for the genomic inflation factor.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kevin Caye, Basile Jumentier, Olivier Francois
+</p>
+
+
+<h3>See Also</h3>
+
+<p>glm_test
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(lfmm)
+
+## a GWAS example with Y = SNPs and X = phenotype
+data(example.data)
+Y &lt;- example.data$genotype[, 1:10000]
+X &lt;- example.data$phenotype
+
+## Fit an LFMM with K = 6 factors
+mod.lfmm &lt;- lfmm_ridge(Y = Y, 
+                       X = X, 
+                       K = 6)
+
+## Perform association testing using the fitted model:
+pv &lt;- lfmm_test(Y = Y, 
+                X = X, 
+                lfmm = mod.lfmm, 
+                calibrate = "gif")
+
+## Manhattan plot with causal loci shown
+
+pvalues &lt;- pv$calibrated.pvalue
+plot(-log10(pvalues), pch = 19, 
+     cex = .2, col = "grey", xlab = "SNP")
+points(example.data$causal.set[1:5], 
+      -log10(pvalues)[example.data$causal.set[1:5]], 
+       type = "h", col = "blue")
+
+
+## An EWAS example with Y = methylation data and X = exposure
+data("skin.exposure")
+Y &lt;- scale(skin.exposure$beta.value)
+X &lt;- scale(as.numeric(skin.exposure$exposure))
+
+## Fit an LFMM with 2 latent factors
+mod.lfmm &lt;- lfmm_ridge(Y = Y,
+                       X = X, 
+                       K = 2)
+                       
+## Perform association testing using the fitted model:
+pv &lt;- lfmm_test(Y = Y, 
+                X = X,
+                lfmm = mod.lfmm, 
+                calibrate = "gif")
+                
+## Manhattan plot with true associations shown
+pvalues &lt;- pv$calibrated.pvalue
+plot(-log10(pvalues), 
+     pch = 19, 
+     cex = .3,
+     xlab = "Probe",
+     col = "grey")
+     
+causal.set &lt;- seq(11, 1496, by = 80)
+points(causal.set, 
+      -log10(pvalues)[causal.set], 
+       col = "blue")
+</code></pre>
+
+
+</div>

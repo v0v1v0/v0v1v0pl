@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dataProcessing</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Process mzXML files individually: peakpicking and isotope annotation</h2>
+
+<h3>Description</h3>
+
+<p>Process mzXML files individually: peakpicking and isotope anotation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dataProcessing(
+  file,
+  acquisitionmode,
+  polarity,
+  dmzagglom = 15,
+  drtagglom = 500,
+  drtclust = 100,
+  minpeak = c(5, 3),
+  drtgap = 10,
+  drtminpeak = c(15, 15),
+  drtmaxpeak = c(100, 200),
+  recurs = 5,
+  sb = c(3, 2),
+  sn = 2,
+  minint = c(1000, 100),
+  weight = c(2, 3),
+  dmzIso = 5,
+  drtIso = 5,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>file path.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acquisitionmode</code></td>
+<td>
+<p>character value: MS, DIA or DDA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>polarity</code></td>
+<td>
+<p>character value: negative or positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmzagglom</code></td>
+<td>
+<p>mz tolerance (in ppm) used for partitioning and clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtagglom</code></td>
+<td>
+<p>RT window used for partitioning (in seconds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtclust</code></td>
+<td>
+<p>RT window used for clustering (in seconds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minpeak</code></td>
+<td>
+<p>minimum number of measurements required for a peak.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtgap</code></td>
+<td>
+<p>maximum RT gap length to be filled (in seconds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtminpeak</code></td>
+<td>
+<p>minimum RT width of a peak (in seconds). At least minpeak 
+within the drtminpeak window are required to define a peak.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtmaxpeak</code></td>
+<td>
+<p>maximum RT width of a single peak (in seconds).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recurs</code></td>
+<td>
+<p>maximum number of peaks within one EIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sb</code></td>
+<td>
+<p>signal-to-base ratio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sn</code></td>
+<td>
+<p>signal-to-noise ratio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minint</code></td>
+<td>
+<p>minimum intensity of a peak.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>weight for assigning measurements to a peak.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmzIso</code></td>
+<td>
+<p>mass tolerance for isotope matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drtIso</code></td>
+<td>
+<p>time window for isotope matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>print information messages.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is important that mzXML files are centroided. 
+</p>
+<p>This function executes 2 steps: 1) peak-picking based on enviPick
+package and 2) isotope annotation based on CAMERA algorithm.
+</p>
+<p>Numeric arguments accept one or two values for MS1 and MS2, respectively.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an msobject that contains metadata of the mzXML file, raw data and
+extracted peaks.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>M Isabel Alcoriza-Balaguer &lt;maialba@iislafe.es&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Peak-picking algorithm has been imported from enviPick R-package:
+https://cran.r-project.org/web/packages/enviPick/index.html
+</p>
+<p>Isotope annotation has been adapted from CAMERA algorithm: 
+Kuhl C, Tautenhahn R, Boettcher C, Larson TR, Neumann S (2012). “CAMERA: an 
+integrated strategy for compound spectra extraction and annotation of liquid 
+chromatography/mass spectrometry data sets.” Analytical Chemistry, 84, 283–289. 
+http://pubs.acs.org/doi/abs/10.1021/ac202450g.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>batchdataProcessing and setmsbatch
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+msobject &lt;- dataProcessing("input_file.mzXML", acquisitionmode="DIA", polarity,
+dmzagglom = 25, drtagglom = 500, drtclust = 60, minpeak = c(5, 3),
+drtgap = 5, drtminpeak = 20, drtmaxpeak = 100, recurs = 5, sb = c(3, 2),
+sn = 2, minint = c(1000, 100), weight = 2, dmzIso = 10, drtIso = 5)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

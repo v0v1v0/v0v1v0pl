@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ecr.iterative.2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+ECR algorithm (iterative version 2)
+</h2>
+
+<h3>Description</h3>
+
+<p>This function applies the second iterative version of Equivalence Classes Representatives (ECR) algorithm (Papastamoulis and Iliopoulos, 2010, Rodriguez and Walker, 2012). The set of all allocation variables is partitioned into equivalence classes and exactly one representative is chosen from each class. In this version the <code class="reqn">m\times n \times K</code> of allocation probabilities should be given as input as well.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ecr.iterative.2(z, K, p, threshold, maxiter)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p><code class="reqn">m\times n</code> integer array of the latent allocation vectors generated from an MCMC algorithm.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>the number of mixture components (at least equal to 2).
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p><code class="reqn">m\times n \times K</code> dimensional array of allocation probabilities of the <code class="reqn">n</code> observations among the <code class="reqn">K</code> mixture components, for each iteration <code class="reqn">t = 1,\ldots,m</code> of the MCMC algorithm.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>An (optional) positive number controlling the convergence criterion. Default value: 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+
+<p>An (optional) integer controlling the max number of iterations. Default value: 100.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a given MCMC iteration <code class="reqn">t=1,\ldots,m</code>, let <code class="reqn">w_k^{(t)}</code> and <code class="reqn">\theta_k^{(t)}</code>, <code class="reqn">k=1,\ldots,K</code> denote the simulated mixture weights and component specific parameters respectively. Then, the <code class="reqn">(t,i,k)</code> element of <code>p</code> corresponds to the conditional probability that observation <code class="reqn">i=1,\ldots,n</code> belongs to component <code class="reqn">k</code> and is proportional to <code class="reqn">p_{tik} \propto w_k^{(t)} f(x_i|\theta_k^{(t)}), k=1,\ldots,K</code>, where <code class="reqn">f(x_i|\theta_k)</code> denotes the density of component <code class="reqn">k</code>. This means that:
+</p>
+<p style="text-align: center;"><code class="reqn">p_{tik} = \frac{w_k^{(t)} f(x_i|\theta_k^{(t)})}{w_1^{(t)} f(x_i|\theta_1^{(t)})+\ldots + w_K^{(t)} f(x_i|\theta_K^{(t)})}.</code>
+</p>
+
+<p>In case of hidden Markov models, the probabilities <code class="reqn">w_k</code> should be replaced with the proper left (normalized) eigenvector of the state-transition matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>permutations </code></td>
+<td>
+<p><code class="reqn">m\times K</code> dimensional array of permutations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations </code></td>
+<td>
+<p>integer denoting the number of iterations until convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status </code></td>
+<td>
+<p>returns the exit status</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>References</h3>
+
+<p>Papastamoulis P. and Iliopoulos G. (2010). An artificial allocations based solution to the label switching problem in Bayesian analysis of mixtures of distributions. Journal of Computational and Graphical Statistics, 19: 313-331.
+</p>
+<p>Rodriguez C.E. and Walker S. (2014). Label Switching in Bayesian Mixture Models: Deterministic relabeling strategies. Journal of Computational and Graphical Statistics. 23:1, 25-45
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>permute.mcmc</code>, <code>label.switching</code>, <code>ecr</code>, <code>ecr.iterative.1</code>, <code>stephens</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#load a toy example: MCMC output consists of the random beta model
+# applied to a normal mixture of \code{K=2} components. The number of
+# observations is equal to \code{n=5}. The number of MCMC samples is
+# equal to \code{m=1000}. The 300 simulated allocations are stored to
+# array \code{z}. The matrix of allocation probabilities is stored to
+# array \code{p}. 
+data("mcmc_output")
+z&lt;-data_list$"z"
+K&lt;-data_list$"K"
+p&lt;-data_list$"p"
+# mcmc parameters are stored to array \code{mcmc.pars}
+mcmc.pars&lt;-data_list$"mcmc.pars"
+# mcmc.pars[,,1]: simulated means of the two components
+# mcmc.pars[,,2]: simulated variances 
+# mcmc.pars[,,3]: simulated weights
+# the relabelling algorithm will run with the default initialization
+# (no opt_init is specified)
+run&lt;-ecr.iterative.2(z = z, K = 2, p = p)
+# apply the permutations returned by typing:
+reordered.mcmc&lt;-permute.mcmc(mcmc.pars,run$permutations)
+# reordered.mcmc[,,1]: reordered means of the two mixture components
+# reordered.mcmc[,,2]: reordered variances of the two components
+# reordered.mcmc[,,3]: reordered weights of the two components
+</code></pre>
+
+
+</div>

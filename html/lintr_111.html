@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>package_hooks_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Package hooks linter</h2>
+
+<h3>Description</h3>
+
+<p>Check various common "gotchas" in <code>.onLoad()</code>, <code>.onAttach()</code>, <code>.Last.lib()</code>, and <code>.onDetach()</code>
+namespace hooks that will cause <code style="white-space: pre;">⁠R CMD check⁠</code> issues. See Writing R Extensions for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">package_hooks_linter()
+</code></pre>
+
+
+<h3>Details</h3>
+
+
+<ol>
+<li> <p><code>.onLoad()</code> shouldn't call <code>cat()</code>, <code>message()</code>, <code>print()</code>, <code>writeLines()</code>, <code>packageStartupMessage()</code>,
+<code>require()</code>, <code>library()</code>, or <code>installed.packages()</code>.
+</p>
+</li>
+<li> <p><code>.onAttach()</code> shouldn't call <code>cat()</code>, <code>message()</code>, <code>print()</code>, <code>writeLines()</code>, <code>library.dynam()</code>,
+<code>require()</code>, <code>library()</code>, or <code>installed.packages()</code>.
+</p>
+</li>
+<li> <p><code>.Last.lib()</code> and <code>.onDetach()</code> shouldn't call <code>library.dynam.unload()</code>.
+</p>
+</li>
+<li> <p><code>.onLoad()</code> and <code>.onAttach()</code> should take two arguments, with names matching <code style="white-space: pre;">⁠^lib⁠</code> and <code style="white-space: pre;">⁠^pkg⁠</code>;
+<code>.Last.lib()</code> and <code>.onDetach()</code> should take one argument with name matching <code style="white-space: pre;">⁠^lib⁠</code>.
+</p>
+</li>
+</ol>
+<h3>Tags</h3>
+
+<p>correctness, package_development, style
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = ".onLoad &lt;- function(lib, ...) { }",
+  linters = package_hooks_linter()
+)
+
+lint(
+  text = ".onAttach &lt;- function(lib, pkg) { require(foo) }",
+  linters = package_hooks_linter()
+)
+
+lint(
+  text = ".onDetach &lt;- function(pkg) { }",
+  linters = package_hooks_linter()
+)
+
+# okay
+lint(
+  text = ".onLoad &lt;- function(lib, pkg) { }",
+  linters = package_hooks_linter()
+)
+
+lint(
+  text = '.onAttach &lt;- function(lib, pkg) { loadNamespace("foo") }',
+  linters = package_hooks_linter()
+)
+
+lint(
+  text = ".onDetach &lt;- function(lib) { }",
+  linters = package_hooks_linter()
+)
+
+</code></pre>
+
+
+</div>

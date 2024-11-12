@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldPower</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power and Other Probabilities for Group Sequential Boundaries</h2>
+
+<h3>Description</h3>
+
+<p>'ldPower' calculates drift (effect), confidence interval for drift,
+adjusted p-value, or
+power and other probabilities given drift for specified group
+sequential boundaries for interim analyses of accumulating data in
+clinical trials.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldPower(t, za=NULL, zb=NULL, t2=t, pow=NULL, drift=NULL,
+      conf=NULL, method=NULL, pvaltime=NULL,
+      zval=zb[length(zb)])
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>a vector of analysis times or an 'ldBounds' object (from either
+the 'ldBounds' or 'commonbounds' function). If a vector of analysis
+times, must be increasing and in (0,1].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>za</code></td>
+<td>
+<p>the vector of lower boundaries.  If not specified, made
+symmetric to <code>zb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zb</code></td>
+<td>
+<p>the vector of upper boundaries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t2</code></td>
+<td>
+<p>the second time scale, usually in terms of amount of
+accumulating information.  By default, same as <code>t</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pow</code></td>
+<td>
+<p>the desired power when drift is not specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drift</code></td>
+<td>
+<p>the true drift (i.e. treatment effect when t=1).  Default
+is 0 when <code>pow</code>, <code>conf</code>, and <code>method</code> are also left
+unspecified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p>the confidence level when a confidence interval for drift
+is wanted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the type of adjusted p-value desired.  Possible values are
+'SW' (stage-wise) and 'LR' (likelihood ratio).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvaltime</code></td>
+<td>
+<p>the analysis time at which the final Z-statistic was
+observed and an adjusted p-value is desired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zval</code></td>
+<td>
+<p>the final observed Z-statistic (i.e. when trial is
+stopped).  Used for confidence interval or ajusted p-value.  Default
+is final upper boundary value.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is based on a Fortran program, 'ld98', by Reboussin, DeMets, Kim,
+and Lan.  It has some advantages, like making use of probability
+distributions in R.  Only one of <code>pow</code>, <code>drift</code>, 
+<code>conf</code>, or <code>pval</code> is to be specified and <code>zval</code> is only
+used in the latter two
+cases.
+</p>
+<p>If <code>t</code> is an 'ldBounds' object, <code>za</code>, <code>zb</code>, <code>t</code>, and
+<code>t2</code> are already defined and should not be specified.
+</p>
+
+
+<h3>Value</h3>
+
+<p>'ldPower' returns an object of 'class' '"ldPower"'.
+</p>
+<p>An object of class '"ldPower"' is a list containing the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of computation performed: 1 is drift given power, 2
+is exit probabilities given drift, 3 is confidence interval for
+drift given final Z-statistic, and 4 is adjusted p-value given final
+Z-statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>the original time scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>the second (information) time scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower.bounds</code></td>
+<td>
+<p>the vector of lower boundaries given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper.bounds</code></td>
+<td>
+<p>the vector of upper boundaries given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>the power.  If power is given, it is returned here.
+If drift is given, the resulting power is calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drift</code></td>
+<td>
+<p>the drift.  If drift is given, it is returned here.  If
+power is given, the drift resulting in given power is calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower.probs</code></td>
+<td>
+<p>the vector of exit probabilities across the lower
+boundary.  Returned if power or drift is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper.probs</code></td>
+<td>
+<p>the same for upper boundary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exit.probs</code></td>
+<td>
+<p>the probability at each analysis of crossing the
+boundary.  The sum of <code>lower.probs</code> and <code>upper.probs</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cum.exit</code></td>
+<td>
+<p>the cumulative probability of crossing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>the desired confidence level, if given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>final.zvalue</code></td>
+<td>
+<p>the final Z statistic, if given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.interval</code></td>
+<td>
+<p>the confidence interval for drift, if <code>conf</code>
+and <code>zval</code> are given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.ordering</code></td>
+<td>
+<p>the ordering specified for p-value calculation (if
+given).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>the adjusted p-value if <code>pval</code>, <code>pvaltime</code>, and
+<code>zval</code> are given.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Charlie Casper <a href="mailto:charlie.casper@hsc.utah.edu">charlie.casper@hsc.utah.edu</a>, Thomas Cook <a href="mailto:cook@biostat.wisc.edu">cook@biostat.wisc.edu</a>, and Oscar A. Perez</p>
+
+
+<h3>References</h3>
+
+<p>Reboussin, D. M., DeMets, D. L., Kim, K. M., and Lan,
+K. K. G. (2000) Computations for group sequential boundaries using the
+Lan-DeMets spending function method. <em>Controlled Clinical Trials</em>,
+21:190-207.
+</p>
+<p>Fortran program 'ld98' by the same authors as above.
+</p>
+<p>DeMets, D. L. and Lan, K. K. G. (1995) <em>Recent Advances in Clinical
+Trial Design and Analysis</em>, Thall, P. F. (ed.). Boston: Kluwer
+Academic Publishers.
+</p>
+<p>Lan, K. K. G. and DeMets, D. L. (1983) Discrete sequential boundaries
+for clinical trials. <em>Biometrika</em>, 70:659-63.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Generic functions <code>summary.ldPower</code> and
+<code>plot.ldPower</code>.
+</p>
+<p><code>ldBounds</code> for computation of boundaries using alpha
+spending function method.
+</p>
+<p><code>commonbounds</code> for boundaries that do not use alpha spending.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">   ## From Reboussin, et al. (2000)
+
+   t &lt;- c(0.13,0.4,0.69,0.9,0.98,1)
+   upper &lt;- c(5.3666,3.7102,2.9728,2.5365,2.2154,1.9668)
+   bound.pr &lt;- ldPower(t,zb=upper,drift=3.242)
+   summary(bound.pr)
+
+   t &lt;- c(0.2292,0.3333,0.4375,0.5833,0.7083,0.8333)
+   power.fam &lt;- ldBounds(t,iuse=3,alpha=0.05)
+   bound.ci &lt;- ldPower(power.fam,conf=0.95,zval=2.82)
+   bound.p &lt;- ldPower(power.fam,method="LR",pvaltime=5,zval=2.82)
+   summary(bound.ci)
+   summary(bound.p)
+   plot(bound.ci)
+
+   obf.bd &lt;- ldBounds(5)
+   obf.dr &lt;- ldPower(obf.bd,pow=0.9)
+   summary(obf.dr)
+
+
+
+
+</code></pre>
+
+
+</div>

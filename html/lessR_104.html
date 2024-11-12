@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SummaryStats</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary Statistics for One or Two Variables</h2>
+
+<h3>Description</h3>
+
+<p>Abbreviation: <code>ss</code>
+</p>
+<p>The summary statistics aspect for continuous variables is deprecated. Use <code>pivot</code> instead.
+</p>
+<p>Descriptive or summary statistics for a numeric variable or a factor, one at a time or for all numeric and factor variables in the data frame.  For a single variable, there is also an option for summary statistics at each level of a second, usually categorical variable or factor, with a relatively few number of levels.  For a numeric variable, output includes the sample mean, standard deviation, skewness, kurtosis, minimum, 1st quartile, median, third quartile and maximum, as well as the number of non-missing and missing values_ For a categorical variable, the output includes the table of counts for each value of a factor, the total sample size, and the corresponding proportions.  
+</p>
+<p>If the provided object to analyze is a set of multiple variables, including an entire data frame, then each non-numeric variable in the data frame is analyzed and the results written to a pdf file in the current working directory. The name of each output pdf file that contains a bar chart and its path are specified in the output.
+</p>
+<p>When output is assigned into an object, such as <code>s</code> in <code>s &lt;- ss(Y)</code>, the pieces of output can be accessed for later analysis. A primary such analysis is <code>knitr</code> for dynamic report generation in which R output embedded in documents See <code>value</code> below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SummaryStats(x=NULL, by=NULL, data=d, rows=NULL, n_cat=getOption("n_cat"), 
+         digits_d=NULL, brief=getOption("brief"), label_max=20, ...)
+
+ss_brief(..., brief=TRUE)
+
+ss(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Variable(s) to analyze.  Can be a single variable, either
+within a data frame or as a vector in the user's workspace,
+or multiple variables in a data frame such as designated with the
+<code>c</code> function, or an entire data frame. If not specified,
+then defaults to all variables in the specified data frame,
+<code>d</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Applies to an analysis of a numeric variable, which is then analyzed at
+each level of the <code>by</code> variable. The variable is coerced to a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Optional data frame that contains the variable of interest, default
+is <code>d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rows</code></td>
+<td>
+<p>A logical expression that specifies a subset of rows of the data frame
+to analyze.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cat</code></td>
+<td>
+<p>Specifies the largest number of unique values of variable of a numeric
+data type for which the variable will be analyzed as a categorical. Default is
+off, set to 0.
+<em>[deprecated]</em>: Best to convert a categorical integer variable to a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits_d</code></td>
+<td>
+<p>Specifies the number of decimal digits to display in the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brief</code></td>
+<td>
+<p>If set to <code>TRUE</code>, reduced text output. Can change system default
+with <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label_max</code></td>
+<td>
+<p>Maximum size of labels for the values of a variable.
+Not a literal maximum as preserving unique values may require a larger number
+of characters than specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to or from methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>OVERVIEW<br>
+The <code>by</code> option specifies a categorical variable or factor, with a relatively few number of values called levels. The variable of interest is analyzed at each level of the factor. 
+</p>
+<p>The <code>digits_d</code> parameter specifies the number of decimal digits in the output.  It must follow the formula specification when used with the formula version. By default the number of decimal digits displayed for the analysis of a variable is one more than the largest number of decimal digits in the data for that variable.
+</p>
+<p>Reported outliers are based on the boxplot criterion.  The determination of an outlier is based on the length of the box, which corresponds, but may not equal exactly, the interquartile range.  A value is reported as an outlier if it is more than 1.5 box lengths away from the box.
+</p>
+<p>Skewness is computed with the usual adjusted Fisher-Pearson standardized moment skewness coefficient, the version found in many commercial packages.
+</p>
+<p>The <code>lessR</code> function <code>Read</code> reads the data from an external csv file into the data frame called <code>d</code>.  To describe all of the variables in a data frame, invoke <code>SummaryStats(d)</code>, or just <code>SummaryStats()</code>, which then defaults to the former.
+</p>
+<p>In the analysis of a categorical variable, if there are more than 10 levels then an abbreviated analysis is performed, only reporting the values and the associated frequencies. If all the values are unique, then the user is prompted with a note that perhaps this is actually an ID field which should be specified using the <code>row.names</code> option when reading the data.
+</p>
+<p>DATA<br>
+If the variable is in a data frame, the input data frame has the assumed name of <code>d</code>.  If this data frame is named something different, then specify the name with the <code>data</code> option.  Regardless of its name, the data frame need not be attached to reference the variable directly by its name, that is, no need to invoke the <code>d$name</code> notation.
+</p>
+<p>To analyze each variable in the <code>d</code> data frame, use <code>SummaryStats()</code>.  Or, for a data frame with a different name, insert the name between the parentheses. To analyze a subset of the variables in a data frame, specify the list with either a : or the <code>c</code> function, such as m01:m03 or c(m01,m02,m03).
+</p>
+<p>VARIABLE LABELS<br>
+If variable labels exist, then the corresponding variable label is by default listed as the label for the horizontal axis and on the text output. For more information, see <code>Read</code>.
+</p>
+<p>ONLY VARIABLES ARE REFERENCED<br>
+The referenced variable in a <code>lessR</code> function can only be a variable name. This referenced variable must exist in either the referenced data frame, such as the default <code>d</code>, or in the user's workspace, more formally called the global environment. That is, expressions cannot be directly evaluated. For example:
+</p>
+<p><code>&gt; SummaryStats(rnorm(50))   # does NOT work</code>
+</p>
+<p>Instead, do the following:
+</p>
+<pre>    &gt; Y &lt;- rnorm(50)   # create vector Y in user workspace
+    &gt; SummaryStats(Y)     # directly reference Y</pre>
+
+
+<h3>Value</h3>
+
+<p>The output can optionally be saved into an <code>R</code> object, otherwise it simply appears in the console. Redesigned in <code>lessR</code> version 3.3 to provide two different types of components: the pieces of readable output in character format, and a variety of statistics. The readable output are character strings such as tables amenable for reading. The statistics are numerical values amenable for further analysis. A primary motivation of these two types of output is to facilitate <code>knitr</code> documents, as the name of each piece can be inserted into the <code>knitr</code> document.
+</p>
+<p>If the analysis is of a single numeric variable, the full analysis returns the following statistics: <code>n</code>, <code>miss</code>, <code>mean</code>, <code>sd</code>, <code>skew</code>, <code>kurtosis</code>, <code>min</code>, <code>quartile1</code>, <code>median</code>, <code>quartile3</code>, <code>max</code>, <code>IQR</code>. The brief analysis returns the corresponding subset of the summary statistics. If the anlaysis is conditioned on a <code>by</code> variable, then nothing is returned except the text output. The pieces of readable output are <code>out_stats</code> and <code>out_outliers</code>.
+</p>
+<p>If the analysis is of a single categorical variable, a list is invisibly returned with two tables, the frequencies and the proportions, respectively named <code>freq</code> and <code>prop</code>. The pieces of readable output are <code>out_title</code> and <code>out_stats</code>.
+</p>
+<p>If two categorical variables are analyzed, then for the full analysis four tables are returned as readable output, but no numerical statistics. The pieces are <code>out_title</code>, <code>out_freq</code>, <code>out_prop</code>, <code>out_colsum</code>, <code>out_rowsum</code>.
+</p>
+<p>Although not typically needed, if the output is assigned to an object named, for example, <code>s</code>, as in <code>s &lt;- ss(Y)</code>, then the contents of the object can be viewed directly with the <code>unclass</code> function, here as <code>unclass(s)</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary</code>, <code>formula</code>, <code>boxplot</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# -------------------------------------------
+# one or two numeric or categorical variables
+# -------------------------------------------
+
+# create data frame, d, to mimic reading data with rad function
+# d contains both numeric and non-numeric data
+# X has two character values, Y is numeric
+n &lt;- 15
+X &lt;- sample(c("Group1","Group2"), size=n, replace=TRUE)
+Y &lt;- round(rnorm(n=n, mean=50, sd=10),3)
+d &lt;- data.frame(X,Y)
+rm(X); rm(Y)
+
+# Analyze the values of numerical Y
+# Calculate n, mean, sd, skew, kurtosis, min, max, quartiles
+SummaryStats(Y)
+# short name
+ss(Y)
+# output saved for later analysis
+s &lt;- ss(Y)
+# view full text output
+s
+# view just the outlier analysis
+s$out_outliers
+# list the names of all the components
+names(s)
+
+# Analyze the values of categorical X
+# Calculate frequencies and proportions, totals, chi-square
+SummaryStats(X)
+
+# Only a subset of available summary statistics
+ss_brief(Y)
+ss_brief(X, label_max=3)
+
+# Reference the summary stats in the object: stats
+stats &lt;- ss(Y)
+my.mean &lt;- stats$mean
+
+# Get the summary statistics for Y at each level of X
+# Specify 2 decimal digits for each statistic displayed
+SummaryStats(Y, by=X, digits_d=2)
+
+
+# ----------
+# data frame 
+# ----------
+
+# Analyze all variables in data frame d at once
+# Any variables with a numeric data type and 4 or less
+#  unique values will be analyzed as a categorical variable
+SummaryStats()
+
+# Analyze all variables in data frame d at once
+# Any variables with a numeric data type and 7 or less
+#  unique values will be analyzed as a categorical variable
+SummaryStats(n_cat=7)
+
+# analyze just a subset of a data frame
+d &lt;- Read("Employee", quiet=TRUE)
+SummaryStats(c(Salary,Years))
+
+
+# ----------------------------------------
+# data frame different from default d
+# ----------------------------------------
+
+# variables in a data frame which is not the default d
+# access the breaks variable in the R provided warpbreaks data set
+# although data not attached, access the variable directly by its name
+data(warpbreaks)
+SummaryStats(breaks, by=wool, data=warpbreaks)
+
+# Analyze all variables in data frame warpbreaks at once
+SummaryStats(warpbreaks)
+
+
+# ----------------------------
+# can enter many types of data
+# ----------------------------
+
+# generate and enter integer data
+X1 &lt;- sample(1:4, size=100, replace=TRUE)
+X2 &lt;- sample(1:4, size=100, replace=TRUE)
+SummaryStats(X1)
+SummaryStats(X1,X2)
+
+# generate and enter type double data
+X1 &lt;- sample(c(1,2,3,4), size=100, replace=TRUE)
+X2 &lt;- sample(c(1,2,3,4), size=100, replace=TRUE)
+SummaryStats(X1)
+SummaryStats(X1, by=X2)
+
+# generate and enter character string data
+# that is, without first converting to a factor
+Travel &lt;- sample(c("Bike", "Bus", "Car", "Motorcycle"), size=25, replace=TRUE)
+SummaryStats(Travel)
+</code></pre>
+
+
+</div>

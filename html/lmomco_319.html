@@ -1,0 +1,305 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>qua2ci.simple</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a Confidence Interval for a Single Quantile of a Parent Distribution by a Simple Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the lower and upper limits of a specified confidence interval for an aribitrary quantile value of a specified parent distribution [quantile function <code class="reqn">Q(F,\theta)</code> with parameters <code class="reqn">\theta</code>] using Monte Carlo simulation. The quantile value, actually the nonexceedance probability (<code class="reqn">F</code> for <code class="reqn">0 \le F \le 1</code>) of the value, is specified by the user. The user also provides the parameters of the parent distribution (see <code>lmom2par</code>). This function does consider an estimate of the variance-covariance structure of the sample data (for that see <code>qua2ci.cov</code>).  The <code>qua2ci.simple</code> is the original implementation and dates close to the initial releases of <span class="pkg">lmomco</span> and was originally named <code>qua2ci</code>. That name is now deprecated but retained as an alias, which will be removed at some later release.
+</p>
+<p>For <code>nsim</code> simulation runs (ideally a large number), samples of size <code class="reqn">n</code> are drawn from <code class="reqn">Q(F,\theta)</code>. The L-moments of each simulated sample are computed using <code>lmoms</code> and a distribution of the same type is fit. The <code class="reqn">F</code>-quantile of the just-fitted distribution is computed and placed into a vector. The process of simulating the sample, computing the L-moments, computing the parameters, and solving for the <code class="reqn">F</code>-quantile is repeated for the specified number of simulation runs.
+</p>
+<p>To estimate the confidence interval, the L-moments of the vector simulated quantiles are computed. Subsequently, the parameters of a user-specified distribution “error” distribution (<code>edist</code>) are computed. The two quantiles of this error distribution for the specified confidence interval are computed. These two quantiles represent the estimated lower and upper limits for the confidence interval of the parent distribution for samples of size <code class="reqn">n</code>. The error distribution defaults to the Generalized Normal (see <code>pargno</code>) because this distribution has the Normal as a special case but extends the fit to the 3rd L-moment (<code class="reqn">\tau_3</code>) for exotic situations in which some asymmetry in the quantile distribution might exist.
+</p>
+<p>Finally, it is often useful to have vectors of lower and upper limits for confidence intervals for a vector of <code class="reqn">F</code> values. The function <code>genci.simple</code> does just that and uses <code>qua2ci.simple</code> as the computational underpinning.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">qua2ci.simple(f,para,n, level=0.90, edist="gno", nsim=1000, showpar=FALSE,
+                        empdist=TRUE, verbose=FALSE, maxlogdiff=6, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>) of the quantile for which the confidence interval is needed. This function is not vectorized and therefore only the first value will be used. This is in contrast to the vectorization of <code class="reqn">F</code> in the conceptually similar function <code>qua2ci.cov</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>lmom2par</code> or <code>vec2par</code>—these parameters represent the “true” parent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The sample size for each Monte Carlo simulation will use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>The confidence interval (<code class="reqn">0 \le </code> <code>level</code> <code class="reqn"> &lt; 1</code>). The interval is specified as the size of the interval. The default is 0.90 or the 90th percentile. The function will return the 5th [<code class="reqn">(1-0.90)/2</code>] and 95th [<code class="reqn">(1-(1-0.90)/2)</code>] percentile cumulative probability of the simulated quantile distribution as specified by the nonexceedance probability argument. The arguments <code>level</code> and <code>f</code> therefore are separate features.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edist</code></td>
+<td>
+<p>The model for the error distribution. Although the Normal (the default) commonly is  assumed in error analyses, it need not be, as support for other distributions supported by <span class="pkg">lmomco</span> is available. The default is the Generalized Normal so the not only is the Normal possible but asymmetry is also accomodated (<code>lmomgno</code>).  For example, if the L-skew  (<code class="reqn">\tau_4</code>) or L-kurtosis (<code class="reqn">\tau_4</code>) values depart considerably from those of the Normal (<code class="reqn">\tau_3 = 0</code> and <code class="reqn">\tau_4 = 0.122602</code>), then the Generalized Normal or some alternative distribution would likely provide more reliable confidence interval estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of simulations (replications) for the sample size <code>n</code> to perform. Large numbers produce more refined confidence limit estimates at the cost of CPU time. The default is anticipated to be large enough for evaluative-useage without too much computational delay. Larger simulation numbers are recommended.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showpar</code></td>
+<td>
+<p>The parameters of the <code>edist</code> for each simulation are printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empdist</code></td>
+<td>
+<p>If <code>TRUE</code>, then an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>environment</code> is appended onto the element <code>empdist</code> in the returned list, otherwise <code>empdist</code> is <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The verbosity of the operation of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxlogdiff</code></td>
+<td>
+<p>The maximum permitted difference in log10 space between a simulated quantile and the true value. It is possible that a well fit simulated sample to the parent distribution type provides crazy quantile estimates in the far reaches of either tail.  The default value of 6 was chosen based on experience with the Kappa distribution fit to a typical heavy-right tail flood magnitude data set. The concern motivating this feature is that as the number of parameters increases, it seems progressively there is more chance for a distribution tail to swing wildy into regions for which an analyst would not be comfortable with given discipline-specific knowledge. The choice of 6-log cycles is <em>ad hoc</em> at best, and users are encouraged to do their own exploration. If <code>verbose=TRUE</code> then a message will be printed when the <code>maxlogdiff</code> condition is tripped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass such as to <code>lmom2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned. The <code>lwr</code> and <code>upr</code> match the nomenclature of <code>qua2ci.cov</code> but because <code>qua2ci.simple</code> is provided the parent, the <code>true</code> value is returned, whereas <code>qua2ci.cov</code> returns the <code>fit</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lwr</code></td>
+<td>
+<p>The lower value of the confidence interval having nonexceedance probability equal to <code class="reqn">(1-</code><code>level</code><code class="reqn">)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true</code></td>
+<td>
+<p>The value returned by <code>par2qua(f,para)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upr</code></td>
+<td>
+<p>The upper  value of the confidence interval having nonexceedance probability equal to <code class="reqn">1-(1-</code><code>level</code><code class="reqn">)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elmoms</code></td>
+<td>
+<p>The L-moments from <code>lmoms</code> of the distribution of simulated of quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epara</code></td>
+<td>
+<p>The parameters of the error distribution fit using the <code>elmoms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empdist</code></td>
+<td>
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>environment</code> (see below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A diagnostic value. A value of zero means that successful exit was made.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifailtext</code></td>
+<td>
+<p>A descriptive message related to the <code>ifail</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>An echoing of the <code>nsim</code> argument for the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim.attempts</code></td>
+<td>
+<p>The number of executions of the <code>while</code> loop (see Note below).</p>
+</td>
+</tr>
+</table>
+<p>The <code>empdist</code> element in the returned <code>list</code> is an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>environment</code> that contains:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>simquas</code></td>
+<td>
+<p>A <code>nsim</code>-long vector of the simulated quantiles for <code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empir.dist.lwr</code></td>
+<td>
+<p>The <em>lower</em> limit derived from the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>quantile</code> function for <code>type=6</code>, which uses <code class="reqn">i/(n+1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>empir.dist.upr</code></td>
+<td>
+<p>The <em>upper</em> limit derived from the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>quantile</code> function for <code>type=6</code>, which uses <code class="reqn">i/(n+1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bern.smooth.lwr</code></td>
+<td>
+<p>The <em>lower</em> limit estimated by the Bernstein smoother in <code>dat2bernqua</code> for <br><code>poly.type = "Bernstein"</code> and <code>bound.type = "none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bern.smooth.upr</code></td>
+<td>
+<p>The <em>upper</em> limit estimated by the Bernstein smoother in <code>dat2bernqua</code> for <br><code>poly.type = "Bernstein"</code> and <code>bound.type = "none"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epmoms</code></td>
+<td>
+<p>The product moments of the simulated quantiles from <code>pmoms</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This function relies on a <code>while</code> loop that runs until <code>nsim</code> have successfully completed. Some reasons for an early <code>next</code> in the loop include invalid L-moments by <code>are.lmom.valid</code> of the simluated data or invalid fitted parameters by <code>are.par.valid</code> to simulated L-moments.  See the source code for more details.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmoms</code>, <code>pmoms</code>, <code>par2qua</code>, <code>genci.simple</code>, <code>qua2ci.cov</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# It is well known that standard deviation (sigma) of the
+# sample mean is equal to sigma/sample_size. Let is look at the
+# quantile distribution of the median (f=0.5)
+mean   &lt;- 0; sigma &lt;- 100
+parent &lt;- vec2par(c(mean,sigma), type='nor')
+CI     &lt;- qua2ci.simple(0.5, parent, n=10, nsim=20)
+# Theoretrical sample mean sigma = 100/10 = 10
+# L-moment theory: L-scale * sqrt(pi) = sigma
+# Thus, it follows that the quantity
+CI$elmoms$lambdas[2]/sqrt(pi)
+# approaches 10 as nsim --&gt; Inf.
+## End(Not run)
+
+# Another example.
+D   &lt;- c(123, 34, 4, 654, 37, 78, 93, 95, 120) # fake sample
+lmr &lt;- lmoms(D)    # compute the L-moments of the data
+WEI &lt;- parwei(lmr) # estimate Weibull distribution parameters
+CI  &lt;- qua2ci.simple(0.75,WEI,20, nsim=20, level=0.95)
+# CI contains the estimate 95-percent confidence interval for the
+# 75th-percentile of the parent Weibull distribution for 20 sample size 20.
+## Not run: 
+pdf("Substantial_qua2ci_example.pdf")
+level &lt;- 0.90; cilo &lt;- (1-level)/2; cihi &lt;- 1 - cilo
+para &lt;- lmom2par(vec2lmom(c(180,50,0.75)), type="gev")
+A &lt;- qua2ci.simple(0.98, para, 30, edist="gno", level=level, nsim=3000)
+Apara &lt;- A$epara; Aenv &lt;- A$empdist
+Bpara &lt;- lmom2par(A$elmoms, type="aep4")
+
+lo &lt;- log10(A$lwr); hi &lt;- log10(A$upr)
+xs &lt;- 10^(seq(lo-0.2, hi+0.2, by=0.005))
+lo &lt;- A$lwr; hi &lt;- A$upr; xm &lt;- A$true; sbar &lt;- mean(Aenv$simquas)
+dd &lt;- density(Aenv$simquas, adjust=0.5)
+pk &lt;- max(dd$y, dlmomco(xs, Apara), dlmomco(xs, Bpara))
+dx &lt;- dd$x[dd$x &gt;= Aenv$empir.dist.lower &amp; dd$x &lt;= Aenv$empir.dist.upper]
+dy &lt;- dd$y[dd$x &gt;= Aenv$empir.dist.lower &amp; dd$x &lt;= Aenv$empir.dist.upper]
+dx &lt;- c(dx[1], dx, dx[length(dx)]); dy &lt;- c(0, dy, 0)
+
+plot(c(0), c(0), type="n", xlim=range(xs), ylim=c(0,pk),
+                 xlab="X VALUE", ylab="PROBABILITY DENSITY")
+polygon(dx, dy, col=8)
+lines(xs, dlmomco(xs, Apara)); lines(xs, dlmomco(xs, Bpara), col=2, lwd=2)
+lines(dd, lty=2, lwd=2, col=8)
+lines(xs, dlmomco(xs, para), col=6); lines(c(xm,xm), c(0,pk), lty=4, lwd=3)
+lines(c(lo,lo,NA,hi,hi), c(0,pk,NA,0,pk), lty=2)
+
+xlo &lt;- qlmomco(cilo, Apara); xhi &lt;- qlmomco(cihi, Apara)
+points(c(xlo, xhi), c(dlmomco(xlo, Apara), dlmomco(xhi, Apara)), pch=16)
+xlo &lt;- qlmomco(cilo, Bpara); xhi &lt;- qlmomco(cihi, Bpara)
+points(c(xlo, xhi), c(dlmomco(xlo, Bpara), dlmomco(xhi, Bpara)), pch=16, col=2)
+lines(rep(Aenv$empir.dist.lwr, 2), c(0,pk), lty=3, lwd=2, col=3)
+lines(rep(Aenv$empir.dist.upr, 2), c(0,pk), lty=3, lwd=2, col=3)
+lines(rep(Aenv$bern.smooth.lwr,2), c(0,pk), lty=3, lwd=2, col=4)
+lines(rep(Aenv$bern.smooth.upr,2), c(0,pk), lty=3, lwd=2, col=4)
+cat(c(  "F(true) = ",             round(plmomco(xm,   Apara), digits=2),
+      "; F(mean(sim), edist) = ", round(plmomco(sbar, Apara), digits=2), "\n"), sep="")
+dev.off()
+## End(Not run)
+## Not run: 
+ty &lt;- "nor" # try running with "glo" (to get the L-skew "fit", see below)
+para &lt;- lmom2par(vec2lmom(c(-180,70,-.5)), type=ty)
+f &lt;- 0.99; n &lt;- 41; ns &lt;- 1000; Qtrue &lt;- qlmomco(f, para)
+Qsim1 &lt;- replicate(ns, qlmomco(f, lmom2par(lmoms(rlmomco(n, para)), type=ty)))
+Qsim2 &lt;- qua2ci.simple(f, para, n, nsim=ns, edist="gno")
+Qbar1 &lt;- mean(Qsim1); Qbar2 &lt;- mean(Qsim2$empdist$simquas)
+epara &lt;- Qsim2$epara; FT &lt;- plmomco(Qtrue, epara)
+F1 &lt;- plmomco(Qbar1, epara); F2 &lt;- plmomco(Qbar2, epara)
+cat(c(  "F(true) = ",      round(FT, digits=2),
+      "; F(via sim.) = ",  round(F1, digits=2),
+      "; F(via edist) = ", round(F2, digits=2), "\n"), sep="")
+# The given L-moments are highly skewed, but a Normal distribution is fit so
+# L-skew is ignored. The game is deep tail (f=0.99) estimation. The true value of the
+# quantile has a percentile on the error distribution 0.48 that is almost exactly 0.5
+# (median = mean = symmetrical error distribution).  A test run shows nice behavior:
+# F(true) =  0.48; F(via sim.) =  0.49; F(via edist) =  0.5
+# But another run with ty &lt;- "glo" (see how 0.36 &lt;&lt; [0.52, 0.54]) has
+# F(true) =  0.36; F(via sim.) =  0.54; F(via edist) =  0.52
+# So as the asymmetry becomes extreme, the error distribution becomes asymmetrical too.
+## End(Not run)
+</code></pre>
+
+
+</div>

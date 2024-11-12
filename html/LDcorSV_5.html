@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LD.Measures</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LD Measures</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates for a set of loci:
+</p>
+<p>- the usual measure of linkage disequilibrium (<code class="reqn">r^2</code>)
+</p>
+<p>- the measure of linkage disequilibrium corrected by the structure of the sample (<code class="reqn">r^2_S</code>).
+</p>
+<p>- the measure of linkage disequilibrium corrected by the relatedness of genotyped individuals (<code class="reqn">r^2_V</code>).
+</p>
+<p>- the measure of linkage disequilibrium corrected by both, the relatedness of genotyped individuals and the structure of the sample  (<code class="reqn">r^2_{VS}</code>).
+</p>
+<p>This function gives extra informations on the studied loci.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LD.Measures(donnees, V = NA, S = NA, data = "G", supinfo = FALSE, na.presence=TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>donnees</code></td>
+<td>
+<p>Numeric matrix (N x M), where N is the number of genotypes (or haplotypes) and M is the number of markers.
+Matrix values are the allelic doses:
+</p>
+<p>- (0,1,2) for genotypes.
+</p>
+<p>- (0,1) for haplotypes.
+</p>
+<p>Row names correspond to the ID of individuals.
+Column names correspond to the ID of markers.
+Missing values are allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>Numeric matrix (N x N), where N is the number of genotypes (or haplotypes).
+Matrix values are coefficients of genetic variance-covariance between every pair of individuals.
+Row and column names must correspond to the ID of individuals.
+No missing value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>Numeric matrix (N x (1-P)), where N is the number of genotypes (or haplotypes) and P the number of sub-populations.
+Matrix values are the probabilities (between 0 and 1) for each genotype (or haplotype) to belong to each sub-populations.
+Row names must correspond to the ID of individuals.
+Column names correspond to the ID of sub-populations.
+The matrix must be inversible, if the structure is with P sub-populations, only P-1 columns are expected.
+No missing value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Value equal to "G" or "H" depending on the type of data (Genotype or Haplotype).
+Default value is "G".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>supinfo</code></td>
+<td>
+<p>Boolean indicating whether you wish to get information about the loci.
+If supinfo=TRUE, for each locus, the Minor Allelic Frequency (MAF), the frequency of heterozygous genotypes (only if the data are genotypes) and the missing value frequency are computed.
+By default, supinfo=FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.presence</code></td>
+<td>
+<p>Boolean indicating the presence of missing values in data.
+If na.presence=FALSE (no missing data), computation of <code class="reqn">r^2_V</code> and <code class="reqn">r^2_{VS}</code> is largely optimized.
+By default, na.presence=TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The returned value is a dataframe of size (M(M-1))/2 rows and C columns, where M is the number of markers and C is a number between 3 and 12 depending on options chosen by user.
+The first three columns contain respectively the name of the first marker, the name of the second marker and the estimated value of the usual measure of linkage disequilibrium (<code class="reqn">r^2</code>) between these two markers.
+</p>
+<p>If only V is different from NA, the fourth column contains the estimated value of the measure of linkage disequilibrium corrected by the relatedness of genotyped individuals (<code class="reqn">r^2_V</code>).
+</p>
+<p>If only S is different from NA, the fourth column contains the estimated value of the measure of linkage disequilibrium corrected by relatedness corrected by the structure of the sample (<code class="reqn">r^2_S</code>).
+</p>
+<p>If V and S are simultaneously different from NA, the fourth, fifth and sixth columns respectively contain the estimated values of <code class="reqn">r^2_V</code>, <code class="reqn">r^2_S</code> and <code class="reqn">r^2_{VS}</code> (<code class="reqn">r^2</code> corrected by both the relatedness of genotyped individuals and the structure of the sample).
+</p>
+<p>If Supinfo=TRUE, then the last six columns contain information for both loci : the MAF, the frequency of heterozygous genotype (NA if haplotype data) and the missing value frequency.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Desrousseaux, Florian Sandron, Aurélie Siberchicot, Christine Cierco-Ayrolles and Brigitte Mangin</p>
+
+
+<h3>References</h3>
+
+<p>Mangin, B., Siberchicot, A., Nicolas, S., Doligez, A., This, P., Cierco-Ayrolles, C. (2012). Novel measures of linkage disequilibrium that correct the bias due to population structure and relatedness. Heredity, 108 (3), 285-291. DOI: 10.1038/hdy.2011.73</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(data.test)
+Geno &lt;- data.test[[1]]
+V.WAIS &lt;- data.test[[2]]
+S.2POP &lt;- data.test[[3]]
+
+LD &lt;- LD.Measures(Geno, V = V.WAIS, S = S.2POP, data = "G", supinfo = TRUE, na.presence = TRUE)
+head(LD)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>effects.lmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Effects Derived For Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Estimate average counterfactual outcome or contrast of outcome from linear mixed models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmm'
+effects(
+  object,
+  variable,
+  newdata = NULL,
+  type = c("identity", "none"),
+  conditional = NULL,
+  rhs = NULL,
+  repetition = NULL,
+  multivariate = FALSE,
+  prefix.time = NULL,
+  prefix.var = TRUE,
+  sep.var = ",",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>[character] the variable relative to which the effect should be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>[data.frame] a dataset reflecting the covariate distribution relative to which the average outcome or contrast should be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>[character] should the average counterfactual outcome for each variable level be evaluated (<code>"identity"</code>)?
+Or the difference in average counterfactual outcome between each pair of  variable level (<code>"difference"</code>)?
+Can have an second element to consider a transformation of the outcome:
+the change from baseline (<code>"change"</code>),
+area under the outcome curve (<code>"auc"</code>),
+or area under the outcome curve minus baseline (<code>"auc-b"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conditional</code></td>
+<td>
+<p>[character] variable conditional to which the average conterfactual outcome or treatment effect should be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>[numeric] the right hand side of the hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repetition</code></td>
+<td>
+<p>[character vector] repetition at which the effect should be assessed. By default it will be assessed at all repetitions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multivariate</code></td>
+<td>
+<p>[logical] should a multivariate Wald test be used to simultaneously test all null hypotheses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix.time</code></td>
+<td>
+<p>[character] When naming the estimates, text to be pasted before the value of the repetition variable.
+Only relevant when <code>type = "aoc"</code> or <code>type = "ate"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix.var</code></td>
+<td>
+<p>[logical] When naming the estimates, should the variable name be added or only the value?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep.var</code></td>
+<td>
+<p>[character] When naming the estimates, text to be pasted between the values to condition on.
+Only relevant when <code>type = "aoc"</code> or <code>type = "ate"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>anova.lmm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### simulate data in the long format ####
+set.seed(10)
+dL &lt;- sampleRem(100, n.times = 3, format = "long")
+
+#### Linear Mixed Model ####
+eUN.lmm &lt;- lmm(Y ~ visit + X1 + X2 + X5,
+               repetition = ~visit|id, structure = "UN", data = dL)
+
+## outcome
+effects(eUN.lmm, variable = "X1")
+effects(eUN.lmm, type = "difference", variable = "X1")
+effects(eUN.lmm, type = "difference", variable = "X1", repetition = "3")
+
+## change
+effects(eUN.lmm, type = "change", variable = "X1")
+effects(eUN.lmm, type = "change", variable = "X1", conditional = NULL)
+effects(eUN.lmm, type = c("change","difference"), variable = "X1")
+
+## auc
+effects(eUN.lmm, type = "auc", variable = "X1")
+effects(eUN.lmm, type = c("auc","difference"), variable = "X1")
+
+#### fit Linear Mixed Model with interaction ####
+dL$X1.factor &lt;- as.factor(dL$X1)
+dL$X2.factor &lt;- as.factor(dL$X2)
+eUN.lmmI &lt;- lmm(Y ~ visit * X1.factor + X2.factor + X5,
+               repetition = ~visit|id, structure = "UN", data = dL)
+
+## average counterfactual conditional to a categorical covariate
+effects(eUN.lmmI, variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+effects(eUN.lmmI, type = "change", variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+effects(eUN.lmmI, type = "auc", variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+
+## average difference in counterfactual conditional to a categorical covariate
+effects(eUN.lmmI, type = "difference", variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+effects(eUN.lmmI, type = c("change","difference"), variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+effects(eUN.lmmI, type = c("auc","difference"), variable = "X1.factor",
+        conditional = c("X2.factor"), repetition = "3")
+
+## average difference in counterfactual conditional to a covariate
+effects(eUN.lmmI, type = "difference", variable = "X1.factor",
+        conditional = list(X5=0:2), repetition = "3")
+effects(eUN.lmmI, type = c("difference","change"), variable = "X1.factor",
+        conditional = list(X5=0:2))
+</code></pre>
+
+
+</div>

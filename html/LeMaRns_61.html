@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_N0</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a starting value for N</h2>
+
+<h3>Description</h3>
+
+<p>Generate a starting value for <code>N</code>, which represents the number of individuals in each length class for each species.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_N0(nsc, nfish, mid, wgt, sc_Linf, intercept = 1e+10, slope = -5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nsc</code></td>
+<td>
+<p>A numeric value representing the number of length classes in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfish</code></td>
+<td>
+<p>A numeric value representing the number of fish species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mid</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the mid-point of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wgt</code></td>
+<td>
+<p>A matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the weight of each species in each length class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sc_Linf</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the length class at which each species reaches its asymptotic length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept</code></td>
+<td>
+<p>A numeric value representing the number of individuals in the first length class. The default is <code>1e10</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slope</code></td>
+<td>
+<p>A numeric value representing the slope of the community size spectrum. The default is -5.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The total number of individuals in the community in each length class is equal to <code>intercept*mid^slope</code>. Within each length class, the number of individuals of each species is determined using the proportion of each species' biomass that is found in that length class.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the number of individuals in each length class.
+</p>
+
+
+<h3>References</h3>
+
+<p>Andersen, K.H., Blanchard, J.L., Fulton, E.A., Gislason, H., Jacobsen, N.S., van Kooten, T. (2016). Assumptions behind size-based ecosystem models are realistic. <em>ICES Journal of Marine Science</em>, 73(6):1651-1655.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>run_LeMans</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up the inputs to the function
+nfish &lt;- nrow(NS_par)
+nsc &lt;- 32
+maxsize &lt;- max(NS_par$Linf)*1.01 # the biggest size is 1% bigger than the largest Linf
+l_bound &lt;- seq(0, maxsize, maxsize/nsc); l_bound &lt;- l_bound[-length(l_bound)]
+u_bound &lt;- seq(maxsize/nsc, maxsize, maxsize/nsc)
+mid &lt;- l_bound+(u_bound-l_bound)/2
+
+# Set up the inputs to the function - species-specific parameters
+Linf &lt;- NS_par$Linf # the von-Bertalanffy asymptotic length of each species (cm).
+W_a &lt;- NS_par$W_a # length-weight conversion parameter.
+W_b &lt;- NS_par$W_b # length-weight conversion parameter.
+k &lt;- NS_par$k # the von-Bertalnaffy growth parameter.
+Lmat &lt;- NS_par$Lmat # the length at which 50\% of individuals are mature (cm).
+
+# Get phi_min
+tmp &lt;- calc_phi(k, Linf, nsc, nfish, u_bound, l_bound, calc_phi_min=FALSE,
+                  phi_min=0.1) # fixed phi_min
+phi_min &lt;- tmp$phi_min
+
+# Calculate growth increments
+tmp &lt;- calc_ration_growthfac(k, Linf, nsc, nfish, l_bound, u_bound, mid, W_a, W_b, phi_min)
+sc_Linf &lt;- tmp$sc_Linf
+wgt &lt;- tmp$wgt
+
+# Get an initial population
+get_N0(nsc, nfish, mid, wgt, sc_Linf)
+</code></pre>
+
+
+</div>

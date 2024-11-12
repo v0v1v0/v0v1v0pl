@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prepare_LTFHPlus_input</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepares input for <code>estimate_liability</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Prepares input for <code>estimate_liability</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prepare_LTFHPlus_input(
+  .tbl,
+  CIP,
+  age_col,
+  aoo_col,
+  CIP_merge_columns = c("sex", "birth_year", "age"),
+  CIP_cip_col = "cip",
+  status_col = "status",
+  use_fixed_case_thr = FALSE,
+  fam_id_col = "fam_id",
+  personal_id_col = "pid",
+  interpolation = NULL,
+  bst.params = list(max_depth = 10, base_score = 0, nthread = 4, min_child_weight = 10),
+  min_CIP_value = 1e-05,
+  xgboost_itr = 50
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.tbl</code></td>
+<td>
+<p>contains family and personal ids and role with a family.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIP</code></td>
+<td>
+<p>tibble with population representative cumulative incidence proportions. CIP values should be merged by <code>CIP_columns</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_col</code></td>
+<td>
+<p>name of column with age</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aoo_col</code></td>
+<td>
+<p>name of column with age of onset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIP_merge_columns</code></td>
+<td>
+<p>The columns the CIPs are subset by, e.g. CIPs by birth_year, sex.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIP_cip_col</code></td>
+<td>
+<p>name of column with CIP values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status_col</code></td>
+<td>
+<p>Column that contains the status of each family member</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_fixed_case_thr</code></td>
+<td>
+<p>Should the threshold be fixed for cases? Can be used if CIPs are detailed, e.g. stratified by birth_year and sex.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam_id_col</code></td>
+<td>
+<p>Column that contains the family ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>personal_id_col</code></td>
+<td>
+<p>Column that contains the personal ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpolation</code></td>
+<td>
+<p>type of interpolation, defaults to NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bst.params</code></td>
+<td>
+<p>list of parameters to pass on to xgboost</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_CIP_value</code></td>
+<td>
+<p>minimum cip value to allow, too low values may lead to numerical instabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xgboost_itr</code></td>
+<td>
+<p>Number of iterations to run xgboost for.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>tibble formatted for <code>estimate_liability</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">tbl = data.frame(
+  fam_id = c(1, 1, 1, 1),
+  pid = c(1, 2, 3, 4),
+  role = c("o", "m", "f", "pgf"),
+  sex = c(1, 0, 1, 1),
+  status = c(0, 0, 1, 1),
+  age = c(22, 42, 48, 78),
+  birth_year = 2023 - c(22, 42, 48, 78),
+  aoo = c(NA, NA, 43, 45))
+
+cip = data.frame(
+  age = c(22, 42, 43, 45, 48, 78),
+  birth_year = c(2001, 1981, 1975, 1945, 1975, 1945),
+  sex = c(1, 0, 1, 1, 1, 1),
+  cip = c(0.1, 0.2, 0.3, 0.3, 0.3, 0.4))
+
+prepare_LTFHPlus_input(.tbl = tbl,
+                       CIP = cip, 
+                       age_col = "age",
+                       aoo_col = "aoo",
+                       interpolation = NA)
+
+</code></pre>
+
+
+</div>

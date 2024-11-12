@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>duration_above_threshold</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Duration above/below threshold or within threshold range</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the duration spent above/below a specified threshold
+light level or within a specified range of light levels.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">duration_above_threshold(
+  Light.vector,
+  Time.vector,
+  comparison = c("above", "below"),
+  threshold,
+  epoch = "dominant.epoch",
+  na.rm = FALSE,
+  as.df = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Light.vector</code></td>
+<td>
+<p>Numeric vector containing the light data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time.vector</code></td>
+<td>
+<p>Vector containing the time data. Can be POSIXct, hms,
+duration, or difftime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparison</code></td>
+<td>
+<p>String specifying whether the time above or below threshold
+should be calculated. Can be either <code>"above"</code> (the default) or <code>"below"</code>. If
+two values are provided for <code>threshold</code>, this argument will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Single numeric value or two numeric values specifying the
+threshold light level(s) to compare with. If a vector with two values is provided,
+the time within the two thresholds will be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch at which the data was sampled. Can be either a
+duration or a string. If it is a string, it needs to be
+either <code>"dominant.epoch"</code> (the default) for a guess based on the data, or a valid
+duration string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical. Should missing values (NA) be removed for the calculation?
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.df</code></td>
+<td>
+<p>Logical. Should a data frame with be returned? If <code>TRUE</code>, a data
+frame with a single column named <code style="white-space: pre;">⁠duration_{comparison}_{threshold}⁠</code> will be returned.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A duration object as single value, or single column data frame.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hartmeyer, S.L., Andersen, M. (2023). Towards a framework for light-dosimetry studies:
+Quantification metrics. <em>Lighting Research &amp; Technology</em>.
+<a href="https://doi.org/10.1177/14771535231170500">doi:10.1177/14771535231170500</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other metrics: 
+<code>bright_dark_period()</code>,
+<code>centroidLE()</code>,
+<code>disparity_index()</code>,
+<code>exponential_moving_average()</code>,
+<code>frequency_crossing_threshold()</code>,
+<code>interdaily_stability()</code>,
+<code>intradaily_variability()</code>,
+<code>midpointCE()</code>,
+<code>nvRC()</code>,
+<code>nvRD()</code>,
+<code>nvRD_cumulative_response()</code>,
+<code>period_above_threshold()</code>,
+<code>pulses_above_threshold()</code>,
+<code>threshold_for_duration()</code>,
+<code>timing_above_threshold()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">N &lt;- 60
+# Dataset with epoch = 1min
+dataset1 &lt;-
+  tibble::tibble(
+    Id = rep("A", N),
+    Datetime = lubridate::as_datetime(0) + lubridate::minutes(1:N),
+    MEDI = sample(c(sample(1:249, N / 2), sample(250:1000, N / 2))),
+  )
+# Dataset with epoch = 30s
+dataset2 &lt;-
+  tibble::tibble(
+    Id = rep("B", N),
+    Datetime = lubridate::as_datetime(0) + lubridate::seconds(seq(30, N * 30, 30)),
+    MEDI = sample(c(sample(1:249, N / 2), sample(250:1000, N / 2))),
+  )
+dataset.combined &lt;- rbind(dataset1, dataset2)
+
+dataset1 %&gt;%
+  dplyr::reframe("TAT &gt;250lx" = duration_above_threshold(MEDI, Datetime, threshold = 250))
+
+dataset1 %&gt;%
+  dplyr::reframe(duration_above_threshold(MEDI, Datetime, threshold = 250, as.df = TRUE))
+
+# Group by Id to account for different epochs
+dataset.combined %&gt;%
+  dplyr::group_by(Id) %&gt;%
+  dplyr::reframe("TAT &gt;250lx" = duration_above_threshold(MEDI, Datetime, threshold = 250))
+
+</code></pre>
+
+
+</div>

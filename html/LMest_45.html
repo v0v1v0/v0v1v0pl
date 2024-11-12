@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmestDecoding</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Perform local and global decoding
+</h2>
+
+<h3>Description</h3>
+
+<p>Function that performs local and global decoding (Viterbi algorithm) from the output of <code>lmest</code>, <code>lmestCont</code>, and <code>lmestMixed</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmestDecoding(est, sequence = NULL, fort = TRUE, ...)
+## S3 method for class 'LMbasic'
+lmestDecoding(est, sequence = NULL,fort = TRUE, ...)
+## S3 method for class 'LMmanifest'
+lmestDecoding(est, sequence = NULL, fort = TRUE, ...)
+## S3 method for class 'LMlatent'
+lmestDecoding(est, sequence = NULL, fort = TRUE,...)
+## S3 method for class 'LMbasiccont'
+lmestDecoding(est, sequence = NULL, fort = TRUE,...)
+## S3 method for class 'LMmixed'
+lmestDecoding(est, sequence = NULL, fort = TRUE,...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>an object obtained from a call to <code>lmest</code>, <code>lmestCont</code>, and <code>lmestMixed</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sequence</code></td>
+<td>
+<p>an integer vector indicating the units for the decoding. If <code>NULL</code> the whole observations are considered. (By default is set to NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort</code></td>
+<td>
+<p>to use fortran routines when possible</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ul </code></td>
+<td>
+<p>matrix of local decoded states corresponding to each row of Y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ug </code></td>
+<td>
+<p>matrix of global decoded states corresponding to each row of Y</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci,
+Silvia Pandolfi,
+Fulvia Pennoni,
+Alessio Farcomeni,
+Alessio Serafini
+</p>
+
+
+<h3>References</h3>
+
+<p>Viterbi A. (1967) Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm. <em>IEEE Transactions on Information Theory</em>, <b>13</b>, 260-269.
+</p>
+<p>Juan B., Rabiner L. (1991) Hidden Markov Models for Speech Recognition. <em>Technometrics</em>, <b>33</b>, 251-272.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Decoding for basic LM model
+
+data("data_drug")
+long &lt;- data_drug[,-6]-1
+long &lt;- data.frame(id = 1:nrow(long),long)
+long &lt;- reshape(long,direction = "long",
+                idvar = "id",
+                varying = list(2:ncol(long)))
+
+est &lt;- lmest(index = c("id","time"),
+             k = 3, 
+             data = long,
+             weights = data_drug[,6], 
+             modBasic = 1)
+
+# Decoding for a single sequence
+
+out1 &lt;- lmestDecoding(est, sequence = 1)
+
+out2 &lt;- lmestDecoding(est, sequence = 1:4)
+
+# Decoding for all sequences
+
+out3 &lt;- lmestDecoding(est)
+
+## Not run: 
+# Decoding for LM model  with covariates on the initial and transition probabilities
+
+data("data_SRHS_long")
+
+SRHS &lt;- data_SRHS_long[1:2400,]
+
+# Categories rescaled to vary from 0 (“poor”) to 4 (“excellent”)
+
+SRHS$srhs &lt;- 5 - SRHS$srhs
+
+est2 &lt;- lmest(responsesFormula = srhs ~ NULL,
+              latentFormula =  ~
+              I(gender - 1) +
+              I( 0 + (race == 2) + (race == 3)) +
+              I(0 + (education == 4)) +
+              I(0 + (education == 5)) +
+              I(age - 50) + I((age-50)^2/100),
+              index = c("id","t"),
+              data = SRHS,
+              k = 2,
+              paramLatent = "difflogit",
+              output = TRUE)
+
+# Decoding for a single sequence
+
+out3 &lt;- lmestDecoding(est2, sequence = 1)
+
+# Decoding for the first three sequences
+
+out4 &lt;- lmestDecoding(est2, sequence = 1:3)
+
+# Decoding for all sequences
+
+out5 &lt;- lmestDecoding(est2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

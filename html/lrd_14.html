@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pfr_multiple</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability of First Recall for Multiple Lists</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the probability of first recall
+for each serial position. The total number of times an
+item was recalled first is divided by the total number of
+first recalls (i.e., the number of participants who wrote
+anything down!).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pfr_multiple(
+  data,
+  position,
+  answer,
+  id,
+  key,
+  key.trial,
+  id.trial,
+  scored,
+  group.by = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a dataframe of the scored free recall that you would
+like to calculate - use prop_correct_free() for best formatting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>position</code></td>
+<td>
+<p>a column name in the dataframe that contains
+answered position of each response in quotes (i.e., "column")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>answer</code></td>
+<td>
+<p>a column name of the answer given for that position
+in the original dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>a column name of the participant id in the original
+dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p>a vector containing the scoring key or data column name.
+This column does not have to be included in the original dataframe.
+We assume your answer key is in the tested position order. You should
+not include duplicates in your answer key.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>key.trial</code></td>
+<td>
+<p>a vector containing the trial numbers for each answer.
+Note: If you input long data (i.e., repeating trial-answer responses),
+we will take the unique combination of the responses. If a trial number
+is repeated, you will receive an error. Key and key.trial can also be
+a separate dataframe, depending on how your output data is formatted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id.trial</code></td>
+<td>
+<p>a column name containing the trial numbers
+for the participant data from the original dataframe. Note that
+the free response "key" trial and this trial number should match.
+The trial key will be repeated for each answer a participant gave.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scored</code></td>
+<td>
+<p>a column in the original dataframe indicating if the
+participant got the answer correct (1) or incorrect (0).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.by</code></td>
+<td>
+<p>an optional argument that can be used to group the
+output by condition columns. These columns should be in the original
+dataframe and concatenated c() if there are multiple columns</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This output can then be used to create a PFR visualizations,
+and an example can be found in our manuscript/vignettes.
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>DF_PFR</code></td>
+<td>
+<p>A dataframe of the probability of first response
+for each position including group by variables if indicated.</p>
+</td>
+</tr></table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("multi_data")
+data("multi_answers")
+
+DF_long &lt;- arrange_data(data = multi_data,
+                       responses = "Response",
+                       sep = " ",
+                       id = "Sub.ID",
+                       repeated = "List.Number")
+
+library(reshape)
+multi_answers$position &lt;- 1:nrow(multi_answers)
+answer_long &lt;- melt(multi_answers,
+                    measured = colnames(multi_answers),
+                    id = "position")
+colnames(answer_long) &lt;- c("position", "List.ID", "Answer")
+
+answer_long$List.ID &lt;- gsub(pattern = "List",
+                            replacement = "",
+                            x = answer_long$List.ID)
+
+DF_long$response &lt;- tolower(DF_long$response)
+answer_long$Answer &lt;- tolower(answer_long$Answer)
+answer_long$Answer &lt;- gsub(" ", "", answer_long$Answer)
+
+scored_output &lt;- prop_correct_multiple(data = DF_long,
+                                    responses = "response",
+                                    key = answer_long$Answer,
+                                    key.trial = answer_long$List.ID,
+                                    id = "Sub.ID",
+                                    id.trial = "List.Number",
+                                    cutoff = 1,
+                                    flag = TRUE)
+
+head(scored_output$DF_Scored)
+
+head(scored_output$DF_Participant)
+
+head(scored_output$DF_Group)
+
+pfr_output &lt;- pfr_multiple(data = scored_output$DF_Scored,
+                          key = answer_long$Answer,
+                          position = "position",
+                          scored = "Scored",
+                          answer = "Answer",
+                          id = "Sub.ID",
+                          key.trial = answer_long$List.ID,
+                          id.trial = "List.Number")
+
+ head(pfr_output)
+
+</code></pre>
+
+
+</div>

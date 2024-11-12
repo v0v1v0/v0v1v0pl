@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bfFixefLMER_t.fnc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Back-fits an LMER model on absolute t-value and, optionally, on LLRT.</h2>
+
+<h3>Description</h3>
+
+<p>This function back-fits an initial LMER model on <em>t</em>-values, and, if enabled, log-likelihood ratio testing. Note that, this function CAN be used with generalized linear mixed-effects models (<code>glmer</code>s).</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bfFixefLMER_t.fnc(model, item = FALSE,
+method = c("t", "z", "llrt", "AIC", "BIC", "relLik.AIC", 
+"relLik.BIC"), threshold = NULL, t.threshold = NULL, 
+alphaitem = NULL, prune.ranefs = TRUE, set.REML.FALSE = TRUE, 
+keep.single.factors=FALSE, reset.REML.TRUE = TRUE, 
+log.file = NULL)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A <code>mer</code> object (fitted by function <code>lmer</code>). Note that this function can be used with generalized linear mixed-effects models (<code>glmer</code>s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>item</code></td>
+<td>
+<p>Whether or not to evaluate the addition of by-item random intercepts to the model, evaluated by way of log-likelihood ratio test. Either <code>FALSE</code> (the default) or the column name (quoted) of the item identifier (e.g., <code>"Item"</code>, or <code>"Word"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Backfitting method. One of "t" (lmer), "z" (glmer), "llrt", "AIC", "BIC", "relLik.AIC", or "relLik.BIC" (the latter two are based on relative likelihood, see function <code>relLik</code>). Defaults to "t". You can find information regarding differences between AIC and BIC from <code>http://methodology.psu.edu/eresources/ask/sp07</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Method-specific threshold for parameter selection. It refers to the minimum <em>t</em>/<em>z</em>-value in the case of "t" or "z", to the alpha value in the case of "llrt", to the minimum reduction in likelihood in the case of "AIC" and "BIC", or to the minimum difference in probability in the case of "relLik.AIC" and "relLik.BIC". Defaults <code>NULL</code>, which means <code>2</code> for "t" and "z", <code>0.05</code> for "llrt", 5 for "AIC" and "BIC", and 4 for "relLik.AIC" and "relLik.BIC".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.threshold</code></td>
+<td>
+<p>Defaults to <code>NULL</code>. If the <code>method = "t"</code> or <code>method = "z"</code>, it is the <em>t</em>/<em>z</em>-value below which a model term is dropped (if <code>t.threshold = NULL</code>, it will be set to 2). Otherwise it is the threshold for <em>t</em>/<em>z</em>-value below which a test (see <code>method</code>) is performed between a model with the term under consideration and a simpler model without it (if <code>t.threshold = NULL</code>, it is set to <code>Inf</code>, which means that all terms are tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphaitem</code></td>
+<td>
+<p>Alpha value for the evaluation of by-item random intercepts. Defaults to <code>0.05</code> or to the specified threshold in case <code>method</code> is <code>llrt</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prune.ranefs</code></td>
+<td>
+<p>Logical. Whether to remove any random effect for which its variable is not also present in the fixed effects structure (with the exception of the grouping variables such as <code>"Subjects"</code> and <code>"Items"</code>). Defaults to <code>TRUE</code>. For example, if the random effects structure contains the terms <code>Condition + ROI + Group</code>, and the random effects structure contains the terms <code>(1 | Subject) + (0 + TrialNum | Subject)</code>, the random effect <code>(0 + TrialNum | Subject)</code> will be pruned from the model given that it is not in the model's fixed effects structure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>set.REML.FALSE</code></td>
+<td>
+<p>Logical. Whether or not to set REML to <code>FALSE</code>. Defaults to <code>TRUE</code>. Not used for glmer models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reset.REML.TRUE</code></td>
+<td>
+<p>Logical. Whether or not to re-set the back-fitted model to <code>REML = TRUE</code>. Not used for glmer models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.single.factors</code></td>
+<td>
+<p>Logical. Whether or not main effects are kept (not subjected to testing and reduction). Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.file</code></td>
+<td>
+<p>Whether a back-fitting log should be saved. Defaults to <code>NULL</code>, which means that a log is saved in a temporary folder with the file name <code>file.path(tempdir(), paste("bfFixefLMER_F_log_", gsub(":", "-", gsub(" ", "_", date())), ".txt", sep = ""))</code>. The path and file name of the log can be changed to whatever the use wishes. Set to <code>FALSE</code> to disable.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The back-fitting process works as follows:
+</p>
+
+<ol>
+<li>
+<p> If argument <code>method</code> is not set to "t", <code>REML</code> is set to <code>FALSE</code>;
+</p>
+</li>
+<li>
+<p> First consider only highest-order interaction model terms:
+</p>
+
+<ol>
+<li>
+<p> If <code>method</code> is "t" or "z", the model term with the lowest <em>t</em>/<em>z</em>-value is identified. If this <em>t</em>/<em>z</em>-value is smaller than <code>threshold</code>, the model term is removed and a new model is fitted. This is repeated for each model term for term that has a <em>t</em>-value smaller than the threshold value. The algorithm then moves on to step (b). If <code>method</code> is not "t" or "z", the model term with the lowest <em>t</em>/<em>z</em>-value-value is identified and the following is evaluated:
+</p>
+
+<ol>
+<li>
+<p> A new model without this model term is fitted; 
+</p>
+</li>
+<li>
+<p> The more complex and simpler models are compared by way of a log-likelihood ratio test in case <code>method</code> is "llrt", by way of AIC or BIC comparison if <code>method</code> is "AIC" "BIC", or by calculating the <code>relLik</code> based on AIC or BIC in case <code>method</code> is "relLik.AIC" or "relLik.BIC". If the result determines that the term under consideration does not increase model fit, it is removed; otherwise it is kept.
+</p>
+</li>
+<li>
+<p> Move on to the next model term with the smallest <em>t</em>/<em>z</em>-value smaller than <code>threshold</code> and repeat steps (i)–(iii).
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Once all highest-order interaction terms have been evaluated, go down to the second highest order interactions: Repeat steps (ai)–(aiii) with the following addition: If a term would be removed from the model, but it is part of a high-order interaction, keep it. Once all terms of the interaction level have been evaluated, move down to the next lower-order level until main effects have been evaluated, after which the process stops. If <code>keep.single factors = TRUE</code>, the process stops after the evaluation of all interaction terms.
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> If argument <code>method</code> is set to something other than <code>t</code> or <code>z</code>, set <code>reset.REML.TRUE</code> to <code>TRUE</code> (default) unless otherwise specified.
+</p>
+</li>
+</ol>
+<p>In brief, if <code>method</code> is set to "t" or "z", a term remains in the model if its <em>t</em>/<em>z</em>-value is equal to or greater than <code>threshold</code>; if <code>method</code> is set to something else, a term remains in the model if
+</p>
+
+<ol>
+<li>
+<p> its <em>t</em>/<em>z</em>-value is equal to or greater than <code>threshold</code>;
+</p>
+</li>
+<li>
+<p> it significantly increases model fit as determined by the specified method;
+</p>
+</li>
+<li>
+<p> it is part of a significant interaction term.
+</p>
+</li>
+</ol>
+<p>This backfitting method was used in Tremblay &amp; Tucker (2011). If factorial terms with more than two levels are included in the initial model, back-fitting on F is recommended. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>mer</code> model with back-fitted fixed effects (on <code>t</code>-values) is returned and a log of the back-fitting process is printed on screen and (by default) in a log file.</p>
+
+
+<h3>Note</h3>
+
+<p>If you get this error:
+</p>
+<pre>
+
+Error in model.frame.default(data = ..2, formula = log_Segment_Duration ~  : 
+  The ... list does not contain 2 elements
+</pre>
+<p>It is probably because you updated the model using function <code>update</code> and the data now appears as <code>data = ..2</code> or something similar to this. You can check this by typing <code>model@call</code>. If this is the case, re-fit your model as <code>lmer(DV ~ IV + IV + (RANEF), data = dat)</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Antoine Tremblay, Statistics Canada, <a href="mailto:trea26@gmail.com">trea26@gmail.com</a> and Johannes Ransijn <a href="mailto:johannesransijn@gmail.com">johannesransijn@gmail.com</a>.</p>
+
+
+<h3>References</h3>
+
+<p>Tremblay, A. and Tucker B. V. (2011). The Effects of N-gram Probabilistic Measures on the Processing and Production of Four-word Sequences. <em>The Mental Lexicon</em>, <em>6(2)</em>, 302–324.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>bfFixefLMER_F.fnc; </code>
+<code>ffRanefLMER.fnc; </code>
+<code>fitLMER.fnc; </code>
+<code>mcposthoc.fnc; </code>
+<code>pamer.fnc; </code>
+<code>mcp.fnc; </code>
+<code>relLik; </code>
+<code>romr.fnc; </code>
+<code>perSubjectTrim.fnc. </code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># see example in LMERConvenienceFunctions help page.
+</code></pre>
+
+
+</div>

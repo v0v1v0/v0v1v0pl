@@ -1,0 +1,773 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lp.control.options</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solver Control Options</h2>
+
+<h3>Description</h3>
+
+<p>A description of the various control options that can be set in an lpSolve linear program model object using the <code>lp.control</code> function.
+</p>
+
+
+<h3>Control Options</h3>
+
+
+<dl>
+<dt>anti.degen</dt>
+<dd>
+<p>a character vector containing one or more of the following options. If any element is "none" then no anti-degeneracy handling is used.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"none"</code>: </td>
+<td style="text-align: left;"> No anti-degeneracy handling. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"fixedvars"</code>: </td>
+<td style="text-align: left;"> Check if there are equality slacks in the basis and try to drive them out in order to reduce chance of degeneracy in Phase 1. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"columncheck"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"stalling"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"numfailure"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"lostfeas"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"infeasible"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"dynamic"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"duringbb"</code>: </td>
+<td style="text-align: left;"> </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"rhsperturb"</code>: </td>
+<td style="text-align: left;"> Perturbation of the working RHS at refactorization </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"boundflip"</code>: </td>
+<td style="text-align: left;"> Limit bound flips that can sometimes contribute to degeneracy in some models. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>c("infeasible", "stalling", "fixedvars")</code>.</p>
+</dd>
+<dt>basis.crash</dt>
+<dd>
+<p>a character string specifying the basis crash mode to use. When no basis crash is done the initial basis from which lpSolve starts is the basis containing all slack or artificial variables. When basis crash is enabled, a heuristic <em>crash procedure</em> is executed before the first simplex iteration to quickly choose a basis matrix that has fewer artificial variables. This procedure tends to reduce the number of iterations required by the solver. The choices for this option are given in the following table.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"none"</code>: </td>
+<td style="text-align: left;"> No basis crash. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"mostfeasible"</code>: </td>
+<td style="text-align: left;"> Most feasible basis. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"leastdegenerate"</code>: </td>
+<td style="text-align: left;"> Construct a basis that is in some sense the <em>least</em> degenerate. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>"none"</code>.</p>
+</dd>
+<dt>bb.depthlimit</dt>
+<dd>
+<p>a single integer value specifying the maximum branch-and-bound depth. A positive value means that the depth limit is absolute. A negative value means a relative branch-and-bound depth limit. The <em>order</em> of an MIP problem is defined to be 2 times the number of binary variables plus the number of semi-continuous (SC) and special-ordered-sets (SOS) variables. A relative value of <code>-x</code> results in a maximum depth of <code>x</code> times the order of the MIP problem.
+</p>
+<p>This control option only applies if there are integer, SC or SOS variables in the model (i.e., when the branch-and-bound algorithm is used). The branch-and-bound algorithm will not go deeper than this level. Limiting the depth speeds up the solving time but there is a chance that the solution obtained is sub-optimal. Be aware of this. Another possible consequence is that no solution will be found.
+</p>
+<p>The default value is <code>-50</code>; a value of zero implies no limit to the depth.</p>
+</dd>
+<dt>bb.floorfirst</dt>
+<dd>
+<p>a character string from among the following choices specifying which branch to take first in the branch-and-bound algorithm.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"ceiling"</code>: </td>
+<td style="text-align: left;"> Take ceiling branch first. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"floor"</code>: </td>
+<td style="text-align: left;"> Take floor branch first. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"auto"</code>: </td>
+<td style="text-align: left;"> lpSolve decides which branch to take first. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The value of this option can influence solving times considerably. However, the real-world performance will be model dependent. The default is <code>"auto"</code>.</p>
+</dd>
+<dt>bb.rule</dt>
+<dd>
+<p>a character vector specifying the branch-and-bound rule. The first element must be chosen from the following table.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"first"</code>: </td>
+<td style="text-align: left;"> Select the lowest indexed non-integer column. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"gap"</code>: </td>
+<td style="text-align: left;"> Selection based on the distance from the current bounds. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"range"</code>: </td>
+<td style="text-align: left;"> Selection based on the largest current bound. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"fraction"</code>: </td>
+<td style="text-align: left;"> Selection based on the largest fractional value. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"pseudocost"</code>: </td>
+<td style="text-align: left;"> Simple, unweighted pseudo-cost of a variable. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"pseudononint"</code>: </td>
+<td style="text-align: left;"> An extended pseudo-costing strategy based on minimizing the number of integer infeasibilities. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"pseudoratio"</code>: </td>
+<td style="text-align: left;"> An extended pseudo-costing strategy based on maximizing the normal pseudo-cost divided by the number of infeasibilities. Effectively, it is similar to (the reciprocal of) a cost/benefit ratio. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>Additional modes (if any) may be appended to augment the rule specified in the first element of <code>bb.rule</code>.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"weightreverse"</code>: </td>
+<td style="text-align: left;"> Select by criterion minimum (worst), rather than by criterion maximum (best). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"branchreverse"</code>: </td>
+<td style="text-align: left;"> When <code>bb.floorfirst</code> is <code>"auto"</code>, select the  direction (lower/upper branch) opposite to that chosen by lpSolve. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"greedy"</code>: </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"pseudocost"</code>: </td>
+<td style="text-align: left;"> Toggle between weighting based on pseudocost or objective function value. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"depthfirst"</code>: </td>
+<td style="text-align: left;"> Select the node that has been selected before the most number of times. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"randomize"</code>: </td>
+<td style="text-align: left;"> Add a randomization factor to the score for all the node candidates. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"gub"</code>: </td>
+<td style="text-align: left;"> This option is still in development and should not be used at this time. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"dynamic"</code>: </td>
+<td style="text-align: left;"> When <code>"depthfirst"</code> is selected, switch it off once the first solution is found. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"restart"</code>: </td>
+<td style="text-align: left;"> Regularly restart the pseudocost value calculations. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"breadthfirst"</code>: </td>
+<td style="text-align: left;"> Select the node that has been selected the fewest number of times (or not at all). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"autoorder"</code>: </td>
+<td style="text-align: left;"> Create an <em>optimal</em> branch-and-bound variable ordering. Can speed up branch-and-bound algorithm. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"rcostfixing"</code>: </td>
+<td style="text-align: left;"> Do bound tightening during branch-and-bound based on the reduced cost information. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"stronginit"</code>: </td>
+<td style="text-align: left;"> Initialize pseudo-costs by strong branching. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The value of this rule can influence solving times considerably. However, the real-world performance will be model dependent. The default value is <code>c("pseudononint", "greedy", "dynamic", "rcostfixing")</code>.</p>
+</dd>
+<dt>break.at.first</dt>
+<dd>
+<p>a logical value. If <code>TRUE</code> then the branch-and-bound algorithm stops at the first solution found. The default (<code>FALSE</code>) is to continue until an optimal solution is found.</p>
+</dd>
+<dt>break.at.value</dt>
+<dd>
+<p>a numeric value. The branch-and-bound algorithm stops if the objective function becomes better than this value. The default (<code class="reqn">\pm</code>infinity) is to continue until an optimal value is found.</p>
+</dd>
+<dt>epslevel</dt>
+<dd>
+<p>a character string providing a simplified way of specifying multiple tolerance thresholds in a <em>logically</em> consistent way. The following values are set: <code>epsel</code>, <code>epsb</code>, <code>epsd</code>, <code>epspivot</code>, <code>epsint</code> and <code>mip.gap</code>.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+       <code>"tight"</code>: </td>
+<td style="text-align: left;"> Use tight tolerance values. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"medium"</code>: </td>
+<td style="text-align: left;"> Use medium tolerance values. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"loose"</code>: </td>
+<td style="text-align: left;"> Use loose tolerance values. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+       <code>"baggy"</code>: </td>
+<td style="text-align: left;"> Use very loose tolerance values. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>"tight"</code>.</p>
+</dd>
+<dt>epsb</dt>
+<dd>
+<p>a single positive numeric value specifying the tolerance used to determine whether a right-hand-side value should be considered zero. Rounding error in floating-point calculations may result in a loss of precision. A very small value (for example, 1e-99) could be the result of such errors and should be considered zero by the solver. If the absolute value of a right-hand-side value is less than <code>epsb</code> then it is treated as zero by the solver. The default value is <code>1.0e-10</code>.</p>
+</dd>
+<dt>epsd</dt>
+<dd>
+<p>a single positive numeric value specifying the tolerance used to determine whether a computed reduced cost should be considered zero. Rounding error in floating-point calculations may result in a loss of precision. A very small value (for example, 1e-99) could be the result of such errors and should be considered zero by the solver. If the absolute value of a computed reduced cost is less than <code>epsd</code> then it is treated as zero by the solver. The default value is <code>1.0e-9</code>.</p>
+</dd>
+<dt>epsel</dt>
+<dd>
+<p>a single positive numeric value specifying the tolerance used for rounding values to zero. Rounding error in floating-point calculations may result in a loss of precision. A very small value (for example, 1e-99) could be the result of such errors and should be considered zero by the solver. If the absolute value of a computed value is less than <code>epsel</code> then it is rounded to zero by the solver. The default value is <code>1.0e-12</code>. This parameter is used in situations where none of <code>epsint</code>, <code>epsb</code>, <code>epsd</code>, <code>epspivot</code> nor<code>epsperturb</code> apply.</p>
+</dd>
+<dt>epsint</dt>
+<dd>
+<p>a single positive numeric value specifying the tolerance used to determine whether a floating-point number is an integer. This parameter only applies when there is at least one integer variable so that the branch and bound algorithm is used. Integer variables are internally stored as floating-point. A tolerance is therefore needed to determine whether a value should be considered an integer. If the absolute value of the variable minus the closest integer is less than <code>epsint</code> then it is considered an integer. The default value is <code>1.0e-7</code>.</p>
+</dd>
+<dt>epsperturb</dt>
+<dd>
+<p>a single positive numeric value specifying the perturbation scalar for degenerate problems. The default is <code>1.0e-5</code>.</p>
+</dd>
+<dt>epspivot</dt>
+<dd>
+<p>a single positive numeric value specifying the tolerance used to determine whether a pivot element is zero. Rounding error in floating-point calculations may result in a loss of precision. A very small value (for example, 1e-99) could be the result of such errors and should be considered zero by the solver. If the absolute value of a computed pivot element is less than <code>epspivot</code> then it is treated as zero by the solver. Pivots will be performed on elements smaller (in absolute terms) than <code>epspivot</code> when no other larger pivot element can be found. The default value is <code>2.0e-7</code>.</p>
+</dd>
+<dt>improve</dt>
+<dd>
+<p>a character vector specifying the iterative improvement level. The possible values are given in the following table.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"none"</code>: </td>
+<td style="text-align: left;"> None. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"solution"</code>: </td>
+<td style="text-align: left;"> Running accuracy measurement of solved equations based on <code class="reqn">Bx=r</code> (primal simplex), remedy is refactorization. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"dualfeas"</code>: </td>
+<td style="text-align: left;"> Improve initial dual feasibility by bound flips (highly recommended). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"thetagap"</code>: </td>
+<td style="text-align: left;"> Low-cost accuracy monitoring in the dual, remedy is refactorization. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"bbsimplex"</code>: </td>
+<td style="text-align: left;"> By default there is a check for primal/dual feasibility at the optimum only for the relaxed problem, this also activates the test at the node level. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>c("dualfeas", "thetagap")</code>.</p>
+</dd>
+<dt>infinite</dt>
+<dd>
+<p>a positive numeric value specifying the practical value for infinity. This value is used for very large numbers, for example the upper bound of a variable without an upper bound. The default is <code>1.0e30</code>.</p>
+</dd>
+<dt>maxpivot</dt>
+<dd>
+<p>a positive integer value specifying the maximum number of pivots between re-inversion of the matrix. For stability, lpSolve periodically re-inverts the matrix. However, the more often this is done, the slower the solver becomes. The default is <code>250</code>.</p>
+</dd>
+<dt>mip.gap</dt>
+<dd>
+<p>a numeric vector of length two specifying respectively the absolute and relative MIP gaps used in the branch-and-bound algorithm. This tolerance is the difference between the best-found solution yet and the current solution. If the difference is smaller than this tolerance then the solution (and all the sub-solutions) is rejected. This can result in faster solving times, but results in a solution which is not the perfect solution. The default is <code>1.0e-11</code>.</p>
+</dd>
+<dt>negrange</dt>
+<dd>
+<p>a nonpositive numeric value below which variables are split into negative and positive parts. The default is <code>-1.0e6</code>.</p>
+</dd>
+<dt>obj.in.bas</dt>
+<dd>
+<p>a logical value specifying whether the objective function is stored in the matrix. The default is to store the objective function in the top row of the constraint matrix. If <code>FALSE</code> then the objective function is moved to separate storage. When the objective function is not stored in the basis the computation of reduced costs is somewhat slower. In the later versions of v5.5 there is the option to calculate reduced cost in the textbook way: completely independently of the basis.</p>
+</dd>
+<dt>pivoting</dt>
+<dd>
+<p>a character vector specifying the pivot rule (the rule for selecting row and column entering/leaving) and mode. The first element of this vector must be one of the four pivot rules listed in the first table. Remaining elements (if any) specify modes that modify this rule. The rule/mode can influence solving times considerably.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"firstindex"</code>: </td>
+<td style="text-align: left;"> Select first. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"dantzig"</code>: </td>
+<td style="text-align: left;"> Select according to Dantzig. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"devex"</code>: </td>
+<td style="text-align: left;"> Devex pricing from Paula Harris. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"steepestedge"</code>: </td>
+<td style="text-align: left;"> Steepest edge. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"primalfallback"</code>: </td>
+<td style="text-align: left;"> When using the steepest edge rule, fall back to <code>"devex"</code> in the primal. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"multiple"</code>: </td>
+<td style="text-align: left;"> A preliminary implementation of the multiple pricing scheme. Attractive candidate columns from one iteration may be used in subsequent iterations thus avoiding full updating of reduced costs. In the current implementation, lpSolve only reuses the second best entering column alternative. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"partial"</code>: </td>
+<td style="text-align: left;"> Enables partial pricing. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"adaptive"</code>: </td>
+<td style="text-align: left;"> Temporarily use an alternative strategy if cycling is detected. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"randomize"</code>: </td>
+<td style="text-align: left;"> Adds a small randomization effect to the selected pricer. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"autopartial"</code>: </td>
+<td style="text-align: left;"> Indicates automatic detection of segmented/staged/blocked models. It refers to partial pricing rather than full pricing. With full pricing, all non-basic columns are scanned, but with partial pricing only a subset is scanned for every iteration. This can speed up several models. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"loopleft"</code>: </td>
+<td style="text-align: left;"> Scan entering/leaving columns left rather than right. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"loopalternate"</code>: </td>
+<td style="text-align: left;"> Scan entering/leaving columns alternating left/right. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"harristwopass"</code>: </td>
+<td style="text-align: left;"> Use Harris' primal pivot logic rather than the default. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"truenorminit"</code>: </td>
+<td style="text-align: left;"> Use true norms for Devex and steepest edge initializations. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>c("devex", "adaptive")</code>.</p>
+</dd>
+<dt>presolve</dt>
+<dd>
+<p>a character vector specifying presolve steps to be carried out before solving. Presolve looks at the model and tries to simplify it so that solving times are shorter. For example a constraint on only one variable is converted to a bound on this variable (and the constraint is deleted) - the model dimensions can change because of this. Both rows and columns can be deleted by the presolve. Also, note that the <code>"lindep"</code> presolve option can result in the deletion of rows (the linear dependent ones). The <code>get.constraints</code> function will then return only the values of the rows that are kept.
+</p>
+<p>The presolve options are given in the following table. If any element of <code>presolve</code> is <code>"none"</code> then no presolving is done.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"none"</code>: </td>
+<td style="text-align: left;"> No presolve. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"rows"</code>: </td>
+<td style="text-align: left;"> Presolve rows. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"cols"</code>: </td>
+<td style="text-align: left;"> Presolve columns. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"lindep"</code>: </td>
+<td style="text-align: left;"> Eliminate linearly dependent rows. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"sos"</code>: </td>
+<td style="text-align: left;"> Convert constraints to special ordered sets (SOS), only SOS1 is handled. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"reducemip"</code>: </td>
+<td style="text-align: left;"> Constraints found redundant in phase 1 are deleted. This is no longer active since it is rarely effective and also because it adds code complications and delayed presolve effects that are not captured properly. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"knapsack"</code>: </td>
+<td style="text-align: left;"> Simplification of knapsack-type constraints through the addition of an extra variable. This also helps bound the objective function. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"elimeq2"</code>: </td>
+<td style="text-align: left;"> Direct substitution of one variable in 2-element equality constraints; this requires changes to the constraint matrix. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"impliedfree"</code>: </td>
+<td style="text-align: left;"> Identify implied free variables (releasing their explicit bounds). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"reducegcd"</code>: </td>
+<td style="text-align: left;"> Reduce (tighten) coefficients in integer models based on GCD argument. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"probefix"</code>: </td>
+<td style="text-align: left;"> Attempt to fix binary variables at one of their bounds. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"probereduce"</code>: </td>
+<td style="text-align: left;"> Attempt to reduce coefficients in binary models. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"rowdominate"</code>: </td>
+<td style="text-align: left;"> Identify and delete qualifying constraints that are dominated by others, also fixes variables at a bound. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"coldominate"</code>: </td>
+<td style="text-align: left;"> Delete variables (mainly binary) that are dominated by others (only one can be non-zero). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"mergerows"</code>: </td>
+<td style="text-align: left;"> Merges neighboring <code>&gt;=</code> or <code>&lt;=</code> constraints when the vectors are otherwise relatively identical into a single ranged constraint. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"impliedslk"</code>: </td>
+<td style="text-align: left;"> Converts qualifying equalities to inequalities by converting a column singleton variable to a slack variable. The routine also detects implicit duplicate slacks from inequality constraints and fixes and removes the redundant variable. This removal also tends to reduce the risk of degeneracy. The combined function of this option can have a dramatic simplifying effect on some models. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"colfixdual"</code>: </td>
+<td style="text-align: left;"> Variable fixing and removal based on the signs of the associated dual constraint. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"bounds"</code>: </td>
+<td style="text-align: left;"> Bound tightening based on full-row constraint information. This can assist in tightening the objective function bound, eliminate variables and constraints. At the end of presolve, it is checked if any variables can be deemed free, thereby reducing any chance that degeneracy is introduced via this presolve option. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"duals"</code>: </td>
+<td style="text-align: left;"> Calculate duals. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"sensduals"</code>: </td>
+<td style="text-align: left;"> Calculate sensitivity if there are integer variables. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>The default is <code>c("none")</code>.</p>
+</dd>
+<dt>scalelimit</dt>
+<dd>
+<p>a numeric value specifying the relative scaling convergence criterion for the active scaling mode; the integer part specifies the maximum number of iterations. The default is <code>5</code>.</p>
+</dd>
+<dt>scaling</dt>
+<dd>
+<p>a character vector specifying the scaling algorithm used and zero or more augmentations. The first element must be one of the scaling algorithms given in the following table.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"none"</code>: </td>
+<td style="text-align: left;"> No scaling (not advised). </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"extreme"</code>: </td>
+<td style="text-align: left;"> Scale to convergence using largest absolute value. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"range"</code>: </td>
+<td style="text-align: left;"> Scale based on the simple numerical range. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"mean"</code>: </td>
+<td style="text-align: left;"> Numerical range-based scaling. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"geometric"</code>: </td>
+<td style="text-align: left;"> Geometric scaling. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"curtisreid"</code>: </td>
+<td style="text-align: left;"> Curtis-Reid scaling. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>Additional elements (if any) from the following table can be included to augment the scaling algorithm.
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"quadratic"</code>: </td>
+<td style="text-align: left;">  </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"logarithmic"</code>: </td>
+<td style="text-align: left;"> Scale to convergence using logarithmic mean of all values. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"power2"</code>: </td>
+<td style="text-align: left;"> Power scaling. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"equilibrate"</code>: </td>
+<td style="text-align: left;"> Make sure that no scaled number is above <code>1</code>. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"integers"</code>: </td>
+<td style="text-align: left;"> Scale integer variables. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"dynupdate"</code>: </td>
+<td style="text-align: left;"> Recompute scale factors when resolving the model. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"rowsonly"</code>: </td>
+<td style="text-align: left;"> Only scale rows. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"colsonly"</code>: </td>
+<td style="text-align: left;"> Only scale columns. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+<p>By default, lpSolve computes scale factors once for the original model. If a solve is done again (most probably after changing some data in the model), the scaling factors are not recomputed. Instead, the scale factors from the original model are used. This is not always desirable, especially if the data has changed considerably. Including <code>"dynupdate"</code> among the scale algorithm augmentations instructs lpSolve to recompute the scale factors each time <code>solve</code> is called. Note that the scaling done by <code>"dynupdate"</code> is incremental and the resulting scale factors are typically different from those computed from scratch.
+</p>
+<p>The default is <code>c("geometric", "equilibrate", "integers")</code>.</p>
+</dd>
+<dt>sense</dt>
+<dd>
+<p>one of <code>"max"</code> or <code>"min"</code> specifying whether the model is a maximization or a minimization problem.</p>
+</dd>
+<dt>simplextype</dt>
+<dd>
+<p>a character vector of length one or two composed of <code>"primal"</code> and <code>"dual"</code>. If length two then the first element describes the simplex type used in phase 1 and the second element the simplex type used in phase 2. If length one then that simplex type is used for both phases. The default is <code>c("dual", "primal")</code>.</p>
+</dd>
+<dt>timeout</dt>
+<dd>
+<p>a positive integer value specifying the number of seconds after which a timeout will occur. If zero, then no timeout will occur.</p>
+</dd>
+<dt>verbose</dt>
+<dd>
+<p>a character string controlling the severity of messages reported by <code>lp_solve</code>. The possible choices are given in the table below. All errors/warnings in <code>lp_solve</code> have a particular severiy: for example, specifying a wrong row or column index is considered a severe error. All messages equal to and below the set level are reported (in the console).
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+        <code>"neutral"</code>: </td>
+<td style="text-align: left;"> No reporting. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"critical"</code>: </td>
+<td style="text-align: left;"> Only critical messages are reported. Hard errors like instability, out of memory, etc. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"severe"</code>: </td>
+<td style="text-align: left;"> Only severe messages are reported. Errors. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"important"</code>: </td>
+<td style="text-align: left;"> Only important messages are reported. Warnings and Errors. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"normal"</code>: </td>
+<td style="text-align: left;"> Normal messages are reported. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"detailed"</code>: </td>
+<td style="text-align: left;"> Detailed messages are reported. Like model size, continuing B&amp;B improvements, etc. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+        <code>"full"</code>: </td>
+<td style="text-align: left;"> All messages are reported. Useful for debugging purposes and small models. </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+      </td>
+</tr>
+</table>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Kjell Konis <a href="mailto:kjell.konis@me.com">kjell.konis@me.com</a></p>
+
+
+<h3>References</h3>
+
+<p><a href="https://lpsolve.sourceforge.net/5.5/index.htm">https://lpsolve.sourceforge.net/5.5/index.htm</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>lp.control</code></p>
+
+
+</div>

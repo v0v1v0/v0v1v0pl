@@ -1,0 +1,77 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DrillBitLifetime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lifetime of Drill Bits</h2>
+
+<h3>Description</h3>
+
+<p>Hamada (1995, table 9.3) provides a table of lifetime to breakage measured in cycles for drill bits used for producing small holes in printed circuit boards. The data were collected under various control and noise factors to perform reliability assessment to maximize bit reliability with minimization of hole diameter. Smaller holes permit higher density of placed circuitry, and are thus economically attractive. The testing was completed at 3,000 cycles—the right censoring threhold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(DrillBitLifetime)
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with
+</p>
+
+<dl>
+<dt>LIFETIME</dt>
+<dd>
+<p>Measured in cycles.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Hamada, M., 1995, Analysis of experiments for reliability improvement and robust reliability: in Balakrishnan, N. (ed.) Recent Advances in Life-Testing and Reliability: Boca Raton, Fla., CRC Press, ISBN 0–8493–8972–0, pp. 155–172.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(DrillBitLifetime)
+summary(DrillBitLifetime)
+## Not run: 
+data(DrillBitLifetime)
+X     &lt;- DrillBitLifetime$LIFETIME
+lmr   &lt;- lmoms(X); par &lt;- lmom2par(lmr,  type="gpa")
+pwm   &lt;- pwmRC(X, threshold=3000); zeta &lt;- pwm$zeta
+lmrrc &lt;- pwm2lmom(pwm$Bbetas)
+rcpar &lt;- pargpaRC(lmrrc, zeta=zeta)
+XBAR  &lt;- lmomgpa(rcpar)$lambdas[1]
+F &lt;- nonexceeds(); P &lt;- 100*F; x &lt;- seq(min(X), max(X))
+plot(sort(X), 100*pp(X), xlab="LIFETIME", ylab="PERCENT", xlim=c(1,10000))
+rug(X, col=rgb(0,0,0,0.5))
+lines(c(XBAR, XBAR), range(P), lty=2) # mean (expectation of life)
+lines(cmlmomco(F, rcpar),  P,  lty=2) # conditional mean
+points(XBAR, 0, pch=16)
+lines(x, 100*plmomco(x, par),   lwd=2, col=8) # fitted dist.
+lines(x, 100*plmomco(x, rcpar), lwd=3, col=1) # fitted dist.
+
+lines( rmlmomco(F, rcpar), P,   col=4) # residual mean life
+lines(rrmlmomco(F, rcpar), P,   col=4, lty=2) # rev. residual mean life
+lines(x, 1E4*hlmomco(x, rcpar), col=2) # hazard function
+lines(x, 1E2*lrzlmomco(plmomco(x, rcpar), rcpar), col=3) # Lorenz func.
+legend(4000, 40,
+       c("Mean (vertical) or conditional mean (dot at intersect.)",
+         "Fitted GPA naively to all data",
+         "Fitted GPA to right-censoring PWMs",
+         "Residual mean life", "Reversed residual mean life",
+         "Hazard function x 1E4", "Lorenz curve x 100"
+        ), cex=0.75,
+       lwd=c(1, 2, 3, 1, 1, 1, 1), col=c(1, 8, 1, 4, 4, 2, 3),
+       lty=c(2, 1, 1, 1, 2, 1, 1), pch=rep(NA, 8))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

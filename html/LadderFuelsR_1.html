@@ -1,0 +1,76 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calculate_gaps_perc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the percentile value of each height</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the percentile value of each height
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calculate_gaps_perc (LAD_profiles,min_height=1.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LAD_profiles</code></td>
+<td>
+<p>original tree Leaf Area Density (LAD) profile (output of [lad.profile()] function in the <em>leafR</em> package.
+An object of the class text</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_height</code></td>
+<td>
+<p>Numeric value for the actual minimum base height (in meters).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame giving the percentile value of each height.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olga Viedma, Carlos Silva, JM Moreno and A.T. Hudak
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)
+library(dplyr)
+
+# LAD profiles derived from normalized ALS data after applying [lad.profile()] function
+LAD_profiles &lt;- read.table(system.file("extdata", "LAD_profiles.txt", package = "LadderFuelsR"),
+header = TRUE)
+LAD_profiles$treeID &lt;- factor(LAD_profiles$treeID)
+
+trees_name1 &lt;- as.character(LAD_profiles$treeID)
+trees_name2 &lt;- factor(unique(trees_name1))
+
+percentile_list1&lt;-list()
+
+for (i in levels(trees_name2)) {
+tree1 &lt;- LAD_profiles |&gt; dplyr::filter(treeID == i)
+percentiles &lt;- calculate_gaps_perc (tree1,min_height=1.5)
+percentile_list1[[i]] &lt;- percentiles
+}
+gaps_perc &lt;- dplyr::bind_rows(percentile_list1)
+gaps_perc$treeID &lt;- factor(gaps_perc$treeID)
+
+</code></pre>
+
+
+</div>

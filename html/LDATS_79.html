@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>proposed_step_mods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit the chunk-level models to a time series, given a set of 
+proposed change points within the ptMCMC algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function wraps around <code>TS_memo</code> 
+(optionally memoised <code>multinom_TS</code>) to provide a
+simpler interface within the ptMCMC algorithm and is implemented within
+<code>propose_step</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">proposed_step_mods(prop_changepts, inputs)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>prop_changepts</code></td>
+<td>
+<p><code>matrix</code> of proposed change points across 
+chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p>Class <code>ptMCMC_inputs</code> list, containing the static inputs
+for use within the ptMCMC algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of models associated with the proposed step, with an element
+for each chain.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  data &lt;- data[order(data[,"newmoon"]), ]
+  saves &lt;- prep_saves(1, TS_control())
+  inputs &lt;- prep_ptMCMC_inputs(data, gamma ~ 1, 1, "newmoon", weights,
+                               TS_control())
+  cpts &lt;- prep_cpts(data, gamma ~ 1, 1, "newmoon", weights, TS_control())
+  i &lt;- 1
+  pdist &lt;- inputs$pdist
+  ntemps &lt;- length(inputs$temps)
+  selection &lt;- cbind(pdist$which_steps[i, ], 1:ntemps)
+  prop_changepts &lt;- cpts$changepts
+  curr_changepts_s &lt;- cpts$changepts[selection]
+  prop_changepts_s &lt;- curr_changepts_s + pdist$steps[i, ]
+  if(all(is.na(prop_changepts_s))){
+    prop_changepts_s &lt;- NULL
+  }
+  prop_changepts[selection] &lt;- prop_changepts_s
+  mods &lt;- proposed_step_mods(prop_changepts, inputs)
+
+
+</code></pre>
+
+
+</div>

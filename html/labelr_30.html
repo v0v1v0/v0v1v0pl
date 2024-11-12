@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_quant_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Associate Numerical Threshold-based Value Labels with Select Numerical Variables</h2>
+
+<h3>Description</h3>
+
+<p>Add variable-specific value labels based on threshold cuts of a numerical
+variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_quant_labs(
+  data,
+  vars,
+  qtiles = NULL,
+  vals = NULL,
+  labs = NULL,
+  partial = FALSE,
+  not.vars = NULL
+)
+
+aql(
+  data,
+  vars,
+  qtiles = NULL,
+  vals = NULL,
+  labs = NULL,
+  partial = FALSE,
+  not.vars = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>a character vector that corresponds to the name(s) of one or more
+variables to which value threshold-based labels will be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtiles</code></td>
+<td>
+<p>the number of quantile categories to employ (e.g., 4 would
+indicate quartiles, 5 would indicate quintiles, 10 for deciles, etc.). If
+NULL, vals must be non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vals</code></td>
+<td>
+<p>one more values of vars that will define range cutpoints, such
+that all values at or below a given number and above the preceding val will
+be treated as part of the same numerical range for labeling purposes. If
+NULL, qtiles must be non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labs</code></td>
+<td>
+<p>a character vector of distinct labels to identify the
+quantiles. If left NULL, convention "q" + quantile (e.g., "q10") will be used
+for qtile-based labels (i.e., if qtiles arg is non-NULL), and convention
+"&lt;=" + val will be used for vals argument-based labels (i.e., if vals arg is
+non-NULL). Note that the labels "NA" and "Other" are (non-case-sensitively)
+reserved and may not be user-supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial</code></td>
+<td>
+<p>To apply the same numerical value labeling scheme to many
+variables at once, you can provide those variable names explicitly (e.g.,
+vars = c("x1","x2", "x3") or vars = paste0("x", 1:3), or you can provide a
+substring only and set partial = TRUE (default is FALSE). For example, to
+apply the same labeling scheme to vars "x1", "x2" ... sequentially through
+"x10", you could use vars = c("x"), along with partial = TRUE. Be careful with
+this, as it also will attempt to apply the scheme to "sex" or "tax.bracket",
+etc. (See not.vars argument for a way to mitigate this.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.vars</code></td>
+<td>
+<p>use of the partial argument can result in situations where
+you inadvertently attempt to value-label a variable. For example, if vars="x"
+and partial=TRUE, then <code>add_quant_labs</code> will attempt to label not only "x1",
+"x2","x3", and "x4", but also "sex", "tax.bracket.", and other "x"-containing
+variable names. Use of not.vars allows you to indicate variables that match
+your vars argument that you do not wish to attempt to value-label. Note that
+not.vars gets priority: setting vars="x", partial=TRUE, and not.vars="x" is
+tantamount to telling add_val_labs() that you actually do not wish to label
+any of the variables that you specified in vars, resulting in no variables
+receiving value labels.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: <code>aql</code> is a compact alias for <code>add_quant_labs</code>: they do the same thing,
+and the former is easier to type.
+</p>
+<p>Numerical variables that feature decimals or large numbers of distinct values
+are not eligible to receive conventional value labels. <code>add_quant_labs</code> allows
+one to label such variables according to user-supplied value thresholds
+(i.e., cutpoints) OR quantile membership, Thus, unlike value labels added
+with <code>add_val_labs</code> (and <code>add_val1</code>), <code>add_quant_labs</code> (and <code>add_quant1</code>)
+will apply the same value label to all values that fall within the numerical
+value range defined by each threshold (cutpoint). For still another
+value-labeling approach, see <code>add_m1_lab</code> (and <code>add1m1</code>).
+</p>
+<p>Note: Quantity labels cannot be added incrementally through repeated calls
+to <code>add_quant_labs</code>: each new call will overwrite all value labels applied to
+the specified vars in any previous <code>add_quant_labs</code> calls. This is in
+contrast to <code>add_val_labs</code> (which allows for incremental value-labeling) and
+<code>add_m1_lab</code> (which requires incremental value-labeling).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame, with new variable value labels added (call
+<code>get_val_labs</code> to see them), other provisional/default labelr label
+information added, and previous user-added labelr label information
+preserved.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># mtcars demo
+df &lt;- mtcars
+# now, add value labels
+df &lt;- add_val_labs(
+  data = df,
+  vars = "am",
+  vals = c(0, 1),
+  labs = c("automatic", "manual")
+)
+
+# label variable "mpg" in terms of 5 quintiles
+df &lt;- add_quant_labs(data = df, vars = "mpg", qtiles = 5)
+
+# label variable "disp" in terms of "pretty" cutpoints
+vals2use &lt;- pretty(c(min(df$disp), max(df$disp)))[-1] # establish cutpoints
+df &lt;- add_quant_labs(data = df, vars = "disp", vals = vals2use)
+df_labson &lt;- use_val_labs(df)
+head(df_labson)
+</code></pre>
+
+
+</div>

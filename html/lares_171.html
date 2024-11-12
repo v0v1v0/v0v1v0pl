@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>h2o_shap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>SHAP values for H2O Models</h2>
+
+<h3>Description</h3>
+
+<p>SHAP (SHapley Additive exPlanations) by Lundberg and Lee (2016) is a
+method to explain individual predictions. SHAP is based on the game
+theoretically optimal Shapley Values. Calculate SHAP values for
+h2o models in which each row is an observation and each column a feature.
+Use <code>plot</code> method to visualize features importance and distributions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">h2o_shap(model, test = "auto", scores = "auto", y = "y", ...)
+
+## S3 method for class 'h2o_shap'
+plot(x, relevant = TRUE, top = 15, quiet = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p><code>h2o_automl</code> object or <code>h2o</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>String or Dataframe. Leave "auto" to use <code>h2o_automl</code>'s
+test dataset or pass a valid dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>Numeric vector. If test != "auto", you must provide predicted values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Character. If test != "auto", you must provide y variable's name</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional argument for <code>predict_contributions.H2OModel</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>h2o_shap object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relevant</code></td>
+<td>
+<p>Boolean. Keep only relevant non-trivial (&gt;0) features</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top</code></td>
+<td>
+<p>Integer. Plot only top n values (as in importance)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Boolean. Print messages?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>H2OFrame with shap values for every observation and feature.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other SHAP: 
+<code>shap_var()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Train a h2o_automl model
+model &lt;- h2o_automl(dft, Survived,
+  max_models = 1, target = TRUE,
+  ignore = c("Ticket", "Cabin", "PassengerId"),
+  quiet = TRUE
+)
+
+# Calculate SHAP values
+SHAP_values &lt;- h2o_shap(model)
+# Equivalent to:
+# SHAP_values &lt;- h2o_shap(
+#  model = model$model,
+#  test = model$datasets$test,
+#  scores = model$scores_test$scores)
+
+# Check SHAP results
+head(SHAP_values)
+
+# You must have "ggbeeswarm" library to use this auxiliary function:
+# Plot SHAP values (feature importance)
+plot(SHAP_values)
+
+# Plot some of the variables (categorical)
+shap_var(SHAP_values, Pclass)
+
+# Plot some of the variables (numerical)
+shap_var(SHAP_values, Fare)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

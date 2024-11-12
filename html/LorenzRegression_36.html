@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lorenz.GA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates the parameter vector in Lorenz regression using a genetic algorithm</h2>
+
+<h3>Description</h3>
+
+<p><code>Lorenz.GA</code> estimates the coefficient vector of the single-index model.
+It also returns the Lorenz-<code class="reqn">R^2</code> of the regression as well as the estimated explained Gini coefficient.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lorenz.GA(
+  y,
+  x,
+  standardize = TRUE,
+  weights = NULL,
+  popSize = 50,
+  maxiter = 1500,
+  run = 150,
+  ties.method = c("random", "mean"),
+  ties.Gini = c("random", "mean"),
+  seed.random = NULL,
+  seed.Gini = NULL,
+  seed.GA = NULL,
+  parallel.GA = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a vector of responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix of explanatory variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>Should the variables be standardized before the estimation process? Default value is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>vector of sample weights. By default, each observation is given the same weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popSize</code></td>
+<td>
+<p>Size of the population of candidates in the genetic algorithm. Default value is 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number ot iterations in the genetic algorithm. Default value is 1500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run</code></td>
+<td>
+<p>Number of iterations without improvement in the best fitness necessary for the algorithm to stop. Default value is 150.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties.method</code></td>
+<td>
+<p>What method should be used to break the ties in optimization program. Possible values are "random" (default value) or "mean". If "random" is selected, the ties are broken by further ranking in terms of a uniformly distributed random variable. If "mean" is selected, the average rank method is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ties.Gini</code></td>
+<td>
+<p>what method should be used to break the ties in the computation of the Gini coefficient at the end of the algorithm. Possible values and default choice are the same as above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.random</code></td>
+<td>
+<p>An optional seed for generating the vector of uniform random variables used to break ties in the genetic algorithm. Defaults to <code>NULL</code>, which means no specific seed is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.Gini</code></td>
+<td>
+<p>An optional seed for generating the vector of uniform random variables used to break ties in the computation of the Gini coefficient. Defaults to <code>NULL</code>, meaning no specific seed is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.GA</code></td>
+<td>
+<p>An optional seed for <code>ga</code>, used during the fitting of the genetic algorithm. Defaults to <code>NULL</code>, implying that no specific seed is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.GA</code></td>
+<td>
+<p>Whether parallel computing should be used to distribute the computations in the genetic algorithm. Either a logical value determining whether parallel computing is used (TRUE) or not (FALSE, the default value). Or a numerical value determining the number of cores to use.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The genetic algorithm is solved using function <code>ga</code> from the <em>GA</em> package. The fitness function is coded in Rcpp to speed up computation time.
+When discrete covariates are introduced and ties occur in the index, the default option randomly breaks them, as advised in Section 3 of Heuchenne and Jacquemain (2022)
+</p>
+<p>The parameters <code>seed.random</code>, <code>seed.Gini</code>, and <code>seed.GA</code> allow for local seed setting to control randomness in specific parts of the function.
+Each seed is applied to the respective part of the computation, and the seed is reverted to its previous state after the operation.
+This ensures that the seed settings do not interfere with the global random state or other parts of the code.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with several components:
+</p>
+
+<dl>
+<dt><code>theta</code></dt>
+<dd>
+<p>the estimated vector of parameters.</p>
+</dd>
+<dt><code>LR2</code></dt>
+<dd>
+<p>the Lorenz-<code class="reqn">R^2</code> of the regression.</p>
+</dd>
+<dt><code>Gi.expl</code></dt>
+<dd>
+<p>the estimated explained Gini coefficient.</p>
+</dd>
+<dt><code>niter</code></dt>
+<dd>
+<p>number of iterations attained by the genetic algorithm.</p>
+</dd>
+<dt><code>fit</code></dt>
+<dd>
+<p>value attained by the fitness function at the optimum.</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Heuchenne, C. and A. Jacquemain (2022). Inference for monotone single-index conditional means: A Lorenz regression approach. <em>Computational Statistics &amp; Data Analysis 167(C)</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lorenz.Reg</code>, <code>ga</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Data.Incomes)
+y &lt;- Data.Incomes$Income
+x &lt;- cbind(Data.Incomes$Age, Data.Incomes$Work.Hours)
+Lorenz.GA(y, x, popSize = 40)
+
+</code></pre>
+
+
+</div>

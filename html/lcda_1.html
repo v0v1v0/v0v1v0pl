@@ -1,0 +1,324 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cclcda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Common Components Latent Class Discriminant Analysis (CCLCDA)</h2>
+
+<h3>Description</h3>
+
+<p>Local Discrimination via Latent Class Models with common components.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cclcda(x, ...)
+
+
+## Default S3 method:
+cclcda(x, grouping=NULL, prior=NULL,
+                         probs.start=NULL, nrep=1, m=3, 
+                         maxiter = 1000, tol = 1e-10,
+                         subset, na.rm = FALSE, ...)
+
+## S3 method for class 'formula'
+cclcda(formula, data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix or data frame containing the explanatory variables. Manifest variables must contain only integer values, and must be coded with consecutive values from 1 to the maximum number of outcomes for each variable. All missing values should be entered as NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grouping</code></td>
+<td>
+<p>A factor specifying the class for each observation; if not specified, the first column of 'data' is taken. The class must be coded by integer values with consecutive values from 1 to the maximum number of classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula of the form <code>'groups ~ x1 + x2 + ...'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame from which variables specified in formula are to be taken.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>The prior probabilities of class membership. If unspecified, the class proportions for the training set are used. If present, the probabilities should be specified in the order of the factor levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs.start</code></td>
+<td>
+<p>A list of matrices (per variable) of response probabilities <code class="reqn">\theta_{mkdr}</code> to be used as the starting values for the estimation algorithm. Each matrix in the list corresponds to one manifest variable, with one row for each latent class, and one column for each outcome. The default is <code>NULL</code>, producing random starting values. Note that if <code>nrep&gt;1</code>, then any user-specified <code>probs.start</code> values are only used in the first of the nrep attempts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>Number of times to estimate the model, using different random values of <code>probs.start</code>. The default is one. Setting <code>nrep&gt;1</code> automates the search for the global – rather than just a local – maximum of the log-likelihood function. <code>cclcda</code> uses the parameter estimates corresponding to the model with the greatest log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>The number of subclasses. Can be either a vector containing the number of subclasses per class or a number of subclasses for all classes. Default is <code>m=3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>The maximum number of iterations through which the estimation algorithm will cycle.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>A tolerance value for judging when convergence has been reached. When the one-iteration change in the estimated log-likelihood is less than <code>tol</code>, the estimation algorithm stops updating and considers the maximum log-likelihood to have been found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>An index vector specifying the cases to be used in the training sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical, for how <code>cclcda</code> handles cases with missing values on the manifest variables. If <code>TRUE</code>, those cases are removed (listwise deleted) before estimating the model. If <code>FALSE</code>, cases with missing values are retained. Cases with missing covariates are always removed. The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to <code>cclcda.default</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>cclcda</code>-function performs a Common Components Latent Class Discriminant Analysis (CCLCDA). The model to estimate is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x) = \sum_{m=1}^{M} w_{m} \prod_{d=1}^D\prod_{r=1}^{R_d} \theta_{mdr}^{x_{dr}},</code>
+</p>
+
+<p>where <code class="reqn">m</code> is the latent subclass index, <code class="reqn">d</code> is the variable index and <code class="reqn">r</code> is the observation index. The variable <code class="reqn">x_{dr}</code> is <code class="reqn">1</code> if the variable <code class="reqn">d</code> of this observation is <code class="reqn">r</code>.
+This common Latent Class Modell will be estimated for all classes by the <code>poLCA</code>-function (see <code>poLCA</code>) and class conditional mixing proportions <code class="reqn">w_{mk}</code> are computed afterwards. These weights are computed by
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{N_k} \sum_{n=1}^{N_k}\hat{P}(m, k|X=x_n),</code>
+</p>
+
+<p>where <code class="reqn">k</code> is the class index and <code class="reqn">N_k</code> the number of observations in class <code class="reqn">k</code>.
+</p>
+<p>The LCA uses the assumption of local independence to estimate a mixture model of latent multi-way tables, the number of which (<code>m</code>) is specified by the user. Estimated parameters include the latent-class-conditional response probabilities for each manifest variable <code class="reqn">\theta_{mdr}</code> and the class conditional mixing proportions <code class="reqn">w_{mk}</code> denoting population share of observations corresponding to each latent multi-way table per class. 
+</p>
+<p>Posterior class probabilities can be estimated with the <code>predict</code> method.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>cclcda</code> containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The (matched) function call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lca.theta</code></td>
+<td>
+<p>The estimated class conditional response probabilities of the LCA given as a list of matrices like <code>probs.start</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lca.w</code></td>
+<td>
+<p>The estimated mixing proportions of the LCA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lca.wmk</code></td>
+<td>
+<p>The estimated class conditional mixing proportions of the LCA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>Prior probabilites.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Number of latent subclasses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Number of different responses per variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>Number of variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic</code></td>
+<td>
+<p>Value of the AIC for each class conditional Latent Class Model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic</code></td>
+<td>
+<p>Value of the BIC for each class conditional Latent Class Model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gsq</code></td>
+<td>
+<p>The likelihood ratio/deviance statistic for each class conditional model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Chisq</code></td>
+<td>
+<p>The Pearson Chi-square goodness of fit statistic for fitted vs. observed multiway tables for each class conditional model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy</code></td>
+<td>
+<p>Value of the weighted entropy as described below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gini</code></td>
+<td>
+<p>Value of the weighted Gini coefficient as described below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.stat</code></td>
+<td>
+<p>Value of the Chi-square test statistik of the test  of latent class membership and class membership as described below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chi.p</code></td>
+<td>
+<p>P Value of the Chi-square of the test  of latent class membership and class membership as described below.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the number of latent classes per class is unknown a model selection must be accomplished to determine the value of <code>m</code>. For this goal there are some model selection criteria implemented. The AIC, BIC, likelihood ratio statistic and the Chi-square goodness of fit statistic are taken from the poLCA-function (see <code>poLCA</code>).
+</p>
+<p>Additionally <code>cclcda</code> provides quality criteria which should give insight into the model's classification potential. These criteria are similar to the splitting criteria of classification trees. The impurity measures are
+</p>
+<p>– Weighted entropy: The weighted entropy is given by
+</p>
+<p style="text-align: center;"><code class="reqn">H := - \sum_{m=1}^M  P(m) \sum_{k=1}^K \left(P(k|m) \cdot \log_{K}{P(k|m)}\right).</code>
+</p>
+
+<p>– Weighted Gini coefficient: The weighted Gini coefficient is given by
+</p>
+<p style="text-align: center;"><code class="reqn">G := \sum_{m=1}^M  P(m) \left[ 1- \sum_{k=1}^{K} \left( P(k|m) \right)^2 \right].</code>
+</p>
+
+<p>– Pearson's Chi-square test: A Pearson's Chi-square test is performed to test the independence of latent class membership and class membership.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Michael B\"ucker</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>predict.cclcda</code>, <code>lcda</code>, <code>predict.lcda</code>, <code>cclcda2</code>, <code>predict.cclcda2</code>, <code>poLCA</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># response probabilites
+probs1 &lt;- list()
+
+probs1[[1]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1,
+                        0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7), 
+                      nrow=4, byrow=TRUE)
+probs1[[2]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1,
+                        0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=4, byrow=TRUE)
+probs1[[3]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7,
+                        0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1),
+                      nrow=4, byrow=TRUE)
+probs1[[4]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1,
+                        0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=4, byrow=TRUE)
+
+prior &lt;- c(0.5,0.5)
+wmk &lt;- matrix(c(0.45,0.45,0.05,0.05,0.05,0.05,0.45,0.45),
+              ncol=4, nrow=2, byrow=TRUE)
+wkm &lt;- apply(wmk*prior, 2, function(x) x/sum(x))
+
+# generation of training data
+data_temp &lt;- poLCA.simdata(N = 1000, probs = probs1,
+                           nclass = 2, ndv = 4, nresp = 4,
+                           P=rep(0.25,4))
+data &lt;- data_temp$dat
+lclass &lt;- data_temp$trueclass
+grouping &lt;- numeric()
+for (i in 1:length(lclass))
+{
+grouping[i] &lt;- sample(c(1,2),1, prob=wkm[,lclass[i]])
+}
+
+# generation of test data
+data_temp &lt;- poLCA.simdata(N = 500, probs = probs1,
+                           nclass = 2, ndv = 4, nresp = 4,
+                           P=rep(0.25,4))
+data.test &lt;- data_temp$dat
+lclass &lt;- data_temp$trueclass
+grouping.test &lt;- numeric()
+for (i in 1:length(lclass))
+{
+grouping.test[i] &lt;- sample(c(1,2),1, prob=wkm[,lclass[i]])
+}
+
+# cclcda-procedure
+object &lt;- cclcda(data, grouping, m=4)
+object
+</code></pre>
+
+
+</div>

@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>laf_open_csv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a connection to a comma separated value (CSV) file.</h2>
+
+<h3>Description</h3>
+
+<p>A connection to the file filename is created. Column types have to be
+specified. These are not determined automatically as for example read.csv
+does.  This has been done to increase speed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">laf_open_csv(
+  filename,
+  column_types,
+  column_names = paste("V", seq_len(length(column_types)), sep = ""),
+  sep = ",",
+  dec = ".",
+  trim = FALSE,
+  skip = 0,
+  ignore_failed_conversion = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>character containing the filename of the CSV-file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_types</code></td>
+<td>
+<p>character vector containing the types of data in each of
+the columns. Valid types are: double, integer, categorical and string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_names</code></td>
+<td>
+<p>optional character vector containing the names of the
+columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>optional character specifying the field separator used in the
+file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec</code></td>
+<td>
+<p>optional character specifying the decimal mark.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>optional logical specifying whether or not white space at the end
+of factor levels or character strings should be trimmed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skip</code></td>
+<td>
+<p>optional numeric specifying the number of lines at the beginning 
+of the file that should be skipped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore_failed_conversion</code></td>
+<td>
+<p>ignore (set to <code>NA</code>) fields that could 
+not be converted.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>After the connection is created data can be extracted using indexing (as in a
+normal data.frame) or methods such as <code>read_lines</code> and 
+<code>next_block</code> can be used to read in blocks. For processing the 
+file in blocks the convenience function <code>process_blocks</code> can be 
+used.
+</p>
+<p>The CSV-file should not contain headers. Use the <code>skip</code> option to skip 
+any headers.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of type <code>laf</code>. Values can be extracted from this
+object using indexing, and methods such as <code>read_lines</code>,
+<code>next_block</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>read.csv</code> for conventional access of CSV files. And 
+<code>detect_dm_csv</code> to automatically determine the column types.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create temporary filename
+tmpcsv  &lt;- tempfile(fileext="csv")
+
+# Generate test data
+ntest &lt;- 10
+column_types &lt;- c("integer", "integer", "double", "string")
+testdata &lt;- data.frame(
+    a = 1:ntest,
+    b = sample(1:2, ntest, replace=TRUE),
+    c = round(runif(ntest), 13),
+    d = sample(c("jan", "pier", "tjores", "corneel"), ntest, replace=TRUE)
+    )
+# Write test data to csv file
+write.table(testdata, file=tmpcsv, row.names=FALSE, col.names=FALSE, sep=',')
+
+# Create LaF-object
+laf &lt;- laf_open_csv(tmpcsv, column_types=column_types)
+
+# Read from file using indexing
+first_column &lt;- laf[ , 1]
+first_row    &lt;- laf[1, ]
+
+# Read from file using blockwise operators
+begin(laf)
+first_block &lt;- next_block(laf, nrows=2)
+second_block &lt;- next_block(laf, nrows=2)
+
+# Cleanup
+file.remove(tmpcsv)
+
+</code></pre>
+
+
+</div>

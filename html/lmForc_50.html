@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>states_weighted_forc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>States weighted forecast</h2>
+
+<h3>Description</h3>
+
+<p><code>states_weighted_forc</code> takes two or more forecasts, a data frame, matrix,
+or array of matching variables, an optional vector of time data associated with
+the matching variables, a matching window size, a matching function, and an
+error function. For each forecast period, <code>matching_vars</code> are standardized
+and the current state of the world is set as the the past <code>matching_window</code>
+periods of the matching variables. The current state is compared to all past
+periods of the matching variables using the matching function. The current state
+is matched to the past state that minimizes the matching function. The forecast
+error function is then used to compute the accuracy of each forecast over the matched
+past state. Forecast weights are computed based on this forecast accuracy,
+and the current period forecast is subsequently computed based on the forecast
+weights. Produces a weighted average of multiple forecasts based on how each
+forecast performed during the past state that is most similar to the current
+state of the world.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">states_weighted_forc(
+  ...,
+  matching_vars,
+  time_vec = NULL,
+  matching_window,
+  matching = "euclidean",
+  errors = "mse",
+  return_weights = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Two or more forecasts of class Forecast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matching_vars</code></td>
+<td>
+<p>data frame, array, or matrix of variables used to match
+the current state of the world to a past state.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_vec</code></td>
+<td>
+<p>Vector of any class that is equal in length to the data
+in <code>matching_vars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matching_window</code></td>
+<td>
+<p>Integer representing the window size over which the
+current state of the world is matched to a past state. Forecasts are also
+weighted based on their accuracy over <code>matching_window</code> periods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matching</code></td>
+<td>
+<p>Character, "euclidean", "mse", or "rmse". Selects the function
+used to match the current state of the world to a past state.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errors</code></td>
+<td>
+<p>Character, either "mse", "rmse", "mae", or "mape". Selects what
+forecast accuracy function is used to evaluate forecast errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_weights</code></td>
+<td>
+<p>Boolean, selects whether the weights used to weight
+forecasts in each period are returned. If TRUE, a data frame of weights and
+matched periods is returned to the Global Environment.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Forecasts are weighted in each period with the function below. The error
+function used is MSE or RMSE depending on user selection. This example shows
+MSE errors.
+</p>
+<p style="text-align: center;"><code class="reqn">weight = (1 / MSE(forecast)) / (1 / sum(MSE(forecasts)))</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p><code>Forecast</code> object that contains the state weighted forecast.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For a detailed example see the help vignette:
+<code>vignette("lmForc", package = "lmForc")</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+date &lt;- as.Date(c("2010-03-31", "2010-06-30", "2010-09-30", "2010-12-31",
+                  "2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31",
+                  "2012-03-31", "2012-06-30"))
+
+future &lt;- as.Date(c("2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31",
+                    "2012-03-31", "2012-06-30", "2012-09-30", "2012-12-31",
+                    "2013-03-31", "2013-06-30"))
+
+y  &lt;- c(1.09, 1.71, 1.09, 2.46, 1.78, 1.35, 2.89, 2.11, 2.97, 0.99)
+x1 &lt;- c(4.22, 3.86, 4.27, 5.60, 5.11, 4.31, 4.92, 5.80, 6.30, 4.17)
+x2 &lt;- c(10.03, 10.49, 10.85, 10.47, 9.09, 10.91, 8.68, 9.91, 7.87, 6.63)
+
+data &lt;- data.frame(date, y, x1, x2)
+matching_vars &lt;- data[, c("x1", "x2")]
+
+y1_forecast &lt;- Forecast(
+  origin = date,
+  future = future,
+  forecast = c(1.33, 1.36, 1.38, 1.68, 1.60, 1.55, 1.32, 1.22, 1.08, 0.88),
+  realized = c(1.78, 1.35, 2.89, 2.11, 2.97, 0.99, 1.31, 1.41, 1.02, 1.05),
+  h_ahead = 4L
+)
+
+y2_forecast &lt;- Forecast(
+  origin = date,
+  future = future,
+  forecast = c(0.70, 0.88, 1.03, 1.05, 1.01, 0.82, 0.95, 1.09, 1.07, 1.06),
+  realized = c(1.78, 1.35, 2.89, 2.11, 2.97, 0.99, 1.31, 1.41, 1.02, 1.05),
+  h_ahead = 4L
+)
+
+states_weighted_forc(
+  y1_forecast, y2_forecast,
+  matching_vars = matching_vars,
+  time_vec = data$date,
+  matching_window = 2L,
+  matching = "euclidean",
+  errors = "mse",
+  return_weights = FALSE
+)
+
+states_weighted_forc(
+  y1_forecast, y2_forecast,
+  matching_vars = matching_vars,
+  time_vec = data$date,
+  matching_window = 3L,
+  matching = "rmse",
+  errors = "rmse"
+)
+
+</code></pre>
+
+
+</div>

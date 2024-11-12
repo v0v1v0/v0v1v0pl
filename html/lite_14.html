@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>generalisedPareto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Frequentist inference for the generalised Pareto distribution</h2>
+
+<h3>Description</h3>
+
+<p>Functions involved in making inferences about the scale and shape
+parameters of a generalised Pareto distribution using maximum likelihood
+estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitGP(data, u)
+
+## S3 method for class 'GP'
+coef(object, ...)
+
+## S3 method for class 'GP'
+vcov(object, ...)
+
+## S3 method for class 'GP'
+nobs(object, ...)
+
+## S3 method for class 'GP'
+logLik(object, ...)
+
+gpObsInfo(pars, excesses, eps = 1e-05, m = 3)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A numeric vector of raw data.  Missing values are removed using
+<code>na.omit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>A numeric scalar.  The extremal value threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fitted model object returned from <code>fitGP()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to be passed to the functions in the
+sandwich package <code>meat</code> (if <code>cluster = NULL</code>),
+or <code>meatCL</code> (if <code>cluster</code> is not
+<code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>A numeric parameter vector of length 2 containing the values of
+the generalised Pareto scale and shape parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>excesses</code></td>
+<td>
+<p>A numeric vector of threshold excesses, that is, amounts
+by which exceedances of <code>u</code> exceed <code>u</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps, m</code></td>
+<td>
+<p>These control the estimation of the observed
+information in <code>gpObsInfo</code> when the GP shape parameter <code class="reqn">\xi</code> is
+very close to zero.  In these cases, direct calculation is unreliable.
+<code>eps</code> is a (small, positive) numeric scalar.  If the absolute value
+of the input value of <code class="reqn">\xi</code>, that is, <code>pars[2]</code>, is smaller than
+<code>eps</code> then we approximate the <code>[2, 2]</code> element using a Taylor
+series expansion in <code class="reqn">\xi</code>, evaluated up to and including the
+<code>m</code>th term.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fitGP</code>: fit a generalised Pareto distribution using maximum likelihood
+estimation, using an <strong>independence</strong> log-likelihood formed by
+summing contributions from individual observations. No adjustment for
+cluster dependence has been made in estimating the variance-covariance
+matrix stored as component in <code>vcov</code> in the returned object. This
+function calls <code>grimshaw_gp_mle</code>.
+</p>
+<p><code>coef</code>, <code>vcov</code>, <code>nobs</code> and <code>logLik</code> methods are
+provided for objects of class <code>"GP"</code> returned from <code>fitGP</code>.
+</p>
+<p><code>gpObsInfo</code>: calculates the observed information matrix for a random
+sample <code>excesses</code> from the generalized Pareto distribution, that is,
+the negated Hessian matrix of the generalized Pareto independence
+log-likelihood, evaluated at <code>pars</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fitGP</code> returns an object of class <code>"GP"</code>, a list
+with components: <code>maxLogLik</code>, <code>threshold</code>, <code>mle</code>,
+<code>vcov</code>, <code>exceedances</code>, <code>nexc</code>,
+where <code>exceedances</code> is a vector containing the values that exceed the
+threshold <code>threshold</code> and <code>nexc</code> is the length of this vector.
+</p>
+<p><code>coef.GP</code>: a numeric vector of length 2 with names
+<code>c("sigma[u]", "xi")</code>.  The MLEs of the GP parameters
+<code class="reqn">\sigma_u</code> and <code class="reqn">\xi</code>.
+</p>
+<p><code>vcov.GP</code>: a <code class="reqn">2 \times 2</code> matrix with row and
+column names <code>c("sigma[u]", "xi")</code>.  The estimated
+variance-covariance matrix for the model parameters. No adjustment for
+cluster dependence has been made.
+</p>
+<p><code>nobs.GP</code>: a numeric vector of length 1.  The number of
+observations used to estimate (<code class="reqn">\sigma_u</code>, <code class="reqn">\xi</code>).
+</p>
+<p><code>logLik.GP</code>: an object of class <code>"logLik"</code>: a numeric scalar
+with value equal to the maximised log-likelihood. The returned object
+also has attributes <code>nobs</code>, the numbers of observations used in
+each of these model fits, and <code>"df"</code> (degrees of freedom), which is
+equal to the number of total number of parameters estimated (2).
+</p>
+<p><code>gpObsInfo</code> returns a 2 by 2 matrix with row and columns names
+<code>c("sigma[u]", "xi")</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up data and set a threshold
+cdata &lt;- c(exdex::cheeseboro)
+
+# Fit a generalised Pareto distribution
+fit &lt;- fitGP(cdata, 45)
+
+# Calculate the log-likelihood at the MLE
+res &lt;- logLikVector(fit)
+
+# The logLik method sums the individual log-likelihood contributions.
+logLik(res)
+
+# nobs, coef, vcov, logLik methods for objects returned from fitGP()
+nobs(fit)
+coef(fit)
+vcov(fit)
+logLik(fit)
+</code></pre>
+
+
+</div>

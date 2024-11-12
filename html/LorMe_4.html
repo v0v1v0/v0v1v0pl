@@ -1,0 +1,184 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>auto_signif_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic significance test</h2>
+
+<h3>Description</h3>
+
+<p>Automatically conduct significance testing
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">auto_signif_test(
+  data,
+  treatment_col,
+  value_col,
+  paired,
+  subject_col,
+  prior = FALSE,
+  comparison_method = NULL,
+  equally_rep = TRUE,
+  output = "console",
+  output_dir = "./",
+  filename = "auto_signif_test",
+  report = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame containing the treatment, value and other information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treatment_col</code></td>
+<td>
+<p>Numeric indicating where treatment locates (column number) in data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value_col</code></td>
+<td>
+<p>Numeric indicating where treatment value (column number) in data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paired</code></td>
+<td>
+<p>Logical indicating whether you want a paired t-test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject_col</code></td>
+<td>
+<p>Only meaningful when Pair is ture. Numeric indicating where subject of treatment (column number) in data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>logical. Whether conducted prior comparisons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparison_method</code></td>
+<td>
+<p>Character string. Only use for more than 2 treatment. Default would automatically choose method. Method of multiple comparison,must be one of "SNK", "Tukey", "bonferroni","LSD" or "Scheffe".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equally_rep</code></td>
+<td>
+<p>Logical indicating Whether all treatments have same number of replication.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>A character string indicating output style. Default: "console", which print the report in console. And "file" is available to output report into text-file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output_dir</code></td>
+<td>
+<p>Default:"./". Available only when output="file". The direction of output file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>A character string indicating file name of output file. Only work when output set as 'file'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+<p>Logical. If print report to console. Default:TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>auto_signif_test returns results of significant test and print report in console or file. See details in example.
+</p>
+<p>See results return in <code>t_test_report</code>, <code>wilcox_test_report</code>, <code>anova_report</code>, <code>kruskal_report</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>1.when choose output="file", once caused error that terminate the program, use 'sink()' to end the written of exist files.
+</p>
+<p>2.Please confirm your data is in format of dataframe, else may cause bug! (e.g. Do not use 'read.xlsx' to load data into tibble format)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Here shows different types of experimental design ###
+data("cotton", package = "agricolae")
+
+### Two randomly designed groups ###
+sig_results &lt;- auto_signif_test(
+  data = cotton,
+  treatment_col = 1,
+  value_col = 5
+)
+
+### Two paired design groups ###
+sig_results &lt;- auto_signif_test(
+  data = cotton,
+  treatment_col = 1,
+  value_col = 5,
+  paired = TRUE,
+  subject_col = 2
+)
+
+### More than two randomly designed groups ###
+sig_results &lt;- auto_signif_test(
+  data = cotton,
+  treatment_col = 2,
+  value_col = 5
+)
+head(sig_results)  # Check outputs
+
+### Conduct prior comparisons ###
+sig_results &lt;- auto_signif_test(
+  data = cotton,
+  treatment_col = 2,
+  value_col = 5,
+  prior = TRUE
+)
+head(sig_results)  # Check outputs
+print(sig_results$basicdata)  # Check statistical summary
+print(sig_results$anova_model)  # Extract ANOVA model
+print(sig_results$anova_summary)  # Check ANOVA summary
+print(sig_results$multiple_comparison_model)  # Extract multiple comparison model
+print(sig_results$comparison_results)  # Check between-group comparison
+print(sig_results$comparison_letters)  # Check letters (can be used in visualization)
+
+## Change multiple comparison method (maybe not illegal!!)
+sig_results &lt;- auto_signif_test(
+  data = cotton,
+  treatment_col = 2,
+  value_col = 5,
+  prior = TRUE,
+  comparison_method = "LSD"
+)
+head(sig_results)  # Check outputs
+print(sig_results$comparison_letters)  # Note that letters become different
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rbpto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate Boolean Model with Grains Scaled According to a Truncated
+Pareto Distribution</h2>
+
+<h3>Description</h3>
+
+<p>Functions for simulation and computing theoretical values of a
+Boolean model with identically shaped grains with size given by a
+truncated Pareto distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rbpto(lambda, grain, win, xm, alpha, lengthscales, seed = NULL, xy = NULL)
+
+bpto.coverageprob(lambda, grain, xm, alpha, lengthscales = 1:500)
+
+bpto.germintensity(coverp, grain, xm, alpha, lengthscales = 1:500)
+
+bpto.covar(lambda, grain, xm, alpha, lengthscales = 1:500, xy)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>Intensity of the germ process (which is a Poisson point
+process)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grain</code></td>
+<td>
+<p>A single <code>owin</code> object that gives the shape and size of the grain
+at scale 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>win</code></td>
+<td>
+<p>The window to simulate in (an <code>owin</code> object)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xm</code></td>
+<td>
+<p>A parameter governing the shape of the Pareto distribution used -
+see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A parameter governing the shape of the Pareto distribution used
+</p>
+
+<ul><li>
+<p> see details
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lengthscales</code></td>
+<td>
+<p>A list of scales of the <code>grain</code> for which to
+approximate the Pareto distribution: The grain for a germ is chosen by
+selecting a scaled version of <code>grain</code> where <code>lengthscales</code>
+specifies the possible scales and the Pareto distribution is used to
+specify the probability of selection of each scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Optional input (default in NULL). Is an integer passed to
+<code>set.seed</code>. Used to reproduce patterns exactly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xy</code></td>
+<td>
+<p>A raster object that specifies pixel coordinates of the final
+simulated binary map. It is used the same way as <code>xy</code> is
+<code>as.mask</code> in <span class="pkg">spatstat</span>. If non-null then the
+computations will be performed using rasters. Otherwise if <code>grain</code> and
+<code>win</code> are polygonal then computations may be all polygonal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coverp</code></td>
+<td>
+<p>Coverage probability of the Boolean model.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parameters <code>xm</code> and <code>alpha</code> are such that the CDF of the Pareto distribution is <code class="reqn">P(s &lt;= x) = 1 - (xm / x)^{alpha}</code>.
+The distribution of grains scales is a step-function approximation to the CDF with steps at <code>lengthscales</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>owin</code> object.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>rbpto()</code>: Simulate Boolean model with grain size distributed according to a truncated Pareto distribution.
+</p>
+</li>
+<li> <p><code>bpto.coverageprob()</code>: The coverage probability of the Boolean model with grain size distributed according to a truncated Pareto distribution.
+</p>
+</li>
+<li> <p><code>bpto.germintensity()</code>: The germ intensity of the Boolean model with grain size distributed according to a truncated Pareto distribution.
+</p>
+</li>
+<li> <p><code>bpto.covar()</code>: The covariance of the Boolean model with grain size distributed according to a truncated Pareto distribution.
+<code>xy</code> is required to specify resolution and offset of pixel grid.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">lambda &lt;- 0.2
+win &lt;- square(r = 10)
+grain &lt;- disc(r = 0.2)
+xm &lt;- 0.01
+alpha &lt;- 2
+lengthscales &lt;- seq(1, 5, by = 0.1)
+xi &lt;- rbpto(lambda, grain, win, xm, alpha, lengthscales = lengthscales)
+
+# Compute properties of the Boolean model from parameters
+bpto.coverageprob(lambda, grain, xm, alpha, lengthscales = lengthscales)
+covar &lt;- bpto.covar(lambda, grain, xm, alpha, lengthscales = lengthscales,
+                    xy = as.mask(win, eps = 2))
+</code></pre>
+
+
+</div>

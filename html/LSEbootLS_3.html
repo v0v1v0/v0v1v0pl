@@ -1,0 +1,204 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Coveragelongmemory</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the coverage of several long-memory models</h2>
+
+<h3>Description</h3>
+
+<p>Generates coverage metrics for a parameter of interest using a specified long-memory model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Coveragelongmemory(
+  n,
+  R,
+  N,
+  S,
+  mu = 0,
+  dist,
+  method,
+  B = NULL,
+  nr.cores = 1,
+  seed = 123,
+  alpha,
+  beta,
+  start,
+  sign = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>(type: numeric) size of the simulated series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>(type: numeric) number of realizations of the Monte Carlo experiments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>(type: numeric) sample size of each block.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>(type: numeric) shifting places from block to block. Observe that the number of blocks M is determined by the following formula <code class="reqn">M=\left\lfloor \frac{T-N}{S} + 1 \right\rfloor</code>, where <code class="reqn">\left\lfloor . \right\rfloor</code> takes a single numeric argument <code>x</code> and returns a numeric vector containing the integers formed by truncating the values in <code>x</code> toward <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>(type: numeric) trend coefficient of the regression model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>(type: character) white noise distribution for calculating coverage, it includes the <code>"normal"</code>, <code>"exponential"</code> and <code>"uniform"</code> univariate distributions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>(type: character) methods are asymptotic (<code>"asym"</code>), bootstrap percentile (<code>"boot"</code>) and bootstrap-t (<code>"boott"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>(type: numeric) the number of bootstrap replicates, NULL indicates the asymptotic method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nr.cores</code></td>
+<td>
+<p>(type: numeric) number of CPU cores to be used for parallel processing. 1 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>(type: numeric) random number generator seed to generate the bootstrap samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>(type: numeric) numeric vector with values to simulate the time varying autoregressive parameters of model LSAR(1), <code class="reqn">\phi(u)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>(type: numeric) numeric vector with values to simulate the time varying scale factor parameters of model LSAR(1), <code class="reqn">\sigma(u)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>(type: numeric) numeric vector, initial values for parameters to run the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sign</code></td>
+<td>
+<p>nominal significance level</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function estimates the parameters in the linear regression model for <code class="reqn">t = 1, ..., T</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">Y_{t,T} = X_{t,T} \beta + \epsilon_{t,T},</code>
+</p>
+
+<p>where a locally stationary fractional noise process (LSFN) is described by the equation:
+</p>
+<p style="text-align: center;"><code class="reqn">\epsilon_{t,T} = \sum_{j=0}^\infty \psi_j(u) \eta_{t-j}</code>
+</p>
+
+<p>for u=t/T in [0,1], where <code class="reqn">\psi_j(u) = \frac{\Gamma[j + d(u)]}{\Gamma[j+1] \Gamma[d(u)]}</code> and <code class="reqn">d(u)</code> is the
+smoothly varying long-memory coefficient. This model is referred to as locally stationary fractional noise (LSFN).
+</p>
+<p>In this particular case, <code class="reqn">d(u)</code> is modeled as a linear polynomial, and <code class="reqn">\sigma(u)</code> as a quadratic polynomial.
+</p>
+<p>Resampling methods evaluated:
+</p>
+
+<ul>
+<li>
+<p> asym: Asymptotic method that uses the asymptotic variance of the estimator, based
+on the Central Limit Theorem, to construct confidence intervals under the
+assumption of normality in large samples.
+</p>
+</li>
+<li>
+<p> boot: Standard bootstrap that generates replicas of the estimator <code class="reqn">\hat{\beta}</code> by resampling
+the adjusted residuals <code class="reqn">\hat{\epsilon}_t</code>. It approximates the distribution of the estimator by
+the variability observed in the bootstrap replicas of <code class="reqn">\hat{\beta}</code>.
+</p>
+</li>
+<li>
+<p> boott: Adjusted bootstrap that scales the bootstrap replicas of the estimator
+<code class="reqn">\hat{\beta}</code> by its standard error, aiming to refine the precision of the confidence interval
+and adjust for the variability in the parameter estimation.
+</p>
+</li>
+</ul>
+<p>For more details, see references.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame containing the following columns:
+</p>
+
+<ul>
+<li> <p><code>n</code>: Size of each simulated series.
+</p>
+</li>
+<li> <p><code>method</code>: Statistical method used for simulation.
+</p>
+</li>
+<li> <p><code>coverage</code>: Proportion of true parameter values within the intervals.
+</p>
+</li>
+<li> <p><code>avg_width</code>: Average width of the intervals.
+</p>
+</li>
+<li> <p><code>sd_width</code>: Standard deviation of the interval widths.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Ferreira G., Mateu J., Vilar J.A., Muñoz J. (2020). Bootstrapping regression models with locally stationary disturbances. TEST, 30, 341-363.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Coveragelongmemory(n=500,R=5,N=60,S=40,mu=0.5,dist="normal",method="asym",
+beta=c(0.1,-2),alpha=c(0.15,0.25, 0.1),start = c(0.1,-2,0.15,0.2, 0.1))
+
+</code></pre>
+
+
+</div>

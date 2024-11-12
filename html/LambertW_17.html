@@ -1,0 +1,303 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LambertW-toolkit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Do-it-yourself toolkit for Lambert W<code class="reqn"> \times</code> F distribution</h2>
+
+<h3>Description</h3>
+
+<p><strong>IMPORTANT:</strong> This toolkit functionality is still under active
+development; function names, arguments, return values, etc. may change.
+</p>
+<p>This do-it-yourself Lambert W<code class="reqn"> \times</code> F toolkit implements the flexible
+input/output framework of Lambert W <code class="reqn">\times</code> F random variables (see
+References).  Using a modular approach, it allows users to create their
+own Lambert W <code class="reqn">\times</code> 'MyFavoriteDistribution' RVs. See Details
+below.
+</p>
+<p>If the distribution you inted to use is not already implemented
+(<code>get_distnames</code>), then you can create it:
+</p>
+
+<dl>
+<dt>create input:</dt>
+<dd>
+<p>use <code>create_LambertW_input</code> with your
+favorite distribution,</p>
+</dd>
+<dt>create output:</dt>
+<dd>
+<p>pass it as an input argument to <code>create_LambertW_output</code>,</p>
+</dd>
+<dt>use output:</dt>
+<dd>
+<p>use Rs standard functionality for distributions
+such as random number generation (<code>rY</code>), pdf (<code>dY</code>) and cdf
+(<code>pY</code>), quantile function (<code>qY</code>), etc. for this newly generated
+Lambert W <code class="reqn">\times</code> 'MyFavoriteDistribution'.</p>
+</dd>
+</dl>
+<p><code>create_LambertW_output</code> converts the input <code>LambertW_input</code>
+representing random variable <code class="reqn">X \sim F_X</code> to the Lambert W
+<code class="reqn">\times</code> <code class="reqn">F_X</code> output.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">create_LambertW_input(
+  distname = NULL,
+  beta,
+  input.u = list(beta2tau = NULL, d = NULL, p = NULL, r = NULL, q = NULL, distname =
+    "MyFavoriteDistribution", is.non.negative = FALSE)
+)
+
+create_LambertW_output(
+  LambertW.input = NULL,
+  theta = NULL,
+  distname = LambertW.input$distname
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>character; name of input distribution; see
+<code>get_distnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric vector (deprecated); parameter <code class="reqn">\boldsymbol \beta</code> of
+the input distribution.  See <code>check_beta</code> on how to specify
+<code>beta</code> for each distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input.u</code></td>
+<td>
+<p>optional; users can make their own 'Lambert W x F'
+distribution by supplying the necessary functions. See Description for
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LambertW.input</code></td>
+<td>
+<p>an object of class <code>LambertW_input</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>list; a (possibly incomplete) list of parameters <code>alpha</code>,
+<code>beta</code>, <code>gamma</code>, <code>delta</code>. <code>complete_theta</code>
+fills in default values for missing entries.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>create_LambertW_output</code> takes an object of class
+<code>LambertW_input</code> and creates a class <code>LambertW_output</code> for
+standard distributions as well as the user-defined distribution. This
+<code>LambertW_output</code> represents the RV Y <code class="reqn">\sim</code> Lambert W
+<code class="reqn">\times</code> 'MyFavoriteDistribution' with all its properties and R
+functionality, such as random number generation (<code>rY</code>), pdf
+(<code>dY</code>) and cdf (<code>pY</code>), etc.
+</p>
+<p><code>create_LambertW_input</code> allows users to define their own Lambert
+W<code class="reqn">\times</code> F distribution by supplying the necessary functions about
+the input random variable <code class="reqn">U</code> and <code class="reqn">\boldsymbol \beta</code>.  Here
+<code class="reqn">U</code> is the zero mean and/or unit variance version of <code class="reqn">X \sim
+    F_X(x \mid \boldsymbol \beta)</code> (see References).
+</p>
+<p>The argument <code>input.u</code> must be a list containing all of the following:
+</p>
+
+<dl>
+<dt><code>beta2tau</code></dt>
+<dd>
+<p> R function of <code>(beta)</code>: converts <code class="reqn">\boldsymbol \beta</code> to <code class="reqn">\tau</code> for the
+user defined distribution </p>
+</dd>
+<dt><code>distname</code></dt>
+<dd>
+<p> optional; users can specify the name 
+of their input distribution. By default it's called <code>"MyFavoriteDistribution"</code>. 
+The distribution name will be used in plots and summaries of the Lambert W<code class="reqn">\times</code> F 
+input (and output) object.</p>
+</dd>
+<dt><code>is.non.negative</code></dt>
+<dd>
+<p> logical; users should specify whether the
+distribution is for non-negative random variables or not.  This will help
+for plotting and theoretical quantile computation.</p>
+</dd>
+<dt><code>d</code></dt>
+<dd>
+<p> R function of <code>(u, beta)</code>: probability density function (pdf) of U,</p>
+</dd>
+<dt><code>p</code></dt>
+<dd>
+<p> R function of <code>(u, beta)</code>: cumulative distribution function (cdf) of U,</p>
+</dd>
+<dt><code>q</code></dt>
+<dd>
+<p> R function of <code>(p, beta)</code>: quantile function of U,</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p> R function <code>(n, beta)</code>: random number generator for U,</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p><code>create_LambertW_output</code> returns a list of class <code>LambertW_output</code> 
+with values that are (for the most part) functions themselves (see Examples): 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p> pdf of Y <code class="reqn">\sim</code> Lambert W <code class="reqn">\times</code> 'MyFavoriteDistribution',</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p> cdf of Y,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p> quantile function for Y,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p> random number generator for Y,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p> character string with the name of the new distribution.
+Format: "Lambert W x 'MyFavoriteDistribution'",</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta, theta</code></td>
+<td>
+<p>see Arguments,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname.with.beta</code></td>
+<td>
+<p>name of the new distribution
+including the parameter <code>beta</code>. Format: "Lambert W x 'MyFavoriteDistribution'(beta)".</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Georg M. Goerg
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create a Gaussian N(1, 2) input
+Gauss.input &lt;- create_LambertW_input("normal", beta = c(1, 2))
+
+# create a heavy-tailed version of a normal
+# gamma = 0, alpha = 1 are set by default; beta comes from input
+params &lt;- list(delta = c(0.3)) 
+LW.Gauss &lt;- create_LambertW_output(LambertW.input = Gauss.input, 
+                                   theta = params)
+LW.Gauss
+
+op &lt;- par(no.readonly = TRUE)
+par(mfrow = c(2, 1), mar = c(3, 3, 2, 1))
+curve(LW.Gauss$d(x, params), -7, 10, col = "red")
+# parameter will get detected automatically from the input
+curve(LW.Gauss$d(x), -7, 10, col = "blue") # same in blue; 
+
+# compare to the input case (i.e. set delta = 0)
+params.0 &lt;- params 
+params.0$delta &lt;- 0
+
+# to evaluate the RV at a different parameter value, 
+# it is necessary to pass the new parameter
+curve(LW.Gauss$d(x, params.0), -7, 10, add = TRUE, col = 1) #' par(op)
+
+curve(LW.Gauss$p(x, params), -7, 10, col = "red")
+curve(LW.Gauss$p(x, params.0), -7, 10, add = TRUE, col = 1)
+
+test_normality(LW.Gauss$r(n = 100), add.legend = FALSE)
+
+## generate a positively skewed version of a shifted, scaled t_3
+t.input &lt;- create_LambertW_input("t", beta = c(2, 1, 3))
+t.input
+params &lt;- list(gamma = 0.05) # skew it
+LW.t &lt;- create_LambertW_output(LambertW.input = t.input, theta = params)
+LW.t
+
+plot(t.input$d, -7, 11, col = 1)
+plot(LW.t$d, -7, 11, col = 2, add = TRUE)
+abline(v = t.input$beta["location"], lty = 2)
+
+# draw samples from the skewed t_3
+yy &lt;- LW.t$r(n = 100)
+test_normality(yy)
+
+### create a skewed exponential distribution
+exp.input &lt;- create_LambertW_input("exp", beta = 1)
+plot(exp.input)
+params &lt;- list(gamma = 0.2)
+LW.exp &lt;- create_LambertW_output(exp.input, theta = params)
+plot(LW.exp)
+
+# create a heavy-tail exponential distribution
+params &lt;- list(delta = 0.2)
+LW.exp &lt;- create_LambertW_output(exp.input, theta = params)
+plot(LW.exp)
+
+# create a skewed chi-square distribution with 5 df
+chi.input &lt;- create_LambertW_input("chisq", beta = 5)
+plot(chi.input)
+params &lt;- list(gamma = sqrt(2)*0.2)
+LW.chi &lt;- create_LambertW_output(chi.input, theta = params)
+plot(LW.chi)
+
+
+# a demo on how a user-defined U input needs to look like
+user.tmp &lt;- list(d = function(u, beta) dnorm(u),
+                 r = function(n, beta) rnorm(n),
+                 p = function(u, beta) pnorm(u),
+                 q = function(p, beta) qnorm(p),
+                 beta2tau = function(beta) {
+                   c(mu_x = beta[1], sigma_x = beta[2], 
+                     gamma = 0, alpha = 1, delta = 0)
+                   },
+                 distname = "MyNormal",
+                 is.non.negative = FALSE)
+my.input &lt;- create_LambertW_input(input.u = user.tmp, beta = c(0, 1))
+my.input
+plot(my.input)
+
+</code></pre>
+
+
+</div>

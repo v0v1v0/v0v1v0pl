@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cppicka</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Picka's Reduced Window Estimator of Coverage Probability</h2>
+
+<h3>Description</h3>
+
+<p>This function provides estimates of coverage probability from subsets of the observation window,
+which are a key component of balanced estimators of covariance, centred covariance, pair-correlation and gliding box lacunarity.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cppicka(xi, obswin = NULL, setcov_boundarythresh = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>An observation of a RACS of interest as a full binary map (as an <code>im</code> object) or as the foreground set (as an <code>owin</code> object).
+In the latter case the observation window, <code>obswin</code>, must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obswin</code></td>
+<td>
+<p>If <code>xi</code> is an <code>owin</code> object then <code>obswin</code> is an
+<code>owin</code> object that specifies the observation window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setcov_boundarythresh</code></td>
+<td>
+<p>To avoid instabilities caused by dividing by very small quantities, if the set covariance of the observation window
+is smaller than <code>setcov_boundarythresh</code>, then the returned pixel value is NA.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The plug-in moment covariance estimator (<code>plugincvc</code>) uses less of the observation window than the usual coverage probability estimators.
+Picka (1997, 2000) created new 'balanced' estimators of centred covariance and pair-correlation
+that accounted for this difference.
+A key component of Picka's estimators is an estimate of the coverage probability from the subregion of the binary map that is
+the intersection between <code class="reqn">W</code> and <code class="reqn">W</code> shifted by vector <code class="reqn">v</code>, where <code class="reqn">W</code> is the observation window (p.~687, Picka, 2000).
+If we treat <code class="reqn">X</code> and <code class="reqn">W</code> as indicator functions representing the foreground and observation window respectively,
+this coverage probability estimator used by Picka is
+</p>
+<p style="text-align: center;"><code class="reqn"> \frac{\int X(u) W(u) W(u - v) du} {\int W(u) W(u - v) du}. </code>
+</p>
+
+<p><code>cppicka</code> produces these estimates for an array of vectors <code class="reqn">v</code> using fast Fourier transforms.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>im</code> object. Pixel values correspond to estimates of the coverage probability
+from the subregion of the observation window, <code class="reqn">W</code>, that is the intersection of <code class="reqn">W</code> and <code class="reqn">W</code> shifted by vector <code class="reqn">v</code>, where <code class="reqn">v</code> is the pixel location.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kassel Liam Hingee
+</p>
+
+
+<h3>References</h3>
+
+<p>Picka, J.D. (1997) <em>Variance-Reducing Modifications for Estimators of Dependence in Random Sets</em>. Ph.D.: Illinois, USA: The University of Chicago.
+</p>
+<p>Picka, J.D. (2000) Variance reducing modifications for estimators of standardized moments of random sets. <em>Advances in Applied Probability</em>, 32, 682-700.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xi &lt;- heather$coarse
+obswindow &lt;- Frame(heather$coarse)
+cp &lt;- coverageprob(xi, obswindow)
+cpp1 &lt;- cppicka(xi, obswindow)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fixed_regex_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Require usage of <code>fixed=TRUE</code> in regular expressions where appropriate</h2>
+
+<h3>Description</h3>
+
+<p>Invoking a regular expression engine is overkill for cases when the search
+pattern only involves static patterns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fixed_regex_linter(allow_unescaped = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>allow_unescaped</code></td>
+<td>
+<p>Logical, default <code>FALSE</code>. If <code>TRUE</code>, only patterns that
+require regex escapes (e.g. <code>"\\$"</code> or <code>"[$]"</code>) will be linted. See examples.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>NB: for <code>stringr</code> functions, that means wrapping the pattern in <code>stringr::fixed()</code>.
+</p>
+<p>NB: this linter is likely not able to distinguish every possible case when
+a fixed regular expression is preferable, rather it seeks to identify
+likely cases. It should <em>never</em> report false positives, however; please
+report false positives as an error.
+</p>
+
+
+<h3>Tags</h3>
+
+<p>best_practices, configurable, efficiency, readability
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+code_lines &lt;- 'gsub("\\\\.", "", x)'
+writeLines(code_lines)
+lint(
+  text = code_lines,
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("a[*]b", x)',
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("a[*]b", x)',
+  linters = fixed_regex_linter(allow_unescaped = TRUE)
+)
+
+code_lines &lt;- 'stringr::str_subset(x, "\\\\$")'
+writeLines(code_lines)
+lint(
+  text = code_lines,
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("Munich", address)',
+  linters = fixed_regex_linter()
+)
+
+# okay
+code_lines &lt;- 'gsub("\\\\.", "", x, fixed = TRUE)'
+writeLines(code_lines)
+lint(
+  text = code_lines,
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("a*b", x, fixed = TRUE)',
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'stringr::str_subset(x, stringr::fixed("$"))',
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("Munich", address, fixed = TRUE)',
+  linters = fixed_regex_linter()
+)
+
+lint(
+  text = 'grepl("Munich", address)',
+  linters = fixed_regex_linter(allow_unescaped = TRUE)
+)
+
+</code></pre>
+
+
+</div>

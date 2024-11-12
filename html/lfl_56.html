@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fire</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate rules and obtain truth-degrees</h2>
+
+<h3>Description</h3>
+
+<p>Given truth degrees of predicates, compute the truth value of given list of rules.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fire(
+  x,
+  rules,
+  tnorm = c("goedel", "goguen", "lukasiewicz"),
+  onlyAnte = TRUE,
+  parallel = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Truth degrees of predicates. <code>x</code> could be either a numeric
+matrix or a numeric vector. If vector is given then each named element represents
+a truth value of a predicate. If matrix is given then each row of the matrix
+is evaluated sequentially as a vector. The values must be in the interval
+<code class="reqn">[0, 1]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>Either an object of S3 class <code>farules()</code> or a list of character
+vectors where each vector is a rule in a conjunctive form. Elements of these
+character vectors (i.e., predicate names) must correspond to
+the <code>x</code>'s names (of elements resp. columns if <code>x</code> is a vector resp. matrix).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tnorm</code></td>
+<td>
+<p>A character string representing a triangular norm to be used
+(either <code>"goedel"</code>, <code>"goguen"</code>, or <code>"lukasiewicz"</code>) or an arbitrary function
+that performs element-wise computation on arbitrary number of vector parameters
+similarly as e.g. <code>pgoedel.tnorm()</code>, <code>pgoguen.tnorm()</code> or <code>plukas.tnorm()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>onlyAnte</code></td>
+<td>
+<p><code>TRUE</code> is useful if rules store both the antecedent and consequent
+and if only the antecedent-part of a rule should be included into the evaluated
+conjunction. Antecedent-part of a rule are all predicates in the vector starting from
+the 2nd position. <code>TRUE</code> value in this parameter causes the first element of each
+rule to be ignored.
+</p>
+<p>If <code>FALSE</code>, all predicates in a rule will be included in the conjunction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Deprecated parameter. Computation is done sequentially.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The aim of this function is to compute the truth value of each rule in a
+<code>rules</code> list by assigning truth values to rule's predicates given by data <code>x</code>.
+</p>
+<p><code>x</code> is a numeric vector or numeric matrix of truth values of predicates. If
+<code>x</code> is vector then <code>names(x)</code> must correspond to the predicate names
+in <code>rules</code>. If <code>x</code> is a matrix then each column should represent a predicate
+and thus <code>colnames(x)</code> must correspond to predicate names in <code>rules</code>.
+Values of <code>x</code> are interpreted as truth values, i.e., they must be from the
+interval <code class="reqn">[0, 1]</code>. If matrix is given, the resulting truth values are
+computed row-wisely.
+</p>
+<p><code>rules</code> may be a list of character vectors or an instance of the S3 class
+<code>farules()</code>. The character vectors in the <code>rules</code> list represent formulae
+in conjunctive form. If <code>onlyAnte=FALSE</code>, <code>fire()</code> treats the rule as
+a conjunction of all predicates, i.e., a conjunction of all predicates is
+computed. If <code>onlyAnte=TRUE</code>, the first element of each rule is removed
+prior evaluation, i.e., a conjunction of all predicates except the first
+are computed: this is useful if <code>rules</code> is a <code>farules()</code> object, since
+<code>farules()</code> objects save a rule's consequent as the first element (see also
+<code>antecedents()</code> and <code>consequents()</code> functions).
+</p>
+<p>The type of  conjunction to be computed can be specified with the <code>tnorm</code> parameter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>x</code> is a matrix then the result of this function is a list
+of numeric vectors with truth values of each rule, i.e., each element of the
+resulting list corresponds to a rule and each value of the vector in the resulting
+list corresponds to a row of the original data matrix <code>x</code>.
+</p>
+<p><code>x</code> as a vector is treated as a single-row matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aggregateConsequents()</code>, <code>defuzz()</code>, <code>perceive()</code>, <code>pbld()</code>, <code>fcut()</code>, <code>lcut()</code>, <code>farules()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# fire whole rules on a vector
+x &lt;- 1:10 / 10
+names(x) &lt;- letters[1:10]
+rules &lt;- list(c('a', 'c', 'e'),
+              c('b'),
+              c('d', 'a'),
+              c('c', 'a', 'b'))
+fire(x, rules, tnorm='goguen', onlyAnte=FALSE)
+
+# fire antecedents of the rules on a matrix
+x &lt;- matrix(1:20 / 20, nrow=2)
+colnames(x) &lt;- letters[1:10]
+rules &lt;- list(c('a', 'c', 'e'),
+              c('b'),
+              c('d', 'a'),
+              c('c', 'a', 'b'))
+fire(x, rules, tnorm='goedel', onlyAnte=TRUE)
+
+# the former command should be equal to
+fire(x, antecedents(rules), tnorm='goedel', onlyAnte=FALSE)
+
+</code></pre>
+
+
+</div>

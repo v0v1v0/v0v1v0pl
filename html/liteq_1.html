@@ -1,0 +1,65 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>liteq</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lightweight Portable Message Queue Using 'SQLite'</h2>
+
+<h3>Description</h3>
+
+<p>Message queues for R. Built on top of 'SQLite' databases.
+</p>
+
+
+<h3>Concurrency</h3>
+
+<p>liteq works with multiple producer and/or consumer processes accessing
+the same queue, via the locking mechanism of 'SQLite'. If a queue is
+locked by 'SQLite', the process that tries to access it, must wait until
+it is unlocked. The maximum amount of waiting time is by default 10
+seconds, and it can be changed via the <code>R_LITEQ_BUSY_TIMEOUT</code>
+environment variable, in milliseconds. If you have many concurrent
+processes using the same liteq database, and see <code>database locked</code>
+errors, then you can try to increase the timeout value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre># We don't run this, because it writes to the cache directory
+db &lt;- tempfile()
+q &lt;- ensure_queue("jobs", db = db)
+q
+list_queues(db)
+
+# Publish two messages
+publish(q, title = "First message", message = "Hello world!")
+publish(q, title = "Second message", message = "Hello again!")
+is_empty(q)
+message_count(q)
+list_messages(q)
+
+# Consume one
+msg &lt;- try_consume(q)
+msg
+
+ack(msg)
+list_messages(q)
+msg2 &lt;- try_consume(q)
+nack(msg2)
+list_messages(q)
+
+# No more messages
+is_empty(q)
+try_consume(q)
+</pre>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## See the manual page
+</code></pre>
+
+
+</div>

@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitPareto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit income distribution models with the Pareto distribution</h2>
+
+<h3>Description</h3>
+
+<p>Fit a Pareto distribution to the upper tail of income data.  Since a
+theoretical distribution is used for the upper tail, this is a semiparametric
+approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fitPareto(
+  x,
+  k = NULL,
+  x0 = NULL,
+  method = "thetaPDC",
+  groups = NULL,
+  w = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of observations in the upper tail to which the Pareto
+distribution is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>the threshold (scale parameter) above which the Pareto distribution
+is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>either a function or a character string specifying the function
+to be used to estimate the shape parameter of the Pareto distibution, such as
+<code>thetaPDC</code> (the default).  See “Details” for requirements
+for such a function and “See also” for available functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>an optional vector or factor specifying groups of elements of
+<code>x</code> (e.g., households).  If supplied, each group of observations is
+expected to have the same value in <code>x</code> (e.g., household income).  Only
+the values of every first group member to appear are used for fitting the
+Pareto distribution. For each group above the threshold, every group member
+is assigned the same value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>an optional numeric vector giving sample weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>addtional arguments to be passed to the specified method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments <code>k</code> and <code>x0</code> of course correspond with each other.
+If <code>k</code> is supplied, the threshold <code>x0</code> is estimated with the <code class="reqn">n
+- k</code> largest value in <code>x</code>, where <code class="reqn">n</code> is the number of observations.
+On the other hand, if the threshold <code>x0</code> is supplied, <code>k</code> is given
+by the number of observations in <code>x</code> larger than <code>x0</code>.  Therefore,
+either <code>k</code> or <code>x0</code> needs to be supplied.  If both are supplied,
+only <code>k</code> is used (mainly for back compatibility).
+</p>
+<p>The function supplied to <code>method</code> should take a numeric vector (the
+observations) as its first argument.  If <code>k</code> is supplied, it will be
+passed on (in this case, the function is required to have an argument called
+<code>k</code>).  Similarly, if the threshold <code>x0</code> is supplied, it will be
+passed on (in this case, the function is required to have an argument called
+<code>x0</code>).  As above, only <code>k</code> is passed on if both are supplied.  If
+the function specified by <code>method</code> can handle sample weights, the
+corresponding argument should be called <code>w</code>.  Additional arguments are
+passed via the ... argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector with a Pareto distribution fit to the upper tail.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The arguments <code>x0</code> for the threshold (scale parameter) of the
+Pareto distribution and <code>w</code> for sample weights were introduced in
+version 0.2.  This results in slightly different behavior regarding the
+function calls to <code>method</code> compared to prior versions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Alfons and Josef Holzer
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>paretoTail</code>, <code>replaceTail</code>
+</p>
+<p><code>thetaPDC</code>, <code>thetaWML</code>, <code>thetaHill</code>,
+<code>thetaISE</code>, <code>thetaLS</code>, <code>thetaMoment</code>,
+<code>thetaQQ</code>, <code>thetaTM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(eusilc)
+
+
+## gini coefficient without Pareto tail modeling
+gini("eqIncome", weights = "rb050", data = eusilc)
+
+
+## gini coefficient with Pareto tail modeling
+
+# using number of observations in tail
+eqIncome &lt;- fitPareto(eusilc$eqIncome, k = 175,
+    w = eusilc$db090, groups = eusilc$db030)
+gini(eqIncome, weights = eusilc$rb050)
+
+# using threshold
+eqIncome &lt;- fitPareto(eusilc$eqIncome, x0 = 44150,
+    w = eusilc$db090, groups = eusilc$db030)
+gini(eqIncome, weights = eusilc$rb050)
+
+</code></pre>
+
+
+</div>

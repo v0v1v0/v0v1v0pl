@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TrenchInverse</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>compute the matrix inverse of a positive-definite Toepliz matrix </h2>
+
+<h3>Description</h3>
+
+<p>The Trench algorithm (Golub and Vanload, 1983) is implemented in C and
+interfaced to R.
+This provides an expedient method for obtaining the
+matrix inverse of the covariance matrix of n successive observations
+from a stationary time series.
+Some applications of this are discussed by McLeod and Krougly (2005).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TrenchInverse(G)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p> a positive definite Toeplitz matrix </p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>the matrix inverse of G is computed</p>
+
+
+<h3>Warning </h3>
+
+<p>You should test the input x using is.toeplitz(x) if you are not sure if
+x is a symmetric Toeplitz matix.
+</p>
+
+
+<h3>Note</h3>
+
+<p>TrenchInverse(x) assumes that x is a symmetric Toeplitz matrix but it
+does not specifically test for this.
+Instead it merely takes the first row of x and passes this directly
+to the C code program which uses this more compact storage format.
+The C code program then computes the inverse. 
+An error message is given if the C code algorithm encounters
+a non-positive definite input.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> A.I. McLeod </p>
+
+
+<h3>References</h3>
+
+ 
+<p>Golub, G. and Van Loan (1983).
+Matrix Computations, 2nd Ed.
+John Hoptkins University Press, Baltimore.
+Algorithm 5.7-3.
+</p>
+<p>McLeod, A.I., Yu, Hao, Krougly, Zinovi L.  (2007).
+Algorithms for Linear Time Series Analysis,
+Journal of Statistical Software.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>TrenchLoglikelihood</code>, <code>is.toeplitz</code>, 
+<code>DLLoglikelihood</code>, 
+<code>TrenchMean</code>, <code>solve</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#compute inverse of matrix and compare with result from solve
+data(LakeHuron)
+r&lt;-acf(LakeHuron, plot=FALSE, lag.max=4)$acf
+R&lt;-toeplitz(c(r))
+Ri&lt;-TrenchInverse(R)
+Ri2&lt;-solve(R)
+Ri
+Ri2
+
+#invert a matrix of order n and compute the maximum absolute error
+# in the product of this inverse with the original matrix
+n&lt;-5	   
+r&lt;-0.8^(0:(n-1))
+G&lt;-toeplitz(r)
+Gi&lt;-TrenchInverse(G)
+GGi&lt;-crossprod(t(G),Gi)
+id&lt;-matrix(0, nrow=n, ncol=n)
+diag(id)&lt;-1
+err&lt;-max(abs(id-GGi))
+err
+</code></pre>
+
+
+</div>

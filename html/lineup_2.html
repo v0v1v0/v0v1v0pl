@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>combinedist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combine distance matrices into a single such</h2>
+
+<h3>Description</h3>
+
+<p>Combine multiple distance matrices into a single distance matrix providing
+an overall summary
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">combinedist(..., method = c("median", "mean"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Set of distance matrices, as calculated by <code>distee()</code>
+or <code>disteg()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Indicates whether to summarize using the median or the mean.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The row and column names of the input distance matrices define the
+individual IDs.
+</p>
+<p>If the input distance matrices all have an attribute <code>"denom"</code> (for
+denominator) and <code>method="mean"</code>, we use a weighted mean, weighted by
+the denominators.  This could be used to calculate an overall proportion.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A distance matrix, with class <code>"lineupdist"</code>.  The individual
+IDs are in the row and column names.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl W Broman, <a href="mailto:broman@wisc.edu">broman@wisc.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>distee()</code>, <code>disteg()</code>,
+<code>summary.lineupdist()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(qtl)
+
+# load example data
+data(f2cross, expr1, expr2, pmap, genepos)
+
+
+# calculate QTL genotype probabilities
+f2cross &lt;- calc.genoprob(f2cross, step=1)
+
+# find nearest pseudomarkers
+pmark &lt;- find.gene.pseudomarker(f2cross, pmap, genepos)
+
+# line up individuals
+id1 &lt;- findCommonID(f2cross, expr1)
+id2 &lt;- findCommonID(f2cross, expr2)
+
+# calculate LOD score for local eQTL
+locallod1 &lt;- calc.locallod(f2cross[,id1$first], expr1[id1$second,], pmark)
+locallod2 &lt;- calc.locallod(f2cross[,id2$first], expr2[id2$second,], pmark)
+
+# take those with LOD &gt; 25
+expr1s &lt;- expr1[,locallod1&gt;25,drop=FALSE]
+expr2s &lt;- expr2[,locallod2&gt;25,drop=FALSE]
+
+# calculate distance between individuals
+#     (prop'n mismatches between obs and inferred eQTL geno)
+d1 &lt;- disteg(f2cross, expr1s, pmark)
+d2 &lt;- disteg(f2cross, expr2s, pmark)
+
+# combine distances
+d &lt;- combinedist(d1, d2)
+
+# summary of problem samples
+summary(d)
+
+</code></pre>
+
+
+</div>

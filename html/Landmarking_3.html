@@ -1,0 +1,268 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_LME_landmark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the two-stage landmarking analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_LME_landmark(
+  data_long,
+  x_L,
+  x_hor,
+  fixed_effects,
+  random_effects,
+  fixed_effects_time,
+  random_effects_time,
+  individual_id,
+  k,
+  cross_validation_df,
+  random_slope_in_LME = TRUE,
+  random_slope_as_covariate = TRUE,
+  standardise_time = FALSE,
+  lme_control = nlme::lmeControl(),
+  event_time,
+  event_status,
+  survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
+  b
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data_long</code></td>
+<td>
+<p>Data frame or list of data frames each corresponding to a landmark age <code>x_L</code> (each element of the list must be named the value of <code>x_L</code> it corresponds to).
+Each data frame contains repeat measurements data and time-to-event data in long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_L</code></td>
+<td>
+<p>Numeric specifying the landmark time(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_hor</code></td>
+<td>
+<p>Numeric specifying the horizon time(s)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_effects</code></td>
+<td>
+<p>Vector of character strings specifying the column names in <code>data_long</code>
+which correspond to the fixed effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_effects</code></td>
+<td>
+<p>Vector of character strings specifying the column names in <code>data_long</code>
+which correspond to the random effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed_effects_time</code></td>
+<td>
+<p>Character string specifying the column name in <code>data_long</code>
+which contains the time at which the fixed effects were recorded</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_effects_time</code></td>
+<td>
+<p>Vector of character strings specifying the column names in <code>data_long</code>
+which contain the times at which repeat measures were recorded. This should either be length 1 or
+the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
+order of elements in <code>random_effects</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>individual_id</code></td>
+<td>
+<p>Character string specifying the column name in <code>data_long</code> which contains the individual identifiers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer specifying the number of folds for cross-validation.
+An alternative to setting parameter <code>cross_validation_df</code> for performing cross-validation; if both are missing no cross-validation is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cross_validation_df</code></td>
+<td>
+<p>List of data frames containing the cross-validation fold each individual is assigned to. Each data frame in the list should be
+named according to the landmark time <code>x_L</code> that they correspond. Each data frame should contain the columns <code>individual_id</code> and a column <code>cross_validation_number</code>
+which contains the cross-validation fold of the individual. An alternative to setting parameter <code>k</code> for performing cross-validation;
+if both are missing no cross-validation is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_slope_in_LME</code></td>
+<td>
+<p>Boolean indicating whether to include a random slope in the LME model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_slope_as_covariate</code></td>
+<td>
+<p>Boolean indicating whether to include the random slope estimate from the LME model
+as a covariate in the survival submodel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardise_time</code></td>
+<td>
+<p>Boolean indicating whether to standardise the time variables (<code>fixed_effects_time</code> and <code>random_effects_time</code>) by subtracting the mean
+and dividing by the standard deviation (see Details section for more information)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lme_control</code></td>
+<td>
+<p>Object created using <code>nlme::lmeControl()</code>, which will be passed to the <code>control</code> argument of the <code>lme</code>
+function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event_time</code></td>
+<td>
+<p>Character string specifying the column name in <code>data_long</code>
+which contains the event time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event_status</code></td>
+<td>
+<p>Character string specifying the column name in <code>data_long</code>
+which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
+2 or above).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival_submodel</code></td>
+<td>
+<p>Character string specifying which survival submodel to
+use. Three options: the standard Cox model i.e. no competing risks (<code>"standard_cox"</code>),
+the cause-specific regression model (<code>"cause_specific"</code>), or the Fine Gray
+regression model (<code>"fine_gray"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Firstly, this function selects the individuals in the risk set at the landmark time <code>x_L</code>.
+Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+(there is at least one observation for each of the <code>fixed_effects</code> and<code>random_effects</code> on or before <code>x_L</code>) and
+exited the study on after the landmark age (<code>event_time</code>
+is greater than <code>x_L</code>).
+</p>
+<p>Secondly, if the option to use cross validation
+is selected (using either parameter <code>k</code> or <code>cross_validation_df</code>), then an extra column <code>cross_validation_number</code> is added with the
+cross-validation folds. If parameter <code>k</code> is used, then the function <code>add_cv_number</code>
+randomly assigns these folds. For more details on this function see <code>?add_cv_number</code>.
+If the parameter <code>cross_validation_df</code> is used, then the folds specified in this data frame are added.
+If cross-validation is not selected then the landmark model is
+fit to the entire group of individuals in the risk set (this is both the training and test dataset).
+</p>
+<p>Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Using the longitudinal data is the first stage and is performed using <code>fit_LME_longitudinal</code>. See <code>?fit_LME_longitudinal</code> more for information about this function.
+Using the survival data is the second stage and is performed using <code>fit_survival_model</code>. See <code>?fit_survival_model</code> more for information about this function.
+</p>
+<p>Fourthly, the performance of the model is then assessed on the set of predictions
+from the entire set of individuals in the risk set by calculating Brier score and C-index.
+This is performed using <code>get_model_assessment</code>. See <code>?get_model_assessment</code> more for information about this function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>List containing containing information about the landmark model at each of the landmark times.
+Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
+<code>data</code>, <code>model_longitudinal</code>, <code>model_LME</code>, <code>model_LME_standardise_time</code>, <code>model_survival</code>, and <code>prediction_error</code>.
+</p>
+<p><code>data</code> has one row for each individual in the risk set at <code>x_L</code> and
+contains the value of the <code>fixed_effects</code> using the LOCF approach and predicted values of the
+<code>random_effects</code> using the LME model at the landmark time <code>x_L</code>. It also includes the predicted
+probability that the event of interest has occurred by time <code>x_hor</code>, labelled as <code>"event_prediction"</code>.
+There is one row for each individual.
+</p>
+<p><code>model_longitudinal</code> indicates that the longitudinal approach is LME.
+</p>
+<p><code>model_LME</code> contains the output from
+the <code>lme</code> function from package <code>nlme</code>. For a model using cross-validation,
+<code>model_LME</code> contains a list of outputs with each
+element in the list corresponds to a different cross-validation fold.
+<code>prediction_error</code> contains a list indicating the c-index and Brier score at time <code>x_hor</code> and their standard errors if parameter <code>b</code> is used.
+For more information on how the prediction error is calculated
+please see <code>?get_model_assessment</code> which is the function used to do this within <code>fit_LME_landmark</code>.
+</p>
+<p><code>model_LME_standardise_time</code> contains a list of two objects <code>mean_response_time</code> and <code>sd_response_time</code> if the parameter <code>standardise_time=TRUE</code> is used. This
+is the mean and standard deviation use to normalise times when fitting the LME model.
+</p>
+<p><code>model_survival</code> contains the outputs from
+the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
+<code>model_survival</code> will contain a list of outputs with each
+element in the list corresponding to a different cross-validation fold.
+<code>model_survival</code> contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
+For a model using cross-validation, <code>model_survival</code> contains a list of outputs with each
+element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
+please see <code>?fit_survival_model</code> which is the function used to do this within <code>fit_LME_landmark</code>.
+</p>
+<p><code>prediction_error</code> contains a list indicating the c-index and Brier score at time <code>x_hor</code> and their standard errors if parameter <code>b</code> is used.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Isobel Barrott <a href="mailto:isobel.barrott@gmail.com">isobel.barrott@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(Landmarking)
+data(data_repeat_outcomes)
+data_model_landmark_LME &lt;-
+  fit_LME_landmark(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    k = 10,
+    fixed_effects = c("ethnicity", "smoking", "diabetes"),
+    fixed_effects_time = "response_time_sbp_stnd",
+    random_effects = c("sbp_stnd", "tchdl_stnd"),
+    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    individual_id = "id",
+    standardise_time = TRUE,
+    lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
+
+</code></pre>
+
+
+</div>

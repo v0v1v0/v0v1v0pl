@@ -1,0 +1,251 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LAScatalog-class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>An S4 class to represent a collection of .las or .laz files</h2>
+
+<h3>Description</h3>
+
+<p>A <code>LAScatalog</code> object is a representation of a collection of las/laz files. A <code>LAScatalog</code> is
+a way to manage and batch process a lidar coverage. It allows the user to process a large area, or to
+selectively clip data from a large area without loading all the data into computer memory.
+A <code>LAScatalog</code> can be built with the function readLAScatalog.
+</p>
+
+
+<h3>Details</h3>
+
+<p>A <code>LAScatalog</code> contains an <code>sf</code> object to store the geometry and metadata. It is extended with slots
+that contain processing options. In <code>lidR</code>, each function that supports a <code>LAScatalog</code> as
+input will respect these processing options. Internally, processing a catalog is almost always the
+same and relies on a few steps:<br></p>
+
+<ol>
+<li>
+<p> Define chunks. A chunk is an arbitrarily-defined region of interest (ROI) of the
+collection. Altogether, the chunks are a wall-to-wall set of ROIs that encompass the whole dataset.
+</p>
+</li>
+<li>
+<p> Loop over each chunk (in parallel or not).
+</p>
+</li>
+<li>
+<p> For each chunk, load the points inside the ROI into R, run some R functions,
+return the expected output.
+</p>
+</li>
+<li>
+<p> Merge the outputs of the different chunks once they are all processed to build a continuous
+(wall-to-wall) output.
+</p>
+</li>
+</ol>
+<p>So basically, a <code>LAScatalog</code> is an object that allows for batch processing but with the specificity
+that <code>lidR</code> does not loop through LAS or LAZ files, but loops seamlessly through chunks that do not
+necessarily match with the file pattern. This way <code>lidR</code> can sequentially process tiny ROIs even if
+each file may be individually too big to fit in memory. This is also why point cloud indexation
+with <code>lax</code> files may significantly speed-up the processing.<br><br>
+It is important to note that catalogs with files that overlap each other are not natively supported
+by <code>lidR</code>. When encountering such datasets the user should always filter any overlaps if
+possible. This is possible if the overlapping points are flagged, for example in the
+'withheld' attribute. Otherwise <code>lidR</code> will not be able to process the dataset correctly.
+</p>
+
+
+<h3>Slots</h3>
+
+
+<dl>
+<dt><code>data</code></dt>
+<dd>
+<p>sf. An <code>sf</code> <code>data.frame</code> with the bounding box of each file as well as all the information
+read from the header of each LAS/LAZ file.</p>
+</dd>
+<dt><code>processing_options</code></dt>
+<dd>
+<p>list. A list that contains some settings describing how the collection will be
+processed (see dedicated section).</p>
+</dd>
+<dt><code>chunk_options</code></dt>
+<dd>
+<p>list. A list that contains some settings describing how the collection will be
+sub-divided into chunks to be processed (see dedicated section).</p>
+</dd>
+<dt><code>output_options</code></dt>
+<dd>
+<p>list. A list that contains some settings describing how the collection will return
+the outputs (see dedicated section).</p>
+</dd>
+<dt><code>input_options</code></dt>
+<dd>
+<p>list. A list of parameters to pass to readLAS (see dedicated section).</p>
+</dd>
+<dt><code>index</code></dt>
+<dd>
+<p>list. See spatial indexing.</p>
+</dd>
+</dl>
+<h3>Processing options</h3>
+
+<p>The slot <code style="white-space: pre;">⁠@processing_options⁠</code> contains a <code>list</code> of options that determine how chunks
+(the sub-areas that are sequentially processed) are processed.
+</p>
+
+<ul>
+<li> <p><strong>progress</strong>: boolean. Display a progress bar and a chart of progress. Default is TRUE.
+Progress estimation can be enhanced by installing the package <code>progress</code>. See opt_progress.
+</p>
+</li>
+<li> <p><strong>stop_early</strong>: boolean. Stop the processing if an error occurs in a chunk. If <code>FALSE</code>
+the process can run until the end, removing chunks that failed. Default is TRUE and the user should
+have no reason to change this. See opt_stop_early.
+</p>
+</li>
+<li> <p><strong>wall.to.wall</strong> logical. The catalog processing engine always guarantees to return a
+continuous output without edge effects, assuming that the catalog is a wall-to-wall catalog. To do
+so, some options are checked internally to guard against bad settings, such as <code>buffer = 0</code> for an
+algorithm that requires a buffer. In rare cases it might be useful to disable these controls. If
+<code>wall.to.wall = FALSE</code> controls are disabled and wall-to-wall outputs cannot be guaranteed.
+See opt_wall_to_wall
+</p>
+</li>
+</ul>
+<h3>Chunk options</h3>
+
+<p>The slot <code style="white-space: pre;">⁠@chunk_options⁠</code> contains a <code>list</code> of options that determine how chunks
+(the sub-areas that are sequentially processed) are made.
+</p>
+
+<ul>
+<li> <p><strong>chunk_size</strong>: numeric. The size of the chunks that will be sequentially processed.
+A small size allows small amounts of data to be loaded at once, saving computer memory.
+With big chunks the computation is usually faster but uses much more memory. If <code>chunk_size = 0</code> the
+chunk pattern is build using the file pattern. The chunks are expecting to be wall-to-wall coverage,
+which means that <code>chunk_size = 0</code> has meaning only if the files are not overlapping. Default is 0 i.e.
+by default the processing engine respects the existing tiling pattern. See opt_chunk_size.
+</p>
+</li>
+<li> <p><strong>buffer</strong>: numeric. Each chunk can be read with an extra buffer around it to ensure there are
+no edge effects between two independent chunks and that the output is continuous. This is mandatory for
+some algorithms. Default is 30. See opt_chunk_buffer.
+</p>
+</li>
+<li> <p><strong>alignment</strong>: numeric. A vector of size 2 (x and y coordinates, respectively) to align the
+chunk pattern. By default the alignment is made along (0,0), meaning that the edge of the first chunk
+will belong on x = 0 and y = 0 and all the the other chunks will be multiples of the chunk size.
+Not relevant if <code>chunk_size = 0</code>. See opt_chunk_alignment.
+</p>
+</li>
+<li> <p><strong>drop</strong>: integers. A vector of integers that specify the IDs of the chunks that should not be
+created. This is designed to enable users to restart a computation that failed without reprocessing
+everything. See opt_restart&lt;-. Technically, this option may be used for partial processing of
+a collection, but it generally should not be. Partial processing is already a feature of the engine. See
+<a href="https://cran.r-project.org/package=lidR/vignettes/lidR-LAScatalog-engine.html#partial-processing">this vignette</a>
+</p>
+</li>
+</ul>
+<h3>Output options</h3>
+
+<p>The slot <code style="white-space: pre;">⁠@output_options⁠</code> contains a <code>list</code> of options that determine how chunks
+(the sub-areas that are sequentially processed) are written. By "written" we mean written to files
+or written in R memory.
+</p>
+
+<ul>
+<li> <p><strong>output_files</strong>: string. If <code>output_files = ""</code> outputs are returned in R. Otherwise, if
+<code>output_files</code> is a string the outputs will be written to files.
+This is useful if the output is too big to be returned in R. A path to a filename template
+without a file extension (the engine guesses it for you) is expected. When several files are going to be
+written a single string is provided with a template that is automatically filled. For example,
+the following file names are possible:
+</p>
+<pre>
+"/home/user/als/normalized/file_{ID}_segmented"
+"C:/user/document/als/zone52_{XLEFT}_{YBOTTOM}_confidential"
+"C:/user/document/als/{ORIGINALFILNAME}_normalized"
+</pre>
+<p>This option will generate as many filenames as needed with custom names for each file. The allowed
+templates are <code>{XLEFT}, {XRIGHT}, {YBOTTOM}, {YTOP}, {ID}, {XCENTER},
+{YCENTER}, {ORIGINALFILENAME}</code>. See opt_output_files.
+</p>
+</li>
+<li> <p><strong>drivers</strong>: list. This contains all the drivers required to seamlessly write <code style="white-space: pre;">⁠Raster*⁠</code>,
+<code>SpatRaster</code>, <code>stars</code>, <code style="white-space: pre;">⁠Spatial*⁠</code>, <code>sf</code>, and <code>LAS</code> objects. It is recommended that only advanced
+users change this option. A dedicated page describes the drivers in lidR-LAScatalog-drivers.
+</p>
+</li>
+<li> <p><strong>merge</strong>: boolean. Multiple objects are merged into a single object at the end of the processing.
+See opt_merge.
+</p>
+</li>
+</ul>
+<h3>Input options</h3>
+
+<p>The slot <code style="white-space: pre;">⁠@input_options⁠</code> contains a <code>list</code> of options that are passed to the function
+readLAS. Indeed, the <code>readLAS</code> function is not called directly by the user but by the
+internal processing engine. Users can propagate these options through the <code>LAScatalog</code> settings.
+</p>
+
+<ul>
+<li> <p><strong>select</strong>: string. The option <code>select</code>. Usually this option is not respected because
+each function knows which data must be loaded or not. This is documented in each function. See
+opt_select.
+</p>
+</li>
+<li> <p><strong>filter</strong>: string. The option <code>filter</code>. See opt_filter.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Build a catalog
+ctg &lt;- readLAScatalog("filder/to/las/files/", filter =  "-keep_first")
+
+
+# Summary gives a summary of how the catalog will be processed
+summary(ctg)
+
+# We can seamlessly use lidR functions
+hmean &lt;- pixel_metrics(ctg, ~~mean(Z), 20)
+ttops &lt;- tree_detection(ctg, lmf(5))
+
+# For low memory config it is probably advisable not to load entire files
+# and process chunks instead
+opt_chunk_size(ctg) &lt;- 500
+
+# Sometimes the output is likely to be very large
+# e.g. large coverage and small resolution
+dtm &lt;- rasterize_terrain(ctg, 1, tin())
+
+# In that case it is advisable to write the output(s) to files
+opt_output_files(ctg) &lt;- "path/to/folder/DTM_chunk_{XLEFT}_{YBOTTOM}"
+
+# Raster will be written to disk. The list of written files is returned
+# or, in this specific case, a virtual raster mosaic.
+dtm &lt;- rasterize_terrain(ctg, 1, tin())
+
+# When chunks are files the original names of the las files can be preserved
+opt_chunk_size(ctg) &lt;- 0
+opt_output_files(ctg) &lt;- "path/to/folder/DTM_{ORIGINALFILENAME}"
+dtm &lt;- rasterize_terrain(ctg, 1, tin())
+
+# For some functions, files MUST be written to disk. Indeed, it is certain that R cannot
+# handle the entire output.
+opt_chunk_size(ctg) &lt;- 0
+opt_output_files(ctg) &lt;- "path/to/folder/{ORIGINALFILENAME}_norm"
+opt_laz_compression(ctg) &lt;- TRUE
+new_ctg &lt;- normalize_height(ctg, tin())
+
+# The user has access to the catalog engine through the functions catalog_apply
+# and catalog_map
+output &lt;- catalog_apply(ctg, FUN, ...)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

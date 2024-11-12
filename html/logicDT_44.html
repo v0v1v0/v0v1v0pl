@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tree.control</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Control parameters for fitting decision trees</h2>
+
+<h3>Description</h3>
+
+<p>Configure the fitting process of individual decision trees.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tree.control(
+  nodesize = 10,
+  split_criterion = "gini",
+  alpha = 0.05,
+  cp = 0.001,
+  smoothing = "none",
+  mtry = "none",
+  covariable = "final_4pl"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nodesize</code></td>
+<td>
+<p>Minimum number of samples contained in a
+terminal node. This parameter ensures that enough samples
+are available for performing predictions which includes
+fitting regression models such as 4pL models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>split_criterion</code></td>
+<td>
+<p>Splitting criterion for deciding
+when and how to split. The default is <code>"gini"</code>/<code>"mse"</code> which
+utilizes the Gini splitting criterion for binary risk
+estimation tasks and the mean squared error as impurity
+measure in regression tasks. Alternatively, <code>"4pl"</code> can be
+used if a quantitative covariable is supplied and
+the parameter <code>covariable</code> is chosen such that 4pL
+model fitting is enabled, i.e., <code>covariable = "final_4pl"</code>
+or <code>covariable = "full_4pl"</code>.
+A fast modeling alternative is given by <code>"linear"</code> which also
+requires the parameter <code>covariable</code> to be properly
+chosen, i.e., <code>covariable = "final_linear"</code>
+or <code>covariable = "full_linear"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Significance threshold for the likelihood ratio
+tests when using <code>split_criterion = "4pl"</code> or <code>"linear"</code>.
+Only splits that achieve a p-value smaller than <code>alpha</code> are eligible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cp</code></td>
+<td>
+<p>Complexity parameter. This parameter determines
+by which amount the impurity has to be reduced to further
+split a node. Here, the total tree impurity is considered.
+See details for a specific formula. Only used if
+<code>split_criterion = "gini"</code> or <code>"mse"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoothing</code></td>
+<td>
+<p>Shall the leaf predictions for risk
+estimation be smoothed? <code>"laplace"</code> yields Laplace smoothing.
+The default is <code>"none"</code> which does not employ smoothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtry</code></td>
+<td>
+<p>Shall the tree fitting process be randomized
+as in random forests? Currently, only <code>"sqrt"</code> for using
+<code class="reqn">\sqrt{p}</code> random predictors at each node for splitting
+and <code>"none"</code> (default) for fitting conventional decision trees
+are supported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariable</code></td>
+<td>
+<p>How shall optional quantitative covariables
+be handled? <code>"constant"</code> ignores them. Alternatively,
+they can be considered as splitting variables (<code>"_split"</code>),
+used for fitting 4pL models in each leaf (<code>"_4pl"</code>), or used
+for fitting linear models in each leaf (<code>"_linear"</code>). If either
+splitting or model fitting is chosen, one should state if this
+should be handled over the whole search (<code>"full_"</code>,
+computationally expensive) or just the final trees
+(<code>"final_"</code>). Thus, <code>"final_4pl"</code> would lead to fitting
+4pL models in each leaf but only for the final tree fitting.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For the Gini or MSE splitting criterion,
+if any considered split <code class="reqn">s</code> leads to
+</p>
+<p style="text-align: center;"><code class="reqn">P(t) \cdot \Delta I(s,t) &gt; \texttt{cp}</code>
+</p>
+
+<p>for a node <code class="reqn">t</code>, the empirical node probability
+<code class="reqn">P(t)</code> and the impurity reduction <code class="reqn">\Delta I(s,t)</code>,
+then the node is further splitted. If not, the node is
+declared as a leaf.
+For continuous outcomes, <code>cp</code> will be scaled by the
+empirical variance of <code>y</code> to ensure the right scaling,
+i.e., <code>cp &lt;- cp * var(y)</code>. Since the impurity measure
+for continuous outcomes is the mean squared error, this can
+be interpreted as controlling the minimum reduction of the
+normalized mean squared error (NRMSE to the power of two).
+</p>
+<p>If one chooses the 4pL or linear splitting criterion, likelihood
+ratio tests testing the alternative of better fitting individual
+models are employed. The corresponding test statistic
+asymptotically follows a <code class="reqn">\chi^2</code> distribution where
+the degrees of freedom are given by the difference in the
+number of model parameters, i.e., leading to
+<code class="reqn">2 \cdot 4 - 4 = 4</code> degrees of freedom in the case of 4pL
+models and to <code class="reqn">2 \cdot 2 - 2 = 2</code> degrees of freedom in
+the case of linear models.
+</p>
+<p>For binary outcomes, choosing to fit linear models for evaluating
+the splits or for modeling the leaves actually leads to fitting
+LDA (linear discriminant analysis) models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>tree.control</code> which is a list
+of all necessary tree parameters.
+</p>
+
+
+</div>

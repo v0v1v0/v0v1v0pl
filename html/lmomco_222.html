@@ -1,0 +1,284 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>paraep4</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the 4-Parameter Asymmetric Exponential Power Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the 4-parameter Asymmetric Exponential Power distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The relation between distribution parameters and L-moments is seen under <code>lmomaep4</code>. Relatively straightforward, but difficult to numerically achieve, optimization is needed to extract the parameters from the L-moments. If the <code class="reqn">\tau_3</code> of the distribution is zero (symmetrical), then the distribution is known as the Exponential Power (see <code>lmrdia46</code>).
+</p>
+<p>Delicado and Goria (2008) argue for numerical methods to use the following objective function
+</p>
+<p style="text-align: center;"><code class="reqn">\epsilon(\alpha, \kappa, h) = \log(1 + \sum_{r=2}^4 (\hat\lambda_r - \lambda_r)^2)\mbox{,}</code>
+</p>
+
+<p>and subsequently solve directly for <code class="reqn">\xi</code>. This objective function was chosen by Delicado and Goria because the solution surface can become quite flat for away from the minimum.  The author of <span class="pkg">lmomco</span> agrees with the findings of those authors from limited exploratory analysis and the development of the algorithms used here under the rubic of the “DG” method. This exploration resulted in an alternative algorithm using tabulated initial guesses described below. An evident drawback of the Delicado-Goria algorithm, is that precision in <code class="reqn">\alpha</code> is may be lost according to the observation that this parameter can be analytically computed given <code class="reqn">\lambda_2</code>, <code class="reqn">\kappa</code>, and <code class="reqn">h</code>.
+</p>
+<p>It is established practice in L-moment theory of four (and similarly three) parameter distributions to see expressions for <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> used for numerical optimization to obtain the two higher parameters (<code class="reqn">\alpha</code> and <code class="reqn">h</code>) first and then see analytical expressions directly compute the two lower parameters (<code class="reqn">\xi</code> and <code class="reqn">\alpha</code>). The author made various exploratory studies by optimizing on <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> through a least squares objective function. Such a practice seems to perform acceptably when compared to that recommended by Delicado and Goria (2008) when the initial guesses for the parameters are drawn from pretabulation of the relation between <code class="reqn">\{\alpha, h\}</code> and <code class="reqn">\{\tau_3, \tau_4\}</code>.
+</p>
+<p>Another optimization, referred to here as the “A” (Asquith) method, is available for parameter estimation using the following objective function
+</p>
+<p style="text-align: center;"><code class="reqn">\epsilon(\kappa, h) = \sqrt{(\hat\tau_3 - \tau_3)^2 + (\hat\tau_4 - \tau_4)^2}\mbox{,}</code>
+</p>
+
+<p>and subsequently solve directly for <code class="reqn">\alpha</code> and then <code class="reqn">\xi</code>. The “A” method appears to perform better in <code class="reqn">\kappa</code> and <code class="reqn">h</code> estimation and quite a bit better in <code class="reqn">\alpha</code> and and <code class="reqn">\xi</code> as seemingly expected because these last two are analytically computed (Asquith, 2014). The objective function of the “A” method defaults to use of the <code class="reqn">\sqrt{x}</code> but this can be removed by setting <code>sqrt.t3t4=FALSE</code>.
+</p>
+<p>The initial guesses for the <code class="reqn">\kappa</code> and <code class="reqn">h</code> parameters derives from a hashed environment in in file <br> ‘<span class="file">sysdata.rda</span>’ (<span class="env">.lmomcohash$AEPkh2lmrTable</span>) in which the <code class="reqn">\{\kappa, h\}</code> pair having the minimum <code class="reqn">\epsilon(\kappa, h)</code> in which <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> derive from the table as well.  The file ‘<span class="file">SysDataBuilder01.R</span>’ provides additional technical details on how the <code>AEPkh2lmrTable</code> was generated. The table represents a systematic double-loop sweep through <code>lmomaep4</code> for
+</p>
+<p style="text-align: center;"><code class="reqn">\kappa \mapsto \{-3 \le \log(\kappa) \le 3, \Delta\log(\kappa)=0.05\}\mbox{,}</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">h \mapsto \{-3 \le \log(h) \le 3, \Delta\log(h)=0.05\}\mbox{.}</code>
+</p>
+
+<p>The function will not return parameters if the following lower (estimated) bounds of <code class="reqn">\tau_4</code> are not met: <br><code class="reqn">\tau_4 \ge 0.77555(|\tau_3|) - 3.3355(|\tau_3|)^2 + 14.196(|\tau_3|)^3 - 29.909(|\tau_3|)^4 + 37.214(|\tau_3|)^5 - 24.741(|\tau_3|)^6 + 6.7998(|\tau_3|)^7</code>. For this polynomial, the residual standard error is RSE = 0.0003125 and the maximum absolute error for <code class="reqn">\tau_3{:}[0,1] &lt; 0.0015</code>. The actual coefficients in <code>paraep4</code> have additional significant figures. However, the argument <code>snap.tau4</code>, if set, will set <code class="reqn">\tau_4</code> equal to the prediction from the polynomial. This value of <code class="reqn">\tau_4</code> should be close enough numerically to the boundary because the optimization is made using a log-transformation to ensure that <code class="reqn">\alpha</code>, <code class="reqn">\kappa</code>, and <code class="reqn">h</code> remain in the positive domain—though the argument <code>nudge.tau4</code> is provided to offset <code class="reqn">\tau_4</code> upward just incase of optimization problems.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">paraep4(lmom, checklmom=TRUE, method=c("A", "DG", "ADG"),
+        sqrt.t3t4=TRUE, eps=1e-4, checkbounds=TRUE, kapapproved=TRUE,
+        snap.tau4=FALSE, nudge.tau4=0,
+        A.guess=NULL, K.guess=NULL, H.guess=NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the L-moments be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Which method for parameter estimation should be used. The “A” or “DG” methods. The “ADG” method will run both methods and retains the salient optimization results of each but the official parameters in <code>para</code> are those from the “A” method. Lastly, all minimization is based on the <code>optim</code> function using the Nelder–Mead method and default arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sqrt.t3t4</code></td>
+<td>
+<p>If true and the method is “A”, then the square root of the sum of square errors in <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> are used instead of sum of square differences alone.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>A small term or threshold for which the square root of the sum of square errors in <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> is compared to to judge “good enough” for the alogrithm to set the <code>ifail</code> on return in addition to convergence flags coming from the <code>optim</code> function. Note that <code>eps</code> is only used if the “A” or “ADG” methods are triggered because the other method uses the scale parameter which in reality could be quite large relative to the other two shape parameters, and a reasonable default for such a secondary error threshold check would be ambiguous.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkbounds</code></td>
+<td>
+<p>Should the lower bounds of <code class="reqn">\tau_4</code> be verified and if sample <code class="reqn">\hat\tau_3</code> and <code class="reqn">\hat\tau_4</code> are outside of these bounds, then <code>NA</code> are returned for the solutions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kapapproved</code></td>
+<td>
+<p>Should the Kappa distribution be fit by <code>parkap</code> if <code class="reqn">\hat\tau_4</code> is below the lower bounds of <code class="reqn">\tau_4</code>? This fitting is only possible if <code>checkbounds</code> is true. The Kappa and AEP4 overlap partially. The AEP4 extends <code class="reqn">\tau_4</code> above Generalized Logistic and Kappa extends <code class="reqn">\tau_4</code> below the lower bounds of <code class="reqn">\tau_4</code> for AEP4 and extends all the way to the theoretical limits as used within <code>are.lmom.valid</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snap.tau4</code></td>
+<td>
+<p>A logical to “snap” the <code class="reqn">\tau_4</code> upwards to the lower boundary if the given <code class="reqn">\tau_4</code> is lower than the boundary described in the polynomial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nudge.tau4</code></td>
+<td>
+<p>An offset to the snapping of <code class="reqn">\tau_4</code> intended to move <code class="reqn">\tau_4</code> just above the lower bounds in case of optimization problems. (The absolute value of the nudge is made internally to ensure only upward adjustment by an addition operation.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A.guess</code></td>
+<td>
+<p>A user specified guess of the <code class="reqn">\alpha</code> parameter to provide to the optimization of any of the methods. This argument just superceeds the simple initial guess of <code class="reqn">\alpha = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K.guess</code></td>
+<td>
+<p>A user specified guess of the <code class="reqn">\kappa</code> parameter to supercede that derived from the <span class="env">.lmomcohash$AEPkh2lmrTable</span> in file ‘<span class="file">sysdata.rda</span>’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H.guess</code></td>
+<td>
+<p>A user specified guess of the <code class="reqn">h</code> parameter to supercede that derived from the <span class="env">.lmomcohash$AEPkh2lmrTable</span> in file ‘<span class="file">sysdata.rda</span>’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>aep4</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “paraep4”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method as specified by the <code>method</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A numeric failure code.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifailtext</code></td>
+<td>
+<p>A text message for the failure code.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L234</code></td>
+<td>
+<p>Optional and dependent on method “DG” or “ADG”. Another <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> containing the optimization details by the “DG” method along with the estimated parameters in <code>para_L234</code>. The “_234” is to signify that optimization is made using <code class="reqn">\lambda_2</code>, <code class="reqn">\lambda_3</code>, and <code class="reqn">\lambda_4</code>.  The parameter values in <code>para</code> are those only when the “DG” method is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>T34</code></td>
+<td>
+<p>Optional and dependent on method “A” or “ADG”. Another <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> containing the optimization details by the “A” method along with the estimated parameters in <code>para_T34</code>. The “_T34” is to signify that opimization is being conducted using <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> only. The parameter values in <code>para</code> are those by the “A” method.</p>
+</td>
+</tr>
+</table>
+<p>The values for <code>ifail</code> or produced by three mechanisms. First, the convergence number emanating from the <code>optim</code> function itself. Second, the integer 1 is used when the failure is attributable to the <code>optim</code> function. Third, the interger 2 is a general attempt to have a singular failure by sometype of <code>eps</code> outside of <code>optim</code>. Fourth, the integer 3 is used to show that the parameters fail against a parameter validity check in <code>are.paraep4.valid</code>. And fifth, the integer 4 is used to show that the sample L-moments are below the lower bounds of the <code class="reqn">\tau_4</code> polynomial shown here.
+</p>
+<p>Additional and self explanatory elements on the returned list will be present if the Kappa distribution was fit instead.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2014, Parameter estimation for the 4-parameter asymmetric exponential power distribution by the method of L-moments using R: Computational Statistics and Data Analysis, v. 71, pp. 955–970.
+</p>
+<p>Delicado, P., and Goria, M.N., 2008, A small sample comparison of maximum likelihood,
+moments and L-moments methods for the asymmetric exponential power distribution:
+Computational Statistics and Data Analysis, v. 52, no. 3, pp. 1661–1673.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomaep4</code>, <code>cdfaep4</code>, <code>pdfaep4</code>, <code>quaaep4</code>, <code>quaaep4kapmix</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># As a general rule AEP4 optimization can be CPU intensive
+
+## Not run: 
+lmr &lt;- vec2lmom(c(305, 263, 0.815, 0.631))
+plotlmrdia(lmrdia()); points(lmr$ratios[3], lmr$ratios[4], pch=16, cex=3)
+PAR &lt;- paraep4(lmr, snap.tau4=TRUE) # will just miss the default eps
+FF &lt;- nonexceeds(sig6=TRUE)
+plot(FF, quaaep4(FF, PAR), type="l", log="y")
+lmomaep4(PAR) # 305, 263, 0.8150952, 0.6602706 (compare to those in lmr) 
+## End(Not run)
+
+## Not run: 
+PAR &lt;- list(para=c(100, 1000, 1.7, 1.4), type="aep4")
+lmr &lt;- lmomaep4(PAR)
+aep4 &lt;- paraep4(lmr, method="ADG")
+print(aep4) # 
+## End(Not run)
+
+## Not run: 
+PARdg  &lt;- paraep4(lmr, method="DG")
+PARasq &lt;- paraep4(lmr, method="A")
+print(PARdg)
+print(PARasq)
+F &lt;- c(0.001, 0.005, seq(0.01,0.99, by=0.01), 0.995, 0.999)
+qF &lt;- qnorm(F)
+ylim &lt;- range( quaaep4(F, PAR), quaaep4(F, PARdg), quaaep4(F, PARasq) )
+plot(qF, quaaep4(F, PARdg), type="n", ylim=ylim,
+     xlab="STANDARD NORMAL VARIATE", ylab="QUANTILE")
+lines(qF, quaaep4(F, PAR), col=8, lwd=10) # the true curve
+lines(qF, quaaep4(F, PARdg),  col=2, lwd=3)
+lines(qF, quaaep4(F, PARasq), col=3, lwd=2, lty=2)
+# See how the red curve deviates, Delicado and Goria failed
+# and the ifail attribute in PARdg is TRUE. Note for lmomco 2.3.1+
+# that after movement to log-exp transform to the parameters during
+# optimization that this "error" as described does not appear to occur.
+
+print(PAR$para)
+print(PARdg$para)
+print(PARasq$para)
+
+ePAR1dg &lt;- abs((PAR$para[1] - PARdg$para[1])/PAR$para[1])
+ePAR2dg &lt;- abs((PAR$para[2] - PARdg$para[2])/PAR$para[2])
+ePAR3dg &lt;- abs((PAR$para[3] - PARdg$para[3])/PAR$para[3])
+ePAR4dg &lt;- abs((PAR$para[4] - PARdg$para[4])/PAR$para[4])
+
+ePAR1asq &lt;- abs((PAR$para[1] - PARasq$para[1])/PAR$para[1])
+ePAR2asq &lt;- abs((PAR$para[2] - PARasq$para[2])/PAR$para[2])
+ePAR3asq &lt;- abs((PAR$para[3] - PARasq$para[3])/PAR$para[3])
+ePAR4asq &lt;- abs((PAR$para[4] - PARasq$para[4])/PAR$para[4])
+
+MADdg  &lt;- mean(ePAR1dg,  ePAR2dg,  ePAR3dg,  ePAR4dg)
+MADasq &lt;- mean(ePAR1asq, ePAR2asq, ePAR3asq, ePAR4asq)
+
+# We see that the Asquith method performs better for the example
+# parameters in PAR and inspection of the graphic will show that
+# the Delicado and Goria solution is obviously off. (See Note above)
+print(MADdg)
+print(MADasq)
+
+# Repeat the above with this change in parameter to
+# PAR &lt;- list(para=c(100, 1000, .7, 1.4), type="aep4")
+# and the user will see that all three methods converged on the
+# correct values. 
+## End(Not run)
+</code></pre>
+
+
+</div>

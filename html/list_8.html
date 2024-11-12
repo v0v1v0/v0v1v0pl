@@ -1,0 +1,776 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ictreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Item Count Technique</h2>
+
+<h3>Description</h3>
+
+<p>Function to conduct multivariate regression analyses of survey data with the
+item count technique, also known as the list experiment and the unmatched
+count technique.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ictreg(
+  formula,
+  data = parent.frame(),
+  treat = "treat",
+  J,
+  method = "ml",
+  weights,
+  h = NULL,
+  group = NULL,
+  matrixMethod = "efficient",
+  robust = FALSE,
+  error = "none",
+  overdispersed = FALSE,
+  constrained = TRUE,
+  floor = FALSE,
+  ceiling = FALSE,
+  ceiling.fit = "glm",
+  floor.fit = "glm",
+  ceiling.formula = ~1,
+  floor.formula = ~1,
+  fit.start = "lm",
+  fit.sensitive = "glm",
+  fit.nonsensitive = "nls",
+  multi.condition = "none",
+  maxIter = 5000,
+  verbose = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An object of class "formula": a symbolic description of the
+model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the variables in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>Name of treatment indicator as a string. For single sensitive
+item models, this refers to a binary indicator, and for multiple sensitive
+item models it refers to a multi-valued variable with zero representing the
+control condition. This can be an integer (with 0 for the control group) or
+a factor (with "control" for the control group).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>Number of non-sensitive (control) survey items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method for regression, either <code>ml</code> for the Maximum
+Likelihood (ML) estimation with the Expectation-Maximization algorithm;
+<code>lm</code> for linear model estimation; or <code>nls</code> for the Non-linear
+Least Squares (NLS) estimation with the two-step procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Name of the weights variable as a string, if weighted
+regression is desired. Not implemented for the ceiling/floor models,
+multiple sensitive item design, or for the modified design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Auxiliary data functionality. Optional named numeric vector with
+length equal to number of groups. Names correspond to group labels and
+values correspond to auxiliary moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>Auxiliary data functionality. Optional character vector of
+group labels with length equal to number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matrixMethod</code></td>
+<td>
+<p>Auxiliary data functionality. Procedure for estimating
+optimal weighting matrix for generalized method of moments. One of
+"efficient" for two-step feasible and "cue" for continuously updating.
+Default is "efficient". Only relevant if <code>h</code> and <code>group</code> are
+specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Robust NLS and ML models that ensure that the estimated 
+proportion of the sensitive trait is close to difference-in-means estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>error</code></td>
+<td>
+<p>ML models that model response error processes proposed in
+Blair, Chou, and Imai (2018). Select either <code>none</code> (standard ML), the
+default; <code>topcode</code>, which models an error process in which a random 
+subset of respondents chooses the maximal (ceiling) response value, 
+regardless of their truthful response; and <code>uniform</code>, which models an 
+error process in which a subset of respondents chooses their responses at 
+random.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overdispersed</code></td>
+<td>
+<p>Indicator for the presence of overdispersion. If
+<code>TRUE</code>, the beta-binomial model is used in the EM algorithm, if
+<code>FALSE</code> the binomial model is used. Not relevant for the <code>NLS</code> or
+<code>lm</code> methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrained</code></td>
+<td>
+<p>A logical value indicating whether the control group
+parameters are constrained to be equal.  Not relevant for the <code>NLS</code> or
+<code>lm</code> methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floor</code></td>
+<td>
+<p>A logical value indicating whether the floor liar model should
+be used to adjust for the possible presence of respondents dishonestly
+reporting a negative preference for the sensitive item among those who hold
+negative views of all the non-sensitive items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ceiling</code></td>
+<td>
+<p>A logical value indicating whether the ceiling liar model
+should be used to adjust for the possible presence of respondents
+dishonestly reporting a negative preference for the sensitive item among
+those who hold affirmative views of all the non-sensitive items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ceiling.fit</code></td>
+<td>
+<p>Fit method for the M step in the EM algorithm used to fit
+the ceiling liar model. <code>glm</code> uses standard logistic regression, while
+<code>bayesglm</code> uses logistic regression with a weakly informative prior
+over the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floor.fit</code></td>
+<td>
+<p>Fit method for the M step in the EM algorithm used to fit
+the floor liar model. <code>glm</code> uses standard logistic regression, while
+<code>bayesglm</code> uses logistic regression with a weakly informative prior
+over the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ceiling.formula</code></td>
+<td>
+<p>Covariates to include in ceiling liar model. These
+must be a subset of the covariates used in <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floor.formula</code></td>
+<td>
+<p>Covariates to include in floor liar model. These must
+be a subset of the covariates used in <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.start</code></td>
+<td>
+<p>Fit method for starting values for standard design
+<code>ml</code> model. The options are <code>lm</code>, <code>glm</code>, and <code>nls</code>,
+which use OLS, logistic regression, and non-linear least squares to generate
+starting values, respectively. The default is <code>nls</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.sensitive</code></td>
+<td>
+<p>Fit method for the sensitive item fit for maximum likelihood
+models. <code>glm</code> uses standard logistic regression, while
+<code>bayesglm</code> uses logistic regression with a weakly informative prior
+over the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.nonsensitive</code></td>
+<td>
+<p>Fit method for the non-sensitive item fit for the
+<code>nls</code> method and the starting values for the <code>ml</code> method for the
+<code>modified</code> design. Options are <code>glm</code> and <code>nls</code>, and the
+default is <code>nls</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi.condition</code></td>
+<td>
+<p>For the multiple sensitive item design, covariates
+representing the estimated count of affirmative responses for each
+respondent can be included directly as a level variable by choosing
+<code>level</code>, or as indicator variables for each value but one by choosing
+<code>indicators</code>. The default is <code>none</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>Maximum number of iterations for the Expectation-Maximization
+algorithm of the ML estimation.  The default is 5000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>a logical value indicating whether model diagnostics are
+printed out during fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to NLS regression commands.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows the user to perform regression analysis on data from
+the item count technique, also known as the list experiment and the
+unmatched count technique.
+</p>
+<p>Three list experiment designs are accepted by this function: the standard
+design; the multiple sensitive item standard design; and the modified design
+proposed by Corstange (2009).
+</p>
+<p>For the standard design, three methods are implemented in this function: the
+linear model; the Maximum Likelihood (ML) estimation for the
+Expectation-Maximization (EM) algorithm; the nonlinear least squares (NLS)
+estimation with the two-step procedure both proposed in Imai (2010); and the
+Maximum Likelihood (ML) estimator in the presence of two types of dishonest
+responses, "ceiling" and "floor" liars. The ceiling model, floor model, or
+both, as described in Blair and Imai (2010) can be activated by using the
+<code>ceiling</code> and <code>floor</code> options. The constrained and unconstrained
+ML models presented in Imai (2010) are available through the
+<code>constrained</code> option, and the user can specify if overdispersion is
+present in the data for the no liars models using the <code>overdispersed</code>
+option to control whether a beta-binomial or binomial model is used in the
+EM algorithm to model the item counts.
+</p>
+<p>The modified design and the multiple sensitive item design are automatically
+detected by the function, and only the binomial model without overdispersion
+is available.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>ictreg</code> returns an object of class "ictreg".  The function
+<code>summary</code> is used to obtain a table of the results.  The object
+<code>ictreg</code> is a list that contains the following components.  Some of
+these elements are not available depending on which method is used
+(<code>lm</code>, <code>nls</code> or <code>ml</code>), which design is used (<code>standard</code>,
+<code>modified</code>), whether multiple sensitive items are include
+(<code>multi</code>), and whether the constrained model is used (<code>constrained
+= TRUE</code>).
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>par.treat</code></td>
+<td>
+<p>point estimate for effect of covariate on item count fitted
+on treatment group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.treat</code></td>
+<td>
+<p>standard error for estimate of effect of
+covariate on item count fitted on treatment group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.control</code></td>
+<td>
+<p>point
+estimate for effect of covariate on item count fitted on control group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.control</code></td>
+<td>
+<p>standard error for estimate of effect of covariate on item
+count fitted on control group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.names</code></td>
+<td>
+<p>variable names as defined
+in the data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>design</code></td>
+<td>
+<p>call indicating whether the <code>standard</code>
+design as proposed in Imai (2010) or thee <code>modified</code> design as proposed
+in Corstange (2009) is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>call of the method used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overdispersed</code></td>
+<td>
+<p>call indicating whether data is overdispersed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrained</code></td>
+<td>
+<p>call indicating whether the constrained model is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundary</code></td>
+<td>
+<p>call indicating whether the floor/ceiling boundary models
+are used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi</code></td>
+<td>
+<p>indicator for whether multiple sensitive items were
+included in the data frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the
+<code>data</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the response
+vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>the vector indicating treatment status</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>Number
+of non-sensitive (control) survey items set by the user or detected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat.labels</code></td>
+<td>
+<p>a vector of the names used by the <code>treat</code> vector
+for the sensitive item or items. This is the names from the <code>treat</code>
+indicator if it is a factor, or the number of the item if it is numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.label</code></td>
+<td>
+<p>a vector of the names used by the <code>treat</code> vector
+for the control items. This is the names from the <code>treat</code> indicator if
+it is a factor, or the number of the item if it is numeric.</p>
+</td>
+</tr>
+</table>
+<p>For the maximum likelihood models, an additional output object is included:
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>pred.post</code></td>
+<td>
+<p>posterior predicted probability of answering "yes" to the
+sensitive item. The weights from the E-M algorithm.</p>
+</td>
+</tr></table>
+<p>For the floor/ceiling models, several additional output objects are
+included: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ceiling</code></td>
+<td>
+<p>call indicating whether the assumption of no
+ceiling liars is relaxed, and ceiling parameters are estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.ceiling</code></td>
+<td>
+<p>point estimate for effect of covariate on whether
+respondents who answered affirmatively to all non-sensitive items and hold a
+true affirmative opinion toward the sensitive item lied and reported a
+negative response to the sensitive item </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.ceiling</code></td>
+<td>
+<p>standard error
+for estimate for effect of covariate on whether respondents who answered
+affirmatively to all non-sensitive items and hold a true affirmative opinion
+toward the sensitive item lied and reported a negative response to the
+sensitive item</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floor</code></td>
+<td>
+<p>call indicating whether the assumption of no
+floor liars is relaxed, and floor parameters are estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.ceiling</code></td>
+<td>
+<p>point estimate for effect of covariate on whether
+respondents who answered negatively to all non-sensitive items and hold a
+true affirmative opinion toward the sensitive item lied and reported a
+negative response to the sensitive item </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.ceiling</code></td>
+<td>
+<p>standard error
+for estimate for effect of covariate on whether respondents who answered
+negatively to all non-sensitive items and hold a true affirmative opinion
+toward the sensitive item lied and reported a negative response to the
+sensitive item</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.names.ceiling</code></td>
+<td>
+<p>variable names from the ceiling
+liar model fit, if applicable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef.names.floor</code></td>
+<td>
+<p>variable names from
+the floor liar model fit, if applicable</p>
+</td>
+</tr>
+</table>
+<p>For the multiple sensitive item design, the <code>par.treat</code> and
+<code>se.treat</code> vectors are returned as lists of vectors, one for each
+sensitive item.
+</p>
+<p>For the unconstrained model, the <code>par.control</code> and <code>se.control</code>
+output is replaced by: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>par.control.phi0</code></td>
+<td>
+<p>point estimate for effect of
+covariate on item count fitted on treatment group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.control.phi0</code></td>
+<td>
+<p>standard error for estimate of effect of covariate on
+item count fitted on treatment group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par.control.phi1</code></td>
+<td>
+<p>point estimate
+for effect of covariate on item count fitted on treatment group</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.control.phi1</code></td>
+<td>
+<p>standard error for estimate of effect of covariate on
+item count fitted on treatment group</p>
+</td>
+</tr>
+</table>
+<p>Depending upon the estimator requested by the user, model fit statistics are
+also included: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>llik</code></td>
+<td>
+<p>the log likelihood of the model, if <code>ml</code> is
+used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.se</code></td>
+<td>
+<p>the residual standard error, if <code>nls</code> or
+<code>lm</code> are used. This will be a scalar if the standard design was used,
+and a vector if the multiple sensitive item design was used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid.df</code></td>
+<td>
+<p>the residual degrees of freedom, if <code>nls</code> or <code>lm</code>
+are used. This will be a scalar if the standard design was used, and a
+vector if the multiple sensitive item design was used</p>
+</td>
+</tr>
+</table>
+<p>When using the auxiliary data functionality, the following objects are
+included: </p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>aux</code></td>
+<td>
+<p>logical value indicating whether estimation
+incorporates auxiliary moments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nh</code></td>
+<td>
+<p>integer count of the number of
+auxiliary moments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wm</code></td>
+<td>
+<p>procedure used to estimate the optimal weight
+matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J.stat</code></td>
+<td>
+<p>numeric value of the Sargan Hansen overidentifying
+restriction test statistic</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overid.p</code></td>
+<td>
+<p>corresponding p-value for the
+Sargan Hansen test</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Graeme Blair, UCLA, <a href="mailto:graeme.blair@ucla.edu">graeme.blair@ucla.edu</a>
+and Kosuke Imai, Princeton University, <a href="mailto:kimai@princeton.edu">kimai@princeton.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Blair, Graeme and Kosuke Imai. (2012) “Statistical Analysis of
+List Experiments."  Political Analysis. Forthcoming. available at
+<a href="http://imai.princeton.edu/research/listP.html">http://imai.princeton.edu/research/listP.html</a>
+</p>
+<p>Imai, Kosuke. (2011) “Multivariate Regression Analysis for the Item Count
+Technique.” Journal of the American Statistical Association, Vol. 106, No.
+494 (June), pp. 407-416. available at
+<a href="http://imai.princeton.edu/research/list.html">http://imai.princeton.edu/research/list.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.ictreg</code> for fitted values
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+data(race)
+
+set.seed(1)
+
+# Calculate list experiment difference in means
+
+diff.in.means.results &lt;- ictreg(y ~ 1, data = race, 
+	       	      treat = "treat", J=3, method = "lm")
+
+summary(diff.in.means.results)
+
+# Fit linear regression
+# Replicates Table 1 Columns 1-2 Imai (2011); note that age is divided by 10
+
+lm.results &lt;- ictreg(y ~ south + age + male + college, data = race, 
+	       	      treat = "treat", J=3, method = "lm")
+
+summary(lm.results)
+
+# Fit two-step non-linear least squares regression
+# Replicates Table 1 Columns 3-4 Imai (2011); note that age is divided by 10
+
+nls.results &lt;- ictreg(y ~ south + age + male + college, data = race, 
+	       	      treat = "treat", J=3, method = "nls")
+
+summary(nls.results)
+
+## Not run: 
+
+# Fit EM algorithm ML model with constraint
+# Replicates Table 1 Columns 5-6, Imai (2011); note that age is divided by 10
+
+ml.constrained.results &lt;- ictreg(y ~ south + age + male + college, data = race, 
+		       	  	 treat = "treat", J=3, method = "ml", 
+				 overdispersed = FALSE, constrained = TRUE)
+
+summary(ml.constrained.results)
+
+# Fit EM algorithm ML model with no constraint
+# Replicates Table 1 Columns 7-10, Imai (2011); note that age is divided by 10
+
+ml.unconstrained.results &lt;- ictreg(y ~ south + age + male + college, data = race, 
+			    	   treat = "treat", J=3, method = "ml", 
+				   overdispersed = FALSE, constrained = FALSE)
+
+summary(ml.unconstrained.results)
+
+# Fit EM algorithm ML model for multiple sensitive items
+# Replicates Table 3 in Blair and Imai (2010)
+
+multi.results &lt;- ictreg(y ~ male + college + age + south + south:age, treat = "treat", 
+	      	 	J = 3, data = multi, method = "ml", 
+			multi.condition = "level")
+
+summary(multi.results)
+
+# Fit standard design ML model
+# Replicates Table 7 Columns 1-2 in Blair and Imai (2010)
+
+noboundary.results &lt;- ictreg(y ~ age + college + male + south, treat = "treat",
+		      	     J = 3, data = affirm, method = "ml", 
+			     overdispersed = FALSE)
+
+summary(noboundary.results)
+
+# Fit standard design ML model with ceiling effects alone
+# Replicates Table 7 Columns 3-4 in Blair and Imai (2010)
+
+ceiling.results &lt;- ictreg(y ~ age + college + male + south, treat = "treat", 
+		   	  J = 3, data = affirm, method = "ml", fit.start = "nls",
+			  ceiling = TRUE, ceiling.fit = "bayesglm",
+			  ceiling.formula = ~ age + college + male + south)
+
+summary(ceiling.results)
+
+# Fit standard design ML model with floor effects alone
+# Replicates Table 7 Columns 5-6 in Blair and Imai (2010)
+
+floor.results &lt;- ictreg(y ~ age + college + male + south, treat = "treat", 
+	      	 	J = 3, data = affirm, method = "ml", fit.start = "glm", 
+			floor = TRUE, floor.fit = "bayesglm",
+			floor.formula = ~ age + college + male + south)
+
+summary(floor.results)
+
+# Fit standard design ML model with floor and ceiling effects
+# Replicates Table 7 Columns 7-8 in Blair and Imai (2010)
+
+both.results &lt;- ictreg(y ~ age + college + male + south, treat = "treat", 
+	     	       J = 3, data = affirm, method = "ml", 
+		       floor = TRUE, ceiling = TRUE, 
+		       floor.fit = "bayesglm", ceiling.fit = "bayesglm",
+		       floor.formula = ~ age + college + male + south,
+		       ceiling.formula = ~ age + college + male + south)
+
+summary(both.results)
+
+# Response error models (Blair, Imai, and Chou 2018)
+
+top.coded.error &lt;- ictreg(
+   y ~ age + college + male + south, treat = "treat",
+   J = 3, data = race, method = "ml", error = "topcoded")
+   
+uniform.error &lt;- ictreg(
+   y ~ age + college + male + south, treat = "treat",
+   J = 3, data = race, method = "ml", error = "topcoded")
+   
+# Robust models, which constrain sensitive item proportion
+#   to difference-in-means estimate
+
+robust.ml &lt;- ictreg(
+   y ~ age + college + male + south, treat = "treat",
+   J = 3, data = affirm, method = "ml", robust = TRUE)
+
+robust.nls &lt;- ictreg(
+   y ~ age + college + male + south, treat = "treat",
+   J = 3, data = affirm, method = "nls", robust = TRUE)
+   
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

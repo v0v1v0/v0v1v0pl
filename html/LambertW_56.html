@@ -1,0 +1,289 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IGMM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Iterative Generalized Method of Moments – IGMM</h2>
+
+<h3>Description</h3>
+
+<p>An iterative method of moments estimator to find this <code class="reqn">\tau = (\mu_x,
+    \sigma_x, \gamma)</code> for <code>type = 's'</code> (<code class="reqn">\tau = (\mu_x, \sigma_x,
+    \delta)</code> for <code>type = 'h'</code> or <code class="reqn">\tau = (\mu_x, \sigma_x, \delta_l,
+    \delta_r)</code> for <code>type = "hh"</code>) which minimizes the distance between
+the sample and theoretical skewness (or kurtosis) of <code class="reqn">\boldsymbol x</code>
+and X.
+</p>
+<p>This algorithm is only well-defined for data with finite mean and variance
+input X.  See <code>analyze_convergence</code> and references therein
+for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IGMM(
+  y,
+  type = c("h", "hh", "s"),
+  skewness.x = 0,
+  kurtosis.x = 3,
+  tau.init = get_initial_tau(y, type),
+  robust = FALSE,
+  tol = .Machine$double.eps^0.25,
+  location.family = TRUE,
+  not.negative = NULL,
+  max.iter = 100,
+  delta.lower = -1,
+  delta.upper = 3
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of real values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of Lambert W <code class="reqn">\times</code> F distribution: skewed <code>"s"</code>;
+heavy-tail <code>"h"</code>; or skewed heavy-tail <code>"hh"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skewness.x</code></td>
+<td>
+<p>theoretical skewness of input X; default <code>0</code>
+(symmetric distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kurtosis.x</code></td>
+<td>
+<p>theoretical kurtosis of input X; default <code>3</code> (Normal
+distribution reference).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.init</code></td>
+<td>
+<p>starting values for IGMM algorithm; default:
+<code>get_initial_tau</code>.  See also <code>gamma_Taylor</code> and
+<code>delta_Taylor</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>logical; only used for <code>type = "s"</code>. If <code>TRUE</code> a
+robust estimate of asymmetry is used (see
+<code>medcouple_estimator</code>); default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>a positive scalar specifiying the tolerance level for terminating
+the iterative algorithm. Default: <code>.Machine$double.eps^0.25</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location.family</code></td>
+<td>
+<p>logical; tell the algorithm whether the underlying
+input should have a location family distribution (for example, Gaussian
+input); default: <code>TRUE</code>. If <code>FALSE</code> (e.g., for
+<code>"exp"</code>onential input), then <code>tau['mu_x'] = 0</code> throughout the
+optimization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.negative</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, the estimate for <code class="reqn">\gamma</code> or
+<code class="reqn">\delta</code> is restricted to non-negative reals. If it is set to
+<code>NULL</code> (default) then it will be set internally to <code>TRUE</code> for
+heavy-tail(s) Lambert W<code class="reqn"> \times</code> F distributions (<code>type = "h"</code>
+or <code>"hh"</code>).  For skewed Lambert W<code class="reqn"> \times</code> F (<code>type = "s"</code>)
+it will be set to <code>FALSE</code>, unless it is not a location-scale family
+(see <code>get_distname_family</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.iter</code></td>
+<td>
+<p>maximum number of iterations; default: <code>100</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.lower, delta.upper</code></td>
+<td>
+<p>lower and upper bound for
+<code>delta_GMM</code> optimization.  By default: <code>-1</code> and <code>3</code>
+which covers most real-world heavy-tail scenarios.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For algorithm details see the References.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>LambertW_fit</code>: 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>see Arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data <code>y</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p> number of observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>see Arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.init</code></td>
+<td>
+<p> starting values for <code class="reqn">\tau</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p> IGMM estimate for <code class="reqn">\tau</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.trace</code></td>
+<td>
+<p>entire iteration trace of <code class="reqn">\tau^{(k)}</code>, <code class="reqn">k = 0, ..., K</code>, where 
+<code>K &lt;= max.iter</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub.iterations</code></td>
+<td>
+<p>number of iterations only performed in GMM algorithm to find optimal <code class="reqn">\gamma</code> (or <code class="reqn">\delta</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>number of iterations to update <code class="reqn">\mu_x</code> and
+<code class="reqn">\sigma_x</code>. See References for detals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p> Hessian matrix (obtained from simulations; see References)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>function call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skewness.x, kurtosis.x</code></td>
+<td>
+<p> see Arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p> a character string describing distribution characteristics given
+the target theoretical skewness/kurtosis for the input. Same information as <code>skewness.x</code> and <code>kurtosis.x</code> but human-readable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location.family</code></td>
+<td>
+<p>see Arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>message from the optimization method. What kind of convergence?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>estimation method; here: <code>"IGMM"</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Georg M. Goerg
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>delta_GMM</code>, <code>gamma_GMM</code>, <code>analyze_convergence</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# estimate tau for the skewed version of a Normal
+y &lt;- rLambertW(n = 100, theta = list(beta = c(2, 1), gamma = 0.2), 
+               distname = "normal")
+fity &lt;- IGMM(y, type = "s")
+fity
+summary(fity)
+plot(fity)
+## Not run: 
+# estimate tau for the skewed version of an exponential
+y &lt;- rLambertW(n = 100, theta = list(beta = 1, gamma = 0.5), 
+               distname = "exp")
+fity &lt;- IGMM(y, type = "s", skewness.x = 2, location.family = FALSE)
+fity
+summary(fity)
+plot(fity)
+
+# estimate theta for the heavy-tailed version of a Normal = Tukey's h
+y &lt;- rLambertW(n = 100, theta = list(beta = c(2, 1), delta = 0.2), 
+               distname = "normal")
+system.time(
+fity &lt;- IGMM(y, type = "h")
+)
+fity
+summary(fity)
+plot(fity)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

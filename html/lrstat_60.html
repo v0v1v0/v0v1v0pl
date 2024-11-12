@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getDesignRepeatedANOVA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power and sample size for repeated-measures ANOVA</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the power and sample size for one-way repeated
+measures analysis of variance. Each subject takes all treatments
+in the longitudinal study.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getDesignRepeatedANOVA(
+  beta = NA_real_,
+  n = NA_real_,
+  ngroups = 2,
+  means = NA_real_,
+  stDev = 1,
+  corr = 0,
+  rounding = TRUE,
+  alpha = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The type II error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The total sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngroups</code></td>
+<td>
+<p>The number of treatment groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>The treatment group means.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stDev</code></td>
+<td>
+<p>The total standard deviation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>The correlation among the repeated measures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounding</code></td>
+<td>
+<p>Whether to round up sample size. Defaults to 1 for
+sample size rounding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The two-sided significance level. Defaults to 0.05.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let <code class="reqn">y_{ij}</code> denote the measurement under treatment condition
+<code class="reqn">j (j=1,\ldots,k)</code> for subject <code class="reqn">i (i=1,\ldots,n)</code>. Then
+</p>
+<p style="text-align: center;"><code class="reqn">y_{ij} = \alpha + \beta_j + b_i + e_{ij},</code>
+</p>
+<p> where <code class="reqn">b_i</code>
+denotes the subject random effect, <code class="reqn">b_i \sim N(0, \sigma_b^2),</code>
+and <code class="reqn">e_{ij} \sim N(0, \sigma_e^2)</code> denotes the within-subject
+residual. If we set <code class="reqn">\beta_k = 0</code>, then <code class="reqn">\alpha</code> is the
+mean of the last treatment (control), and <code class="reqn">\beta_j</code> is the
+difference in means between the <code class="reqn">j</code>th treatment and the control
+for <code class="reqn">j=1,\ldots,k-1</code>.
+</p>
+<p>The repeated measures have a compound symmetry covariance structure.
+Let <code class="reqn">\sigma^2 = \sigma_b^2 + \sigma_e^2</code>, and
+<code class="reqn">\rho = \frac{\sigma_b^2}{\sigma_b^2 + \sigma_e^2}</code>. Then
+<code class="reqn">Var(y_i) = \sigma^2 \{(1-\rho) I_k + \rho 1_k 1_k^T\}</code>.
+Let <code class="reqn">X_i</code> denote the design matrix for subject <code class="reqn">i</code>.
+Let <code class="reqn">\theta = (\alpha, \beta_1, \ldots, \beta_{k-1})^T</code>.
+It follows that
+</p>
+<p style="text-align: center;"><code class="reqn">Var(\hat{\theta}) = \left(\sum_{i=1}^{n} X_i^T V_i^{-1}
+X_i\right)^{-1}.</code>
+</p>
+<p> It can be shown that
+</p>
+<p style="text-align: center;"><code class="reqn">Var(\hat{\beta}) = \frac{\sigma^2 (1-\rho)}{n} (I_{k-1} +
+1_{k-1} 1_{k-1}^T).</code>
+</p>
+<p> It follows that
+<code class="reqn">\hat{\beta}^T \hat{V}_{\hat{\beta}}^{-1} \hat{\beta} \sim
+F_{k-1,(n-1)(k-1), \lambda},</code> where the noncentrality parameter for
+the <code class="reqn">F</code> distribution is </p>
+<p style="text-align: center;"><code class="reqn">\lambda =
+\beta^T V_{\hat{\beta}}^{-1} \beta = \frac{n \sum_{j=1}^{k}
+(\mu_j - \bar{\mu})^2}{\sigma^2(1-\rho)}.</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An S3 class <code>designRepeatedANOVA</code> object with the
+following components:
+</p>
+
+<ul>
+<li> <p><code>power</code>: The power to reject the null hypothesis that
+there is no difference among the treatment groups.
+</p>
+</li>
+<li> <p><code>alpha</code>: The two-sided significance level.
+</p>
+</li>
+<li> <p><code>n</code>: The number of subjects.
+</p>
+</li>
+<li> <p><code>ngroups</code>: The number of treatment groups.
+</p>
+</li>
+<li> <p><code>means</code>: The treatment group means.
+</p>
+</li>
+<li> <p><code>stDev</code>: The total standard deviation.
+</p>
+</li>
+<li> <p><code>corr</code>: The correlation among the repeated measures.
+</p>
+</li>
+<li> <p><code>effectsize</code>: The effect size.
+</p>
+</li>
+<li> <p><code>rounding</code>: Whether to round up sample size.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+(design1 &lt;- getDesignRepeatedANOVA(
+  beta = 0.1, ngroups = 4, means = c(1.5, 2.5, 2, 0),
+  stDev = 5, corr = 0.2, alpha = 0.05))
+
+</code></pre>
+
+
+</div>

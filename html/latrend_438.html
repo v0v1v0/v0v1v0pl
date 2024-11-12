@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prepareData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<code>lcMethod</code> estimation step: logic for preparing the training data</h2>
+
+<h3>Description</h3>
+
+<p>Note: this function should not be called directly, as it is part of the <code>lcMethod</code> estimation procedure.
+For fitting an <code>lcMethod</code> object to a dataset, use the <code>latrend()</code> function or one of the other standard estimation functions.
+</p>
+<p>The <code>prepareData()</code> function of the <code>lcMethod</code> object processes the training data prior to fitting the method.
+Example uses:
+</p>
+
+<ul>
+<li>
+<p> Transforming the data to another format, e.g., a matrix.
+</p>
+</li>
+<li>
+<p> Truncating the response variable.
+</p>
+</li>
+<li>
+<p> Computing derived covariates.
+</p>
+</li>
+<li>
+<p> Creating additional data objects.
+</p>
+</li>
+</ul>
+<p>The computed variables are stored in an <code>environment</code> which is passed to the <code>preFit()</code> function for further processing.
+</p>
+<p>By default, this method does not do anything.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prepareData(method, data, verbose, ...)
+
+## S4 method for signature 'lcMethod'
+prepareData(method, data, verbose)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>An object inheriting from <code>lcMethod</code> with all its arguments having been evaluated and finalized.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> representing the transformed training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A R.utils::Verbose object indicating the level of verbosity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <code>environment</code>.
+</p>
+<p>An <code>environment</code> with the prepared data variable(s) that will be passed to <code>preFit()</code>.
+</p>
+
+
+<h3>Implementation</h3>
+
+<p>A common use case for this method is when the internal method fitting procedure expects the data in a different format.
+In this example, the method converts the training data <code>data.frame</code> to a <code>matrix</code> of repeated and aligned trajectory measurements.
+</p>
+<pre>
+setMethod("prepareData", "lcMethodExample", function(method, data, verbose) {
+  envir = new.env()
+  # transform the data to matrix
+  envir$dataMat = tsmatrix(data,
+    id = idColumn, time = timeColumn, response = valueColumn)
+  return(envir)
+})
+</pre>
+
+
+<h3>Estimation procedure</h3>
+
+<p>The steps for estimating a <code>lcMethod</code> object are defined and executed as follows:
+</p>
+
+<ol>
+<li> <p><code>compose()</code>: Evaluate and finalize the method argument values.
+</p>
+</li>
+<li> <p><code>validate()</code>: Check the validity of the method argument values in relation to the dataset.
+</p>
+</li>
+<li> <p><code>prepareData()</code>: Process the training data for fitting.
+</p>
+</li>
+<li> <p><code>preFit()</code>: Prepare environment for estimation, independent of training data.
+</p>
+</li>
+<li> <p><code>fit()</code>: Estimate the specified method on the training data, outputting an object inheriting from <code>lcModel</code>.
+</p>
+</li>
+<li> <p><code>postFit()</code>: Post-process the outputted <code>lcModel</code> object.
+</p>
+</li>
+</ol>
+<p>The result of the fitting procedure is an lcModel object that inherits from the <code>lcModel</code> class.
+</p>
+
+
+</div>

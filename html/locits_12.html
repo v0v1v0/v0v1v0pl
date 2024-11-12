@@ -1,0 +1,362 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hwtos</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Haar wavelet test for (second-order) stationarity for arbitrary length time series.
+
+</h2>
+
+<h3>Description</h3>
+
+<p>NOTE: CURRENTLY THIS FUNCTION IS NOT INCLUDED IN THE PACKAGE.
+USE hwtos2. This function computes the raw wavelet periodogram of the
+arbitrary time series vector <code>x</code>. The periodogram is then
+subject to a hypothesis test to see if its expectation over time,
+for different scales, is constant. The constancy test is carried out
+using tests on its Haar wavelet coefficients. The overall test is
+for second-order stationarity (e.g. constant variance, constant
+acf function, mean is assumed zero).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hwtos(x, alpha = 0.05, lowlev = 1, WTscale = NULL, maxSD = NULL,
+    verbose = FALSE, silent = FALSE, UseCForVarip2 = TRUE, OPLENGTH = 1e+05,
+    mc.method = p.adjust.methods)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The time series you wish to test for second-order stationarity.
+Minimum length series that this function will operate for is 20.
+However, for short series the power of the test might not be good
+and could be investigated via simulation that reflect your particular
+circumstances.
+This should be a stochastic series. The function
+will report an error if <code>x</code> is a constant function. The
+function might not work properly if it contains a significant trend
+or patches of non-stochastic observations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The (nominal) size of the hypothesis test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lowlev</code></td>
+<td>
+<p>Controls the lowest scale of the wavelet periodogram that
+gets analyzed. Generally, leave this parameter alone.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WTscale</code></td>
+<td>
+<p>Controls the finest scale of the Haar wavelet transform
+of a particular wavelet periodogram scale. Generally, we have to
+stay away from the finest Haar wavelet transform scales of the
+periodogram as the test relies on a central limit theorem effect
+which only "kicks in" when the Haar wavelet scale is medium-to-coarse.
+Generally, leave this argument alone.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxSD</code></td>
+<td>
+<p>Parameter which controls which scales go towards overall
+variance calculation. Generally, leave alone.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code> then informative messages are printed.
+If <code>FALSE</code> only limited informational messages are printed
+unless <code>silent=TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>If <code>TRUE</code> then no messages are printed during the
+operation of the function at all.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UseCForVarip2</code></td>
+<td>
+<p>If <code>TRUE</code> then fast C code is used for the
+variance calculation, otherwise slower R code is used. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OPLENGTH</code></td>
+<td>
+<p>Some of the internal functions require workspace to
+perform their calculations. In exceptional circumstances more
+static workspace might be required and so this argument might
+need to be higher than the default. However, the code will tell
+you how high this number will need to be. The code can, with
+default arguments, handle series that are up to 30000 in length.
+However, at 35000 the OPLENGTH parameter will need to be increased.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.method</code></td>
+<td>
+<p>Method to control overall size for test taking into
+account multiple comparisons. The default argument is
+<code>p.adjust.methods</code> which is the same as the default argument
+to the <code>p.adjust</code> function in R. This includes a number
+of the popular methods such as "Holm", "Bonferonni" and "FDR",
+for example.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function computes all possible Haar wavelet coefficients
+of the time series <code>x</code>. Then, squares those to obtain the
+raw wavelet periodogram. Then the test of stationarity works
+by taking each level of the raw wavelet periodogram and subjecting
+it to another (decimated) Haar wavelet transform and then assessing
+whether any of those coefficients is significantly different to
+zero. It does this by using a Gaussian approximation first
+introduced by Neumann and von Sachs (2000). This is a multiple
+testing problem: many individual wavelet coefficients need to
+be assessed simultaneously and the user can choose the type of
+assessment using the <code>mc.method</code> argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>tosANYN</code>. This is a list containing the
+following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nreject</code></td>
+<td>
+<p>The number of wavelet coefficients that reject the null
+hypothesis of being zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.method</code></td>
+<td>
+<p>The multiple comparison method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AllTS</code></td>
+<td>
+<p>All the t-statistics. This is a list containing J levels,
+where J is the number of periodogram levels. Each slot in
+the <code>AllTS</code> list itself contains a Haar wavelet transform
+object (<code>hwtANYN</code>) which are the t-statistics associated with
+each Haar wavelet coefficient of the Haar raw wavelet periodogram.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AllPVal</code></td>
+<td>
+<p>As <code>AllTS</code> but for p-values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The size of the test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The time series that was analyzed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xSD</code></td>
+<td>
+<p>The estimated mean spectrum value for each level of the
+spectrum, mean over time that is.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allTS</code></td>
+<td>
+<p>A vector containing all of the test statistics. So,
+the information in <code>AllTS</code> but arranged as a single vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allpvals</code></td>
+<td>
+<p>As <code>allTS</code> but for p-values. These values have been
+adjusted to take account of the multiple comparisons. See the
+vaector <code>allpvals.unadjust</code> for an unadjusted set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allbigscale</code></td>
+<td>
+<p>The wavelet periodogram scale associated with each
+t-statistic in <code>allTS</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alllitscale</code></td>
+<td>
+<p>As for <code>allbigscale</code> but for the wavelet transform
+of the wavelet periodogram.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allindex</code></td>
+<td>
+<p>As for <code>allbigscale</code> but the wavelet coefficient index
+in the Haar wavelet transform of the wavelet periodogram</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alllv</code></td>
+<td>
+<p>The maximum number of wavelet coefficients in a particular
+Haar wavelet scale of a particular scale of the wavelet periodogram.
+Note, this information is useful because the wavelet transforms
+are computed on arbitrary length objects and so keeping track of
+the number of coefficients per scale is useful later, e.g. for
+plotting purposes. This information is not required in the
+dyadic case because the coefficient vector lengths are completely
+predictable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allpvals.unadjust</code></td>
+<td>
+<p>A vector of p-values that has not been adjusted
+by a multiple hypothesis test technique.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>G. P. Nason
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a>
+</p>
+<p>Priestley, M.B. and Subba Rao (1969) A test for non-stationarity of
+time series. <em>J. R. Statist. Soc. B</em>, <b>31</b>, 140-149.
+</p>
+<p>von Sachs, R. and Neumann, M.H. (2000) A wavelet-based test for
+stationarity. <em>J. Time Ser. Anal.</em>, <b>21</b>,
+597-613.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>link{hwt}</code>,
+<code>hwtos2</code>,
+<code>plot.tosANYN</code>,
+<code>print.tosANYN</code>,
+<code>summary.tosANYN</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Generate test data set of non-dyadic length
+#
+v3 &lt;- rnorm(300)
+#
+# Run the test of stationarity
+#
+## Not run: v3.TOS &lt;- hwtos(v3)
+#
+#Scales get printed 
+#8    7    6    5    4    3    2 
+#
+## Not run: print(v3.TOS)
+#Class 'tosANYN' : Stationarity Object for Arbitrary Length Data :
+#	~~~~~~~  : List with 14 components with names
+#	nreject mc.method AllTS AllPVal alpha x xSD allTS
+#	allpvals allbigscale alllitscale allindex alllv
+#	allpvals.unadjust 
+#
+#
+#summary(.):
+#----------
+#There are  54  hypothesis tests altogether
+#There were  0  reject(s)
+#P-val adjustment method was:  holm 
+#
+# Note, nothing got rejected. So accept the H_0 null hypothesis of stationarity.
+# This is precisely what you'd expect operating on iid Gaussians.
+#
+# Let's construct obvious example of non-stationarity.
+#
+v4 &lt;- c(rnorm(150), rnorm(150,sd=3))
+#
+# I.e. v4 has sharp variance change halfway along
+# Now compute test of stationarity
+#
+## Not run: v4.TOS &lt;- hwtos(v4)
+#
+#  Print out results
+#
+## Not run: print(v4.TOS)
+#
+#Class 'tosANYN' : Stationarity Object for Arbitrary Length Data :
+#       ~~~~~~~  : List with 14 components with names
+#       nreject mc.method AllTS AllPVal alpha x xSD allTS
+#       allpvals allbigscale alllitscale allindex alllv
+#       allpvals.unadjust 
+#
+#
+#summary(.):
+#----------
+#There are  54  hypothesis tests altogether
+#There were  5  reject(s)
+#P-val adjustment method was:  holm 
+#Listing rejects...
+#P:  7  HWTlev:  2  Max Poss Ix:  2  Indices:  2 
+#P:  7  HWTlev:  1  Max Poss Ix:  1  Indices:  1 
+#P:  6  HWTlev:  1  Max Poss Ix:  1  Indices:  1 
+#P:  5  HWTlev:  1  Max Poss Ix:  1  Indices:  1 
+#P:  4  HWTlev:  1  Max Poss Ix:  1  Indices:  1 
+</code></pre>
+
+
+</div>

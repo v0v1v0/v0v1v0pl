@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>L2E_sparse_dist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solution path of L2E sparse regression with distance penalization</h2>
+
+<h3>Description</h3>
+
+<p><code>L2E_sparse_dist</code> computes the solution path of the robust sparse regression under the L2 criterion with distance penalty
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">L2E_sparse_dist(
+  y,
+  X,
+  beta0,
+  tau0,
+  kSeq,
+  rhoSeq,
+  stepsize = 0.9,
+  sigma = 0.5,
+  max_iter = 100,
+  tol = 1e-04,
+  Show.Time = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta0</code></td>
+<td>
+<p>Initial vector of regression coefficients, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau0</code></td>
+<td>
+<p>Initial precision estimate, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kSeq</code></td>
+<td>
+<p>A sequence of tuning parameter k, the number of nonzero entries in the estimated coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhoSeq</code></td>
+<td>
+<p>An increasing sequence of tuning parameter rho, can be omitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsize</code></td>
+<td>
+<p>The stepsize parameter for the MM algorithm (0, 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>The halving parameter sigma (0, 1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Relative tolerance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Show.Time</code></td>
+<td>
+<p>Report the computing time</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list object containing the estimates for beta (matrix) and
+tau (vector) for each value of the tuning parameter k,
+the path of estimates for beta (list of matrices) and tau (matrix) for each value of rho,
+the run time (vector) for each k,
+and the sequence of rho and k used in the regression (vectors)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(12345)
+n &lt;- 100
+tau &lt;- 1
+f &lt;- matrix(c(rep(2,5), rep(0,45)), ncol = 1)
+X &lt;- X0 &lt;- matrix(rnorm(n*50), nrow = n)
+y &lt;- y0 &lt;- X0 %*% f + (1/tau)*rnorm(n)
+
+## Clean Data
+k &lt;- 5
+sol &lt;- L2E_sparse_dist(y=y, X=X, kSeq=k)
+r &lt;- y - X %*% sol$Beta
+ix &lt;- which(abs(r) &gt; 3/sol$Tau)
+l2e_fit &lt;- X %*% sol$Beta
+
+plot(y, l2e_fit, ylab='Predicted values', pch=16, cex=0.8)
+points(y[ix], l2e_fit[ix], pch=16, col='blue', cex=0.8)
+
+## Contaminated Data
+i &lt;- 1:5
+y[i] &lt;- 2 + y0[i]
+X[i,] &lt;- 2 + X0[i,]
+
+sol &lt;- L2E_sparse_dist(y=y, X=X, kSeq=k)
+r &lt;- y - X %*% sol$Beta
+ix &lt;- which(abs(r) &gt; 3/sol$Tau)
+l2e_fit &lt;- X %*% sol$Beta
+
+plot(y, l2e_fit, ylab='Predicted values', pch=16, cex=0.8)
+points(y[ix], l2e_fit[ix], pch=16, col='blue', cex=0.8)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>S.nd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Density goodness-of-fit test statistic based on discretized L2 distance</h2>
+
+<h3>Description</h3>
+
+<p>Implements the multivariate (d &gt;=2) density goodness of fit test statistic <code class="reqn">\hat{S}_n(h)</code> of Bagkavos, Patil and Wood (2021), based on aggregation of local discrepancies between the fitted parametric density and a nonparametric empirical density estimator.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">S.nd(xin, h,  dist, p1, p2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>A matrix (n x d) of data points - the available sample with n rows and d columns, each column corresponds to a different coordinate axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The bandwidth vector to use, typically the output of <code>hopt.be</code> in each coordinate direction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1</code></td>
+<td>
+<p>Parameter 1 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p2</code></td>
+<td>
+<p>Parameter 2 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implements the test statistic used for testing the hypothesis
+</p>
+<p style="text-align: center;"><code class="reqn">H_0: f(x) = f_0(x, p1, p2) \;\; vs \;\; H_a: f(x) \neq f_0(x, p1, p2).</code>
+</p>
+
+<p>This density goodness-of-fit test is based on a discretized approximation of the L2 distance. Assuming that <code class="reqn">n</code> is the number of observations and <code class="reqn">g = (max(xin)-min(xin))/n^{-drate}</code> is the number of bins in which the range of the data is split, the test statistic is:
+</p>
+<p style="text-align: center;"><code class="reqn"> S_n(h) = n \Delta^2  {\sum\sum}_{i \neq j} K \{ (X_{i1}-X_{j1})h_1^{-1}, \dots,  (X_{id}-X_{jd})h_d^{-1} \} \{Y_i -f_0(X_i) \}\{Y_j -f_0(X_j) \} </code>
+</p>
+
+<p>where <code class="reqn">K</code> is the Epanechnikov kernel implemented in this package with the <code>Epanechnikov</code> function. The null model <code class="reqn">f_0</code> is specified through the <code>dist</code> argument with parameters passed through the  <code>p1</code> and <code>p2</code> arguments.  The test is implemented either with bandwidth <code>hopt.edgeworth</code> or with  bandwidth <code>hopt.be</code> which provide the value of <code class="reqn">h</code> needed for calculation of <code class="reqn"> S_n(h)</code> and the critical value used to determine acceptance or rejection of the null hypothesis.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with the value of the test statistic as well as the Delta value used for its calculation
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>R implementation and documentation: Dimitrios Bagkavos &lt;dimitrios.bagkavos@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Bagkavos, Patil and Wood: Nonparametric goodness-of-fit testing for a continuous multivariate parametric model, (2021), under review.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>S.n</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(mvtnorm)
+sigma &lt;- matrix(c(4,2,2,3), ncol=2)
+
+x &lt;- rmvnorm(n=100, mean=c(1,2), sigma=sigma)
+h.be1 &lt;- hopt.be(x[,1])
+h.be2 &lt;- hopt.be(x[,2])
+h&lt;-c(h.be1, h.be2)
+Nulldist&lt;-"normal"
+
+S.nd(x, h,  Nulldist, c(1,2), sigma)
+</code></pre>
+
+
+</div>

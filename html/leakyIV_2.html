@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>leakyIV</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bounding Causal Effects with Leaky Instruments</h2>
+
+<h3>Description</h3>
+
+<p>Estimates bounds on average treatment effects in linear IV models under 
+limited violations of the exclusion criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">leakyIV(
+  dat,
+  tau,
+  p = 2,
+  normalize = TRUE,
+  method = "mle",
+  approx = TRUE,
+  n_boot = NULL,
+  bayes = FALSE,
+  parallel = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Input data. Either (a) an <code class="reqn">n \times d</code> data frame or matrix of 
+observations with columns for treatment, outcome, and candidate instruments; 
+or (b) a <code class="reqn">d \times d</code> covariance matrix over such variables. The latter 
+is incompatible with bootstrapping. Note that in either case, the order of
+variables is presumed to be treatment (<code class="reqn">X</code>), outcome (<code class="reqn">Y</code>), leaky 
+instruments (<code class="reqn">Z</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Either (a) a scalar representing the upper bound on the p-norm of 
+linear weights on <code class="reqn">Z</code> in the structural equation for <code class="reqn">Y</code>; or (b) a 
+vector representing upper bounds on the absolute value of each such 
+coefficient. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Power of the norm for the <code>tau</code> threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>Scale candidate instruments to unit variance?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Estimator for the covariance matrix, if one is not supplied by
+<code>dat</code>. Options include (a) <code>"mle"</code>, the default; (b) <code>"shrink"</code>, 
+an analytic empirical Bayes solution; or (c) <code>"glasso"</code>, the graphical 
+lasso. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approx</code></td>
+<td>
+<p>Use nearest positive definite approximation if the estimated 
+covariance matrix is singular? See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+<p>Optional number of bootstrap replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bayes</code></td>
+<td>
+<p>Use Bayesian bootstrap?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Compute bootstrap estimates in parallel? Must register 
+backend beforehand, e.g. via <code>doParallel</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments to be passed to graphical lasso estimator if
+<code>method = "glasso"</code>. Note that the regularization parameter <code>rho</code>
+is required as input, with no default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Instrumental variables are defined by three structural assumptions: they must
+be (A1) <em>relevant</em>, i.e. associated with the treatment; (A2) 
+<em>unconfounded</em>, i.e. independent of common causes between treatment and 
+outcome; and (A3) <em>exclusive</em>, i.e. only affect outcomes through the 
+treatment. The <code>leakyIV</code> algorithm (Watson et al., 2024) relaxes (A3), 
+allowing some information leakage from IVs <code class="reqn">Z</code> to outcomes <code class="reqn">Y</code> in 
+linear systems. While the average treatment effect (ATE) is no longer 
+identifiable in this setting, sharp bounds can be computed exactly. 
+</p>
+<p>We assume the following structural equation for the treatment: 
+<code class="reqn">X := Z \beta + \epsilon_X</code>, where the final summand is a noise term that
+correlates with the additive noise in the structural equation for the outcome: 
+<code class="reqn">Y := Z \gamma + X \theta + \epsilon_Y</code>. The ATE is given by the 
+parameter <code class="reqn">\theta</code>. Whereas classical IV models require each <code class="reqn">\gamma</code> 
+coefficient to be zero, we permit some direct signal from <code class="reqn">Z</code> to 
+<code class="reqn">Y</code>. Specifically, <code>leakyIV</code> provides support for two types of
+information leakage: (a) thresholding the <em>p</em>-norm of linear weights 
+<code class="reqn">\gamma</code> (scalar <code>tau</code>); and (b) thresholding the absolute value of 
+each <code class="reqn">\gamma</code> coefficient one by one (vector <code>tau</code>). 
+</p>
+<p>Numerous methods exist for estimating covariance matrices. <code>leakyIV</code>
+provides support for maximum likelihood estimation (the default), as well as
+empirical Bayes shrinkage via <code>corpcor::cov.shrink</code> 
+(Schäfer &amp; Strimmer, 2005) and the graphical lasso via 
+<code>glasso::glasso</code> (Friedman et al., 2007). These latter 
+methods are preferable in high-dimensional settings where sample covariance 
+matrices may be unstable or singular. Alternatively, users can pass a 
+pre-computed covariance matrix directly as <code>dat</code>.
+</p>
+<p>Estimated covariance matrices may be singular for some datasets or bootstrap
+samples. Behavior in this case is determined by the <code>approx</code> argument. 
+If <code>TRUE</code>, <code>leakyIV</code> proceeds with the nearest positive definite 
+approximation, computed via Higham's (2002) algorithm (with a warning). If 
+<code>FALSE</code>, bounds are NA (also with a warning).
+</p>
+<p>Uncertainty can be evaluated in leaky IV models using the bootstrap, provided
+that covariances are estimated internally and not passed directly. 
+Bootstrapping provides a nonparametric sampling distribution for min/max 
+values of the ATE. Set <code>bayes = TRUE</code> to replace the classical bootstrap 
+with a Bayesian bootstrap for approximate posterior inference (Rubin, 1981).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame with columns for <code>ATE_lo</code> and <code>ATE_hi</code>, representing
+lower and upper bounds of the partial identification interval for the 
+causal effect of <code class="reqn">X</code> on <code class="reqn">Y</code>. When bootstrapping, the output data 
+frame contains <code>n_boot</code> rows, one for each bootstrap replicate.
+</p>
+
+
+<h3>References</h3>
+
+<p>Watson, D., Penn, J., Gunderson, L., Bravo-Hermsdorff, G., Mastouri, A., and
+Silva, R. (2024). Bounding causal effects with leaky instruments. <em>arXiv</em>
+preprint, 2404.04446.
+</p>
+<p>Friedman, J., Hastie, T., and Tibshirani, R. (2007). Sparse inverse 
+covariance estimation with the lasso. <em>Biostatistics</em>, 9:432-441.
+</p>
+<p>Schäfer, J., and Strimmer, K. (2005). A shrinkage approach to large-scale 
+covariance estimation and implications for functional genomics. 
+<em>Statist. Appl. Genet. Mol. Biol.</em>, 4:32.
+</p>
+<p>Higham, N. (2002). Computing the nearest correlation matrix: A problem from 
+finance. <em>IMA J. Numer. Anal.</em>, 22:329–343.
+</p>
+<p>Rubin, D.R. (1981). The Bayesian bootstrap. <em>Ann. Statist.</em>, 
+<em>9</em>(1): 130-134.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+set.seed(123)
+
+# Hyperparameters
+n &lt;- 200
+d_z &lt;- 4
+beta &lt;- rep(1, d_z)
+gamma &lt;- rep(0.1, d_z)
+theta &lt;- 2
+rho &lt;- 0.5
+
+# Simulate correlated residuals
+S_eps &lt;- matrix(c(1, rho, rho, 1), ncol = 2)
+eps &lt;- matrix(rnorm(n * 2), ncol = 2)
+eps &lt;- eps %*% chol(S_eps)
+
+# Simulate observables from a leaky IV model
+z &lt;- matrix(rnorm(n * d_z), ncol = d_z)
+x &lt;- z %*% beta + eps[, 1]
+y &lt;- z %*% gamma + x * theta + eps[, 2]
+obs &lt;- cbind(x, y, z)
+
+# Run the algorithm
+leakyIV(obs, tau = 1)
+
+# With bootstrapping
+leakyIV(obs, tau = 1, n_boot = 10)
+
+# With covariance matrix input
+S &lt;- cov(obs)
+leakyIV(S, tau = 1)
+
+
+</code></pre>
+
+
+</div>

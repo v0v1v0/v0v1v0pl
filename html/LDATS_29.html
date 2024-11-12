@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expand_TS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Expand the TS models across the factorial combination of
+LDA models, formulas, and number of change points</h2>
+
+<h3>Description</h3>
+
+<p>Expand the completely crossed combination of model inputs: 
+LDA model results, formulas, and number of change points.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">expand_TS(LDA_models, formulas, nchangepoints)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LDA_models</code></td>
+<td>
+<p>List of LDA models (class <code>LDA_set</code>, produced by
+<code>LDA_set</code>) or a singular LDA model (class <code>LDA</code>,
+produced by <code>LDA</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formulas</code></td>
+<td>
+<p>Vector of <code>formula</code>(s) for the 
+continuous (non-change point) component of the time series models. Any 
+predictor variable included in a formula must also be a column in the
+<code>document_covariate_table</code>. Each element (formula) in the vector
+is evaluated for each number of change points and each LDA model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nchangepoints</code></td>
+<td>
+<p>Vector of <code>integer</code>s corresponding to the number 
+of change points to include in the time series models. 0 is a valid input 
+corresponding to no change points (<em>i.e.</em>, a singular time series
+model), and the current implementation can reasonably include up to 6 
+change points. Each element in the vector is the number of change points 
+used to segment the data for each formula (entry in <code>formulas</code>) 
+component of the TS model, for each selected LDA model.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Expanded <code>data.frame</code> table of the three values (columns) for
+each unique model run (rows): [1] the LDA model (indicated
+as a numeric element reference to the <code>LDA_models</code> object), [2] the 
+regressor formula, and [3] the number of changepoints.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDAs &lt;- LDA_set(document_term_table, topics = 2:3, nseeds = 2)
+  LDA_models &lt;- select_LDA(LDAs)
+  weights &lt;- document_weights(document_term_table)
+  formulas &lt;- c(~ 1, ~ newmoon)
+  nchangepoints &lt;- 0:1
+  expand_TS(LDA_models, formulas, nchangepoints)
+
+
+</code></pre>
+
+
+</div>

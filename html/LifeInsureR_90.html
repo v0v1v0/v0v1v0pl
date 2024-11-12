@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>testVmGlgExample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform unit tests of given standard values of the insurance contract example</h2>
+
+<h3>Description</h3>
+
+<p>Check the values of the example calculation of the given insurance contract
+as required by the Austrian regulation (LV-VMGLV, "LV
+Versicherungsmathematische Grundlagen Verordnung").
+Missing params not passed to the function call will be silently ignored and
+not cause unit test failures.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">testVmGlgExample(
+  contract,
+  prf = 10,
+  t = 10,
+  t_prf = 12,
+  net,
+  Zillmer,
+  gross,
+  written,
+  savings,
+  risk,
+  ZillmerRes,
+  ZillmerRes.prf,
+  VwKostenRes,
+  VwKostenRes.prf,
+  Bilanzreserve,
+  Praemienuebertrag,
+  Rueckkaufsreserve,
+  Rueckkaufswert,
+  Abschlusskostenruecktrag,
+  Rueckkaufswert.prf,
+  VS.prf,
+  absTolerance = 0.015,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>contract</code></td>
+<td>
+<p>The insurance contract to calculate and check</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prf</code></td>
+<td>
+<p>Time of premium waiver (premium-free)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>Time for which to check all values (except premium-free values)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t_prf</code></td>
+<td>
+<p>Time for which to check all values after the premium waiver</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>net, Zillmer, gross, written, savings, risk, ZillmerRes, ZillmerRes.prf, VwKostenRes, VwKostenRes.prf, Bilanzreserve, Praemienuebertrag, Rueckkaufsreserve, Rueckkaufswert, Abschlusskostenruecktrag, Rueckkaufswert.prf, VS.prf</code></td>
+<td>
+<p>Values as printed out by showVmGlgExamples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>absTolerance</code></td>
+<td>
+<p>If non-NULL, will ignore small floating point differences. It uses same algorithm as all.equal()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further parameters for generating the contract for a tariff object</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The easiest way to write unit-tests is using the function <code>vmGlgExample.generateTest</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>None
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(MortalityTables)
+library(testthat)
+mortalityTables.load("Austria_Annuities_AVOe2005R")
+
+test_that("Testtarif", {
+    # A trivial deferred annuity tariff with no costs:
+    library(MortalityTables)
+    mortalityTables.load("Austria_Annuities")
+    tariff = InsuranceTarif$new(name="Test Annuity", type="annuity",
+        mortalityTable = AVOe2005R.unisex, i = 0.01)
+    contract = InsuranceContract$new(
+        tariff,
+        age = 35, YOB = 1981,
+        policyPeriod = 30, premiumPeriod = 15, deferralPeriod = 15,
+        sumInsured = 1000,
+        contractClosing = as.Date("2016-10-01")
+    );
+
+    testVmGlgExample(
+        contract, t = 10,
+        net = 850.09, # NOT_CHECKED: Zillmer = 950.09,
+        gross = 850.09,
+        written = 884.09,
+        savings = 857.09, risk = -7.00,
+        ZillmerRes = 9011.40,
+        ZillmerRes.prf = 9205.96,
+        VwKostenRes = 0.00,
+        VwKostenRes.prf = 0.00,
+        Bilanzreserve = 9250.35,
+        Praemienuebertrag = 637.567,
+        Rueckkaufsreserve = 9011.40,
+        Rueckkaufswert = 9011.40,
+        Abschlusskostenruecktrag = 0.00,
+        Rueckkaufswert.prf = 9205.96,
+        VS.prf = 684.117
+    )
+})
+
+</code></pre>
+
+
+</div>

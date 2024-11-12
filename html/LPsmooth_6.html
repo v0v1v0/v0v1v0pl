@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>find_h_disc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Finding optimal instrumental mass function.
+</h2>
+
+<h3>Description</h3>
+
+<p>Finds the optimal probability mass function <code>h</code> to be used in the bidirectional acceptance sampling.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">find_h_disc(data,g,dhat,lattice=NULL,M_0=NULL,size,par0=NULL,check.plot=TRUE,
+       ylim.f=c(0,2),ylim.d=c(0,2),global=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data vector.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>Function corresponding to the parametric start or postulated model. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dhat</code></td>
+<td>
+
+<p>Function corresponding to the estimated comparison density in the <code>x</code> domain. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lattice</code></td>
+<td>
+
+<p>Support of the discrete data distribution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+
+<p>A postive value corresponding to the target for number of successful trials.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M_0</code></td>
+<td>
+
+<p>Starting point for optimization. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par0</code></td>
+<td>
+
+<p>A vector of starting values of the parameters to be estimated. See details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.plot</code></td>
+<td>
+
+<p>A logical argument indicating if the plot comparing the densities involved should be displayed or not. The default is TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim.f</code></td>
+<td>
+
+<p>If check.plot=TRUE, the range of the y-axis of the plot for the probability density functions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim.d</code></td>
+<td>
+
+<p>If check.plot=TRUE, the range of the y-axis of the plot for the comparison densities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>global</code></td>
+<td>
+
+<p>A logical argument indicating if a global optimization is needed to find the instrumental probability function <code>h</code>. See details.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parametric start specified in <code>g</code> is assumed to be fully specified and takes <code>x</code> as only argument. The argument <code>dhat</code> is the estimated comparison density in the <code>x</code> domain. We usually get the argument <code>dhat</code> by means of the function <code>d_hat</code> within our package.
+The value <code>M_0</code> and the vector <code>par0</code> are used for the optimization process for finding the optimal instrumental density h. Usually, we could choose the <code>M_0</code> to be the central point of the <code>lattice</code>. For example, if the range is from <code>0</code> to <code>30</code>, we could choose <code>15</code> as the starting point. The choice of <code>M_0</code> is not expected to affect substantially the accuracy of the solution. The vector <code>par0</code> collects initial values for the parameters which characterize the instrumental probability mass function. For instance, if <code>h</code> is a mixuture of <code>p</code> negative binomials, the first <code>p-1</code> elements of <code>pis</code> correspond to the starting values
+for the first <code>p-1</code> mixture weights. The following <code>p</code> elements are the initial values for the probablities of success of the <code>p</code> negative binomials contributing to the mixture. The argument <code>global</code>   controls whether to use a global optimization or not. A local method allows to reduce the optimization time but the solution is particularly sensible to the choice of <code>par0</code>. Conversely, setting <code>global=TRUE</code> leads to more accurate result.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Mstar</code></td>
+<td>
+<p>The reciprocal of the acceptance rate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pis</code></td>
+<td>
+<p>The optimal set of mixture weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p>The optimal set of probabilities of success.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Function corresponding to the optimal instrumental probability mass function.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Xiangyu Zhang and Sara Algeri
+</p>
+
+
+<h3>References</h3>
+
+<p>Algeri S. and Zhang X. (2020). Smoothed inference and graphics via LP modeling, arXiv:2005.13011.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>d_hat</code>, <code>find_h_cont</code>, <code>rmixtruncnorm</code>, <code>dmixtruncnorm</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lattice=seq(0,20,length=21)
+n=200
+data&lt;-rbinom(n,size=20,prob=0.5)
+g&lt;-function(x)dpois(x,10)/(ppois(20,10)-ppois(0,10))
+ddhat&lt;-d_hat(data,m=1,g=g,lattice=lattice,selection=TRUE)$dx
+find_h_disc(data=data,g=g,dhat=ddhat,lattice,M_0=10,size=15,par0=c(0.3,0.5,0.6),
+            check.plot=TRUE,ylim.f=c(0,0.4),ylim.d=c(-3,2.5),global=FALSE)
+
+</code></pre>
+
+
+</div>

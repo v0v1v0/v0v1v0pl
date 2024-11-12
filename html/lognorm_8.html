@@ -1,0 +1,205 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimateSumLognormalSample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the parameters of the lognormal approximation to the sum</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the parameters of the lognormal approximation to the sum
+</p>
+<p>Estimate the parameters of the lognormal approximation to the sum
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimateSumLognormalSample(
+  mu,
+  sigma,
+  resLog,
+  effAcf = computeEffectiveAutoCorr(resLog),
+  isGapFilled = logical(0),
+  na.rm = TRUE
+)
+
+estimateSumLognormalSampleExpScale(mean, sigmaOrig, ...)
+
+estimateSumLognormal(
+  mu,
+  sigma,
+  effAcf = c(),
+  corr = Diagonal(length(mu)),
+  corrLength = if (inherits(corr, "ddiMatrix")) 0 else nTerm,
+  sigmaSum = numeric(0),
+  isStopOnNoTerm = FALSE,
+  na.rm = isStopOnNoTerm
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>numeric vector of center parameters of terms at log scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>numeric vector of scale parameter of terms at log scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resLog</code></td>
+<td>
+<p>time series of model-residuals at log scale 
+to estimate correlation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effAcf</code></td>
+<td>
+<p>numeric vector of effective autocorrelation
+This overrides arguments <code>corr</code> and <code>corrLength</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isGapFilled</code></td>
+<td>
+<p>logical vector whether entry is gap-filled 
+rather than an original measurement, see details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>neglect terms with NA values in mu or sigma</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean</code></td>
+<td>
+<p>numeric vector of expected values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmaOrig</code></td>
+<td>
+<p>numeric vector of standard deviation at original scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments passed to <code>estimateSumLognormalSample</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>numeric matrix of correlations between the random variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corrLength</code></td>
+<td>
+<p>integer 
+scalar: set correlation length to smaller values
+to speed up computation by neglecting correlations among terms
+further apart.
+Set to zero to omit correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmaSum</code></td>
+<td>
+<p>numeric scalar: possibility to specify
+a precomputed scale parameter instead of computing it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>isStopOnNoTerm</code></td>
+<td>
+<p>if no finite estimate is provided then by
+default NA is returned for the sum.
+Set this to TRUE to issue an error instead.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If there are no gap-filled values, i.e. <code>all(!isGapFilled)</code> or
+<code>!length(isGapFilled)</code> (the default), distribution parameters
+are estimated using all the samples. Otherwise, the scale parameter
+(uncertainty) is first estimated using only the non-gapfilled records.
+</p>
+<p>Also use isGapFilled == TRUE for records, where sigma cannot be trusted. 
+When setting sigma to missing, this is also affecting the expected value.
+</p>
+<p>If there are only gap-filled records, 
+assume uncertainty to be 
+(before v0.1.5: the largest uncertainty of given gap-filled records.)
+the mean of the given multiplicative standard deviation
+</p>
+
+
+<h3>Value</h3>
+
+<p>numeric vector with components <code>mu</code>, <code>sigma</code>, 
+and <code>nEff</code>,
+i.e. the parameters of the lognormal distribution at log scale
+and the number of effective observations.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>estimateSumLognormalSample</code>: In addition to <code>estimateSumLognormal</code> take care of missing values
+and estimate correlation terms.
+</p>
+</li>
+<li> <p><code>estimateSumLognormalSampleExpScale</code>: Before calling <code>estimateSumLognormalSample</code> estimate
+lognormal parameters from value and its uncertainty given
+on original scale.
+</p>
+</li>
+<li> <p><code>estimateSumLognormal</code>: Estimate the parameters of the lognormal approximation to the sum
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p><code>Lo C (2013) WKB approximation for the sum of two 
+correlated lognormal random variables.
+Applied Mathematical Sciences, Hikari, Ltd., 7 , 6355-6367 
+10.12988/ams.2013.39511</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # distribution of the sum of two lognormally distributed random variables
+  mu1 = log(110)
+  mu2 = log(100)
+  sigma1 = log(1.2)
+  sigma2 = log(1.6)
+  (coefSum &lt;- estimateSumLognormal( 
+  c(mu1,mu2), c(sigma1,sigma2) ))
+  # repeat with correlation
+  (coefSumCor &lt;- estimateSumLognormal( 
+  c(mu1,mu2), c(sigma1,sigma2), effAcf = c(1,0.9) ))
+  # expected value is equal, but variance with correlated variables is larger
+  getLognormMoments(coefSum["mu"],coefSum["sigma"])
+  getLognormMoments(coefSumCor["mu"],coefSumCor["sigma"])
+</code></pre>
+
+
+</div>

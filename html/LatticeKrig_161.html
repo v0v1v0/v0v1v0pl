@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Radial.basis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Two dimensional radial  and tensor basis functions based on a Wendland function.
+</h2>
+
+<h3>Description</h3>
+
+<p>Two dimensional radial basis and tensor functions based on a Wendland function 
+and using sparse matrix format to reduce the storage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Radial.basis(x1, centers, basis.delta, max.points = NULL,
+                  mean.neighbor = 50,
+                  BasisFunction = "WendlandFunction",
+                  distance.type = "Euclidean",
+                        verbose = FALSE)
+
+Tensor.basis(x1, centers, basis.delta, max.points = NULL, mean.neighbor = 50, 
+   BasisFunction = "WendlandFunction", distance.type = "Euclidean") 
+
+WendlandFunction(d)    
+
+triWeight(d)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+<p>A  matrix of locations to evaluate the basis
+functions. Each row of <code>x1</code> is a location. For spherical distances these
+locations are assumed to be in degrees. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centers</code></td>
+<td>
+<p>A  matrix specifying the basis function
+centers. For spherical distances these locations are assumed to be in degrees.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A vector of distances.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basis.delta</code></td>
+<td>
+<p>A vector of scale parameters for the basis functions. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.points</code></td>
+<td>
+<p>Maximum number of nonzero entries expected for the
+returned matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distance.type</code></td>
+<td>
+<p>A text string indicate type distance to use
+between spatial locations when evaluating the basis
+functions. Default is "Euclidean". Other choices when
+locations are in degrees ( e.g. longitude and latitude) are "Chordal"
+and "GreatCircle" with the default units being miles. See Details below
+how to change the radius that is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.neighbor</code></td>
+<td>
+<p>Average number of centers that are within delta
+of each x1 location. For centers on a regular grid this is often easy
+to estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BasisFunction</code></td>
+<td>
+<p>  A function that will take a
+non-negative argument and be zero outside [0,1]. This is applied to distance(s) to generate the basis functions.  
+For tensor basis functions,
+the  function is applied to the distance components for each dimension.  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Print out debugging information if TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function finds the pairwise distances between the points x1 and
+centers and evaluates the function RadialBasisFunction at these
+distances scaled by delta. In most applications delta is constant, but
+a variable delta could be useful for lon/lat regular grids. The
+Wendland function is for 2 dimensions and smoothness order 2. See
+<code>WendlandFunction</code> for the polynomial form. This code has a very
+similar function to the fields function <code>wendland.cov</code>.
+</p>
+<p>In pseudo R code for delta a scalar <code>Radial.basis</code> with the Wendland "shape" evaluates as
+</p>
+<pre>
+  BigD&lt;- rdist( x1,centers)
+  WendlandFunction(BigD/basis.delta)
+</pre>
+<p>and is comparable to 
+</p>
+<p><code>Radial.basis(x1, centers,basis.delta)</code>
+</p>
+<p>The actual code uses a FORTRAN subroutine to search over distances
+less than delta and also returns the matrix in sparse format.
+</p>
+<p>Part of the flexibility  in these function is to use different distance functions
+(metrics). See help on <code>LKDistance</code> for the S4 method to find distance and 
+LKDist for the lower level functions that actually do the work.  
+To change the radius used for the spherical distances one add a <code>Radius</code>
+attribute to the text string. For example to use kilometers for great circle 
+distance ( R approximately 6371)
+</p>
+<pre>
+   dtype &lt;- "GreatCircle" 
+   attr( dtype, which="Radius") &lt;- 6371 
+   </pre> 
+<p><code>dtype</code> is still a text string but has the extra bit of information attached to it. Now use <code>distance.type = dtype</code> for the distance type argument. 
+</p>
+<p>The function <code>Tensor.basis</code> has similar function as the radial 
+option. The main difference is that a slightly different distance function is 
+used to return the component distances for each dimension.  In pseudo R code
+for delta a scalar  and for just two dimensions  Tensor.basis  evaluates as
+</p>
+<pre>
+  BigD1&lt;- rdist( x1[,1],centers[,1])
+  BigD2&lt;- rdist( x1[,2],centers[,2])
+  WendlandFunction(BigD1/basis.delta) *WendlandFunction(BigD1/basis.delta)
+</pre>
+<p>The user is also encourage to consider using the higher level function 
+LKrig.basis paired with an LKinfo object to define the centers. But besure to use <code>normalize = FALSE</code> to avoid strange interactions of the SAR model, irrelevant in this case, with the basis function form.
+</p>
+
+
+<h3>Value</h3>
+
+<p>For <code>Radial.basis</code> and <code>Tensor.basis</code>
+a matrix in sparse format with number of
+rows equal to nrow(x1) and columns equal to nrow(center) and value are the
+basis functions evaluated at these combinations
+For <code>WendlandFunction</code> and <code>triweight</code> a vector with the values
+for this function. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+</p>
+
+
+<h3>See Also</h3>
+
+<p>LKrig.basis, LKDist
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(12)
+x&lt;- cbind( runif(100), runif(100))
+center&lt;- expand.grid( seq( 0,1,,5), seq(0,1,,5))
+# coerce to matrix
+center&lt;- as.matrix(center)
+
+  PHI1&lt;- Radial.basis(x, center, basis.delta = .5)
+  PHI2&lt;- Tensor.basis( x, center, basis.delta = .5 )
+# similarity of radial and tensor product forms  
+  plot( c(0,1.1), c(0,1.1), type="p")
+  for( k in 1:25){
+	points( PHI1[,k], PHI2[,k])
+	}
+	
+# LKrig with a different radial basis function. 
+# 
+  data(ozone2)  
+  x&lt;-ozone2$lon.lat
+  y&lt;- ozone2$y[16,]
+# Find locations that are not 'NA'.
+# (LKrig is not set up to handle missing observations.)
+  good &lt;-  !is.na( y)
+  x&lt;- x[good,]
+  y&lt;- y[good]
+  obj&lt;- LKrig(x,y,NC=30,nlevel=1, alpha=1, lambda=.01, a.wght=5)
+    
+  obj1&lt;- LKrig(x,y,NC=30,nlevel=1, alpha=1, 
+    lambda=.01, a.wght=5, BasisFunction="triWeight", overlap=1.8)
+    
+# It is usually better to create the LKinfo object first and then call LKrig
+LKinfo &lt;- LKrigSetup( x,NC=30,nlevel=1, alpha=1, 
+            lambda=.01, a.wght=5, BasisFunction="triWeight", overlap=1.8 )
+obj1B&lt;- LKrig(x,y, LKinfo=LKinfo)  
+#######################################################
+###  a radial basis on the sphere
+#######################################################
+# icosohedral grid at the second generation 
+allLevels&lt;- IcosahedronGrid(2)
+# extract second level
+centers3d&lt;- allLevels[[2]]
+centers&lt;- toSphere(centers3d)
+# take a look
+plot( centers, xlim=c(-180,180), ylim=c( -90, 90), pch=16)
+lonlat&lt;- make.surface.grid( list( x= seq( -180,180,,80), y= seq( -90,90,,40)))
+delta&lt;- 5000 # default distance is in miles 
+# evaluate all basis functions on the grid
+bigX&lt;- Radial.basis( lonlat, centers, basis.delta= delta, distance.type="GreatCircle")
+# look at the 12th basis function 
+b12&lt;- bigX[,12]
+image( as.surface( lonlat, b12), col=c( "white",tim.colors(256)), add=TRUE,
+xlim="longitude", ylim="latitude")
+points( centers,  pch=16, col="magenta", cex=2)
+
+
+</code></pre>
+
+
+</div>

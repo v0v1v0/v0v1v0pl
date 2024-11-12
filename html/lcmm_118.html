@@ -1,0 +1,124 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictlink</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Confidence intervals for the estimated link functions from <code>lcmm</code>,
+<code>Jointlcmm</code> and <code>multlcmm</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>This function provides 95% confidence intervals around the estimated
+transformation given in estimlink attribute of <code>lcmm</code>, <code>Jointlcmm</code>
+and <code>multlcmm</code> objects. It can also be used to evaluate the link
+functions at other values than those given in attribute <code>estimlink</code> of
+<code>lcmm</code>, <code>Jointlcmm</code> or <code>multlcmm</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predictlink(x, ndraws, Yvalues, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object inheriting from classes <code>lcmm</code>, <code>Jointlcmm</code> or
+<code>multlcmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndraws</code></td>
+<td>
+<p>the number of draws that should be generated to approximate
+the posterior distribution of the transformed values. By default,
+ndraws=2000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Yvalues</code></td>
+<td>
+<p>a vector (for a <code>lcmm</code> or <code>Jointlcmm</code> object) or a
+matrix (for a <code>multlcmm</code> object) containing the values at which to
+compute the transformation(s). Default to the values in <code>x$estimlink</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other parameters (ignored)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>predictlink</code> with values :
+</p>
+<p>- <code>pred</code> :
+</p>
+<p>For a <code>lcmm</code> or <code>Jointlcmm</code> object, a data frame containing the
+values at which the transformation is evaluated, the transformed values and
+the lower and the upper limits of the confidence intervals (if ndraws&gt;0).
+</p>
+<p>For a <code>multlcmm</code> object, a data frame containing the indicator of the
+outcome, the values at which the transformations are evaluated,the
+transformed values and the lower and the upper limits of the confidence
+intervals (if ndraws&gt;0).
+</p>
+<p>- <code>object</code> : the object from which the link function is predicted
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima and Viviane Philipps
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lcmm</code>, <code>multlcmm</code>,
+<code>plot.lcmm</code>, <code>plot.predictlink</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ ## Not run: 
+
+## Univariate mixed model with splines link funciton
+m14&lt;-lcmm(Ydep2~Time+I(Time^2),random=~Time,subject='ID',ng=1,
+data=data_lcmm,link="5-manual-splines",intnodes=c(10,20,25),
+B=c(-0.89255, -0.09715, 0.56335, 0.21967, 0.61937, -7.90261, 0.75149, 
+-1.22357, 1.55832, 1.75324, 1.33834, 1.0968))
+
+##Transformed values of several scores and their confidence intervals
+transf.m14 &lt;- predictlink(m14,ndraws=2000,Yvalues=c(0,1,7:30))
+plot(transf.m14)
+
+
+## Multivariate mixed model with splines link functions
+m1 &lt;- multlcmm(Ydep1+Ydep2~1+Time*X2+contrast(X2),random=~1+Time,
+subject="ID",randomY=TRUE,link=c("4-manual-splines","3-manual-splines"),
+intnodes=c(8,12,25),data=data_lcmm,
+B=c(-1.071, -0.192,  0.106, -0.005, -0.193,  1.012,  0.870,  0.881,
+  0.000,  0.000, -7.520,  1.401,  1.607 , 1.908,  1.431,  1.082,
+ -7.528,  1.135 , 1.454 , 2.328, 1.052))
+##Confidence intervals for the transformed values (given in m1$estimlink)
+transf.m1 &lt;- predictlink(m1,ndraws=200)
+plot(transf.m1)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aba_combine_strata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Combines a list of ABA models into a single ABA model object</h2>
+
+<h3>Description</h3>
+
+<p>Combines a list of models (obtained with <code>aba_build_model</code>) into a
+single object. Typically used to merge stratum-specific models into one object.
+Validation statistics are computed for the combined strata, making it easier
+to compare prediction performance with an unstratified model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aba_combine_strata(model.list, plotsId = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model.list</code></td>
+<td>
+<p>list. stratum-specific models returned by
+<code>aba_build_model</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotsId</code></td>
+<td>
+<p>vector. "plotsId" for ordering row names in the "values" element
+of the output list</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list with three elements
+</p>
+
+<ul>
+<li> <p><code>model</code>: a list of regression models corresponding to each stratum
+(output from <code>lm</code>),
+</p>
+</li>
+<li> <p><code>stats</code>: model statistics of each stratum-specific model (as in
+<code>aba_build_model</code>) plus one line corresponding to statistics for all
+strata (COMBINED)
+</p>
+</li>
+<li> <p><code>values</code>: data.frame with observed and values predicted in
+cross-validation, and information on which stratum it belongs to.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>aba_build_model</code> for calibrated ABA model,
+<code>aba_plot</code> for plotting model cross-validation results.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load Quatre Montagnes dataset
+data(quatre_montagnes)
+# initialize list of models
+model_aba_stratified &lt;- list()
+# calibrate basal area prediction model for each stratum
+for (i in levels(quatre_montagnes$stratum))
+{
+  subsample &lt;- which(quatre_montagnes$stratum == i)
+  model_aba_stratified[[i]] &lt;-
+    aba_build_model(quatre_montagnes[subsample, "G_m2_ha"],
+      quatre_montagnes[subsample, 9:76],
+      transform = "boxcox", nmax = 4,
+      xy = quatre_montagnes[subsample, c("X", "Y")]
+    )
+}
+# combine models in single object
+model_aba_stratified &lt;- aba_combine_strata(
+  model_aba_stratified,
+  quatre_montagnes$plotId
+)
+# display content of output list
+model_aba_stratified$model
+model_aba_stratified$stats
+summary(model_aba_stratified$values)
+
+# plot field values VS predictions in cross-validation
+aba_plot(model_aba_stratified)
+</code></pre>
+
+
+</div>

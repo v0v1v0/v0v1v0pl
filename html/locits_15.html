@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lacf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute localized autocovariance.
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute localized autocovariance function for nonstationary
+time series. Note: this function is borrowed from the <code>costat</code>
+package, and modified to have linear smoothing,  and when that package is complete, it will be removed
+from this package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lacf(x, filter.number = 10, family = "DaubLeAsymm", smooth.dev = var,
+    AutoReflect = TRUE, lag.max = NULL, WPsmooth.type = "RM",
+    binwidth, tol=0.1, maxits=5, ABBverbose=0, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The time series you wish to analyze
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.number</code></td>
+<td>
+<p>Wavelet filter number you wish to use to 
+analyse the time series (to form the wavelet periodogram, etc)
+See <code>filter.select</code> for more details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Wavelet family to use, see <code>filter.select</code> for
+more details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth.dev</code></td>
+<td>
+<p>Change variance estimate for smoothing. Note: <code>var</code>
+is good for this purpose.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AutoReflect</code></td>
+<td>
+<p>If <code>TRUE</code> then an internal reflection method
+is used to repackage the time series so that it can be
+analyzed by the periodic-assuming wavelet transforms.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag.max</code></td>
+<td>
+<p>The maximum lag of acf required. If NULL then the
+same default as in the regular <code>acf</code> function is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WPsmooth.type</code></td>
+<td>
+<p>The type of smoothing used to produce the
+estimate. See <code>ewspec3</code> for more advice on this.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binwidth</code></td>
+<td>
+<p>If necessary, the <code>binwidth</code> for the
+spectral smoothing, see <code>ewspec3</code> for more info.
+If <code>WTsmooth.type=="RM"</code> then this argument specifies
+the binwidth of the kernel smoother applied to the wavelet
+periodogram. If the argument is missing or zero then 
+an automatic bandwidth is calculated by <code>AutoBestBW</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance argument for <code>AutoBestBW</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxits</code></td>
+<td>
+<p>Maximum iterations argument for <code>AutoBestBW</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ABBverbose</code></td>
+<td>
+<p>Verbosity of execution of <code>AutoBestBW</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If <code>TRUE</code> then informative message is printed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments for <code>ewspec3</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In essence, this routine is fairly simple. First, the EWS
+of the time series is computed. Then formula (14) from
+Nason, von Sachs and Kroisandr (2000) is applied to obtain
+the time-localized autocovariance from the spectral estimate.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>lacf</code> which contains the
+autocovariance. This object can be handled by functions
+from the <code>costat</code> package. The idea in this package
+is that the function gets used internally and much of the
+same functionality can be achieved by running
+<code>Rvarlacf</code> and <code>plot.lacfCI</code>. However,
+running <code>lacf</code> on its own is much faster than
+<code>Rvarlacf</code> as the CI computation is intenstive.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Guy Nason.
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a>
+</p>
+<p>Nason, G.P., von Sachs, R. and Kroisandt, G. (2000) Wavelet processes
+and adaptive estimation of the evolutionary wavelet spectrum.
+<em>J. R. Statist. Soc.</em> Ser B, <b>62</b>, 271-292.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Rvarlacf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# With wavethresh attached, note binwidth is fabricated here,
+# just to make the example work. The lacf implementation in
+# the costat package performs wavelet (ie maybe better) smoothing automatically
+#
+v &lt;- lacf(rnorm(256), binwidth=40)
+#
+# With costat attached also
+#
+## Not run: plot(v)
+</code></pre>
+
+
+</div>

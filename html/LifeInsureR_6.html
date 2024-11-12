@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>contractGrid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a grid of InsuranceContract objects or premiums with each axis representing one varying parameter</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>contractGrid</code> creates a (two- or multi-dimensional) grid
+of InsuranceContract objects, where each axis represents one of the insurance
+parameters varying as given in the <code>axes</code> argument (as a named list).
+</p>
+<p>The function <code>contractGridPremium</code> returns a grid of premiums as requested in
+the <code>premium</code> parameter rather than the full InsuranceContract objects.
+It is a convenience wrapper around <code>contractGrid</code> and is recommended if
+one is only interested in a grid of one particular value (typically some
+kind of premium).
+The function <code>contractGridPremium</code> can also be used on an existing
+<code>contractGrid</code>-generated grid of contracts to extract grid of numerical
+values of the specified premiums. If no contract grid is passed to
+<code>contractGridPremium</code>, <code>contractGrid</code> will be called to create it.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">contractGrid(
+  axes = list(age = seq(20, 60, 10), policyPeriod = seq(5, 35, 5)),
+  YOB = NULL,
+  observationYear = NULL,
+  ...
+)
+
+contractGridPremium(
+  contractGrid = NULL,
+  premium = "written",
+  .fun = function(cntr) {
+     cntr$Values$premiums[[premium]]
+ },
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>axes</code></td>
+<td>
+<p>List of paramters spanning the dimensions of the grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>YOB</code></td>
+<td>
+<p>optional year of bith. If missing, the <code>observationYear</code> and the contract's age</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>observationYear</code></td>
+<td>
+<p>The observation year, for which the grid shall be calculated. If given, the YOB is calculated from it, otherwise the contract's YOB is used</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>In <code>contractGrid</code>: Additional parameters to be passed to <a href="../../LifeInsureR/html/InsuranceContract.html#method-new"><code>InsuranceContract$new()</code></a>; In <code>contractGridPremium</code>: Additional parameters to be passed to <code>contractGrid</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contractGrid</code></td>
+<td>
+<p>(optional) existing contract grid from which to derive
+premiums. If not given, contractGrid is called with all parameters, so
+<code>...</code> should contain an <code>axes</code> argument in that case.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>premium</code></td>
+<td>
+<p>The type of premium to derive (key of the <code>contract$Values$premiums</code> list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.fun</code></td>
+<td>
+<p>The function to extract the desired premium from a contract
+object. By default it accesses the premium vector and extracts the
+type of premium given in the <code>premium</code> parameter. One can,
+however pass any other extractor function to access e.g. reserves,
+cash flows etc. at any desired time.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>contractGrid</code> will return the full InsuranceContract
+objects, so apply can later be used to extract premiums, reserves and other
+values to display in a grid. For this feature, one can also use the convenience
+function <code>contractGridPremium</code>.
+</p>
+<p>The <code>axes</code> list describing the parameters changing along the axes of the
+resulting grid is internally expanded with <code>expand.grid()</code>. The resulting flat
+list of parameter (together with the fixed parameters passed as <code>...</code>)
+is then passed to the <a href="../../LifeInsureR/html/InsuranceContract.html#method-new"><code>InsuranceContract$new()</code></a> call to create the corresponding
+contract object.
+</p>
+<p>To create the human-readable row-/columnnames of the resulting array,
+the function <code>makeContractGridDimname()</code> for each value of the axes, allowing
+human-readable representations e.g. of a tariff or a mortality table as
+the dimension label.
+</p>
+
+
+<h3>Value</h3>
+
+<p>multi-dimensional array of insurance contracts (dimensions defined by the axes argument)
+</p>
+<p>a array of premiums (or other contract-specific value) for the grid defined by the <code>axes</code> argument to <code>contractGrid</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library("MortalityTables")
+mortalityTables.load("Austria_Annuities_AVOe2005R")
+# A trivial deferred annuity tariff with no costs, premiums during whole 
+# deferral period, 30 years annuity payments:
+tariff = InsuranceTarif$new(name="Test Annuity", type="annuity", tarif = "Annuity 1A",
+    mortalityTable = AVOe2005R.unisex, i=0.01, 
+    deferralPeriod = function(params, ...) { params$ContractData$premiumPeriod }, 
+    policyPeriod = function(params, ...) { params$ContractData$premiumPeriod + 30 }
+)
+contractGrid(
+    axes = list(
+        age = seq(20, 60, 10),
+        premiumPeriod = seq(5,30, 5)
+    ),
+    tarif = tariff,
+    sumInsured = 1000,
+    contractClosing = as.Date("2023-11-01")
+)
+
+</code></pre>
+
+
+</div>

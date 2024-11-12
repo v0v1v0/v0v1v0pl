@@ -1,0 +1,188 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maxauc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal Score</h2>
+
+<h3>Description</h3>
+
+<p>Compute optimal score for AUC</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">maxauc(X,etime,status,u=NULL,tt,s,vtimes,fc=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>p by n by S array of longitudinal scores/biomarkers for i-th
+subject at j-th occasion (NA if unmeasured)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etime</code></td>
+<td>
+<p>n vector with follow-up times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p>n vector with event indicators</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>Lower limit for evaluation of sensitivity and
+specificity. Defaults to <code>vtimes[s]</code> (see below)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tt</code></td>
+<td>
+<p>Upper limit (time-horizon) for evaluation of sensitivity
+and specificity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>Scalar number of measurements/visits to use for each subject. s&lt;=S</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vtimes</code></td>
+<td>
+<p>S vector with visit times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fc</code></td>
+<td>
+<p>Events are defined as fc = 1. Defaults to $I(cup X(t_j)&gt;cutoff)$</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can be used to find an optimal linear combination of p
+scores/biomarkers repeatedly measured over time. The resulting score
+is optimal as it maximizes the AUC among all possible linear
+combinations. The first biomarker in array X plays a special role, as
+by default its coefficient is unitary. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following elements: 
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+ 	<code>beta</code> </td>
+<td style="text-align: left;"> Beta coefficients for the optimal score </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+	<code>score</code> </td>
+<td style="text-align: left;"> Optimal score </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+	</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alessio Farcomeni <a href="mailto:alessio.farcomeni@uniroma1.it">alessio.farcomeni@uniroma1.it</a></p>
+
+
+<h3>References</h3>
+
+<p>Barbati, G. and Farcomeni, A. (2017) Prognostic assessment of
+repeatedly measured time-dependent biomarkers, with application to
+dilated cardiomuopathy, <em>Statistical Methods \&amp; Applications</em>, in
+press 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><cite>auc</cite>, <cite>butstrap</cite>, <cite>maxauc</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># parameters
+n=25
+tt=3
+Tmax=10
+u=1.5
+s=2
+vtimes=c(0,1,2,5)
+
+# generate data 
+
+ngrid=500
+ts=seq(0,Tmax,length=ngrid)
+X2=matrix(rnorm(n*ngrid,0,0.1),n,ngrid)
+for(i in 1:n) {
+sa=sample(ngrid/6,1)
+vals=sample(3,1)-1
+X2[i,1:sa[1]]=vals[1]+X2[i,1:sa[1]]
+X2[i,(sa[1]+1):ngrid]=vals[1]+sample(c(-2,2),1)+X2[i,(sa[1]+1):ngrid]
+}
+
+S1=matrix(sample(4,n,replace=TRUE),n,length(vtimes))
+S2=matrix(NA,n,length(vtimes))
+
+S2[,1]=X2[,1]
+
+for(j in 2:length(vtimes)) {
+tm=which.min(abs(ts-vtimes[j]))
+S2[,j]=X2[,tm]}
+
+cens=runif(n)
+ripart=1-exp(-0.01*apply(exp(X2),1,cumsum)*ts/1:ngrid)
+
+Ti=rep(NA,n)
+for(i in 1:n) {
+Ti[i]=ts[which.min(abs(ripart[,i]-cens[i]))]
+}
+
+cens=runif(n,0,Tmax*2)
+delta=ifelse(cens&gt;Ti,1,0)
+Ti[cens&lt;Ti]=cens[cens&lt;Ti]
+
+## 
+
+X=array(NA,c(2,nrow(S1),ncol(S1)))
+X[1,,]=round(S2) #fewer different values, quicker computation 
+X[2,,]=S1
+
+sc=maxauc(X,Ti,delta,u,tt,s,vtimes)
+
+# beta coefficients
+
+sc$beta
+
+# final score (X[1,,]+X[2,,]*sc$beta[1]+...+X[p,,]*sc$beta[p-1])
+
+sc$score
+
+</code></pre>
+
+
+</div>

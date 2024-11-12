@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sample_events</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample Events</h2>
+
+<h3>Description</h3>
+
+<p>Computes event table variables over the specified sampling intervals, or "bins".
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sample_events(
+  e,
+  bins,
+  ...,
+  scaled.cols = NULL,
+  col.names = NULL,
+  drop.empty = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>e</code></td>
+<td>
+<p>An event table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bins</code></td>
+<td>
+<p>An event table specifying the intervals for sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Lists specifying the sampling functions and parameters to be used (see the <code>Details</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaled.cols</code></td>
+<td>
+<p>Names or indices of the event columns to be rescaled after cutting (see <code>cut_events</code>). Names are interpreted as regular expressions (<code>regex</code>) matching full column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+<p>Character vector of names for the columns output by the sampling functions. If <code>NULL</code>, the columns are named automatically (see the <code>Details</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop.empty</code></td>
+<td>
+<p>If <code>TRUE</code>, bins not intersecting any events are dropped.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Events are cut at bin endpoints, and any <code>scaled.cols</code> columns are rescaled to the length of the resulting event segments. The event segments falling into each bin are passed to the sampling functions to compute the variables for each bin. Bins sample from events they overlap: line events with whom they share more than an endpoint, or point events with equal endpoints (if the bin itself is a point).
+</p>
+<p>Sampling functions are specified in lists with the format <code>list(FUN, data.cols, by = group.cols, ...)</code>. The first element in the list is the function to use. It must compute a single value from one or more vectors of the same length. The following unnamed element is a vector specifying the event column names or indices to recursively pass as the first argument of the function. Names are interpreted as regular expressions (<code>regex</code>) matching full column names. Additional unnamed elements are vectors specifying additional event columns to pass as the second, third, ... argument of the function. The first "by" element is a vector of event column names or indices used as grouping variables. Any additional named arguments are passed directly to the function. For example:
+</p>
+<p>list(sum, 1:2, na.rm = TRUE) =&gt; sum(events[1], na.rm = TRUE), sum(events[2], na.rm = TRUE)
+list(sum, 1, 3:4, 5) =&gt; sum(events[1], events[3], events[4], events[5]), ...
+list(sum, c('x', 'y'), by = 3:4) =&gt; list(sum, 'x'), list(sum, 'y') grouped into all combinations of columns 3 and 4
+</p>
+<p>Using the latter example above, column names are taken from the first argument (e.g. <code>x, y</code>), and all grouping variables are appended (e.g. <code>x.a, y.a, x.b, y.b</code>), where <code>a</code> and <code>b</code> are the levels of columns 3 and 4. <code>NA</code> is also treated as a factor level. Columns are added left to right in order of the sampling function arguments. Finally, names are made unique by appending sequence numbers to duplicates (using <code>make.unique</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>bins</code> event table with the columns output by the sampling functions appended.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>seq_events</code> to generate sequential bins.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">e &lt;- events(from = c(0, 10, 15, 25), to = c(10, 20, 25, 40), length = c(10, 10, 10, 15), 
+            x = c(1, 2, 1, 1), f = c('a', 'b', 'a', 'a'))
+bins &lt;- rbind(seq_events(event_coverage(e), 4), c(18, 18))
+sample_events(e, bins, list(sum, 'length'))
+sample_events(e, bins, list(sum, 'length'), scaled.cols = 'length')
+sample_events(e, bins, list(sum, 'length', by = 'f'), scaled.cols = 'length')
+sample_events(e, bins, list(weighted.mean, 'x', 'length'), scaled.cols = 'length')
+sample_events(e, bins, list(paste0, 'f', collapse = "."))
+</code></pre>
+
+
+</div>

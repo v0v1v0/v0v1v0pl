@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estim.varma</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate a VARMA Model</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to estimate a Vector Autoregressive Moving Average model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estim.varma(
+  data,
+  params = NULL,
+  seasonsCount = 0,
+  lbfgsOptions = get.options.lbfgs(),
+  olsStdMultiplier = 2,
+  pcaOptionsY = NULL,
+  pcaOptionsX = NULL,
+  maxHorizon = 0,
+  simFixSize = 0,
+  simHorizons = NULL,
+  simUsePreviousEstim = FALSE,
+  simMaxConditionNumber = Inf
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A list that determines data and other required information for the search process.
+Use <code>get.data()</code> function to generate it from a <code>matrix</code> or a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>An integer vector that determines the values for the parameters of the VARMA model: <code>(p,d,q,P,D,Q)</code>. If <code>NULL</code>, <code>c(1,0,0,0,0,0)</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonsCount</code></td>
+<td>
+<p>An integer value representing the number of observations per unit of time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lbfgsOptions</code></td>
+<td>
+<p>A list containing L-BFGS optimization options. Use get.options.lbfgs function for initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>olsStdMultiplier</code></td>
+<td>
+<p>A number used as a multiplier for the standard deviation of OLS, used for restricting maximum likelihood estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcaOptionsY</code></td>
+<td>
+<p>A list of options to use principal components of <code>y</code>, instead of the actual values. Set to <code>NULL</code> to disable. Use <code>get.options.pca()</code> for initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pcaOptionsX</code></td>
+<td>
+<p>A list of options to use principal components of <code>x</code>, instead of the actual values. Set to <code>NULL</code> to disable. Use <code>get.options.pca()</code> for initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxHorizon</code></td>
+<td>
+<p>An integer representing the maximum prediction horizon. Set to zero to disable prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simFixSize</code></td>
+<td>
+<p>An integer that determines the number of out-of-sample simulations. Use zero to disable simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simHorizons</code></td>
+<td>
+<p>An integer vector representing the prediction horizons to be used in out-of-sample simulations. See also <code>get.search.metrics()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simUsePreviousEstim</code></td>
+<td>
+<p>If <code>TRUE</code>, parameters are initialized only in the first step of the simulation. The initial values of the n-th simulation (with one more observation) are the estimations from the previous step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simMaxConditionNumber</code></td>
+<td>
+<p>A number representing the maximum value for the condition number in simulation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The VARMA model can be used to analyze multivariate time series data with seasonal or non-seasonal patterns. According to Lütkepohl (2005), it considers interdependencies between the series, making it a powerful tool for prediction. The specification of this model is given by:
+</p>
+<p style="text-align: center;"><code class="reqn">
+\Delta^d \Delta_s^D y_t = c + \sum_{i=1}^p A_i y_{t-i} + \sum_{i=1}^q B_i \epsilon_{t-i} + C x_t + \sum_{i=1}^P A_{is} y_{t-is} + \sum_{i=1}^Q B_{is} v_{t-is} + v_t,
+</code>
+</p>
+
+<p>where <code class="reqn">y_t:m\times 1</code> is the vector of endogenous variables, <code class="reqn">x_t:k\times 1</code> is the vector exogenous variables, <code class="reqn">s</code> is the number of seasons and <code class="reqn">(p,d,q,P,D,Q)</code> determines the lag structure of the model. Furthermore, <code class="reqn">c,C,A_i</code> and <code class="reqn">B_i</code> for all available <code class="reqn">i</code> determines the model’s parameters. <code class="reqn">v_t</code> is the disturbance vector and is contemporaneously correlated between different equations, i.e., <code class="reqn">E(v_tv_t')=\Sigma</code>.
+Given a sample of size <code class="reqn">T</code>, the model can be estimated using maximum likelihood estimation. However, to ensure identifiability, it is necessary to impose additional constraints on the parameters (see chapter 12 in Lütkepohl (2005)). In this function, diagonal MA equation form is used (see Dufour and Pelletier (2022)).
+In this function, the feasible GLS estimator is used to initialize the maximum likelihood, and the OLS estimator is used to calculate the initial value of the variance matrix of the error term. The condition number is calculated similar to the other models (see estim.sur or e.g., page 94 in Trefethen and Bau (1997)). Furthermore, given a prediction horizon and required exogenous data, prediction is performed in a recursive schema, in which the actual estimated errors are used if available and zero otherwise. The variance of the predictions is also calculated recursively. Note that this function does not incorporate the coefficients uncertainty in calculation of the variance (see section 3.5 in Lütkepohl (2005)).
+</p>
+<p>Finally, note that the main purpose of exporting this method is to show the inner calculations of the search process in search.varma function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A nested list with the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Information about different aspects of the estimation such as the number of observation, number of exogenous variables, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimations</code></td>
+<td>
+<p>Estimated coefficients, standard errors, z-statistics, p-values, etc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>Value of different goodness of fit and out-of-sample performance metrics. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prediction</code></td>
+<td>
+<p>Information on the predicted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulation</code></td>
+<td>
+<p>Information on the simulations. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>Some other general information.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Dufour J, Pelletier D (2022).
+“Practical methods for modeling weak VARMA processes: Identification, estimation and specification with a macroeconomic application.”
+<em>Journal of Business &amp; Economic Statistics</em>, <b>40</b>(3), 1140–1152.
+<a href="https://doi.org/10.1080/07350015.2021.1904960">doi:10.1080/07350015.2021.1904960</a>.<br><br> Lütkepohl H (2005).
+<em>New introduction to multiple time series analysis</em>.
+Springer, Berlin.
+ISBN 3540401725, <a href="https://doi.org/10.1007/978-3-540-27752-1">doi:10.1007/978-3-540-27752-1</a>.<br><br> Trefethen LN, Bau D (1997).
+<em>Numerical linear algebra</em>.
+Society for Industrial and Applied Mathematics.
+ISBN 9780898714876.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>search.varma
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1 (simulation, ARMA):
+num_eq &lt;- 1L
+num_ar &lt;- 2L
+num_ma &lt;- 1L
+num_exo &lt;- 1L
+sample &lt;- sim.varma(num_eq, arList = num_ar, maList = num_ma, exoCoef = num_exo, nObs = 110)
+# estimate:
+fit &lt;- estim.varma(data = get.data(cbind(sample$y, sample$x)[1:100,],
+                                   endogenous = num_eq,
+                                   newData = sample$x[101:110,, drop=FALSE]),
+                   params = c(num_ar, 0, num_ma, 0, 0, 0),
+                   maxHorizon = 10,
+                   simFixSize = 5,
+                   simHorizons = c(1:10))
+print(fit)
+
+pred &lt;- predict(fit, actualCount = 10)
+plot(pred, simMetric = "mape")
+
+# split coefficient matrix:
+get.varma.params(fit$estimations$coefs, numAR = num_ar, numMA = num_ma, numExo = num_exo)
+
+# Example 2 (simulation, VARMA):
+num_eq &lt;- 3L
+num_ar &lt;- 2L
+num_ma &lt;- 1L
+num_ma &lt;- 1L
+num_exo &lt;- 2L
+sample &lt;- sim.varma(num_eq, arList = num_ar, maList = num_ma, exoCoef = num_exo, nObs = 110)
+# estimate:
+fit &lt;- estim.varma(data = get.data(cbind(sample$y, sample$x)[1:100,],
+                                   endogenous = num_eq,
+                                   newData = sample$x[101:110,]),
+                   params = c(num_ar, 0, num_ma, 0, 0, 0),
+                   maxHorizon = 10,
+                   simFixSize = 5,
+                   simHorizons = c(1:10))
+
+pred &lt;- predict(fit, actualCount = 10)
+plot(pred, simMetric = "mape")
+
+# split coefficient matrix:
+get.varma.params(fit$estimations$coefs, numAR = num_ar, numMA = num_ma, numExo = num_exo)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modereg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Nonparametric Estimators for Nonparametric Mode Regression</h2>
+
+<h3>Description</h3>
+
+<p>This function provides the nonparametric estimators (Zhou and Huang, 2016; Zhou and Huang, 2019) for nonparametric modal regression. The corresponding estimators in the absence of measurement error are also provided. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modereg(Y, W, bw, xgrid=NULL, sig=NULL, nstart=4, p.order=0, maxiter = 500, 
+        tol=.Machine$double.eps^0.25, mesh=NULL, PLOT=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>         an n by 1 response vector. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W</code></td>
+<td>
+<p>         an n by 1 predictor vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>        bandwidth.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xgrid</code></td>
+<td>
+<p>     the grid values to estimate the responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig</code></td>
+<td>
+<p>      standard deviation of the measurement error; <code>sig=NULL</code> returns the naive estimators ignoring measurement error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>    the starting number of modes for each grid value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.order</code></td>
+<td>
+<p>   the order of polynomial, up to 1; <code>p.order=0</code> returns local constant estimators and <code>p.order=1</code> returns local linear estimators. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>  the maximum number of iterations performed for the mean shift algorithm if not converage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>      the deisered accurary (convergence tolerrance).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mesh</code></td>
+<td>
+<p>     a matrix of initial mode points, where each row corresponds a mode in <code>(x,y)</code> coordinate; if <code>mesh=NULL</code>, it will be chosen automatically according to <code>xgrid</code> and <code>nstart</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PLOT</code></td>
+<td>
+<p>     a logical value indicating whether the estimated modes will be plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>       further arguments to be passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The results include the grid points <code>xgrid</code> for predictor, the number of modes for each grid <code>x.num</code>, the initial mesh points <code>mesh</code>, and corresponding fitted modes <code>mode</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Haiming Zhou and Xianzheng Huang
+</p>
+
+
+<h3>References</h3>
+
+<p>Zhou. H. and Huang, X. (2016). Nonparametric modal regression in the presence of measurement error. <em>Electronic Journal of Statistics</em>, 10: 3579-3620.
+</p>
+<p>Zhou, H. and Huang, X. (2019). Bandwidth selection for nonparametric modal regression. <em>Communications in Statistics - Simulation and Computation</em>, 48(4): 968-984.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>moderegbwSIMEX,moderegbw</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lpme)
+
+rlaplace=function (use.n, location = 0, scale = 1) 
+{
+  location &lt;- rep(location, length.out = use.n)
+  scale &lt;- rep(scale, length.out = use.n)
+  rrrr &lt;- runif(use.n)
+  location - sign(rrrr - 0.5) * scale * 
+    (log(2) + ifelse(rrrr &lt; 0.5, log(rrrr), log1p(-rrrr)))
+}
+
+## sample size:
+n =100;
+## Function m(x) to estimate#
+gofx1  = function(x){ (x+x^2) }
+gofx2  = function(x){ (x+x^2)-6 }
+xgrid	= seq(-2, 2, length.out=100); 
+ngrid	= length(xgrid)
+
+## Sample X
+X = rnorm(n, 0, 1); sigma_x=1;
+## Sample Y
+Y = rep(0, n);
+U = runif(n);
+for(i in 1:n){
+  if(U[i]&lt;0.5){
+    Y[i] = rnorm(1, gofx1(X[i]), 1);
+  }else{
+    Y[i] = rnorm(1, gofx2(X[i]), 1);
+  }
+}
+## reliability ratio
+lambda=0.9;
+sigma_u  = sqrt(1/lambda-1)*sigma_x;
+W=X+rlaplace(n,0,sigma_u/sqrt(2));
+
+## mode estimates
+hhxy = c(0.15, 1)
+## Note you needs to use the following code to calculate bandwidth
+## It is not run here due to the time constrain of runing examples. 
+#hhxy = moderegbwSIMEX(Y, W, method="CV-density", p.order=0, 
+#                       sig=sigma_u, B=5, length.h=10)$bw;
+fit = modereg(Y, W, xgrid=xgrid, bw=hhxy, sig=sigma_u, p.order=0,
+              PLOT=TRUE);
+
+## Plot
+plot(xgrid, gofx1(xgrid), "l", lwd="2", ylim=c(-9,7), xlim=c(-2,2));
+lines(xgrid, gofx2(xgrid), "l", lwd="2");
+points(rep(fit$xgrid,fit$x.num), fit$mode, col="3",lwd="2")
+</code></pre>
+
+
+</div>

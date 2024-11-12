@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>select.colattrs.lsd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Select a subset of a LSD results matrix (by variable attributes)
+</h2>
+
+<h3>Description</h3>
+
+<p>This function select a subset of a LSD results matrix (as produced by <code>read.raw.lsd</code>) by the variable attributes, considering the LSD object position and the time span.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">select.colattrs.lsd( dataSet, info, col.names = NULL, init.value = NA,
+                     init.time = NA, end.time = NA, posit = NULL,
+                     posit.match = c( "fixed", "glob", "regex" ) )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataSet</code></td>
+<td>
+
+<p>matrix produced by the invocation of <code>read.raw.lsd</code>, <code>read.single.lsd</code>, <code>read.multi.lsd</code> or <code>read.list.lsd</code> (a single matrix a time) functions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+
+<p>data frame produced by <code>info.details.lsd</code> for the same results file from where <code>dataSet</code> was extracted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.names</code></td>
+<td>
+
+<p>a vector of optional names for the variables to select from. The default is to select from all variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.value</code></td>
+<td>
+
+<p>initial value attributed to the variable(s) to select.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.time</code></td>
+<td>
+
+<p>initial time attributed to the variable(s) to select.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end.time</code></td>
+<td>
+
+<p>end time attributed to the variable(s) to select.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posit</code></td>
+<td>
+
+<p>a string, a vector of strings or an integer vector describing the LSD object position of the variable(s) to select. If an integer vector, it should define the position of a SINGLE LSD object. If a string or vector of strings, each element should define one or more different LSD objects, so the returning matrix will contain variables from more than one object. By setting <code>posit.match</code>, globbing (wildcard), and regular expressions can be used to select multiple objects at once; in this case, all matching objects are returned.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posit.match</code></td>
+<td>
+
+<p>a string defining how the <code>posit</code> argument, if provided, should be matched against the LSD object positions. If equal to <code>"fixed"</code>, the default, only exact matching is done. <code>"glob"</code> allows using simple wildcard characters ('*' and '?') in <code>posit</code> for matching. If <code>posit.match="regex"</code> interpret <code>posit</code> as POSIX 1003.2 extended regular expression(s). See <code>regular expressions</code> for details of the different types of regular expressions. Options can be abbreviated.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Selection restriction arguments can be provided as needed; when not specified, all available cases are selected.
+</p>
+<p>When <code>posit</code> is supplied together with other attribute filters, the selection process is done in two steps. Firstly, the column names set by otter attribute filters are selected. Secondly, the instances defined by <code>posit</code> are selected from the first selection set.
+</p>
+<p>See also the <code>read.XXXX.lsd</code> functions which may select just specific <code>posit</code> object instances when loading LSD results. If only a single set of instances is required, this would be more efficient than using this function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a single matrix containing the selected variables' time series contained in the original data set.
+</p>
+
+
+<h3>Note</h3>
+
+<p>If only variable names selection is needed, <code>select.colnames.lsd</code> is more efficient because information pre-processing (<code>info.details.lsd</code>) is not required.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marcelo C. Pereira</p>
+
+
+<h3>See Also</h3>
+
+<p><code>list.files.lsd()</code>
+<code>info.details.lsd()</code>,
+<code>select.colnames.lsd()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># get the list of file names of example LSD results
+files &lt;- list.files.lsd( system.file( "extdata", package = "LSDinterface" ) )
+
+# read all instances of all variables of first file
+bigTable &lt;- read.raw.lsd( files[ 1 ] )
+
+# build the info table
+info &lt;- info.details.lsd( files[ 1 ] )
+
+# extract specific instances of a set of variables named '_A1p' and '_growth1'
+abFirst2 &lt;- select.colattrs.lsd( bigTable, info, c( "_A1p", "_growth1" ),
+                                 posit = c( "1_2", "1_5" ) )
+print( abFirst2[ 50 : 60, ] )
+
+# extract instances of variable '_A1p' that start at time step t = 1
+# for the second and fourth objects under any top-level object (use globbing)
+a24 &lt;- select.colattrs.lsd( bigTable, info, "_A1p", init.time = 1,
+                            posit = c( "*_2", "*_4" ), posit.match = "glob" )
+print( a24[ 1 : 10, ] )
+
+# extract all second-level object instances of all variables
+aSec &lt;- select.colattrs.lsd( bigTable, info, posit = "*_*", posit.match = "glob" )
+print( aSec[ 1 : 10, ] )
+
+# extract just top-level object instances variables
+aTop &lt;- select.colattrs.lsd( bigTable, info, posit = "^[0-9]+$",
+                             posit.match = "regex" )
+print( aTop[ 1 : 10, ] )
+</code></pre>
+
+
+</div>

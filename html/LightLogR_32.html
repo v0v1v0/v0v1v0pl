@@ -1,0 +1,262 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gg_days</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a simple datetime plot of light logger data, faceted by group</h2>
+
+<h3>Description</h3>
+
+<p><code>gg_days()</code> will create a simple ggplot along the timeline. The result can
+further be manipulated like any ggplot. This will be sensible to refine
+styling or guides. Through the <code>x.axis.limits</code> arguments, the plot can be
+much refined to align several groups of differing datetime ranges. It uses
+the <code>Datetime_limits()</code> function to calculate the limits of the x-axis.
+Another notable functions that are used are <code>Datetime_breaks()</code> to calculate
+the breaks of the x-axis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gg_days(
+  dataset,
+  x.axis = Datetime,
+  y.axis = MEDI,
+  aes_col = NULL,
+  aes_fill = NULL,
+  group = NULL,
+  geom = "line",
+  scales = c("free_x", "free_y", "fixed", "free"),
+  x.axis.breaks = Datetime_breaks,
+  y.axis.breaks = c(-10^(5:0), 0, 10^(0:5)),
+  y.scale = "symlog",
+  y.scale.sc = FALSE,
+  x.axis.label = "Datetime",
+  y.axis.label = "Illuminance (lx, MEDI)",
+  x.axis.limits = Datetime_limits,
+  x.axis.format = "%a %D",
+  title = NULL,
+  subtitle = NULL,
+  interactive = FALSE,
+  facetting = TRUE,
+  jco_color = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Expects a <code>dataframe</code>. If not imported
+by LightLogR, take care to choose a sensible variable for the <code>x.axis.</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis, y.axis</code></td>
+<td>
+<p>column name that contains the datetime (x, defaults to
+<code>"Datetime"</code> which is automatically correct for data imported with
+LightLogR) and the dependent variable (y, defaults to <code>"MEDI"</code>, or
+melanopic EDI, which is a standard measure of stimulus strength for the
+nonvisual effects of light). Expects a <code>symbol</code>. Needs to be part of the
+<code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aes_col, aes_fill</code></td>
+<td>
+<p>optional input that defines separate sets and colors
+or fills them. Expects anything that works with the layer data
+<code>ggplot2::aes()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>Optional column name that defines separate sets. Useful for
+certain geoms like <code>boxplot</code>.Expects anything that works with the layer
+data <code>ggplot2::aes()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>What geom should be used for visualization? Expects a <code>character</code>
+</p>
+
+<ul>
+<li> <p><code>"point"</code> for <code>ggplot2::geom_point()</code>
+</p>
+</li>
+<li> <p><code>"line"</code>  for <code>ggplot2::geom_line()</code>
+</p>
+</li>
+<li> <p><code>"ribbon"</code> for <code>ggplot2::geom_ribbon()</code>
+</p>
+</li>
+<li>
+<p> as the value is just input into the <code>geom_</code> function from <span class="pkg">ggplot2</span>, other variants work as well, but are not extensively tested.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scales</code></td>
+<td>
+<p>For <code>ggplot2::facet_wrap()</code>, should scales be <code>"fixed"</code>,
+<code>"free"</code> or <code>"free"</code> in one dimension (<code>"free_x"</code> is the default). Expects
+a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.breaks</code></td>
+<td>
+<p>The (major) breaks of the x-axis. Defaults to
+<code>Datetime_breaks()</code>. The function has several options for adjustment. The
+default setting place a major break every 12 hours, starting at 12:00 of
+the first day.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.axis.breaks</code></td>
+<td>
+<p>Where should breaks occur on the y.axis? Expects a
+<code style="white-space: pre;">⁠numeric vector⁠</code> with all the breaks or a function that calculates them
+based on the limits. If you want to activate the default behaviour of
+<span class="pkg">ggplot2</span>, you need to put in <code>ggplot2::waiver()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.scale</code></td>
+<td>
+<p>How should the y-axis be scaled?
+</p>
+
+<ul>
+<li>
+<p> Defaults to <code>"symlog"</code>, which is a logarithmic scale that can also handle negative values.
+</p>
+</li>
+<li> <p><code>"log10"</code> would be a straight logarithmic scale, but cannot handle negative values.
+</p>
+</li>
+<li> <p><code>"identity"</code> does nothing (continuous scaling).
+</p>
+</li>
+<li>
+<p> a transforming function, such as <code>symlog_trans()</code> or <code>scales::identity_trans()</code>, which allow for more control.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.scale.sc</code></td>
+<td>
+<p><code>logical</code> for whether scientific notation shall be used.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.label, y.axis.label</code></td>
+<td>
+<p>labels for the x- and y-axis. Expects a
+<code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.limits</code></td>
+<td>
+<p>The limits of the x-axis. Defaults to
+<code>Datetime_limits()</code>. Can and should be adjusted to shift the x-axis to
+align different groups of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.format</code></td>
+<td>
+<p>The format of the x-axis labels. Defaults to <code>"%a %D"</code>,
+which is the weekday and date. See <code>base::strptime()</code> for more options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>Plot title. Expects a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subtitle</code></td>
+<td>
+<p>Plot subtitle. Expects a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interactive</code></td>
+<td>
+<p>Should the plot be interactive? Expects a <code>logical</code>.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facetting</code></td>
+<td>
+<p>Should an automated facet by grouping be applied? Default is
+<code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jco_color</code></td>
+<td>
+<p>Should the <code>ggsci::scale_color_jco()</code> color palette be used?
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other options that get passed to the main geom function. Can be
+used to adjust to adjust size, linewidth, or linetype.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default scaling of the y-axis is a <code>symlog</code> scale, which is a logarithmic
+scale that only starts scaling after a given threshold (default = 0). This
+enables values of 0 in the plot, which are common in light logger data, and
+even enables negative values, which might be sensible for non-light data. See
+<code>symlog_trans()</code> for details on tweaking this scale. The scale can also be
+changed to a normal or logarithmic scale - see the y.scale argument for more.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dataset &lt;-
+sample.data.environment %&gt;%
+aggregate_Datetime(unit = "5 mins")
+
+dataset %&gt;% gg_days()
+#restrict the x-axis to 3 days
+dataset %&gt;%
+gg_days(
+x.axis.limits = \(x) Datetime_limits(x, length = lubridate::ddays(3))
+)
+</code></pre>
+
+
+</div>

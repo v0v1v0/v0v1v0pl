@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict_lucid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict cluster assignment and outcome based on LUCID model using new data of G,Z,(Y).
+If g_computation, predict cluster assignment, omics data, and outcome based on LUCID model using new data of G only
+This function can also be use to extract X assignment is using training data G,Z,Y as input.</h2>
+
+<h3>Description</h3>
+
+<p>Predict cluster assignment and outcome based on LUCID model using new data of G,Z,(Y).
+If g_computation, predict cluster assignment, omics data, and outcome based on LUCID model using new data of G only
+This function can also be use to extract X assignment is using training data G,Z,Y as input.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predict_lucid(
+  model,
+  lucid_model = c("early", "parallel", "serial"),
+  G,
+  Z,
+  Y = NULL,
+  CoG = NULL,
+  CoY = NULL,
+  response = TRUE,
+  g_computation = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A model fitted and returned by <code>estimate_lucid</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lucid_model</code></td>
+<td>
+<p>Specifying LUCID model, "early" for early integration, "parallel" for lucid in parallel
+"serial" for lucid in serial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>Exposures, a numeric vector, matrix, or data frame. Categorical variable
+should be transformed into dummy variables. If a matrix or data frame, rows
+represent observations and columns correspond to variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>Omics data, if "early", an N by M matrix; If "parallel", a list, each element i is a matrix with N rows and P_i features;
+If "serial", a list, each element i is a matrix with N rows and p_i features or a list with two or more matrices with N rows and a certain number of features</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Outcome, a numeric vector. Categorical variable is not allowed. Binary
+outcome should be coded as 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoG</code></td>
+<td>
+<p>Optional, covariates to be adjusted for estimating the latent cluster.
+A numeric vector, matrix or data frame. Categorical variable should be transformed
+into dummy variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoY</code></td>
+<td>
+<p>Optional, covariates to be adjusted for estimating the association
+between latent cluster and the outcome. A numeric vector, matrix or data frame.
+Categorical variable should be transformed into dummy variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>If TRUE, when predicting binary outcome, the response will be
+returned. If FALSE, the linear predictor is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g_computation</code></td>
+<td>
+<p>If TRUE, the prediction only uses information on G.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A flag indicates whether detailed information
+is printed in console. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+
+<ol>
+<li>
+<p> inclusion.p: A list of inclusion probabilities for each sub-model in the LUCID model.
+</p>
+</li>
+<li>
+<p> pred.x: A list of predicted values for the data matrix G.
+</p>
+</li>
+<li>
+<p> pred.y: Predicted values for the response variable Y (if response is TRUE).
+</p>
+</li>
+<li>
+<p> pred.z: Predicted values for the omics variables Z (if g_computation is TRUE).
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># prepare data
+G &lt;- sim_data$G
+Z &lt;- sim_data$Z
+Y_normal &lt;- sim_data$Y_normal
+
+# fit lucid model
+fit1 &lt;- estimate_lucid(G = G, Z = Z, Y = Y_normal, lucid_model = "early", K = 2, family = "normal")
+
+# prediction on training set
+pred1 &lt;- predict_lucid(model = fit1, G = G, Z = Z, Y = Y_normal, lucid_model = "early")
+pred2 &lt;- predict_lucid(model = fit1, G = G, Z = Z, lucid_model = "early")
+
+</code></pre>
+
+
+</div>

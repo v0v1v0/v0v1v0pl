@@ -1,0 +1,242 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rEB.Finite.Bayes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Relevance-Integrated Finite Bayes.
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs custom-tailored Finite Bayes inference via LASERs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rEB.Finite.Bayes(X,z,X.target,z.target,m=c(4,6),m.EB=8, B=10, centering=TRUE,
+            nsample=min(1000,length(z)), g.method='DL',LP.type='L2',  sd0=NULL,
+            theta.set.prior=seq(-2.5*sd(z),2.5*sd(z),length.out=500),
+            theta.set.post=seq(z.target-2.5*sd(z),z.target+2.5*sd(z),length.out=500),
+            post.alpha=0.8,  plot=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>A <code class="reqn">n</code>-by-<code class="reqn">d</code> matrix of covariate values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>A length <code class="reqn">n</code> vector containing observations of target random variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X.target</code></td>
+<td>
+<p>A length <code class="reqn">d</code> vector providing the set of covariates for the target case. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.target</code></td>
+<td>
+<p>the target <code class="reqn">z</code> to investigate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>An ordered pair. First number indicates how many LP-nonparametric basis to construct for each <code class="reqn">X</code>, second number indicates how many to construct for <code class="reqn">z</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m.EB</code></td>
+<td>
+<p>The truncation point reflecting the concentration of true nonparametric prior density <code class="reqn">\pi</code> around known prior distribution <code class="reqn">g</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of bags of bootstrap samples for Finite Bayes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centering</code></td>
+<td>
+<p>Whether to perform regression-adjustment to center the data, default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsample</code></td>
+<td>
+<p>Number of relevance samples generated for the target case.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g.method</code></td>
+<td>
+<p>Suggested method for finding parameter estimates <code class="reqn">\hat{\mu}</code> and <code class="reqn">\hat{\tau}^2</code> for normal prior: "DL" uses Dersimonian and Lard technique; "SJ" uses Sidik-Jonkman; 'REML' uses restricted maximum likelihood; and "MoM" uses a method of moments technique. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LP.type</code></td>
+<td>
+<p>User selects either "L2" for LP-orthogonal series representation of relevance density function <code class="reqn">d</code> or "MaxEnt" for the maximum entropy representation. Default is L2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd0</code></td>
+<td>
+<p>Fixed standard deviation for <code class="reqn">z|\theta</code>. Default is NULL, the standard error will be calculated from data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.set.prior</code></td>
+<td>
+<p>This indicates the set of grid points to compute prior density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.set.post</code></td>
+<td>
+<p>This indicates the set of grid points to compute posterior density.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>post.alpha</code></td>
+<td>
+<p>The alpha level for posterior HPD interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Whether to display plots for prior and posterior of Relevance Finite Bayes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra parameters to pass to LASER function.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>Relevant Finite Bayes prior results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$prior.fit</code></td>
+<td>
+<p>Prior density curve estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posterior</code></td>
+<td>
+<p>Relevant empirical Bayes posterior results. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.fit</code></td>
+<td>
+<p>Posterior density curve estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.mode</code></td>
+<td>
+<p>Posterior mode for <code class="reqn">\pi(\theta|z,\boldsymbol{x})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.mean</code></td>
+<td>
+<p>Posterior mean for <code class="reqn">\pi(\theta|z,\boldsymbol{x})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$post.mean.sd</code></td>
+<td>
+<p>Standard error for the posterior mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>$HPD.interval</code></td>
+<td>
+<p>The HPD interval for posterior <code class="reqn">\pi(\theta|z,\boldsymbol{x})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g.par</code></td>
+<td>
+<p>Parameters for <code class="reqn">g=N(\mu,\tau^2)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LP.coef</code></td>
+<td>
+<p>Reports the LP-coefficients of the relevance function <code class="reqn">d_x(x)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd0</code></td>
+<td>
+<p>Initial estimate for null standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plots</code></td>
+<td>
+<p>The plots for prior and posterior density.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Subhadeep Mukhopadhyay, Kaijun Wang
+</p>
+<p>Maintainer: Kaijun Wang &lt;kaijunwang.19@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Mukhopadhyay, S., and Wang, K (2021) "On The Problem of Relevance in Statistical Inference". &lt;arXiv:2004.09588&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(funnel)
+X&lt;-funnel$x
+z&lt;-funnel$z
+X.target=30
+z.target=4.49
+rFB.out=rEB.Finite.Bayes(X,z,X.target,z.target,B=5,nsample=1000,m=c(4,8),m.EB=8,
+                      theta.set.prior=seq(-4,4,length.out=500),
+                      theta.set.post=seq(0,5,length.out=500),cred.interval=0.8,parallel=FALSE)
+rFB.out$plots$prior
+rFB.out$plots$post
+
+</code></pre>
+
+
+</div>

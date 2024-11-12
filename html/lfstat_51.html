@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pooling</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pooling Procedures of Low Flow Events</h2>
+
+<h3>Description</h3>
+
+<p>Several pooling procedures can be applied to reduce the number of dependent droughts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pool_ic(x, tmin = 5, ratio = 0.1)
+pool_it(x, tmin = 5)
+pool_ma(x, n = 10)
+pool_sp(x)
+  </code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>deficit</code>, e.g. as produced by
+<code>find_droughts</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmin</code></td>
+<td>
+<p>numeric vector of length one interpreted as the number of days between two droughts to be considered independent events. Two droughts are pooled if their inter-event time is less than <code>tmin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>numeric vector of length. Specifies the minimum ratio of inter-event volume and precedent drought volume. Two droughts are pooled if the critical <code>ratio</code> is deceeded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>numeric vector of length one determining the width of the smoothing window</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The inter-event criterion (<code>pool_ic</code>) pools subsequent drought events if the inter-event time is less than <code>tmin</code> and the ratio of the drought volume and the inter-event volume is less than a given <code>ratio</code>. The function <code>pool_it</code> is simply a wrapper around <code>pool_ic(..., ratio = Inf)</code>.
+</p>
+<p>Pooling by a moving average (<code>pool_ma</code>) simply smooths the time series before finding drought events.
+</p>
+<p>Using the Sequent Peak algorithm (<code>pool_sp</code>), a drought lasts until its cumulative deficit volume is zero again.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>deficit</code> (inherited from <code>xts</code>), with an
+additional column <code>event.orig</code>.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>find_droughts</code>, <code>summary.deficit</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(ngaruroro)
+ng &lt;- as.xts(ngaruroro)
+ng &lt;- ng["1986::1990", ]
+
+drought &lt;- find_droughts(ng)
+
+
+ic &lt;- pool_ic(drought)
+summary(ic)
+
+ma &lt;- pool_ma(drought)
+summary(ma)
+
+sp &lt;- pool_sp(drought)
+summary(sp)
+plot(sp)
+</code></pre>
+
+
+</div>

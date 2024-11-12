@@ -1,0 +1,333 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>label.switching</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Main calling function
+</h2>
+
+<h3>Description</h3>
+
+<p>This is the main function of the package. It is used to reorder a simulated MCMC sample of the parameters of a mixture (or more general a hidden Markov model) according to eight label switching solving methods: ECR algorithm (default version), ECR algorithm (two iterative versions), PRA algorithm, Stephens' algorithm, Artificial Identifiability Constraint (AIC), Data-Based relabelling and a probabilistic relabelling algorithm (SJW). The input depends on the type of the label switching method. The output contains a list with the permutation returned by each method, the corresponding single best clusterings and the CPU time demanded for each method. In what follows: <code class="reqn">m</code> denotes the number of MCMC iterations, <code class="reqn">n</code> denotes the sample size of the observed data, <code class="reqn">K</code> denotes the number of mixture components and <code class="reqn">J</code> the number of different types of parameters of the model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">label.switching(method, zpivot, z, K, prapivot, p, complete, 
+			mcmc, sjwinit, data, constraint, 
+			groundTruth, thrECR, thrSTE, thrSJW, 
+			maxECR, maxSTE, maxSJW, userPerm)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+
+<p>any non-empty subset of c("ECR","ECR-ITERATIVE-1","PRA","ECR-ITERATIVE-2","STEPHENS","SJW","AIC","DATA-BASED") indicating the desired label-switching solving method. Also available is the option "USER-PERM" which corresponds to a user-defined set of permutations <code>userPerm</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zpivot</code></td>
+<td>
+
+
+<p><code class="reqn">d\times n</code>-dimensional array of pivot allocation vectors, where <code class="reqn">d</code> denotes the number of pivots. This is demanded by the <code>ecr</code> method. The method will be applied <code class="reqn">d</code> times.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+
+
+<p><code class="reqn">m\times n</code> integer array of the latent allocation vectors generated from an MCMC algorithm. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+
+
+<p>the number of mixture components. This is demanded by the <code>ecr</code>, <code>ecr.iterative.1</code> and <code>ecr.iterative.2</code> methods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prapivot</code></td>
+<td>
+
+
+<p><code class="reqn">K\times J</code> array containing the parameter that will be used as a pivot by the <code>pra</code> method.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+
+<p><code class="reqn">m\times n \times K</code> dimensional array of allocation probabilities of the <code class="reqn">n</code> observations among the <code class="reqn">K</code> mixture components, for each iteration <code class="reqn">t = 1,\ldots,m</code> of the MCMC algorithm. This is demanded by the <code>ecr.iterative.2</code> and <code>stephens</code> methods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete</code></td>
+<td>
+
+
+<p>function that returns the complete log-likelihood of the mixture model. Demanded by <code>sjw</code> method.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcmc</code></td>
+<td>
+
+
+<p><code class="reqn">m\times K\times J</code> array of simulated MCMC parameters. Needed by <code>sjw</code> and <code>pra</code> methods.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sjwinit</code></td>
+<td>
+
+
+<p>An index pointing at the MCMC iteration whose parameters will initialize the <code>sjw</code> algorithm (optional). 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+
+<p><code class="reqn">n</code>-dimensional data vector/array. Needed by the <code>sjw</code> and <code>dataBased</code> algorithms.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraint</code></td>
+<td>
+
+<p>An (optional) integer between 1 and J corresponding to the parameter that will be used to apply the Identifiabiality Constraint. In this casethe mcmc output is reordered according to the constraint <code class="reqn">mcmc[i,1,constraint] &lt; \ldots &lt; mcmc[i,K,constraint]</code>. If <code>constraint = "ALL"</code>, all <code class="reqn">J</code> Identifiability Constraints are applied. Default value: 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groundTruth</code></td>
+<td>
+
+<p>Optional integer vector of <code class="reqn">n</code> allocations, which are considered as the 'ground truth' allocations of the <code class="reqn">n</code> observations among the <code class="reqn">K</code> mixture components. The output of all methods will be relabelled in a way that the resulting single best clusterings maximize their similarity with the ground truth. This option is very useful in simulation studies or in any other case that the cluster labels are known in order to perform comparisons between methods. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thrECR</code></td>
+<td>
+
+<p>An (optional) positive number controlling the convergence criterion for <code>ecr.iterative.1</code> and <code>ecr.iterative.2</code>. Default value: 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thrSTE</code></td>
+<td>
+
+<p>An (optional) positive number controlling the convergence criterion for <code>stephens</code>. Default value: 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thrSJW</code></td>
+<td>
+
+<p>An (optional) positive number controlling the convergence criterion for <code>sjw</code>. Default value: 1e-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxECR</code></td>
+<td>
+
+<p>An (optional) integer controlling the max number of iterations for <code>ecr.iterative.1</code> and <code>ecr.iterative.2</code>. Default value: 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxSTE</code></td>
+<td>
+
+<p>An (optional) integer controlling the max number of iterations for <code>stephens</code>. Default value: 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxSJW</code></td>
+<td>
+
+<p>An (optional) integer controlling the max number of iterations for <code>sjw</code>. Default value: 100.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>userPerm</code></td>
+<td>
+
+<p>An (optional) list with user-defined permutations. It is required only if "USER-PERM" has been chosen in <code>method</code>. In this case, <code>userPerm[[i]]</code> is an <code class="reqn">m\times K</code> array of permutations for all <code class="reqn">i = 1,\ldots,S</code>, where <code class="reqn">S</code> denotes the number of permutation arrays. This is useful in case that the user wants to compare his/hers own relabelling method with the available ones. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>permutations </code></td>
+<td>
+<p>an <code class="reqn">m\times K</code> array of permutations per method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusters </code></td>
+<td>
+<p>an <code class="reqn">n</code> dimensional vector of best clustering of the the observations for each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timings </code></td>
+<td>
+<p>CPU time needed for each relabelling method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>similarity </code></td>
+<td>
+<p>correlation matrix between the label switching solving methods in terms of their matching best-clustering allocations.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the ground truth is not given, all methods are reordered using the estimated single best clustering of the first provided method. The methods <code>sjw</code> and <code>pra</code> are not suggested for large number of components. Also note that <code>sjw</code> might be quite slow even for small number of components. In this case try adjusting <code>thrSJW</code> or <code>maxSJW</code> to smaller values the default ones.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>References</h3>
+
+<p>Papastamoulis P. (2016). label.switching: An R Package for Dealing with the Label Switching Problem in MCMC Outputs. Journal of Statistical Software, Code Snippets, 69(1): 1-24.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ecr</code>, <code>ecr.iterative.1</code>, <code>ecr.iterative.2</code>, <code>stephens</code>, <code>pra</code>, <code>sjw</code>, <code>dataBased</code>, <code>aic</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># We will apply the following methods:
+# ECR, ECR-ITERATIVE-1, PRA, AIC and DATA-BASED.
+# default ECR will use two different pivots.
+
+#load a toy example: MCMC output consists of the random beta model
+# applied to a normal mixture of \code{K=2} components. The number of
+# observations is equal to \code{n=5}. The number of MCMC samples is
+# equal to \code{m=300}. simulated allocations are stored to array \code{z}. 
+data("mcmc_output")
+mcmc.pars&lt;-data_list$"mcmc.pars"
+# mcmc parameters are stored to array \code{mcmc.pars}
+# mcmc.pars[,,1]: simulated means of the two components
+# mcmc.pars[,,2]: simulated variances 
+# mcmc.pars[,,3]: simulated weights 
+# We will use two pivots for default ECR algorithm:
+# the first one corresponds to iteration \code{mapindex} (complete MAP)
+# the second one corresponds to iteration \code{mapindex.non} (observed MAP)
+
+z&lt;-data_list$"z"
+K&lt;-data_list$"K"
+x&lt;-data_list$"x"
+mapindex&lt;-data_list$"mapindex"
+mapindex.non&lt;-data_list$"mapindex.non"
+# The PRA method will use as pivot the iteration that corresponds to
+# the observed MAP estimate (mapindex). 
+
+#Apply (a subset of the available) methods by typing:
+
+ls&lt;-label.switching(method=c("ECR","ECR-ITERATIVE-1","PRA", "AIC","DATA-BASED"),
+zpivot=z[c(mapindex,mapindex.non),],z = z,K = K, data = x,
+prapivot = mcmc.pars[mapindex,,],mcmc = mcmc.pars)
+
+#plot the raw and reordered means of the K=2 normal mixture components for each method
+par(mfrow = c(2,4))
+#raw MCMC output for the means (with label switching)
+matplot(mcmc.pars[,,1],type="l",
+xlab="iteration",main="Raw MCMC output",ylab = "means")
+# Reordered outputs
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"ECR-1")$output[,,1],type="l",
+xlab="iteration",main="ECR (1st pivot)",ylab = "means")
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"ECR-2")$output[,,1],type="l",
+xlab="iteration",main="ECR (2nd pivot)",ylab = "means")
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"ECR-ITERATIVE-1")$output[,,1],
+type="l",xlab="iteration",main="ECR-iterative-1",ylab = "means")
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"PRA")$output[,,1],type="l",
+xlab="iteration",main="PRA",ylab = "means")
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"AIC")$output[,,1],type="l",
+xlab="iteration",main="AIC",ylab = "means")
+matplot(permute.mcmc(mcmc.pars,ls$permutations$"DATA-BASED")$output[,,1],type="l",
+xlab="iteration",main="DATA-BASED",ylab = "means")
+
+#######################################################
+# if the useR wants to apply the STEPHENS and SJW algorithm as well:
+# The STEPHENS method requires the classification probabilities
+p&lt;-data_list$"p"
+
+# The SJW method needs to define the complete log-likelihood of the
+# model. For the univariate normal mixture, this is done as follows:
+
+complete.normal.loglikelihood&lt;-function(x,z,pars){
+	#x: denotes the n data points
+	#z: denotes an allocation vector (size=n)
+	#pars: K\times 3 vector of means,variance, weights
+	# pars[k,1]: corresponds to the mean of component k
+	# pars[k,2]: corresponds to the variance of component k
+	# pars[k,3]: corresponds to the weight of component k
+	g &lt;- dim(pars)[1]
+	n &lt;- length(x)
+	logl&lt;- rep(0, n)
+ 	logpi &lt;- log(pars[,3])
+	mean &lt;- pars[,1]
+	sigma &lt;- sqrt(pars[,2])
+	logl&lt;-logpi[z] + dnorm(x,mean = mean[z],sd = sigma[z],log = T)
+	return(sum(logl))
+}
+
+# and then run (after removing all #):
+#ls&lt;-label.switching(method=c("ECR","ECR-ITERATIVE-1","ECR-ITERATIVE-2",
+#"PRA","STEPHENS","SJW","AIC","DATA-BASED"),
+#zpivot=z[c(mapindex,mapindex.non),],z = z,
+#K = K,prapivot = mcmc.pars[mapindex,,],p=p,
+#complete = complete.normal.loglikelihood,mcmc.pars,
+#data = x)
+
+</code></pre>
+
+
+</div>

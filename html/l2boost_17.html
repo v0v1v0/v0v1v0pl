@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>residuals.l2boost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model residuals for the training set of an l2boost model object</h2>
+
+<h3>Description</h3>
+
+<p><code>residuals</code> is a generic function which extracts model residuals 
+from objects returned by modeling functions.
+</p>
+<p><code>residuals.l2boost</code> returns the training set residuals from an <code>l2boost</code>
+object. By default, the residuals are returned at the final iteration step m=M.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'l2boost'
+residuals(object, m = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an l2boost object for the extraction of model coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the iteration number with the l2boost path. 
+If m=NULL, the coefficients are obtained from the last iteration M.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments (unused)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a vector of n residuals
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>residuals</code> and <code>l2boost</code> and <code>predict.l2boost</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#--------------------------------------------------------------------------
+# Example: Diabetes 
+#  
+# For diabetes data set, see Efron B., Hastie T., Johnstone I., and Tibshirani R. 
+# Least angle regression. Ann. Statist., 32:407-499, 2004.
+data(diabetes, package = "l2boost")
+
+l2.object &lt;- l2boost(diabetes$x,diabetes$y, M=1000, nu=.01)
+rsd&lt;-residuals(l2.object)
+rsd.mid &lt;- residuals(l2.object, m=500)
+
+# Create diagnostic plots
+par(mfrow=c(2,2))
+qqnorm(residuals(l2.object), ylim=c(-3e-13, 3e-13))
+qqline(residuals(l2.object), col=2)
+
+qqnorm(residuals(l2.object, m=500), ylim=c(-3e-13, 3e-13))
+qqline(residuals(l2.object, m=500), col=2)
+
+# Tukey-Anscombe's plot
+plot(y=residuals(l2.object), x=fitted(l2.object), main="Tukey-Anscombe's plot",
+   ylim=c(-3e-13, 3e-13))
+lines(smooth.spline(fitted(l2.object), residuals(l2.object), df=4), type="l", 
+  lty=2, col="red", lwd=2)
+abline(h=0, lty=2, col = 'gray')
+
+plot(y=residuals(l2.object, m=500), x=fitted(l2.object, m=500), main="Tukey-Anscombe's plot", 
+  ylim=c(-3e-13, 3e-13))
+lines(smooth.spline(fitted(l2.object,m=500), residuals(l2.object, m=500), df=4), type="l", 
+  lty=2, col="red", lwd=2)
+abline(h=0, lty=2, col = 'gray')
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mt_stat_transf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform Statistical transformation and clustering of Market Types on the price data</h2>
+
+<h3>Description</h3>
+
+<p>Function features methods of statistical data transformation and clustering of the price data.
+Multiple statistical properties are calculated for a defined time interval. Once combined,
+unsupervised learning (clustering) is performed to assign several classes, see function <code>mt_make_model</code>.
+Function allows to fully automatize financial periods classification.
+It is possible to choose two clustering methods either kmeans or hierarchical clustering.
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mt_stat_transf(
+  indicator_dataset,
+  num_bars = 64,
+  timeframe = 60,
+  path_data,
+  mt_classes,
+  clust_method = "kmeans",
+  clust_opt = "complete",
+  rule_opt = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indicator_dataset</code></td>
+<td>
+<p>Dataframe, multiple column dataset containing price data in each column.
+Each row is a time index, multiple columns are required but not strictly needed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_bars</code></td>
+<td>
+<p>Integer, Number of bars used to perform transformation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, Data timeframe in Minutes, only used for naming convention</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_data</code></td>
+<td>
+<p>String, User path where the dataset could be stored for the future use by other function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mt_classes</code></td>
+<td>
+<p>Character Vector, with 2 or more Market Type classes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clust_method</code></td>
+<td>
+<p>Character, option to select which clustering method to choose. Could be either
+'kmeans' or 'hclust'. Default value is 'kmeans'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clust_opt</code></td>
+<td>
+<p>Character, option to select how to perform h clustering
+"average", "single", "complete", "ward". Default value is 'complete'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule_opt</code></td>
+<td>
+<p>Boolean, option to perform rule-based Market Type Assignment, defaults to TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>User can define several market type classes names however function will randomly assign
+Market Period labels based on Unsupervised Learning. This is inconvenient however that should be compensated by
+automated way of doing such data classification
+</p>
+
+
+<h3>Value</h3>
+
+<p>Dataframe with statistically transformed and classified dataset for classification modeling
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(stats)
+library(magrittr)
+library(readr)
+library(lazytrade)
+
+path_data &lt;- normalizePath(tempdir(),winslash = "/")
+
+data(price_dataset_big)
+
+#option
+#mt_classes = c('BUN', 'BEN', 'RAN','BUV', 'BEV', 'RAV')
+#mt_classes = c('BUN', 'BEN', 'RAN')
+#clust_method = 'hclust'
+#clust_opt = 'ward'
+
+#build dataset for Market Type detection without rule based check
+ai_class_rand &lt;- mt_stat_transf(indicator_dataset = price_dataset_big,
+                                num_bars = 64,
+                                timeframe = 60,
+                                path_data = path_data,
+                                mt_classes = c('BUN', 'BEN'),
+                                clust_method = 'kmeans',
+                                clust_opt = 'complete',
+                                rule_opt = FALSE)
+
+#use rule base check
+ai_class_rule &lt;- mt_stat_transf(indicator_dataset = price_dataset_big,
+                                num_bars = 64,
+                                timeframe = 60,
+                                path_data = path_data,
+                                mt_classes = c('BUN', 'BEN'),
+                                clust_method = 'kmeans',
+                                clust_opt = 'complete',
+                                rule_opt = TRUE)
+
+
+</code></pre>
+
+
+</div>

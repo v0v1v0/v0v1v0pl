@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>basic_config</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Basic Setup for the Logging System</h2>
+
+<h3>Description</h3>
+
+<p>A quick and easy way to configure the root logger. This is less powerful
+then using <code>lgr$config()</code> or <code style="white-space: pre;">⁠lgr$set_*()⁠</code> (see Logger), but reduces the
+most common configurations to a single line of code.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">basic_config(
+  file = NULL,
+  fmt = "%L [%t] %m",
+  timestamp_fmt = "%Y-%m-%d %H:%M:%OS3",
+  threshold = "info",
+  appenders = NULL,
+  console = if (is.null(appenders)) "all" else FALSE,
+  console_fmt = "%L [%t] %m %f",
+  console_timestamp_fmt = "%H:%M:%OS3",
+  memory = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p><code>character</code> scalar: If not <code>NULL</code> a AppenderFile will be
+created that logs to this file. If the filename ends in <code>.jsonl</code>, the
+Appender will be set up to use the <a href="https://jsonlines.org/">JSON Lines</a>
+format instead of plain text (see AppenderFile and AppenderJson).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fmt</code></td>
+<td>
+<p><code>character</code> scalar: Format to use if <code>file</code> is supplied and not a
+<code>.jsonl</code> file. If <code>NULL</code> it defaults to <code>"%L [%t] %m"</code> (see
+format.LogEvent)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timestamp_fmt</code></td>
+<td>
+<p>see <code>format.POSIXct()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p><code>character</code> or <code>integer</code> scalar. The minimum log level that should be processed by the root logger.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>appenders</code></td>
+<td>
+<p>a single Appender or a list thereof.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>console</code></td>
+<td>
+<p><code>logical</code> scalar or a <code>threshold</code> (see above). Add an appender
+logs to the console (i.e. displays messages in an interactive R session)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>console_fmt</code></td>
+<td>
+<p><code>character</code> scalar: like <code>fmt</code> but used for console output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>console_timestamp_fmt</code></td>
+<td>
+<p><code>character</code> scalar: like <code>timestamp_fmt</code> but
+used for console output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>memory</code></td>
+<td>
+<p><code>logical</code> scalar. or a <code>threshold</code> (see above). Add an Appender
+that logs to a memory buffer, see also <code>show_log()</code> and AppenderBuffer</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>the <code>root</code> Logger (lgr)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># log to a file
+basic_config(file = tempfile())
+unlink(lgr$appenders$file$file)  # cleanup
+
+basic_config(file = tempfile(fileext = "jsonl"))
+unlink(lgr$appenders$file$file)  # cleanup
+
+# log debug messages to a memory buffer
+basic_config(threshold = "all", memory = "all", console = "info")
+lgr$info("an info message")
+lgr$debug("a hidden message")
+show_log()
+
+# reset to default config
+basic_config()
+</code></pre>
+
+
+</div>

@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>validate_linelist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Checks the content of a linelist object</h2>
+
+<h3>Description</h3>
+
+<p>This function evaluates the validity of a <code>linelist</code> object by checking the
+object class, its tags, and the types of the tagged variables. It combines
+validations checks made by <code>validate_types()</code> and <code>validate_tags()</code>. See
+'Details' section for more information on the checks performed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">validate_linelist(x, allow_extra = FALSE, ref_types = tags_types())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>linelist</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_extra</code></td>
+<td>
+<p>a <code>logical</code> indicating if additional data tags not
+currently recognized by <code>linelist</code> should be allowed; if <code>FALSE</code>, unknown
+tags will trigger an error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_types</code></td>
+<td>
+<p>a <code>list</code> providing allowed types for all tags, as returned
+by <code>tags_types()</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The following checks are performed:
+</p>
+
+<ul>
+<li> <p><code>x</code> is a <code>linelist</code> object
+</p>
+</li>
+<li> <p><code>x</code> has a well-formed <code>tags</code> attribute
+</p>
+</li>
+<li>
+<p> all default tags are present (even if <code>NULL</code>)
+</p>
+</li>
+<li>
+<p> all tagged variables correspond to existing columns
+</p>
+</li>
+<li>
+<p> all tagged variables have an acceptable class
+</p>
+</li>
+<li>
+<p> (optional) <code>x</code> has no extra tag beyond the default tags
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>If checks pass, a <code>linelist</code> object; otherwise issues an error.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li> <p><code>tags_types()</code> to change allowed types
+</p>
+</li>
+<li> <p><code>validate_types()</code> to check if tagged variables have the right classes
+</p>
+</li>
+<li> <p><code>validate_tags()</code> to perform a series of checks on the tags
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (require(outbreaks) &amp;&amp; require(dplyr) &amp;&amp; require(magrittr)) {
+
+  ## create a valid linelist
+  x &lt;- measles_hagelloch_1861 %&gt;%
+    tibble() %&gt;%
+    make_linelist(
+      id = "case_ID",
+      date_onset = "date_of_prodrome",
+      age = "age",
+      gender = "gender"
+    )
+  x
+
+  ## validation
+  validate_linelist(x)
+
+  ## create an invalid linelist - onset date is a factor
+  x &lt;- measles_hagelloch_1861 %&gt;%
+    tibble() %&gt;%
+    make_linelist(
+      id = "case_ID",
+      date_onset = "gender",
+      age = "age"
+    )
+  x
+
+  ## the below issues an error
+  ## note: tryCatch is only used to avoid a genuine error in the example
+  tryCatch(validate_linelist(x), error = paste)
+}
+</code></pre>
+
+
+</div>

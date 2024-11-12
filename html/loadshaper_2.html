@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lscore</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Load Shape Score</h2>
+
+<h3>Description</h3>
+
+<p><code>lscore</code> provides a diagnostic score
+for evaluating the derived load shape in
+retaining time series properties.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lscore(ls, type = "acf", output = 2, lag = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ls</code></td>
+<td>
+<p>An object of class <code>lslin</code> or
+<code>lslog</code>, created using function <code>lslin</code>
+or <code>lslog</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of correlation to be
+evaluate, either <code>"acf"</code> or <code>"pacf"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Type of output to be used, either 1 or 2;
+uses <code>ls$y</code> if 1 and <code>ls$y2</code> if 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag</code></td>
+<td>
+<p>Maximum lag at which to calculate the acf or pacf.
+Same as <code>lag.max</code> in <code>acf</code>.
+If <code>Null</code>, then default is used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The diagnostic measure is calculated
+as a weighted mean absolute percent error (MAPE)
+of auto correlation or partial auto correlation
+values of the derived series with respect to the original.
+The values are calculated for given lag. Lag = 0 is omitted
+from calculation for auto correlation as it would be always 1.
+If <code class="reqn">o_i</code> and <code class="reqn">d_i</code> are the correlation values of
+original and derived load shape at lag <code class="reqn">i</code>, then weighted
+MAPE is calculated as
+</p>
+<p style="text-align: center;"><code class="reqn">wmape = \sum _{i=1}^{lag} { w_i * |(o_i - d_i) / o_i|}</code>
+</p>
+
+<p>where <code class="reqn">w_i = \frac{|o_i|}{\sum _{i=1}^{lag}|o_i|}</code>
+</p>
+<p>Since  <code>wmape</code> is a measure of error, lower value
+indicates better preservation of time
+series property.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of the followings:
+</p>
+
+<ul>
+<li>
+<p><code>wmape</code>: Weighted MAPE.
+</p>
+</li>
+<li>
+<p><code>lag</code>: Lags at which ACF or PACF
+values were evaluated and used in calculating <code>wmape</code>.
+</p>
+</li>
+<li>
+<p><code>type</code>: Type of Correlation (ACF or PACF)
+</p>
+</li>
+<li>
+<p><code>cor_x</code>: ACF/PACF values of the original load.
+</p>
+</li>
+<li>
+<p><code>cor_y</code>: ACF/PACF values of the derived load.
+</p>
+</li>
+<li>
+<p><code>weight</code>: Weights at different lags used to
+calculate <code>wmape</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">loads &lt;- ercot[ercot$Year == 2019, ]$COAST
+linear_loadshape &lt;- lslin(loads, target_lf = 0.4)
+# --------------
+scores_1 &lt;- lscore(linear_loadshape, type = "acf", lag = 20)
+print(scores_1)
+# --------------
+scores_2 &lt;- lscore(linear_loadshape, type = "pacf")
+print(scores_2)
+
+
+
+
+
+
+
+</code></pre>
+
+
+</div>

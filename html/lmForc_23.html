@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>is_forc_general</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>In-sample general model forecast</h2>
+
+<h3>Description</h3>
+
+<p><code>is_forc_general</code> takes a model function, a prediction function, input
+data for estimating the model, realized values of the dependent variable,
+and an optional vector of time data associated with the model. The model is
+estimated once over the entire sample period using the input data and model function.
+Model parameters are then combined with the input data using the prediction function
+to generate in-sample forecasts. Returns an in-sample forecast conditional on realized values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">is_forc_general(model_function, prediction_function, data, realized, time_vec)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model_function</code></td>
+<td>
+<p>Function that estimates a model using the <code>data</code> input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prediction_function</code></td>
+<td>
+<p>Function that generates model predictions using <code>model_function</code> and <code>data</code> as inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Input data for estimating the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>realized</code></td>
+<td>
+<p>Vector of realized values of the dependent variable equal in length to the data in <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_vec</code></td>
+<td>
+<p>Vector of any class that represents time and is equal in length to the length of <code>realized</code> and <code>data</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>Forecast</code> object that contains the in-sample forecast.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For a detailed example see the help vignette:
+<code>vignette("lmForc", package = "lmForc")</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+date &lt;- as.Date(c("2010-03-31", "2010-06-30", "2010-09-30", "2010-12-31",
+                  "2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31", 
+                  "2012-03-31", "2012-06-30"))
+y  &lt;- c(1, 0, 0, 0, 1, 1, 0, 0, 0, 1)
+x1 &lt;- c(8.22, 3.86, 4.27, 3.37, 5.88, 3.34, 2.92, 1.80, 3.30, 7.17)
+x2 &lt;- c(4.03, 2.46, 2.04, 2.44, 6.09, 2.91, 1.68, 2.91, 3.87, 1.63)
+dataLogit &lt;- data.frame(date, y, x1, x2)
+
+is_forc_general(
+  model_function = function(data) {glm(y ~ x1 + x2, data = data, family = binomial)},
+  prediction_function = function(model_function, data) {
+      as.vector(predict(model_function, data, type = "response"))
+  }, 
+  data = dataLogit,
+  realized = dataLogit$y,
+  time_vec = dataLogit$date
+)
+
+</code></pre>
+
+
+</div>

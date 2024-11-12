@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>network_withdiff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Network Analysis with Differential Species</h2>
+
+<h3>Description</h3>
+
+<p>Meta network analysis integrating differential taxon into a network analysis
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">network_withdiff(network_obj, diff_frame, aes_col = NULL, tag_threshold = 5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>network_obj</code></td>
+<td>
+<p>Network analysis results generated from <code>network_analysis</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff_frame</code></td>
+<td>
+<p>Differential analysis results generated from <code>indicator_analysis</code> or <code>Deseq_analysis</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aes_col</code></td>
+<td>
+<p>A named vector of colors to be used to highlight differential taxon vertices</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tag_threshold</code></td>
+<td>
+<p>Numeric. A threshold for the minimum number of differential taxon to display.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the configured igraph object, vertices coordinates, parameters, and tag statistics.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+{
+  # Data preparation
+  data("Two_group")
+  set.seed(999)
+  # Analysis
+  network_results &lt;- network_analysis(
+    taxobj = Two_group,
+    taxlevel = "Genus",
+    n = 10,
+    threshold = 0.8
+  )
+  indicator_results &lt;- indicator_analysis(
+    taxobj = Two_group,
+    taxlevel = "Genus"
+  )
+  deseq_results &lt;- Deseq_analysis(
+    taxobj = Two_group,
+    taxlevel = "Genus",
+    cutoff = 1,
+    control_name = "Control"
+  )
+
+  # Visualize
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = indicator_results
+  )
+  # Check contained tags for each model
+  print(network_diff_obj$tag_statistics$sum_of_tags)
+  # Check contained different tags for each model
+  print(network_diff_obj$tag_statistics$detailed_tags)
+
+  # Re-visualize
+  network_visual_re(
+    network_visual_obj = network_diff_obj,
+    module_paint = TRUE,
+    module_num = c(1, 4)
+  )  # Show module with most Treatment indicators
+
+  my_module_palette &lt;- color_scheme(
+    c("#83BA9E", "#F49128"),
+    5
+  )
+  network_visual_re(
+    network_visual_obj = network_diff_obj,
+    module_paint = TRUE,
+    module_num = c(1, 4, 6, 3, 8),
+    module_palette = my_module_palette
+  )  # Show module with most Treatment indicators
+
+  # Available also for DESeq analysis results
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = deseq_results
+  )
+
+  # Parameter adjustment
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = indicator_results,
+    tag_threshold = 20
+  )  # The 'tag_threshold' set too high
+
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = indicator_results,
+    tag_threshold = 10
+  )  # Set lower
+  # Check contained tags for each model
+  print(network_diff_obj$tag_statistics$sum_of_tags)
+  # Check contained different tags for each model
+  print(network_diff_obj$tag_statistics$detailed_tags)
+
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = indicator_results,
+    tag_threshold = 1
+  )  # Set too low
+
+  # Another example
+  data("Three_group")
+  network_results &lt;- network_analysis(
+    taxobj = Three_group,
+    taxlevel = "Genus",
+    n = 15,
+    threshold = 0.9
+  )
+  indicator_results &lt;- indicator_analysis(
+    taxobj = Three_group,
+    taxlevel = "Genus"
+  )
+
+  tag_color &lt;- c(
+    "CF" = "#F8766D",
+    "CF_OF" = "#FFFF00",
+    "OF" = "#00BA38",
+    "OF_BF" = "#800080",
+    "BF" = "#619CFF",
+    "CF_BF" = "#00FFFF"
+  )
+  network_diff_obj &lt;- network_withdiff(
+    network_obj = network_results,
+    diff_frame = indicator_results,
+    aes_col = tag_color,
+    tag_threshold = 10
+  )
+
+  # Re-visualize
+  print(network_diff_obj$tag_statistics$detailed_tags)
+  network_visual_re(
+    network_visual_obj = network_diff_obj,
+    module_paint = TRUE,
+    module_num = c(8, 10, 11)
+  )  # Show module with most BF indicators
+  network_visual_re(
+    network_visual_obj = network_diff_obj,
+    module_paint = TRUE,
+    module_num = c(1, 6, 8)
+  )  # Show module with most BF and OF_BF indicators
+}
+
+</code></pre>
+
+
+</div>

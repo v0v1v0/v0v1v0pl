@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dem_filtering</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Image pre-processing (non-linear filtering and Gaussian smoothing)</h2>
+
+<h3>Description</h3>
+
+<p>applies two filters to an image:
+</p>
+
+<ol>
+<li>
+<p> A non-linear filter: closing (<code>mclosing</code>) with disk 
+kernel, or median (<code>medianblur</code>) with square kernel
+</p>
+</li>
+<li>
+<p> A 2D Gaussian smoother (The <code>deriche</code> filter is 
+applied on both dimensions). Value-dependent smoothing is possible
+</p>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">dem_filtering(
+  dem,
+  nl_filter = "Closing",
+  nl_size = 5,
+  sigma = 0.3,
+  padding = TRUE,
+  sigmap = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dem</code></td>
+<td>
+<p>cimg object (e.g. obtained with <code>as.cimg</code>) or 
+SpatRaster object (e.g. obtained with <code>rast</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nl_filter</code></td>
+<td>
+<p>string. type of non-linear filter to apply: "None", "Closing" 
+or "Median"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nl_size</code></td>
+<td>
+<p>numeric. kernel width in pixels for non-linear filtering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>numeric or matrix. If a single number is provided, <code>sigma</code> is 
+the standard deviation of the Gaussian filter, 0 corresponds to no 
+smoothing. Unit is pixel in case <code>dem</code> is a cimg object, SpatRaster units 
+otherwise. In case of a matrix, the first column corresponds to the standard 
+deviation of the filter, and the second to thresholds for image values (e.g. 
+a filter of standard deviation specified in line <code>i</code> is applied to pixels 
+in image which values are between thresholds indicated in lines <code>i</code> and 
+<code>i+1</code>). Threshold values should be ordered in increasing order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>padding</code></td>
+<td>
+<p>boolean. Whether image should be padded by duplicating edge 
+values before filtering to avoid border effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmap</code></td>
+<td>
+<p>deprecated (numeric or matrix). (old name for <code>sigma</code> parameter, 
+retained for backward compatibility, overwrites <code>sigma</code> if provided, unit is 
+pixel whatever the class of <code>dem</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of two cimg objects or a SpatRaster object with image after non-linear 
+filter and image after both filters
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>maxima_detection</code>, filters of imager package: 
+<code>mclosing</code>, <code>medianblur</code>, 
+<code>deriche</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+
+# filtering with median and Gaussian smoothing
+im &lt;- dem_filtering(chm_chablais3, nl_filter = "Median", nl_size = 3, sigma = 0.8)
+
+# filtering with median filter and value-dependent Gaussian smoothing
+# (less smoothing for values between 0 and 15)
+im2 &lt;- dem_filtering(chm_chablais3,
+  nl_filter = "Median", nl_size = 3,
+  sigma = cbind(c(0.2, 0.8), c(0, 15))
+)
+
+# plot original image
+terra::plot(chm_chablais3, main = "Initial image")
+
+# plot image after median filter
+terra::plot(im$non_linear_image, main = "Median filter")
+
+# plot image after median and Gaussian filters
+terra::plot(im$smoothed_image, main = "Smoothed image")
+
+# plot image after median and value-dependent Gaussian filters
+terra::plot(im2$smoothed_image, main = "Value-dependent smoothing")
+</code></pre>
+
+
+</div>

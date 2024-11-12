@@ -1,0 +1,101 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DT_ige</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Data to fit indirect genetic effects.
+</h2>
+
+<h3>Description</h3>
+
+<p>This dataset contains phenotpic data for 98 individuals where they are measured with the purpose of identifying the effect of the neighbour in a focal individual. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("DT_ige")</code></pre>
+
+
+<h3>Format</h3>
+
+<p>The format is:
+chr "DT_ige"
+</p>
+
+
+<h3>Source</h3>
+
+<p>This data was masked from a shared study.
+</p>
+
+
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The core function of the package <code>lmebreed</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_ige)
+DT &lt;- DT_ige
+# Indirect genetic effects model without covariance between DGE and IGE
+modIGE &lt;- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
+              data = DT)
+vc &lt;- VarCorr(modIGE); print(vc,comp=c("Variance"))
+
+
+
+
+## Add relationship matrices
+A_ige &lt;- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
+modIGE &lt;- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
+                   relmat = list(focal=A_ige,
+                                 neighbour=A_ige),
+                   data = DT)
+vc &lt;- VarCorr(modIGE); print(vc,comp=c("Variance"))
+
+## Indirect genetic effects model with covariance between DGE and IGE using relationship matrices
+## Relationship matrix
+A_ige &lt;- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
+## Define 2 dummy variables to make a fake covariance
+## for two different random effects
+DT$fn &lt;- DT$nn &lt;- 1
+## Create the incidence matrix for the first random effect
+Zf &lt;- Matrix::sparse.model.matrix( ~ focal-1, data=DT )
+colnames(Zf) &lt;- gsub("focal","", colnames(Zf))
+## Create the incidence matrix for the second random effect
+Zn &lt;- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
+colnames(Zn) &lt;- gsub("neighbour","", colnames(Zn))
+## Make inital values for incidence matrix but irrelevant
+## since these will be replaced by the addmat argument
+both &lt;- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
+## Fit the model
+modIGE &lt;- lmebreed(trait ~ block + (0+fn+nn|both),
+                   addmat = list(both=list(Zf,Zn)),
+                   relmat = list(both=A_ige),
+                   data = DT)
+vc &lt;- VarCorr(modIGE); print(vc,comp=c("Variance"))
+
+blups &lt;- ranef(modIGE)
+pairs(blups$both)
+cov2cor(vc$both)
+
+
+
+
+</code></pre>
+
+
+</div>

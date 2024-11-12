@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lwqs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Wrapper function for the implementaion of lagged WQS.</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper function for the implementaion of lagged WQS.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lwqs(
+  data,
+  timevar,
+  wqs_parms,
+  outcome,
+  ID,
+  rDLM_parms = list(formula = wqs ~ s(time, by = y, bs = "cr"), random = ~(1 | id))
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame containing observations in long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timevar</code></td>
+<td>
+<p>Enquoted variable name identifying the repeated measure / time variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wqs_parms</code></td>
+<td>
+<p>A list containing parameters to be passed to the WQS algorithm. See gWQS package for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>An enquoted variable name identifying the outcome measure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>An enquoted variable name identifying the subject identifier</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rDLM_parms</code></td>
+<td>
+<p>(optional). A list containing parameters to be passed to the GAM algorithm. See gamm4 package for details. Parameters wqs, time, by, and id (see above) are created by the lwqs function and passed to the gamm4 function automatically.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>lwqs</code> function returns a list containing final model output and time-specific model parameters.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>parameters</code></td>
+<td>
+<p>This list contains several objects summarizing different stages of the lagged ensemble model. The first
+object, <code>res</code>, contains output from the gWQS algorithm applied to  each discreet repeated measure in the
+overall model; see package gWQS for details. The second output, <code>wqstime</code>, provides the mixture index,
+identified as "wqs", estimated for each subject at each discrete time point. The third item, <code>weightstime</code>, provides
+the weights estimated for each predictor at each discrete time point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>This list contains two plots (as grobs) which summarize output of the lwqs algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"> # identify predictor variables used in mixture
+mixvars=names(lwqs_data)[5:9]
+
+model=lwqs(data=lwqs_data,
+           timevar="time",
+           wqs_parms=list(formula=out ~ wqs,
+              data = lwqs_data,
+              mix_name=mixvars,
+              b1_constr = TRUE,
+              b1_pos=TRUE,
+              b = 5,
+              q = 5,
+              validation = 0,
+              family = "gaussian",
+              seed = 1),
+              outcome="out",
+              ID="ID")
+
+</code></pre>
+
+
+</div>

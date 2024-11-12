@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gbl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gliding box lacunarity estimation using all estimators</h2>
+
+<h3>Description</h3>
+
+<p>Estimates gliding box lacunarity (GBL) for square boxes using all estimators described in (Hingee et al., 2017).
+It calls the functions <code>gblc</code>, <code>gblg</code>, <code>gblcc</code> and <code>gblemp</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gbl(
+  xi,
+  boxwidths,
+  estimators = c("GBLcc.pickaH"),
+  obswin = NULL,
+  includenormed = FALSE,
+  setcov_boundarythresh = 1e-06
+)
+
+gbl.cvchat(
+  boxwidths,
+  estimators = c("GBLg.mattfeldt", "GBLg.pickaint", "GBLg.pickaH", "GBLcc.mattfeldt",
+    "GBLcc.pickaint", "GBLc"),
+  phat = NULL,
+  cvchat = NULL,
+  cpp1 = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>An observation of a RACS of interest as a full binary map (as an <code>im</code> object) or as the foreground set (as an <code>owin</code> object).
+In the latter case the observation window, <code>obswin</code>, must be supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boxwidths</code></td>
+<td>
+<p>A list of box widths</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimators</code></td>
+<td>
+<p>A vector of estimator names - see details for possible names. <code>estimators = "all"</code> will select all estimators.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obswin</code></td>
+<td>
+<p>If <code>xi</code> is an <code>owin</code> object then <code>obswin</code> is an
+<code>owin</code> object that specifies the observation window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>includenormed</code></td>
+<td>
+<p>A logical value. If TRUE then GBL estimates normalised by the GBL values at zero will be included in a returned list of <code>fv</code> objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setcov_boundarythresh</code></td>
+<td>
+<p>To avoid instabilities caused by dividing by very small quantities, if the set covariance of the observation window
+is smaller than <code>setcov_boundarythresh</code>, then the covariance is given a value of NA.
+If NULL is supplied (default) then <code>setcov_boundarythresh</code> is set to 1E-6.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phat</code></td>
+<td>
+<p>The fraction of foreground area in the observation window, which is the usual estimator of coverage probability given by <code>coverageprob</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvchat</code></td>
+<td>
+<p>The plug-in moment covariance estimate (often from <code>plugincvc</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpp1</code></td>
+<td>
+<p>Picka's estimate of coverage probability for subsets of the observation window. See <code>cppicka</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As empirical GBL is one of the GBL estimators available through this function, non-square boxes are not allowed.
+To estimate GBL for non-square boxes use <code>gblcc</code> or <code>gblg</code> directly.
+</p>
+<p>If <code>xi</code> is an <code>owin</code> object then <code>obswin</code> and <code>xi</code> are converted
+into an <code>im</code> object using <code>as.im</code>
+</p>
+<p>The estimators available are
+</p>
+
+<ul>
+<li>
+<p><code>"GBLc"</code> The unmodified (unbalanced) covariance estimator provided by <code>gblc</code>
+</p>
+</li>
+<li>
+<p><code>"GBLemp"</code> Empirical gliding box lacunarity (Allain and Cloitre, 1991). Calls <code>gblemp</code>
+</p>
+</li>
+<li>
+<p><code>"GBLg.mattfeldt"</code> See help for <code>gblg</code> and <code>paircorr</code>
+</p>
+</li>
+<li>
+<p><code>"GBLg.pickaint"</code> See help for <code>gblg</code> and <code>paircorr</code>
+</p>
+</li>
+<li>
+<p><code>"GBLg.pickaH"</code> See help for <code>gblg</code> and <code>paircorr</code>
+</p>
+</li>
+<li>
+<p><code>"GBLcc.mattfeldt"</code> See help for <code>gblcc</code>
+</p>
+</li>
+<li>
+<p><code>"GBLcc.pickaint"</code> See help for <code>gblcc</code>
+</p>
+</li>
+<li>
+<p><code>"GBLcc.pickaH"</code> See help for <code>gblcc</code>
+</p>
+</li>
+</ul>
+<p>The default, GBLcc.pickaH, is a method based on centred covariance.
+Centred covariance approaches zero for large vectors, and are thus easier to integrate with the set covariance of the boxes.
+</p>
+<p>The set covariance of the boxes is computed empirically using <span class="pkg">spatstat</span>'s <code>setcov</code> function, which converts <code class="reqn">B</code> into a binary pixel mask using <code>as.mask</code> defaults. Computation speed can be increased by setting a small default number of pixels, <code>npixel</code>, in <span class="pkg">spatstat</span>'s global options (accessed through <code>spatstat.options</code>), however fewer pixels also decreases the accuracy of the GBL computation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>fv</code> object.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>gbl()</code>: computes GBL estimates from a binary map.
+</p>
+</li>
+<li> <p><code>gbl.cvchat()</code>: computes covariance-based estimator of GBL from the plug-in moment estimate of covariance,
+Picka's reduced window coverage probability estimates (see <code>cppicka</code>) and the usual coverage probability estimate, <code>phat</code>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Allain, C. and Cloitre, M. (1991) Characterizing the lacunarity of random and deterministic fractal sets. <em>Physical Review A</em>, 44, 3552-3558.
+</p>
+<p>Hingee K, Baddeley A, Caccetta P, Nair G (2019). Computation of lacunarity from covariance of spatial binary maps. <em>Journal of Agricultural, Biological and Environmental Statistics</em>, 24, 264-288. DOI: 10.1007/s13253-019-00351-9.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xi &lt;- as.im(heather$coarse, value = TRUE,
+            na.replace = FALSE)
+boxwidths &lt;- seq(1, 10, by = 0.5)
+
+# reduce resolution in setcov() for faster (less accurate) computation 
+oldopt &lt;- spatstat.options()
+spatstat.options("npixel" = 2^5)
+
+gblests &lt;- gbl(xi, boxwidths, estimators = "GBLcc.pickaH")
+spatstat.options(oldopt)
+</code></pre>
+
+
+</div>

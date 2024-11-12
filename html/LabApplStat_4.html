@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>emmeans_ED</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Make emmeans object for an expected dose</h2>
+
+<h3>Description</h3>
+
+<p>Solves linear equations in continuous explanatory variables in order to find the expected dose. A typical application could be to find LD50, i.e. the lethal dose killing 50 percent of the population, from a probit analysis fitted by <code>glm</code>. The associated variance-covariance matrix is found using the Delta method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">emmeans_ED(
+  object,
+  specs = ~0,
+  left = NULL,
+  right = NULL,
+  tran = NULL,
+  p = 0.5,
+  p.name = "probability"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object that can be given to <code>emmeans</code>. Typically a model fitted by <code>glm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specs</code></td>
+<td>
+<p>As for <code>emmeans</code>. Typically as one-sided <code>formula</code>. Defaults to <code>~0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left</code></td>
+<td>
+<p>A list specifying the left end point of the linear span of continuous variables in which to measure the ED values. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>right</code></td>
+<td>
+<p>A list specifying the right end point of the linear span of continuous variables in which to measure the ED values. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tran</code></td>
+<td>
+<p>Possible transformation of the scale of the ED values. If given then backtransformation can be done using the technology of the <code>emmeans</code>. The default value <code>tran=NULL</code> corresponds to no transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Numeric vector given the targeted predictions. Typically probabilities, where the default value <code>p=0.5</code> corresponds to ED50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.name</code></td>
+<td>
+<p>The name of the variable containing <code>p</code>. If <code>p</code> contains more than one value, then this will also appear in <code>@misc$by.vars</code> in the <code>emmGrid</code> object. Defaults to <code>p.name="probability"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Find the 'expected dose' along a gradient in the space of numeric predictor variables. The options 'left' and 'right' specify the endpoints of this gradient. Typically these endpoints should be chosen as 0 and 1 for the numeric predictor of interest. If both endpoints are chosen as NULL then these choices are taken for all numeric predictors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>emmGrid-class</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bo Markussen
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Data from: C.I. Bliss, "The calculation of the dose-mortality curve", 
+# Annals of Applied Biology, 134–167, 1935.
+
+# import data from dobson package
+library(dobson)
+data(beetle)
+m0 &lt;- glm(cbind(y,n-y)~x,data=beetle,family=binomial(link="cloglog"))
+# ED50 computation
+summary(emmeans_ED(m0,tran="log10"),type="response")
+# Visualization using the tidyverse
+library(tidyverse)
+LCL &lt;- Vectorize(function(y,n) binom.test(y,n)$conf.int[1])
+UCL &lt;- Vectorize(function(y,n) binom.test(y,n)$conf.int[2])
+beetle &lt;- mutate(beetle,LCL=LCL(y,n),UCL=UCL(y,n))
+emmeans_ED(m0,p=seq(0.001,0.999,length.out=100),tran="log10") %&gt;% 
+  summary(type="response") %&gt;% as.data.frame() %&gt;% 
+  mutate(probability=as.numeric(as.character(probability))) %&gt;%
+  ggplot(aes(x=probability,y=response,ymin=asymp.LCL,ymax=asymp.UCL)) + 
+  geom_ribbon(alpha=0.2,fill="blue") + geom_line() +
+  xlab("Death probability") +
+  ylab(expression(expected~dose~CS[2]~mg/l)) +
+  geom_errorbarh(aes(xmin=LCL,xmax=UCL,y=10^x),beetle,inherit.aes=FALSE) +
+  geom_point(aes(x=y/n,y=10^x),beetle,inherit.aes=FALSE)
+
+
+</code></pre>
+
+
+</div>

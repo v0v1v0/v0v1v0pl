@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate.lmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Delta Method for Mixed Models</h2>
+
+<h3>Description</h3>
+
+<p>Perform a first order delta method
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmm'
+estimate(
+  x,
+  f,
+  df = !is.null(x$df),
+  robust = FALSE,
+  type.information = NULL,
+  level = 0.95,
+  method.numDeriv = NULL,
+  average = FALSE,
+  transform.sigma = NULL,
+  transform.k = NULL,
+  transform.rho = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>[function] function of the model coefficient computing the parameter(s) of interest. Can accept extra-arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>[logical] Should degree of freedom, computed using Satterthwaite approximation, for the parameter of interest be output.
+Can also be a numeric vector providing providing the degrees of freedom relative to each estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>[logical] Should robust standard errors (aka sandwich estimator) be output instead of the model-based standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type.information</code></td>
+<td>
+<p>[character] Should the expected information be used  (i.e. minus the expected second derivative) or the observed inforamtion (i.e. minus the second derivative).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>[numeric,0-1] the confidence level of the confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.numDeriv</code></td>
+<td>
+<p>[character] method used to approximate the gradient: either <code>"simple"</code> or <code>"Richardson"</code>.
+Passed to <code>numDeriv::jacobian</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>average</code></td>
+<td>
+<p>[logical] is the estimand the average output of argument <code>f</code>?
+Otherwise consider each individual output of argument <code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.sigma</code></td>
+<td>
+<p>[character] Transformation used on the variance coefficient for the reference level. One of <code>"none"</code>, <code>"log"</code>, <code>"square"</code>, <code>"logsquare"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.k</code></td>
+<td>
+<p>[character] Transformation used on the variance coefficients relative to the other levels. One of <code>"none"</code>, <code>"log"</code>, <code>"square"</code>, <code>"logsquare"</code>, <code>"sd"</code>, <code>"logsd"</code>, <code>"var"</code>, <code>"logvar"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.rho</code></td>
+<td>
+<p>[character] Transformation used on the correlation coefficients. One of <code>"none"</code>, <code>"atanh"</code>, <code>"cov"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>extra arguments passed to <code>f</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">if(require(lava) &amp;&amp; require(nlme)){
+
+#### Random effect ####
+set.seed(10)
+dL &lt;- sampleRem(1e2, n.times = 3, format = "long")
+e.lmm1 &lt;- lmm(Y ~ X1+X2+X3 + (1|id), repetition = ~visit|id, data = dL)
+nlme::ranef(e.lmm1, se = TRUE)
+e.ranef &lt;- estimate(e.lmm1, f  = function(p){nlme::ranef(e.lmm1, p = p)})
+e.ranef
+
+if(require(ggplot2)){
+df.gg &lt;- cbind(index = 1:NROW(e.ranef), e.ranef)
+gg.ranef &lt;- ggplot(df.gg, aes(x = index, y=estimate, ymin=lower, ymax = upper))
+gg.ranef + geom_point() + geom_errorbar() + ylab("estimated random effect") + xlab("id")
+}
+
+#### ANCOVA via mixed model ####
+set.seed(10)
+d &lt;- sampleRem(1e2, n.time = 2)
+e.ANCOVA1 &lt;- lm(Y2~Y1+X1, data = d)
+
+if(require(reshape2)){
+   dL2 &lt;- melt(d, id.vars = c("id","X1"),  measure.vars = c("Y1","Y2"),
+               value.name = "Y", variable.name = "time")
+   dL2$time &lt;- factor(dL2$time, levels = c("Y1","Y2"), labels = c("1","2"))
+
+   ## estimated treatment effect (no baseline constraint)
+   e.lmm &lt;- lmm(Y ~ time + time:X1, data = dL2, repetition = ~time|id)
+
+   e.delta &lt;- estimate(e.lmm, function(p){
+       c(Y1 = p["rho(1,2)"]*p["k.2"],
+         X1 = p["time2:X1"]-p["k.2"]*p["rho(1,2)"]*p["time1:X1"])
+   }) ## same estimate and similar standard errors. 
+   e.delta ## Degrees of freedom are a bit off though
+   cbind(summary(e.ANCOVA1)$coef, df = df.residual(e.ANCOVA1))
+
+   ## estimated treatment effect (baseline constraint)
+   dL2$time2 &lt;- as.numeric(dL2$time=="2")
+   e.lmmC &lt;- lmm(Y ~ time2 + time2:X1, data = dL2, repetition = ~time|id)
+   e.deltaC &lt;- estimate(e.lmmC, function(p){
+       c(Y1 = p["rho(1,2)"]*p["k.2"],
+         X1 = p["time2:X1"])
+   })
+   e.deltaC ## Degrees of freedom are a bit more accurate
+}
+
+}
+</code></pre>
+
+
+</div>

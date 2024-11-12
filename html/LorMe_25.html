@@ -1,0 +1,193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>network_analysis2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conduct Network analysis</h2>
+
+<h3>Description</h3>
+
+<p>A convenient and fast network analysis function, with output results suitable for cytoscape and gephi
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">network_analysis2(
+  input,
+  inputtype,
+  n,
+  threshold,
+  method = "spearman",
+  display = TRUE,
+  input2,
+  input2type
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Input dataframe with otu/gene/taxa in row and sample ID in column,at least 5 replicates(more than 8 replicates are recommened).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputtype</code></td>
+<td>
+<p>Input dataframe type
+</p>
+<p>1:dataframe with first column of OTUID and last column of taxonomy
+</p>
+<p>2:dataframe with first column of OTUID/taxonomy
+</p>
+<p>3:dataframe of all numeric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Only keep otu/gene/taxa appearing in n sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>Threshold of correlation r value</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character string indicating which correlation coefficient  is to be computed. One of "pearson" or "spearman"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>display</code></td>
+<td>
+<p>If display a preview plot of network based on igraph. FALSE for the first attempt is recommended in case of too many vertices and edges.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input2</code></td>
+<td>
+<p>A second input data frame with otu/gene/taxa in row and sample ID in column. Default:NULL</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input2type</code></td>
+<td>
+<p>The second input data frame type. Details the same as above. Default:NULL</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ol>
+<li>
+<p> We had optimized the correlation algorithm to achieve a faster running speed. It takes less than 2 minute to calculate dataframe correlation and p value which more than 400 samples and 10000 OTUs for computer with dual Core i5 processor.
+However, too many vertices(&gt;2000) or links(&gt;10000) may slow the statistical process and visualization,so we recommend that in your first attempt,set <code>display</code> paramter as <code>F</code> to have a preview.
+Then you can adjust your n/threshold/method paramter to generate a suitable visualization network
+</p>
+</li>
+<li>
+<p> We display a preview plot so as to adjusting your network. Generally a global figure (like we show in examples) with less than 1000 vertices and 5000 edges/links
+is recommended. Further more,we recommend you to output the statistics and adjacency table and use software like cytoscape or gephi for better visualization.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>One list contains a statistics table of network vertices/nodes and an adjacency table. One preview plot of network in the plot interface and an igraph object(named <code>igraph1</code>) in global environment.
+</p>
+
+
+<h3>Note</h3>
+
+
+<ol>
+<li>
+<p> Replicates should be at least 5,more than 8 is recommend.
+</p>
+</li>
+<li>
+<p> In case of too many edges/links or not a global network plot, you can stop the process immediately to provent wasting too much time.
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Wang Ningqi <a href="mailto:2434066068@qq.com">2434066068@qq.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+{
+  ### Data preparation ###
+  data(testotu)
+  rownames(testotu) &lt;- testotu[, 1]
+  inputotu &lt;- testotu[, -c(1, ncol(testotu))]
+  head(inputotu)
+  set.seed(999)
+  ### One input network analysis ###
+  network_result &lt;- network_analysis2(
+    inputotu,
+    3,
+    10,
+    0.9,
+    "spearman",
+    TRUE
+  )
+
+  # Nodes information table
+  network_nodes &lt;- network_result$Nodes_info
+  head(network_nodes)
+
+  # Adjacency table
+  network_adjacency &lt;- network_result$Adjacency_column_table
+  head(network_adjacency)
+
+  # Complete adjacency matrix
+  network_matrix &lt;- network_result$Adjacency_matrix
+  print(network_matrix[1:10, 1:10])
+
+  # igraph object
+  igraph_object &lt;- network_result$Igraph_object
+  network_stat(igraph_object)  # In case you want to see statistics again
+  # or do other analysis based on igraph.
+
+  ### Two inputs network analysis ###
+  inputotu1 &lt;- inputotu[1:456, ]
+  inputotu2 &lt;- inputotu[524:975, ]
+  network_result &lt;- network_analysis2(
+    input = inputotu1,
+    inputtype = 3,
+    input2 = inputotu2,
+    input2type = 3,
+    n = 10,
+    threshold = 0.85,
+    method = "spearman",
+    display = TRUE
+  )
+
+  #### Incorrect demonstration !! ###
+  {
+     network_result &lt;- network_analysis2(inputotu, 3, 3, 0.8, "spearman", TRUE)
+  }
+  # Total edges/links: 10199
+  # Total vertices: 826
+  # Too many edges and not a global network
+
+}
+
+</code></pre>
+
+
+</div>

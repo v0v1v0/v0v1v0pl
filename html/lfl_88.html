@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcut</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform data into a <code>fsets</code> S3 class of linguistic fuzzy attributes</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a set of linguistic fuzzy attributes from crisp data.
+Numeric vectors, matrix or data frame columns are transformed into a set of
+fuzzy attributes, i.e. columns with membership degrees. Factors and other
+data types are transformed to fuzzy attributes by calling the <code>fcut()</code>
+function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcut(x, ...)
+
+## Default S3 method:
+lcut(x, ...)
+
+## S3 method for class 'factor'
+lcut(x, name = deparse(substitute(x)), ...)
+
+## S3 method for class 'logical'
+lcut(x, name = deparse(substitute(x)), ...)
+
+## S3 method for class 'numeric'
+lcut(
+  x,
+  context = minmax,
+  atomic = c("sm", "me", "bi", "lm", "um", "ze", "neg.sm", "neg.me", "neg.bi",
+    "neg.lm", "neg.um"),
+  hedges = c("ex", "si", "ve", "ty", "-", "ml", "ro", "qr", "vr"),
+  name = deparse(substitute(x)),
+  hedgeParams = defaultHedgeParams,
+  ...
+)
+
+## S3 method for class 'data.frame'
+lcut(
+  x,
+  context = minmax,
+  atomic = c("sm", "me", "bi", "lm", "um", "ze", "neg.sm", "neg.me", "neg.bi",
+    "neg.lm", "neg.um"),
+  hedges = c("ex", "si", "ve", "ty", "-", "ml", "ro", "qr", "vr"),
+  ...
+)
+
+## S3 method for class 'matrix'
+lcut(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Data to be transformed: if it is a numeric vector, matrix, or data
+frame, then the creation of linguistic fuzzy attributes takes place. For
+other data types the <code>fcut()</code> function is called implicitly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters to some methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A name to be added as a suffix to the created fuzzy attribute
+names. This parameter can be used only if <code>x</code> is a numeric or logical
+vector or a factor. If <code>x</code> is a matrix or data frame, <code>name</code> should be NULL
+because the fuzzy attribute names are taken from column names of parameter
+<code>x</code>. The <code>name</code> is also used as a value for the <code>vars</code> attribute of the
+resulting <code>fsets()</code> instance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>context</code></td>
+<td>
+<p>A definition of context of a numeric attribute. It must be an
+instance of an S3 class <code>ctx3()</code>, <code>ctx5()</code>, <code>ctx3bilat()</code> or <code>ctx5bilat()</code>.
+</p>
+<p>If <code>x</code> is a matrix or data frame then <code>context</code> should be a named list of
+contexts for each <code>x</code>'s column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atomic</code></td>
+<td>
+<p>A vector of atomic linguistic expressions to be used for
+creation of fuzzy attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hedges</code></td>
+<td>
+<p>A vector of linguistic hedges to be used for creation of fuzzy
+attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hedgeParams</code></td>
+<td>
+<p>Parameters that determine the shape of the hedges</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The aim of this function is to transform numeric data into a set of fuzzy
+attributes.  The resulting fuzzy attributes have direct linguistic
+interpretation. This is a unique variant of fuzzification that is suitable
+for the inference mechanism based on Perception-based Linguistic Description
+(PbLD) – see <code>pbld()</code>.
+</p>
+<p>A numeric vector is transformed into a set of fuzzy attributes accordingly to
+the following scheme:
+</p>
+<p><code class="reqn">&lt;hedge&gt; &lt;atomic expression&gt;</code>
+</p>
+<p>where <code class="reqn">&lt;atomic expression&gt;</code> is an atomic linguistic expression, a value
+from the following possibilities (note that the allowance of atomic
+expressions is influenced with <code>context</code> being used - see ctx for details):
+</p>
+
+<ul>
+<li> <p><code>neg.bi</code>: big negative (far from zero)
+</p>
+</li>
+<li> <p><code>neg.um</code>: upper medium negative (between medium negative and big negative)
+</p>
+</li>
+<li> <p><code>neg.me</code>: medium negative
+</p>
+</li>
+<li> <p><code>neg.lm</code>: lower medium negative (between medium negative and small
+negative)
+</p>
+</li>
+<li> <p><code>neg.sm</code>: small negative (close to zero)
+</p>
+</li>
+<li> <p><code>ze</code>: zero
+</p>
+</li>
+<li> <p><code>sm</code>: small
+</p>
+</li>
+<li> <p><code>lm</code>: lower medium
+</p>
+</li>
+<li> <p><code>me</code>: medium
+</p>
+</li>
+<li> <p><code>um</code>: upper medium
+</p>
+</li>
+<li> <p><code>bi</code>: big
+</p>
+</li>
+</ul>
+<p>A <code class="reqn">&lt;hedge&gt;</code> is a modifier that further concretizes the atomic expression
+(note that not each combination of hedge and atomic expression is allowed -
+see allowed.lingexpr for more details):
+</p>
+
+<ul>
+<li> <p><code>ex</code>: extremely,
+</p>
+</li>
+<li> <p><code>si</code>: significantly,
+</p>
+</li>
+<li> <p><code>ve</code>: very,
+</p>
+</li>
+<li> <p><code>ty</code>: typically,
+</p>
+</li>
+<li> <p><code>-</code>: empty hedge (no hedging),
+</p>
+</li>
+<li> <p><code>ml</code>: more or less,
+</p>
+</li>
+<li> <p><code>ro</code>: roughly,
+</p>
+</li>
+<li> <p><code>qr</code>: quite roughly,
+</p>
+</li>
+<li> <p><code>vr</code>: very roughly.
+</p>
+</li>
+</ul>
+<p>Accordingly to the theory developed by Novak (2008), not every hedge is
+suitable with each atomic #' expression (see the description of the <code>hedges</code>
+argument).  The hedges to be used can be selected with the <code>hedges</code> argument.
+Function takes care of not to use hedge together with an unapplicable atomic
+expression by itself.
+</p>
+<p>Obviously, distinct data have different meaning of what is "small", "medium",
+or "big" etc.  Therefore, a <code>context</code> has to be set that specifies sensible
+values for these linguistic expressions.
+</p>
+<p>If a matrix (resp. data frame) is provided to this function instead of a
+single vector, all columns are processed the same way.
+</p>
+<p>The function also sets up properly the <code>vars()</code> and <code>specs()</code> properties of
+the result.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of S3 class <code>fsets</code> is returned, which is a numeric matrix
+with columns representing the fuzzy attributes. Each source column of the
+<code>x</code> argument corresponds to multiple columns in the resulting matrix.
+Columns will have names derived from used <code class="reqn">hedges</code>, atomic expression,
+and <code class="reqn">name</code> specified as the optional parameter.
+</p>
+<p>The resulting object would also have set the <code>vars()</code> and <code>specs()</code>
+properties with the former being created from original column names (if <code>x</code>
+is a matrix or data frame) or the <code>name</code> argument (if <code>x</code> is a numeric
+vector). The <code>specs()</code> incidency matrix would be created to reflect the
+following order of the hedges: <code class="reqn">"ex" &lt; "si" &lt; "ve" &lt; "-" &lt; "ml" &lt; "ro"
+  &lt; "qr" &lt; "vr"</code> and <code class="reqn">"ty" &lt; "" &lt; "ml" &lt; "ro" &lt; "qr" &lt; "vr"</code>.  Fuzzy
+attributes created from the same source numeric vector (or column) would be
+ordered that way, with other fuzzy attributes (from the other source) being
+incomparable.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>References</h3>
+
+<p>V. Novak, A comprehensive theory of trichotomous evaluative
+linguistic expressions, Fuzzy Sets and Systems 159 (22) (2008) 2939–2969.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fcut()</code>, <code>fsets()</code>, <code>vars()</code>, <code>specs()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# transform a single vector
+x &lt;- runif(10)
+lcut(x, name='age')
+
+# transform single vector with a custom context
+lcut(x, context=ctx5(0, 0.2, 0.5, 0.7, 1), name='age')
+
+# transform all columns of a data frame
+# and do not use any hedges
+data &lt;- CO2[, c('conc', 'uptake')]
+lcut(data)
+
+
+# definition of custom contexts for different columns
+# of a data frame while selecting only "ve" and "ro" hedges.
+lcut(data,
+     context=list(conc=minmax,
+                  uptake=ctx3(0, 25, 50)),
+     hedges=c('ve', 'ro'))
+
+
+# lcut on non-numeric data is the same as fcut()
+ff &lt;- factor(substring("statistics", 1:10, 1:10), levels = letters)
+lcut(ff)
+
+</code></pre>
+
+
+</div>

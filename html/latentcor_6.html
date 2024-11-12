@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ipol</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an interpolating function from given values. Several interpolation methods are
+supported.</h2>
+
+<h3>Description</h3>
+
+<p>Create an interpolating function from given values. Several interpolation methods are
+supported.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ipol(val, grid = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>val</code></td>
+<td>
+<p>array or function. Function values on a grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>list. Each element is a vector of ordered grid-points for a
+dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to the function, if <code>is.function(val)</code>. And some
+extra arguments for interpolant creation described in section Details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>function(x, threads=getOption('chebpol.threads'))</code> defined on a hypercube, an interpolant
+for the given function. The argument <code>x</code> can be a matrix of column
+vectors which are evaluated in parallel in a number of threads.  The
+function yields values for arguments outside the hypercube as well, though
+it will typically be a poor approximation.  <code>threads</code> is an integer
+specifying the number of parallel threads which should be used when
+evaluating a matrix of column vectors.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Simen Gaure
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## evenly spaced grid-points
+su &lt;- seq(0,1,length.out=10)
+## irregularly spaced grid-points
+s &lt;- su^3
+## create approximation on the irregularly spaced grid
+ml1 &lt;- ipol(exp(s), grid=list(s))
+## test it, since exp is convex, the linear approximation lies above
+## the exp between the grid points
+ml1(su) - exp(su)
+
+## multi dimensional approximation
+f &lt;- function(x) 10/(1+25*mean(x^2))
+# a 3-dimensional 10x10x10 grid, first and third coordinate are non-uniform
+grid &lt;- list(s, su, sort(1-s))
+
+# make multilinear spline.
+ml2 &lt;- ipol(array(apply(expand.grid(grid), 1, f), c(10, 10, 10)), grid=grid)
+# make 7 points in R3 to test them on
+m &lt;- matrix(runif(3*7),3)
+rbind(true=apply(m,2,f), ml=ml2(m))
+
+</code></pre>
+
+
+</div>

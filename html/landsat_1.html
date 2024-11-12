@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BSL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Bare Soil Line
+</h2>
+
+<h3>Description</h3>
+
+<p>Finds Bare Soil Line (BSL) and maximum vegetation point.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BSL(band3, band4, method = "quantile", ulimit = 0.99, llimit = 0.005, maxval = 255)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>band3</code></td>
+<td>
+
+<p>File name or image file (matrix, data frame, or SpatialGridDataFrame) for Landsat band 3 DN (red).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>band4</code></td>
+<td>
+
+<p>File name or image file (matrix, data frame, or SpatialGridDataFrame) for Landsat band 4 DN (NIR).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Either "quantile" or "minimum" – describes way in which soil line is identified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ulimit</code></td>
+<td>
+
+<p>Upper limit for quantile of band ratios (ulimit &lt; 1).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>llimit</code></td>
+<td>
+
+<p>Lower limit for quantile of band ratios (llimit &gt; 0).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxval</code></td>
+<td>
+
+<p>Maximum value for band data; default of 255 for Landsat 5 and 7.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Finding the BSL requires identifying the lowest NIR values for each level of red. The quantile method takes the lowest set of points, those with a NIR/red ratio less than the llimit-th quantile. The minimum value method takes the lowest NIR value for each level of red. However they are found, these points with low NIR for their red values are used in a major axis regression to find the Bare Soil Line.
+This function also identifies the full canopy point (maximum vegetation), by using the ulimit to identify the top points, with NIR/red ratio greater than the ulimit-th quantile, and with high NIR values. Red or NIR values of 255 (saturated sensor) are omitted when calculating the BSL.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>BSL </code></td>
+<td>
+<p>Regression coefficients for the Bare Soil Line</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top </code></td>
+<td>
+<p>band 3 and band 4 values for the full canopy point</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sarah Goslee
+</p>
+
+
+<h3>References</h3>
+
+<p>Maas, S. J. &amp; Rajan, N. 2010. Normalizing and converting image DC data using scatter plot matching. Remote Sensing 2:1644-1661.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	data(nov3)
+	data(nov4)
+	nov.bsl &lt;- BSL(nov3, nov4)
+	plot(as.vector(as.matrix(nov3)), as.vector(as.matrix(nov4)))
+	abline(nov.bsl$BSL, col="red")
+	points(nov.bsl$top[1], nov.bsl$top[2], col="green", cex=2, pch=16)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,77 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>package_chunk_fits</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Package the output of the chunk-level multinomial models into a
+multinom_TS_fit list</h2>
+
+<h3>Description</h3>
+
+<p>Takes the list of fitted chunk-level models returned from
+<code>TS_chunk_memo</code> (the memoised version of 
+<code>multinom_TS_chunk</code> and packages it as a 
+<code>multinom_TS_fit</code> object. This involves naming the model fits based 
+on the chunk time windows, combining the log likelihood values across the 
+chunks, and setting the class of the output object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">package_chunk_fits(chunks, fits)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>chunks</code></td>
+<td>
+<p>Data frame of <code>start</code> and <code>end</code> times for each 
+chunk (row).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fits</code></td>
+<td>
+<p>List of chunk-level fits returned by <code>TS_chunk_memo</code>,
+the memoised version of <code>multinom_TS_chunk</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of class <code>multinom_TS_fit</code>, which is a list of [1]
+chunk-level model fits, [2] the total log likelihood combined across 
+all chunks, and [3] the chunk time data table.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(rodents)
+  dtt &lt;- rodents$document_term_table
+  lda &lt;- LDA_set(dtt, 2, 1, list(quiet = TRUE))
+  dct &lt;- rodents$document_covariate_table
+  dct$gamma &lt;- lda[[1]]@gamma
+  weights &lt;- document_weights(dtt)
+  formula &lt;- gamma ~ 1
+  changepoints &lt;- c(20,50)
+  timename &lt;- "newmoon"
+  TS_chunk_memo &lt;- memoise_fun(multinom_TS_chunk, TRUE)
+  chunks &lt;- prep_chunks(dct, changepoints, timename)
+  nchunks &lt;- nrow(chunks)
+  fits &lt;- vector("list", length = nchunks)
+  for (i in 1:nchunks){
+    fits[[i]] &lt;- TS_chunk_memo(dct, formula, chunks[i, ], timename, 
+                               weights, TS_control())
+  }
+  package_chunk_fits(chunks, fits) 
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>g_legend</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract ggplot legends</h2>
+
+<h3>Description</h3>
+
+<p>Extracts the legend ('guide-box') from a ggplot2 object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">g_legend(a.gplot)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>a.gplot</code></td>
+<td>
+<p>ggplot2 or gtable object.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>The extraction is applied <em>after</em> the plot is trained and themes are
+applied. Modifying the legend is easiest by applying themes etc.
+to the ggplot2 object, before calling <code>g_legend</code>.
+</p>
+<p>An alternative method for extracting the legend is using
+<code>gtable::gtable_filter</code>:
+</p>
+<pre>
+  gtable_filter(ggplotGrob(a.ggplot.obj), 'guide-box')
+</pre>
+<p>This method however returns a <code>gtable</code> object which encapsulates
+the entire legend. The legend itself may be a collection of <code>gtable</code>.
+We have only noticed a problem with this extra layer when using the returned
+legend with <code>arrangeGrob</code> (see examples).
+</p>
+
+
+<h3>Value</h3>
+
+<p>gtable (grob) object. Draw with <code>grid.draw</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p><a href="http://baptiste.github.io/">Baptiste Auguié</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>grid_arrange_shared_legend</code>, <code>reposition_legend</code>,
+<code>gtable_filter</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+library(gtable)
+library(grid)
+library(gridExtra)
+library(gtable)
+dsamp &lt;- diamonds[sample(nrow(diamonds), 1000), ]
+(d &lt;- ggplot(dsamp, aes(carat, price)) +
+ geom_point(aes(colour = clarity)) +
+ theme(legend.position='bottom'))
+
+legend &lt;- g_legend(d)
+grid.newpage()
+grid.draw(legend)
+
+(d2 &lt;- ggplot(dsamp, aes(x=carat, fill=clarity)) +
+  geom_histogram(binwidth=0.1) +
+ theme(legend.position='bottom'))
+
+grid.arrange(d  + theme(legend.position='hidden'),
+             d2 + theme(legend.position='hidden'),
+             bottom=legend$grobs[[1]])
+# Above fails with more than one guide
+
+legend2 &lt;- gtable_filter(ggplotGrob(d), 'guide-box')
+grid.arrange(d  + theme(legend.position='hidden'),
+             d2 + theme(legend.position='hidden'),
+             bottom=legend2$grobs[[1]]$grobs[[1]])
+# Above fails with more than one guide
+
+
+</code></pre>
+
+
+</div>

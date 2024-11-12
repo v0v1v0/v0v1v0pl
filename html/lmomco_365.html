@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sentiv.curve</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the Sensitivity Curve for a Single Quantile</h2>
+
+<h3>Description</h3>
+
+<p>The <em>sensitivity curve</em> (<code class="reqn">SC</code>) is a means to assess how sensitive a particular statistic <code class="reqn">T_{n+1}</code> for a sample of size <code class="reqn">n</code> is to an additional sample <code class="reqn">x</code> to be included. For the implementation by this function, the statistic <code class="reqn">T</code> is a specific quantile <code class="reqn">x(F)</code> of interest set by a nonexceedance probability <code class="reqn">F</code>.  The <code class="reqn">SC</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">SC_{n+1}(x,\,| F) = (n+1)(T_{n+1} - T_n)\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">T_n</code> represent the statistic for the sample of size <code class="reqn">n</code>. The notation here follows that of Hampel (1974, p. 384) concerning <code class="reqn">n</code> and <code class="reqn">n+1</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sentiv.curve(f, x, method=c("bootstrap", "polynomial", "none"),
+                   data=NULL, para=NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>The nonexceedance probability <code class="reqn">F</code> of the quantile for which the sensitivity of its estimation is needed. Only the first value if a vector is given is used and a warning issued.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The <code class="reqn">x</code> values representing the potential <em>one more value</em> to be added to the original data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A vector of mandatory sample data values. These will either be converted to (1) order statistic expectations exact analytical expressions or simulation (backup plan), (2) Bernstein (or similar) polynomials, or (3) the provided values treated as if they are the order statistic expectations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character variable determining how the statistics <code class="reqn">T</code> are computed (see Details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>A distribution parameter list from a function such as <code>vec2par</code> or <code>lmom2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass either to the <code>lmoms.bootbarvar</code> or to the <br><code>dat2bernqua</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The main features of this function involve how the statistics are computed and are controlled by the <code>method</code> argument. Three different approaches are provided.
+</p>
+<p><b>Bootstrap:</b> Arguments <code>data</code> and <code>para</code> are <em>mandatory</em>. If <code>boostrap</code> is requested, then the distribution type set by the <code>type</code> attribute in <code>para</code> is used along with the method of L-moments for <code class="reqn">T(F)</code> estimation. The <code class="reqn">T_n(F)</code> is directly computed from the distribution in <code>para</code>. And for each <code>x</code>, the <code class="reqn">T_{n+1}(F)</code> is computed by <code>lmoms</code>, <code>lmom2par</code>, and the distribution type. The sample so fed to <code>lmoms</code> is denoted as <code>c(EX, x)</code>.
+</p>
+<p><b>Polynomial:</b> Argument <code>data</code> is <em>mandatory</em> and <code>para</code> is <em>not</em> used. If <code>polynomial</code> is requested, then the Bernstein polynomial (likely) from the <code>dat2bernqua</code> is used. The <code class="reqn">T_n(F)</code> is computed by the <code>data</code> sample. And for each <code>x</code>, the <code class="reqn">T_{n+1}(F)</code> also is computed by <code>dat2bernqua</code>, but the sample so fed to <code>dat2bernqua</code> is denoted as <code>c(EX, x)</code>.
+</p>
+<p><b>None:</b> Arguments <code>data</code> and <code>para</code> are <em>mandatory</em>. If <code>none</code> is requested, then the distribution type set by the <code>type</code> attribute in <code>para</code> is used along with the method of L-moments. The <code class="reqn">T_n(F)</code> is directly computed from the distribution in <code>para</code>. And for each <code>x</code>, the <code class="reqn">T_{n+1}(F)</code> is computed by <code>lmoms</code>, <code>lmom2par</code>, and the distribution type. The sample so fed to <code>lmoms</code> is denoted as <code>c(EX, x)</code>.
+</p>
+<p>The internal variable <code>EX</code> now requires discussion. If <code>method=none</code>, then the <code>data</code> are sorted and set into the internal variable <code>EX</code>. Conversely, if <code>method=</code><code>bootstrap</code> or <code>method=</code><code>polynomial</code>, then <code>EX</code> will contain the expectations of the order statistics from <code>lmoms.bootbarvar</code>.
+</p>
+<p>Lastly, the Weibull plotting positions are used for the probability values for the data as provided by the <code>pp</code> function. Evidently, if <code>method</code> is either <code>parent</code> or <code>polynomial</code> then a “stylized sensitivity curve” would created (David, 1981, p. 165) because the expectations of the sample order statistics and not the sample order statistics (the sorted sample) are used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>curve</code></td>
+<td>
+<p>The value for <code class="reqn">SC(x) = (n+1)(T_{n+1} - T_n)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>curve.perchg</code></td>
+<td>
+<p>The percent change sensitivity curve by <code class="reqn">SC^{(\%)}(x) = 100\times (T_{n+1} - T_n)/T_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tnp1</code></td>
+<td>
+<p>The values for <code class="reqn">T_{n+1} = T_n + SC(x)/(n+1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Tn</code></td>
+<td>
+<p>The value (singular) for <code class="reqn">T_n</code> which was estimated according to <code>method</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>The curve potentially passes through a zero depending on the values for <code class="reqn">x</code>. The <code>color</code> is set to distinquish between negatives and positives so that the user could use the absolute value of <code>curve</code> on logarithmic scales and use the color to distinquish the original negatives.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EX</code></td>
+<td>
+<p>The values for the internal variable <code>EX</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the sensitivity curve: “sentiv.curve”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>David, H.A., 1981, Order statistics: John Wiley, New York.
+</p>
+<p>Hampel, F.R., 1974, The influence curve and its role in robust estimation: Journal of the American Statistical Association, v. 69, no. 346, pp. 383–393.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>expect.max.ostat</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+set.seed(50)
+mean &lt;- 12530; lscale &lt;- 5033; lskew &lt;- 0.4
+n &lt;- 46; type &lt;- "gev"; lmr &lt;- vec2lmom(c(mean,lscale,lskew))
+F &lt;- 0.90 # going to explore sensitivity on the 90th percentile
+par.p &lt;- lmom2par(lmr, type=type) # Parent distribution
+TRUE.Q &lt;- par2qua(F, par.p)
+X &lt;- sort(rlmomco(n, par.p)) # Simulate a small sample
+par.s &lt;- lmom2par(lmoms(X), type=type) # Now fit the distribution
+SIM.Q &lt;- par2qua(F, par.s); SIM.BAR &lt;- par2lmom(par.s)$lambdas[1]
+D &lt;- log10(mean) - log10(lscale)
+R &lt;- as.integer(log10(mean)) + c(-D, D) # need some x-values to explore
+Xs &lt;- 10^(seq(R[1], R[2], by=.01)) # x-values to explore
+# Sample estimate are the "parent" only to mimic a more real-world setting.
+# where one "knows" the form of the parent but perhaps not the parameters.
+SC1 &lt;- sentiv.curve(F, Xs, data=X, para=par.s, method="bootstrap")
+SC2 &lt;- sentiv.curve(F, Xs, data=X, para=par.s, method="polynomial",
+                              bound.type="Carv")
+SC3 &lt;- sentiv.curve(F, Xs, data=X, para=par.s, method="none")
+xlim &lt;- range(c(Xs,SC1$Tnp1,SC2$Tnp1,SC3$Tnp1))
+ylim &lt;- range(c(SC1$curve.perchg, SC2$curve.perchg, SC3$curve.perchg))
+plot(xlim, c(0,0), type="l", lty=2, ylim=ylim, xaxs="i", yaxs="i",
+     xlab=paste("Magnitude of next value added to sample of size",n),
+     ylab=paste("Percent change fitted",F,"probability quantile"))
+mtext(paste("Distribution",par.s$type,"with parameters",
+      paste(round(par.s$para, digits=3), collapse=", ")))
+lines(rep(TRUE.Q,  2), c(-10,10), lty=4, lwd=3)
+lines(rep(SIM.BAR, 2), c(-10,10), lty=3, lwd=2)
+lines(rep(SIM.Q,   2), c(-10,10), lty=2)
+lines(Xs, SC1$curve.perchg, lwd=3, col=1)
+lines(Xs, SC2$curve.perchg, lwd=2, col=2)
+lines(Xs, SC3$curve.perchg, lwd=1, col=4)
+rug(SC1$Tnp1, col=rgb(0,0,0,0.3))
+rug(SC2$Tnp1, col=rgb(1,0,0,0.3))
+rug(SC3$Tnp1, col=rgb(0,0,1,0.3), tcl=-.75) #
+## End(Not run)
+</code></pre>
+
+
+</div>

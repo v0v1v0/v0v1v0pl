@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>control.ergmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Auxiliary for Controlling ERGMM Fitting</h2>
+
+<h3>Description</h3>
+
+<p>Auxiliary function as user interface for <code>ergmm</code> fitting. Typically
+only used when calling <code>ergmm</code>. It is used to set parameters that
+affect the sampling but do not affect the posterior distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">control.ergmm(
+  sample.size = 4000,
+  burnin = 10000,
+  interval = 10,
+  threads = 1,
+  kl.threads = 1,
+  mle.maxit = 100,
+  Z.delta = 0.6,
+  RE.delta = 0.6,
+  group.deltas = 0.4,
+  pilot.runs = 4,
+  pilot.factor = 0.8,
+  pilot.discard.first = 0.5,
+  target.acc.rate = 0.234,
+  backoff.threshold = 0.05,
+  backoff.factor = 0.2,
+  accept.all = FALSE,
+  store.burnin = FALSE,
+  refine.user.start = TRUE
+)
+
+ergmm.control(
+  sample.size = 4000,
+  burnin = 10000,
+  interval = 10,
+  threads = 1,
+  kl.threads = 1,
+  mle.maxit = 100,
+  Z.delta = 0.6,
+  RE.delta = 0.6,
+  group.deltas = 0.4,
+  pilot.runs = 4,
+  pilot.factor = 0.8,
+  pilot.discard.first = 0.5,
+  target.acc.rate = 0.234,
+  backoff.threshold = 0.05,
+  backoff.factor = 0.2,
+  accept.all = FALSE,
+  store.burnin = FALSE,
+  refine.user.start = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sample.size</code></td>
+<td>
+<p>The number of draws to be taken from the posterior
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>The number of initial MCMC iterations to be discarded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>The number of iterations between consecutive draws.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threads</code></td>
+<td>
+<p>The number of chains to run. If greater than 1, package
+<code>snowFT</code> is used to take advantage of any
+multiprocessing or distributed computing capabilities that may be available.
+Currently, only PVM (via <code>rpvm</code>) has been tested. Note, also, that PVM
+daemon needs to be started before the package is loaded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kl.threads</code></td>
+<td>
+<p>If greather than 1, uses an experimental parallelized
+label-switching algorithm. This is not guaranteed to work.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle.maxit</code></td>
+<td>
+<p>Maximum number of iterations for computing the starting
+values, posterior modes, MLEs, MKL estimates, etc..</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z.delta</code></td>
+<td>
+<p>Standard deviation of the proposal for the jump in the
+individual latent space position, or its starting value for the tuner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RE.delta</code></td>
+<td>
+<p>Standard deviation of the proposal for the jump in the
+individual random effects values, or its starting value for the tuner.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.deltas</code></td>
+<td>
+<p>A scalar, a vector, or a matrix of an appropriate size,
+giving the initial proposal structure for the “group proposal” of a jump
+in covariate coefficients, scaling of latent space positions, and a shift in
+random ffects. If a matrix of an appropriate size is given, it is used as a
+matrix of coefficients for a correlated proposal. If a vector is given, an
+independent proposal is used with the corresponding elements being proposal
+standard deviations. If a scalar is given, it is used as a multiplier for an
+initial heuristic for the proposal structure. It is usually best to leave
+this argument alone and let the adaptive sampling be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pilot.runs</code></td>
+<td>
+<p>Number of pilot runs into which to split the burn-in
+period. After each pilot run, the proposal standard deviations and
+coefficients <code>Z.delta</code>, <code>RE.delta</code>, and <code>group.deltas</code> are
+reevaluated. If set to <code>0</code>, disables adaptive sampling, and only makes
+a single burn-in run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pilot.factor</code></td>
+<td>
+<p>Initial value for the factor by which the coefficients
+gotten by a Choletsky decomposition of the pilot sample covariance matrix
+are multiplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pilot.discard.first</code></td>
+<td>
+<p>Proportion of draws from the pilot run to discard
+for estimating acceptance rate and group proposal covariance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target.acc.rate</code></td>
+<td>
+<p>Taget acceptance rate for the proposals used. After a
+pilot run, the proposal variances are adjusted upward if the acceptance rate
+is above this, and downward if below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backoff.threshold</code></td>
+<td>
+<p>If a pilot run's acceptance rate is below this,
+redo it with drastically reduced proposal standard deviation.  Set to
+<code>0</code> to disable this behavior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backoff.factor</code></td>
+<td>
+<p>Factor by which to multiply the relevant proposal
+standard deviation if its acceptance rate fell below the backoff threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accept.all</code></td>
+<td>
+<p>Forces all proposals to be accepted unconditionally. Use
+only in debugging proposal distributions!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>store.burnin</code></td>
+<td>
+<p>If <code>TRUE</code>, the samples from the burnin are also
+stored and returned, to be used in MCMC diagnostics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>refine.user.start</code></td>
+<td>
+<p>If <code>TRUE</code>, the values passed to
+<code>ergmm</code> in the <code>user.start</code> argument can be updated by the
+mode-finding algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the arguments as components.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ergmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+data(sampson)
+## Shorter run than default.
+samp.fit&lt;-ergmm(samplike~euclidean(d=2,G=3)+rreceiver,
+control=ergmm.control(burnin=1000,sample.size= 2000,interval=5))
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,355 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variable Importance Measures (VIMs)</h2>
+
+<h3>Description</h3>
+
+<p>Calculate variable importance measures (VIMs) based on different
+approaches.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vim(
+  model,
+  scoring_rule = "auc",
+  vim_type = "logic",
+  adjust = TRUE,
+  interaction_order = 3,
+  nodesize = NULL,
+  alpha = 0.05,
+  X_oob = NULL,
+  y_oob = NULL,
+  Z_oob = NULL,
+  leaves = "4pl",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The fitted <code>logicDT</code> or <code>logic.bagged</code>
+model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scoring_rule</code></td>
+<td>
+<p>The scoring rule for assessing the model
+performance. As in <code>logicDT</code>, <code>"auc"</code>, <code>"nce"</code>,
+<code>"deviance"</code> and <code>"brier"</code> are possible for binary outcomes.
+For regression, the mean squared error is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vim_type</code></td>
+<td>
+<p>The type of VIM to be calculated. This can
+either be <code>"logic"</code>, <code>"remove"</code> or
+<code>"permutation"</code>. See below for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust</code></td>
+<td>
+<p>Shall adjusted interaction VIMs be additionally
+(to the VIMs of identified terms) computed? See below for
+details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interaction_order</code></td>
+<td>
+<p>If <code>adjust = TRUE</code>, up to which
+interaction order shall adjusted interaction VIMs be
+computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodesize</code></td>
+<td>
+<p>If <code>adjust = TRUE</code>, how many observations
+need to be discriminated by an interaction in order to being
+considered? Similar to <code>conjsize</code> in <code>logicDT</code>
+and <code>nodesize</code> in <code>tree.control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>If <code>adjust = TRUE</code>, a further adjustment can be
+performed trying to identify the specific conjunctions responsible
+for the interaction of the considered binary predictors.
+<code>alpha</code> specifies the significance level for statistical tests
+testing the alternative of a difference in the response for specific
+conjunctions. <code>alpha = 0</code> leads to no further adjustment.
+See below for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X_oob</code></td>
+<td>
+<p>The predictor data which should be used for
+calculating the VIMs.
+Preferably some type of validation
+data independent of the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y_oob</code></td>
+<td>
+<p>The outcome data for computing the VIMs.
+Preferably some type of validation
+data independent of the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z_oob</code></td>
+<td>
+<p>The optional covariable data for computing the
+VIMs.
+Preferably some type of validation
+data independent of the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leaves</code></td>
+<td>
+<p>The prediction mode if regression models (such as 4pL models)
+were fitted in the leaves. As in <code>predict.logicDT</code>,
+<code>"4pl"</code> and <code>"constant"</code> are the possible settings.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters passed to the different VIM type functions.
+For <code>vim_type = "logic"</code>, the argument <code>average</code> can
+be specified as <code>"before"</code> or <code>"after"</code>. For
+<code>vim_type = "permutation"</code>, <code>n.perm</code> can be set to
+the number of random permutations.
+For <code>vim_type = "remove"</code>, <code>empty.model</code> can be specified
+as either <code>"none"</code> ignoring empty models with all predictive
+terms removed or <code>"mean"</code> using the response mean as prediction
+in the case of an empty model.
+See below for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Three different VIM methods are implemented:
+</p>
+
+<ul>
+<li>
+<p> Permutation VIMs: Random permutations of the respective
+identified logic terms
+</p>
+</li>
+<li>
+<p> Removal VIMs: Removing single logic terms
+</p>
+</li>
+<li>
+<p> Logic VIMs: Prediction with both possible outcomes
+of a logic term
+</p>
+</li>
+</ul>
+<p>Details on the calculation of these VIMs are given below.
+</p>
+<p>By variable importance, importance of identified logic terms
+is meant. These terms can be single predictors or
+conjunctions between predictors in the spirit of this software package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame with two columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>Short descriptions of the terms for which the
+importance was measured. For example <code>-X1^X2</code> for
+<code class="reqn">X_1^c \land X_2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vim</code></td>
+<td>
+<p>The actual calculated VIM values.</p>
+</td>
+</tr>
+</table>
+<p>The rows of such a data frame are sorted decreasingly by the VIM values.
+</p>
+
+
+<h3>Permutation VIMs (Breiman &amp; Cutler, 2003)</h3>
+
+<p>Permutation VIMs are computed by comparing the the model's
+performance using the original data and data with random
+permutations of single terms.
+</p>
+
+
+<h3>Removal VIMs</h3>
+
+<p>Removal VIMs are constructed by removing specific logic
+terms from the set of predictors, refitting the decision
+tree and comparing the performance to the original model.
+Thus, this approach requires that at least two terms were
+found by the algorithm. Therefore, no VIM will be
+calculated if <code>empty.model = "none"</code> was specified.
+Alternatively, <code>empty.model = "mean"</code> can be set to
+use the constant mean response model for approximating
+the empty model.
+</p>
+
+
+<h3>Logic VIMs (Lau et al., 2024)</h3>
+
+<p>Logic VIMs use the fact that Boolean conjunctions are
+Boolean variables themselves and therefore are equal to
+0 or 1. To compute the VIM for a specific term,
+predictions are performed once for this term fixed to
+0 and once for this term fixed to 1. Then, the arithmetic
+mean of these two (risk or regression) predictions is
+used for calculating the performance. This performance
+is then compared to the original one as in the other
+VIM approaches (<code>average = "before"</code>). Alternatively,
+predictions for each fixed 0-1 scenario of the considered
+term can be performed leading to individual performances
+which then are averaged and compared to the original
+performance (<code>average = "after"</code>).
+</p>
+
+
+<h3>Validation</h3>
+
+<p>Validation data sets which
+were not used in the fitting of the model are prefered
+preventing an overfitting of the VIMs themselves.
+These should be specified by the <code>_oob</code> arguments,
+if neither bagging nor inner validation was used for fitting
+the model.
+</p>
+
+
+<h3>Bagging</h3>
+
+<p>For the bagging version, out-of-bag (OOB) data are naturally
+used for the calculation of VIMs.
+</p>
+
+
+<h3>VIM Adjustment for Interactions (Lau et al., 2024)</h3>
+
+<p>Since decision trees can naturally include interactions
+between single predictors (especially when strong marginal
+effects are present as well), logicDT models might, e.g.,
+include the single input variables <code class="reqn">X_1</code> and <code class="reqn">X_2</code> but
+not their interaction <code class="reqn">X_1 \land X_2</code> although an interaction
+effect is present. We, therefore, developed and implemented an
+adjustment approach for calculating VIMs for such
+unidentified interactions nonetheless.
+For predictors <code class="reqn">X_{i_1}, \ldots, X_{i_k} =: Z</code>, this interaction
+importance is given by
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{VIM}(X_{i_1} \land \ldots \land X_{i_k}) =
+\mathrm{VIM}(X_{i_1}, \ldots, X_{i_k} \mid X \setminus Z) -
+\sum_{\lbrace j_1, \ldots, j_l \rbrace {\subset \atop \neq}
+\lbrace i_1, \ldots, i_k \rbrace}
+\mathrm{VIM}(X_{j_1} \land \ldots \land X_{j_l} \mid X \setminus Z)</code>
+</p>
+
+<p>and can basically be applied to all black-box models.
+By <code class="reqn">\mathrm{VIM}(A \mid X \setminus Z)</code>, the VIM of <code class="reqn">A</code>
+considering the predictor set excluding the variables in <code class="reqn">Z</code>
+is meant, i.e., the improvement of additionally considering <code class="reqn">A</code>
+while regarding only the predictors in <code class="reqn">X \setminus Z</code>.
+The proposed interaction VIM can be recursively calculated through
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{VIM}(X_{i_1} \land X_{i_2}) =
+\mathrm{VIM}(X_{i_1}, X_{i_2} \mid X \setminus Z) -
+\mathrm{VIM}(X_{i_1} \mid X \setminus Z) -
+\mathrm{VIM}(X_{i_2} \mid X \setminus Z)</code>
+</p>
+
+<p>for <code class="reqn">Z = X_{i_1}, X_{i_2}</code>.
+This leads to the relationship
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{VIM}(X_{i_1} \land \ldots \land X_{i_k}) =
+\sum_{\lbrace j_1, \ldots, j_l \rbrace \subseteq \lbrace i_1, \ldots, i_k \rbrace}
+(-1)^{k-l} \cdot \mathrm{VIM}(X_{j_1}, \ldots, X_{j_l} \mid X \setminus Z).</code>
+</p>
+
+
+
+<h3>Identification of Specific Conjunctions (Lau et al., 2024)</h3>
+
+<p>The aforementioned VIM adjustment approach only captures the importance
+of a general definition of interactions, i.e., it just considers
+the question whether some variables do interact in any way.
+Since logicDT is aimed at identifying specific conjunctions (and also assigns
+them VIMs if they were identified by <code>logicDT</code>), a further
+adjustment approach is implemented which tries to identify the specific
+conjunction leading to an interaction effect.
+The idea of this method is to consider the response for each possible
+scenario of the interacting variables, e.g., for <code class="reqn">X_1 \land (X_2^c \land X_3)</code>
+where the second term <code class="reqn">X_2^c \land X_3</code> was identified by <code>logicDT</code>
+and, thus, two interacting terms are regarded,
+the <code class="reqn">2^2 = 4</code> possible scenarios
+<code class="reqn">\lbrace (i, j) \mid i, j \in \lbrace 0, 1 \rbrace \rbrace</code>
+are considered. For each setting, the corresponding response is compared with
+outcome values of the complementary set. For continuous outcomes, a two sample
+t-test (with Welch correction for potentially unequal variances) is performed
+comparing the means between these two groups. For binary outcomes, Fisher's exact
+test is performed testing different underlying case probabilities.
+If at least one test rejects the null hypothesis of equal outcomes (without adjusting
+for multiple testing), the combination with the lowest p-value is chosen as the
+explanatory term for the interaction effect. For example, if the most significant
+deviation results from <code class="reqn">X_1 = 0</code> and <code class="reqn">(X_2^c \land X_3) = 1</code> from the example
+above, the term <code class="reqn">X_1^c \land (X_2^c \land X_3)</code> is chosen.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> Lau, M., Schikowski, T. &amp; Schwender, H. (2024).
+logicDT: A procedure for identifying response-associated
+interactions between binary predictors. Machine Learning 113(2):933–992.
+doi: <a href="https://doi.org/10.1007/s10994-023-06488-6">10.1007/s10994-023-06488-6</a>
+</p>
+</li>
+<li>
+<p> Breiman, L. (2001). Random Forests. Machine Learning 45(1):5-32.
+doi: <a href="https://doi.org/10.1023/A:1010933404324">10.1023/A:1010933404324</a>
+</p>
+</li>
+<li>
+<p> Breiman, L. &amp; Cutler, A. (2003). Manual on Setting Up, Using,
+and Understanding Random Forests V4.0. University of California,
+Berkeley, Department of Statistics.
+<a href="https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf">https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf</a>
+</p>
+</li>
+</ul>
+</div>

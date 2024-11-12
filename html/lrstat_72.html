@@ -1,0 +1,626 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getDesignSlopeDiffMMRM</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Group sequential design for two-sample slope difference
+from the MMRM model</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the power given sample size or obtains the sample
+size given power for two-sample slope difference from the growth curve
+MMRM model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getDesignSlopeDiffMMRM(
+  beta = NA_real_,
+  slopeDiffH0 = 0,
+  slopeDiff = 0.5,
+  stDev = 1,
+  stDevIntercept = 1,
+  stDevSlope = 1,
+  corrInterceptSlope = 0.5,
+  w = NA_real_,
+  N = NA_real_,
+  accrualTime = 0,
+  accrualIntensity = NA_real_,
+  piecewiseSurvivalTime = 0,
+  gamma1 = 0,
+  gamma2 = 0,
+  accrualDuration = NA_real_,
+  followupTime = NA_real_,
+  allocationRatioPlanned = 1,
+  normalApproximation = TRUE,
+  rounding = TRUE,
+  kMax = 1L,
+  informationRates = NA_real_,
+  efficacyStopping = NA_integer_,
+  futilityStopping = NA_integer_,
+  criticalValues = NA_real_,
+  alpha = 0.025,
+  typeAlphaSpending = "sfOF",
+  parameterAlphaSpending = NA_real_,
+  userAlphaSpending = NA_real_,
+  futilityBounds = NA_real_,
+  typeBetaSpending = "none",
+  parameterBetaSpending = NA_real_,
+  userBetaSpending = NA_real_,
+  spendingTime = NA_real_
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The type II error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slopeDiffH0</code></td>
+<td>
+<p>The slope difference under the null hypothesis.
+Defaults to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slopeDiff</code></td>
+<td>
+<p>The slope difference under the alternative
+hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stDev</code></td>
+<td>
+<p>The standard deviation of the residual.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stDevIntercept</code></td>
+<td>
+<p>The standard deviation of the random intercept.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stDevSlope</code></td>
+<td>
+<p>The standard deviation of the random slope.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corrInterceptSlope</code></td>
+<td>
+<p>The correlation between the random
+intercept and random slope.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>The number of time units per measurement visit in a period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The number of measurement visits in a period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise Poisson enrollment time intervals. Must start with 0, e.g.,
+<code>c(0, 3)</code> breaks the time axis into 2 accrual intervals:
+[0, 3) and [3, Inf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualIntensity</code></td>
+<td>
+<p>A vector of accrual intensities. One for
+each accrual time interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piecewiseSurvivalTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise exponential survival time intervals. Must start with 0, e.g.,
+<code>c(0, 6)</code> breaks the time axis into 2 event intervals:
+[0, 6) and [6, Inf).
+Defaults to 0 for exponential distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1</code></td>
+<td>
+<p>The hazard rate for exponential dropout, or a vector of
+hazard rates for piecewise exponential dropout for the active
+treatment group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2</code></td>
+<td>
+<p>The hazard rate for exponential dropout, or a vector of
+hazard rates for piecewise exponential dropout for the control group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualDuration</code></td>
+<td>
+<p>Duration of the enrollment period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followupTime</code></td>
+<td>
+<p>Follow-up time for the last enrolled subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocationRatioPlanned</code></td>
+<td>
+<p>Allocation ratio for the active treatment
+versus control. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalApproximation</code></td>
+<td>
+<p>The type of computation of the p-values.
+If <code>TRUE</code>, the variance is assumed to be known, otherwise
+the calculations are performed with the t distribution. The
+degrees of freedom for the t-distribution for testing the slope
+difference is calculated using the containment method, and
+is equal to the total number of observations minus two times
+the total number of subjects. The exact calculation using the
+t distribution is only implemented for the fixed design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounding</code></td>
+<td>
+<p>Whether to round up sample size. Defaults to 1 for
+sample size rounding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kMax</code></td>
+<td>
+<p>The maximum number of stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>informationRates</code></td>
+<td>
+<p>The information rates. Defaults to
+<code>(1:kMax) / kMax</code> if left unspecified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>efficacyStopping</code></td>
+<td>
+<p>Indicators of whether efficacy stopping is allowed
+at each stage. Defaults to true if left unspecified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futilityStopping</code></td>
+<td>
+<p>Indicators of whether futility stopping is allowed
+at each stage. Defaults to true if left unspecified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criticalValues</code></td>
+<td>
+<p>Upper boundaries on the z-test statistic scale
+for stopping for efficacy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The significance level. Defaults to 0.025.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>typeAlphaSpending</code></td>
+<td>
+<p>The type of alpha spending. One of the following:
+"OF" for O'Brien-Fleming boundaries, "P" for Pocock boundaries,
+"WT" for Wang &amp; Tsiatis boundaries, "sfOF" for O'Brien-Fleming type
+spending function, "sfP" for Pocock type spending function,
+"sfKD" for Kim &amp; DeMets spending function, "sfHSD" for Hwang,
+Shi &amp; DeCani spending function, "user" for user defined spending,
+and "none" for no early efficacy stopping. Defaults to "sfOF".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameterAlphaSpending</code></td>
+<td>
+<p>The parameter value for the alpha spending.
+Corresponds to Delta for "WT", rho for "sfKD", and gamma for "sfHSD".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>userAlphaSpending</code></td>
+<td>
+<p>The user defined alpha spending. Cumulative alpha
+spent up to each stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>futilityBounds</code></td>
+<td>
+<p>Lower boundaries on the z-test statistic scale
+for stopping for futility at stages 1, ..., <code>kMax-1</code>. Defaults to
+<code>rep(-6, kMax-1)</code> if left unspecified. The futility bounds are
+non-binding for the calculation of critical values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>typeBetaSpending</code></td>
+<td>
+<p>The type of beta spending. One of the following:
+"sfOF" for O'Brien-Fleming type spending function, "sfP" for Pocock type
+spending function, "sfKD" for Kim &amp; DeMets spending function,
+"sfHSD" for Hwang, Shi &amp; DeCani spending function, "user" for
+user defined spending, and "none" for no early futility stopping.
+Defaults to "none".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parameterBetaSpending</code></td>
+<td>
+<p>The parameter value for the beta spending.
+Corresponds to rho for "sfKD", and gamma for "sfHSD".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>userBetaSpending</code></td>
+<td>
+<p>The user defined beta spending. Cumulative beta
+spent up to each stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spendingTime</code></td>
+<td>
+<p>A vector of length <code>kMax</code> for the error spending
+time at each analysis. Defaults to missing, in which case, it is the
+same as <code>informationRates</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We use the following random-effects model to compare two slopes:
+</p>
+<p style="text-align: center;"><code class="reqn">y_{ij} = \alpha + (\beta + \gamma x_i) t_j + a_i + b_i t_j
++ e_{ij},</code>
+</p>
+<p> where
+</p>
+
+<ul>
+<li> <p><code class="reqn">\alpha</code>: overall intercept common across treatment groups
+due to randomization
+</p>
+</li>
+<li> <p><code class="reqn">\beta</code>: slope for the control group
+</p>
+</li>
+<li> <p><code class="reqn">\gamma</code>: difference in slopes between the active treatment and
+control groups
+</p>
+</li>
+<li> <p><code class="reqn">x_i</code>: treatment indicator for subject <code class="reqn">i</code>,
+1 for the active treatment and 0 for the control
+</p>
+</li>
+<li> <p><code class="reqn">t_j</code>: time point <code class="reqn">j</code> for repeated measurements,
+<code class="reqn">t_1 = 0 &lt; t_2 &lt; \ldots &lt; t_k</code>
+</p>
+</li>
+<li> <p><code class="reqn">(a_i, b_i)</code>: random intercept and random slope
+for subject <code class="reqn">i</code>, <code class="reqn">Var(a_i) = \sigma_a^2</code>,
+<code class="reqn">Var(b_i) = \sigma_b^2</code>, <code class="reqn">Corr(a_i, b_i) = \rho</code>
+</p>
+</li>
+<li> <p><code class="reqn">e_{ij}</code>: within-subject residual with variance <code class="reqn">\sigma_e^2</code>
+</p>
+</li>
+</ul>
+<p>By accounting for randomization, we improve the efficiency for
+estimating the difference in slopes. We also allow for non-equal
+spacing of the time points and missing data due to dropouts.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S3 class <code>designSlopeDiffMMRM</code> object with three
+components:
+</p>
+
+<ul>
+<li> <p><code>overallResults</code>: A data frame containing the following variables:
+</p>
+
+<ul>
+<li> <p><code>overallReject</code>: The overall rejection probability.
+</p>
+</li>
+<li> <p><code>alpha</code>: The overall significance level.
+</p>
+</li>
+<li> <p><code>attainedAlpha</code>: The attained significance level, which is
+different from the overall significance level in the presence of
+futility stopping.
+</p>
+</li>
+<li> <p><code>kMax</code>: The number of stages.
+</p>
+</li>
+<li> <p><code>theta</code>: The parameter value.
+</p>
+</li>
+<li> <p><code>information</code>: The maximum information.
+</p>
+</li>
+<li> <p><code>expectedInformationH1</code>: The expected information under H1.
+</p>
+</li>
+<li> <p><code>expectedInformationH0</code>: The expected information under H0.
+</p>
+</li>
+<li> <p><code>drift</code>: The drift parameter, equal to
+<code>theta*sqrt(information)</code>.
+</p>
+</li>
+<li> <p><code>inflationFactor</code>: The inflation factor (relative to the
+fixed design).
+</p>
+</li>
+<li> <p><code>numberOfSubjects</code>: The maximum number of subjects.
+</p>
+</li>
+<li> <p><code>studyDuration</code>: The maximum study duration.
+</p>
+</li>
+<li> <p><code>expectedNumberOfSubjectsH1</code>: The expected number of subjects
+under H1.
+</p>
+</li>
+<li> <p><code>expectedNumberOfSubjectsH0</code>: The expected number of subjects
+under H0.
+</p>
+</li>
+<li> <p><code>expectedStudyDurationH1</code>: The expected study duration
+under H1.
+</p>
+</li>
+<li> <p><code>expectedStudyDurationH0</code>: The expected study duration
+under H0.
+</p>
+</li>
+<li> <p><code>accrualDuration</code>: The accrual duration.
+</p>
+</li>
+<li> <p><code>followupTime</code>: The follow-up time.
+</p>
+</li>
+<li> <p><code>fixedFollowup</code>: Whether a fixed follow-up design is used.
+</p>
+</li>
+<li> <p><code>slopeDiffH0</code>: The slope difference under H0.
+</p>
+</li>
+<li> <p><code>slopeDiff</code>: The slope difference under H1.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>byStageResults</code>: A data frame containing the following variables:
+</p>
+
+<ul>
+<li> <p><code>informationRates</code>: The information rates.
+</p>
+</li>
+<li> <p><code>efficacyBounds</code>: The efficacy boundaries on the Z-scale.
+</p>
+</li>
+<li> <p><code>futilityBounds</code>: The futility boundaries on the Z-scale.
+</p>
+</li>
+<li> <p><code>rejectPerStage</code>: The probability for efficacy stopping.
+</p>
+</li>
+<li> <p><code>futilityPerStage</code>: The probability for futility stopping.
+</p>
+</li>
+<li> <p><code>cumulativeRejection</code>: The cumulative probability for efficacy
+stopping.
+</p>
+</li>
+<li> <p><code>cumulativeFutility</code>: The cumulative probability for futility
+stopping.
+</p>
+</li>
+<li> <p><code>cumulativeAlphaSpent</code>: The cumulative alpha spent.
+</p>
+</li>
+<li> <p><code>efficacyP</code>: The efficacy boundaries on the p-value scale.
+</p>
+</li>
+<li> <p><code>futilityP</code>: The futility boundaries on the p-value scale.
+</p>
+</li>
+<li> <p><code>information</code>: The cumulative information.
+</p>
+</li>
+<li> <p><code>efficacyStopping</code>: Whether to allow efficacy stopping.
+</p>
+</li>
+<li> <p><code>futilityStopping</code>: Whether to allow futility stopping.
+</p>
+</li>
+<li> <p><code>rejectPerStageH0</code>: The probability for efficacy stopping
+under H0.
+</p>
+</li>
+<li> <p><code>futilityPerStageH0</code>: The probability for futility stopping
+under H0.
+</p>
+</li>
+<li> <p><code>cumulativeRejectionH0</code>: The cumulative probability for
+efficacy stopping under H0.
+</p>
+</li>
+<li> <p><code>cumulativeFutilityH0</code>: The cumulative probability for futility
+stopping under H0.
+</p>
+</li>
+<li> <p><code>efficacySlopeDiff</code>: The efficacy boundaries on the slope
+difference scale.
+</p>
+</li>
+<li> <p><code>futilitySlopeDiff</code>: The futility boundaries on the slope
+difference scale.
+</p>
+</li>
+<li> <p><code>numberOfSubjects</code>: The number of subjects.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The average time since trial start.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>settings</code>: A list containing the following input parameters:
+</p>
+
+<ul>
+<li> <p><code>typeAlphaSpending</code>: The type of alpha spending.
+</p>
+</li>
+<li> <p><code>parameterAlphaSpending</code>: The parameter value for alpha
+spending.
+</p>
+</li>
+<li> <p><code>userAlphaSpending</code>: The user defined alpha spending.
+</p>
+</li>
+<li> <p><code>typeBetaSpending</code>: The type of beta spending.
+</p>
+</li>
+<li> <p><code>parameterBetaSpending</code>: The parameter value for beta spending.
+</p>
+</li>
+<li> <p><code>userBetaSpending</code>: The user defined beta spending.
+</p>
+</li>
+<li> <p><code>spendingTime</code>: The error spending time at each analysis.
+</p>
+</li>
+<li> <p><code>allocationRatioPlanned</code>: The allocation ratio for the active
+treatment versus control.
+</p>
+</li>
+<li> <p><code>accrualTime</code>: A vector that specifies the starting time of
+piecewise Poisson enrollment time intervals.
+</p>
+</li>
+<li> <p><code>accrualIntensity</code>: A vector of accrual intensities.
+One for each accrual time interval.
+</p>
+</li>
+<li> <p><code>piecewiseSurvivalTime</code>: A vector that specifies the
+starting time of piecewise exponential survival time intervals.
+</p>
+</li>
+<li> <p><code>gamma1</code>: The hazard rate for exponential dropout or
+a vector of hazard rates for piecewise exponential dropout
+for the active treatment group.
+</p>
+</li>
+<li> <p><code>gamma2</code>: The hazard rate for exponential dropout or
+a vector of hazard rates for piecewise exponential dropout
+for the control group.
+</p>
+</li>
+<li> <p><code>w</code>: The number of time units per measurement visit in a
+period.
+</p>
+</li>
+<li> <p><code>N</code>: The number of measurement visits in a period.
+</p>
+</li>
+<li> <p><code>stdDev</code>: The standard deviation of the residual.
+</p>
+</li>
+<li> <p><code>G</code>: The covariance matrix for the random intercept and
+random slope.
+</p>
+</li>
+<li> <p><code>normalApproximation</code>: The type of computation of the p-values.
+If <code>TRUE</code>, the variance is assumed to be known, otherwise
+the calculations are performed with the t distribution.
+</p>
+</li>
+<li> <p><code>rounding</code>: Whether to round up sample size.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Daniel O. Scharfstein, Anastasios A. Tsiatis, and James M. Robins.
+Semiparametric efficiency and its implication on the
+design and analysis of group-sequential studies.
+Journal of the American Statistical Association 1997; 92:1342-1350.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+(design1 &lt;- getDesignSlopeDiffMMRM(
+  beta = 0.2, slopeDiff = log(1.15)/52,
+  stDev = sqrt(.182),
+  stDevIntercept = sqrt(.238960),
+  stDevSlope = sqrt(.000057),
+  corrInterceptSlope = .003688/sqrt(.238960*.000057),
+  w = 8,
+  N = 10000,
+  accrualIntensity = 15,
+  gamma1 = 1/(4.48*52),
+  gamma2 = 1/(4.48*52),
+  accrualDuration = NA,
+  followupTime = 8,
+  alpha = 0.025))
+
+</code></pre>
+
+
+</div>

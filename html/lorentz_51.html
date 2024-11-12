@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fourvel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Four velocities</h2>
+
+<h3>Description</h3>
+
+<p>Create and test for four-velocities.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">as.4vel(u)
+is.consistent.4vel(U, give=FALSE, TOL=1e-10)
+inner4(U,V=U)
+to3(U)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>A vector of three-velocities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U,V</code></td>
+<td>
+<p>A vector of four-velocities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>give</code></td>
+<td>
+<p>In function <code>is.consistent.4vel()</code>, Boolean with
+<code>TRUE</code> meaning to return <code class="reqn">U\cdot U+c^2</code>, which is
+zero for a four-velocity, and default <code>FALSE</code> meaning to return
+whether the four-velocity is consistent to numerical precision</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TOL</code></td>
+<td>
+<p>Small positive value used for tolerance</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>as.4vel()</code> takes a three-velocity and returns a
+four-velocity.
+</p>
+<p>Given a four-vector <code class="reqn">V</code>, function <code>inner4()</code> returns the
+Lorentz invariant <code class="reqn">V^iV_i=\eta_{ij}V^iV^j</code>.  This
+quantity is unchanged under Lorentz transforms.  Note that function
+<code>inner4()</code> works for any four-vector, not just four-velocities.
+It will work for (eg) a four-displacement, a four-momentum vector or a
+four-frequency.  In electromagnetism, we could have a four-current or
+a four-potential.  If <code class="reqn">U</code> is a four-velocity, then
+<code class="reqn">U^iU_i=-c^2</code>; if <code class="reqn">U</code> is a 4-displacement, then <code class="reqn">U^iU_i</code> is
+the squared interval.  If <code class="reqn">P</code> is the four-momentum of a photon
+then <code class="reqn">P^iP_i=0</code>.
+</p>
+<p>Function <code>to3()</code> is a low-level helper function used when
+<code>as.3vel()</code> is given a four-velocity.
+</p>
+<p>Function <code>is.consistent.4vel()</code> checks for four-velocities being
+consistent in the sense that <code class="reqn">U^iU_i=-c^2</code>.  Giving this
+function a vector, for example, <code>is.consistent.4vel(1:5)</code>, will
+return an error.
+</p>
+<p>Compare the functions documented here with <code>boost()</code>, which
+returns a <code class="reqn">4\times 4</code> transformation matrix (which also
+includes rotation information).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin K. S. Hankin</p>
+
+
+<h3>See Also</h3>
+
+<p><code>boost</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+a &lt;- r3vel(10)
+as.4vel(a)     # a four-velocity
+
+as.3vel(as.4vel(a))-a   # zero to numerical precision
+
+inner4(as.4vel(a))   #  -1 to numerical precision
+
+stopifnot(all(is.consistent.4vel(as.4vel(a))))
+
+
+## check Lorentz invariance of dot product:
+U &lt;- as.4vel(r3vel(10))
+V &lt;- as.4vel(r3vel(10))
+B &lt;- boost(as.3vel(1:3/10))
+
+frame1dotprod &lt;- inner4(U, V)
+frame2dotprod &lt;- inner4(U %*% B, V %*% B)
+max(abs(frame1dotprod-frame2dotprod))  # zero to numerical precision
+
+</code></pre>
+
+
+</div>

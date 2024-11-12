@@ -1,0 +1,80 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PCAtoXhat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Use PCA Results to Reconstruct All or Part of the Original Data Set</h2>
+
+<h3>Description</h3>
+
+<p>This function allows one to reconstruct an approximation (<code>Xhat</code>) of the
+original data
+using some or all of the principal components, starting from the results of PCA.
+Inspired by and follows <a href="https://stackoverflow.com/a/23603958/633251">https://stackoverflow.com/a/23603958/633251</a> very closely.
+We are grateful for this post by StackOverflow contributor "Marc in the box."
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PCAtoXhat(pca, ncomp = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pca</code></td>
+<td>
+<p>An object of class <code>prcomp</code> or <code>princomp</code> (automatically detected).  #'        The results of data reduction by PCA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncomp</code></td>
+<td>
+<p>Integer.  The number of principal components to use in reconstructing
+the data set.  Must be no larger than the number of variables.  If not
+specified, all the components are used and the original data set is
+reconstructed.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix with the same dimensions as <code>pca$x</code> (the dimensions of the
+original data set).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example data from ?prcomp (see discussion at Stats.StackExchange.com/q/397793)
+C &lt;- chol(S &lt;- toeplitz(.9 ^ (0:31)))
+set.seed(17)
+X &lt;- matrix(rnorm(32000), 1000, 32)
+Z &lt;- X %*% C
+
+pcaz &lt;- prcomp(Z)
+tst &lt;- PCAtoXhat(pcaz)
+all.equal(tst, Z, check.attributes = FALSE)
+
+# Plot to show the effect of increasing ncomp
+
+ntests &lt;- ncol(Z)
+rmsd &lt;- rep(NA_real_, ntests)
+for (i in 1:ntests) {
+	ans &lt;- XtoPCAtoXhat(X, i, sd)
+	del&lt;- ans - X
+	rmsd[i] &lt;- sqrt(sum(del^2)/length(del)) # RMSD
+}
+plot(rmsd, type = "b",
+  main = "Root Mean Squared Deviation\nReconstructed - Original Data",
+  xlab = "No. of Components Retained", ylab = "RMSD")
+abline(h = 0.0, col = "pink")
+
+</code></pre>
+
+
+</div>

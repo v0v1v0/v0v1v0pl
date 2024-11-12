@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>DT_cpdata</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Genotypic and Phenotypic data for a CP population
+</h2>
+
+<h3>Description</h3>
+
+<p>A CP population or F1 cross is the designation for a cross between 2 highly heterozygote individuals; i.e. humans, fruit crops, bredding populations in recurrent selection.
+</p>
+<p>This dataset contains phenotpic data for 363 siblings for an F1 cross. These are averages over 2 environments evaluated for 4 traits; color, yield, fruit average weight, and firmness. The columns in the CPgeno file are the markers whereas the rows are the individuals. The CPpheno data frame contains the measurements for the 363 siblings, and as mentioned before are averages over 2 environments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data("DT_cpdata")</code></pre>
+
+
+<h3>Format</h3>
+
+<p>The format is:
+chr "DT_cpdata"
+</p>
+
+
+<h3>Source</h3>
+
+<p>This data was simulated for fruit breeding applications.
+</p>
+
+
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The core function of the package <code>lmebreed</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_cpdata)
+DT &lt;- DT_cpdata
+GT &lt;- GT_cpdata
+MP &lt;- MP_cpdata
+## create the variance-covariance matrix
+A &lt;- A.mat(GT) # additive relationship matrix
+A &lt;- A + diag(1e-4, ncol(A), ncol(A))
+## look at the data and fit the model
+head(DT)
+
+
+
+mix1 &lt;- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=A),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc &lt;- VarCorr(mix1); print(vc,comp=c("Variance"))
+# run one last iteration with imputed data
+# to make sure you get predictions for everyone
+DT2 &lt;- DT
+DT2$Yield &lt;- imputev(DT2$Yield)
+mix1b &lt;- update(mix1, data=DT2,
+                control=lmerControl(
+  check.nobs.vs.nlev = "ignore",
+  check.nobs.vs.rankZ = "ignore",
+  check.nobs.vs.nRE="ignore",
+  optCtrl=list(maxfun=1)
+))
+rex &lt;- ranef(mix1b)
+
+
+
+</code></pre>
+
+
+</div>

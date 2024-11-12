@@ -1,0 +1,237 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>power.mmrm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear mixed model sample size calculations.</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the sample size calculation for a mixed model of
+repeated measures with general correlation structure. See Lu, Luo, &amp; Chen
+(2008) for parameter definitions and other details. This function executes
+Formula (3) on page 4.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">power.mmrm(
+  N = NULL,
+  Ra = NULL,
+  ra = NULL,
+  sigmaa = NULL,
+  Rb = NULL,
+  rb = NULL,
+  sigmab = NULL,
+  lambda = 1,
+  delta = NULL,
+  sig.level = 0.05,
+  power = NULL,
+  alternative = c("two.sided", "one.sided"),
+  tol = .Machine$double.eps^2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>total sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ra</code></td>
+<td>
+<p>correlation matrix for group a</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ra</code></td>
+<td>
+<p>retention in group a</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmaa</code></td>
+<td>
+<p>standard deviation of observation of interest in group a</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rb</code></td>
+<td>
+<p>correlation matrix for group a</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rb</code></td>
+<td>
+<p>retention in group b</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigmab</code></td>
+<td>
+<p>standard deviation of observation of interest in group b. If
+NULL, <code>sigmab</code> is assumed same as <code>sigmaa</code>. If not NULL,
+<code>sigmaa</code> and <code>sigmab</code> are averaged.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>allocation ratio</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>effect size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.level</code></td>
+<td>
+<p>type one error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>power</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>one- or two-sided test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>numerical tolerance used in root finding.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Lu, Luo, &amp; Chen (2008).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The number of subject required per arm to attain the specified
+<code>power</code> given <code>sig.level</code> and the other parameter estimates.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michael C. Donohue
+</p>
+
+
+<h3>References</h3>
+
+<p>Lu, K., Luo, X., Chen, P.-Y. (2008) Sample size estimation for
+repeated measures analysis in randomized clinical trials with missing data.
+<em>International Journal of Biostatistics</em>, 4, (1)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>power.mmrm.ar1</code>, <code>lmmpower</code>,
+<code>diggle.linear.power</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# reproduce Table 1 from Lu, Luo, &amp; Chen (2008)
+phi1 &lt;- c(rep(1, 6), 2, 2)
+phi2 &lt;- c(1, 1, rep(2, 6))
+lambda &lt;- c(1, 2, sqrt(1/2), 1/2, 1, 2, 1, 2)
+ztest &lt;- ttest1 &lt;- c()
+for(i in 1:8){
+  Na &lt;- (phi1[i] + lambda[i] * phi2[i])*(qnorm(0.05/2) + qnorm(1-0.90))^2*(0.5^-2)
+  Nb &lt;- Na/lambda[i]
+  ztest &lt;- c(ztest, Na + Nb)
+  v &lt;- Na + Nb - 2
+  Na &lt;- (phi1[i] + lambda[i] * phi2[i])*(qt(0.05/2, df = v) + qt(1-0.90, df = v))^2*(0.5^-2)
+  Nb &lt;- Na/lambda[i]
+  ttest1 &lt;- c(ttest1, Na + Nb)
+}
+data.frame(phi1, phi2, lambda, ztest, ttest1)
+
+Ra &lt;- matrix(0.25, nrow = 4, ncol = 4)
+diag(Ra) &lt;- 1
+ra &lt;- c(1, 0.90, 0.80, 0.70)
+sigmaa &lt;- 1
+power.mmrm(Ra = Ra, ra = ra, sigmaa = sigmaa, delta = 0.5, power = 0.80)
+power.mmrm(N = 174, Ra = Ra, ra = ra, sigmaa = sigmaa, delta = 0.5)
+power.mmrm(N = 174, Ra = Ra, ra = ra, sigmaa = sigmaa, power = 0.80)
+
+power.mmrm(Ra = Ra, ra = ra, sigmaa = sigmaa, delta = 0.5, power = 0.80, lambda = 2)
+power.mmrm(N = 174, Ra = Ra, ra = ra, sigmaa = sigmaa, delta = 0.5, lambda = 2)
+power.mmrm(N = 174, Ra = Ra, ra = ra, sigmaa = sigmaa, power = 0.80, lambda = 2)
+
+# Extracting paramaters from gls objects with general correlation
+
+# Create time index:
+Orthodont$t.index &lt;- as.numeric(factor(Orthodont$age, levels = c(8, 10, 12, 14)))
+with(Orthodont, table(t.index, age))
+
+fmOrth.corSym &lt;- gls( distance ~ Sex * I(age - 11), 
+  Orthodont,
+  correlation = corSymm(form = ~ t.index | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fmOrth.corSym)$tTable
+
+C &lt;- corMatrix(fmOrth.corSym$modelStruct$corStruct)[[1]]
+sigmaa &lt;- fmOrth.corSym$sigma * 
+          coef(fmOrth.corSym$modelStruct$varStruct, unconstrained = FALSE)['14']
+ra &lt;- seq(1,0.80,length=nrow(C))
+power.mmrm(N=100, Ra = C, ra = ra, sigmaa = sigmaa, power = 0.80)
+
+# Extracting paramaters from gls objects with compound symmetric correlation
+
+fmOrth.corCompSymm &lt;- gls( distance ~ Sex * I(age - 11), 
+  Orthodont,
+  correlation = corCompSymm(form = ~ t.index | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fmOrth.corCompSymm)$tTable
+
+C &lt;- corMatrix(fmOrth.corCompSymm$modelStruct$corStruct)[[1]]
+sigmaa &lt;- fmOrth.corCompSymm$sigma *
+          coef(fmOrth.corCompSymm$modelStruct$varStruct, unconstrained = FALSE)['14']
+ra &lt;- seq(1,0.80,length=nrow(C))
+power.mmrm(N=100, Ra = C, ra = ra, sigmaa = sigmaa, power = 0.80)
+
+# Extracting paramaters from gls objects with AR1 correlation
+
+fmOrth.corAR1 &lt;- gls( distance ~ Sex * I(age - 11), 
+  Orthodont,
+  correlation = corAR1(form = ~ t.index | Subject),
+  weights = varIdent(form = ~ 1 | age) )
+summary(fmOrth.corAR1)$tTable
+
+C &lt;- corMatrix(fmOrth.corAR1$modelStruct$corStruct)[[1]]
+sigmaa &lt;- fmOrth.corAR1$sigma *
+          coef(fmOrth.corAR1$modelStruct$varStruct, unconstrained = FALSE)['14']
+ra &lt;- seq(1,0.80,length=nrow(C))
+power.mmrm(N=100, Ra = C, ra = ra, sigmaa = sigmaa, power = 0.80)
+power.mmrm.ar1(N=100, rho = C[1,2], ra = ra, sigmaa = sigmaa, power = 0.80)
+
+</code></pre>
+
+
+</div>

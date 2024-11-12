@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggregate_Date</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Aggregate dates to a single day</h2>
+
+<h3>Description</h3>
+
+<p>Condenses a <code>dataset</code> by aggregating the data to a single day per group, with
+a resolution of choice <code>unit</code>. <code>aggregate_Date()</code> is opinionated in the sense
+that it sets default handlers for each data type of <code>numeric</code>, <code>character</code>,
+<code>logical</code>, and <code>factor</code>. These can be overwritten by the user. Columns that
+do not fall into one of these categories need to be handled individually by
+the user (<code>...</code> argument) or will be removed during aggregation. If no unit
+is specified the data will simply be aggregated to the most common interval
+(<code>dominant.epoch</code>) in every group. <code>aggregate_Date()</code> is especially useful
+for summary plots that show an average day.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aggregate_Date(
+  dataset,
+  Datetime.colname = Datetime,
+  unit = "none",
+  type = c("round", "floor", "ceiling"),
+  date.handler = stats::median,
+  numeric.handler = mean,
+  character.handler = function(x) names(which.max(table(x, useNA = "ifany"))),
+  logical.handler = function(x) mean(x) &gt;= 0.5,
+  factor.handler = function(x) factor(names(which.max(table(x, useNA = "ifany")))),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Expects a <code>dataframe</code>. If not imported
+by LightLogR, take care to choose a sensible variable for the
+<code>Datetime.colname</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>column name that contains the datetime. Defaults to
+<code>"Datetime"</code> which is automatically correct for data imported with
+LightLogR. Expects a <code>symbol</code>. Needs to be part of the <code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unit</code></td>
+<td>
+<p>Unit of binning. See <code>lubridate::round_date()</code> for examples. The
+default is <code>"none"</code>, which will not aggregate the data at all, but is only
+recommended for regular data, as the condensation across different days
+will be performed by time. Another option is <code>"dominant.epoch"</code>, which
+means everything will be aggregated to the most common interval. This is
+especially useful for slightly irregular data, but can be computationally
+expensive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>One of <code>"round"</code>(the default), <code>"ceiling"</code> or <code>"floor"</code>. Setting
+chooses the relevant function from <span class="pkg">lubridate</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date.handler</code></td>
+<td>
+<p>A function that calculates the aggregated day for each
+group. By default, this is set to <code>median</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numeric.handler, character.handler, logical.handler, factor.handler</code></td>
+<td>
+<p>functions that handle the respective data types. The default handlers
+calculate the <code>mean</code> for <code>numeric</code> and the <code>mode</code> for <code>character</code>, <code>factor</code>
+and <code>logical</code> types.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments given over to <code>dplyr::summarize()</code> to handle columns
+that do not fall into one of the categories above.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>aggregate_Date()</code> splits the <code>Datetime</code> column into a <code>Date.data</code>
+and a <code>Time.data</code> column. It will create subgroups for each <code>Time.data</code>
+present in a group and aggregate each group into a single day, then remove
+the sub grouping.
+</p>
+<p>Use the <code>...</code> to create summary statistics for each group, e.g. maximum or
+minimum values for each time point group.
+</p>
+<p>Performing <code>aggregate_Datetime()</code> with any <code>unit</code> and then
+<code>aggregate_Date()</code> with a <code>unit</code> of <code>"none"</code> is equivalent to just using
+<code>aggregate_Date()</code> with that <code>unit</code> directly (provided the other arguments
+are set the same between the functions). Disentangling the two functions
+can be useful to split the computational cost for very small instances of
+<code>unit</code> in large datasets. It can also be useful to apply different handlers
+when aggregating data to the desired <code>unit</code> of time, before further
+aggregation to a single day, as these handlers as well as <code>...</code> are used
+twice if the <code>unit</code> is not set to <code>"none"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble</code> with aggregated <code>Datetime</code> data, at maximum one day per
+group. If the handler arguments capture all column types, the number of
+columns will be the same as in the input <code>dataset</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+#gg_days without aggregation
+sample.data.environment %&gt;%
+ gg_days()
+
+#with daily aggregation
+sample.data.environment %&gt;%
+ aggregate_Date() %&gt;%
+ gg_days()
+
+#with daily aggregation and a different time aggregation
+sample.data.environment %&gt;%
+ aggregate_Date(unit = "15 mins", type = "floor") %&gt;%
+ gg_days()
+
+#adding further summary statistics about the range of MEDI
+ sample.data.environment %&gt;%
+ aggregate_Date(unit = "15 mins", type = "floor",
+                MEDI_max = max(MEDI),
+                MEDI_min = min(MEDI)) %&gt;%
+ gg_days() +
+ geom_ribbon(aes(ymin = MEDI_min, ymax = MEDI_max), alpha = 0.5)
+</code></pre>
+
+
+</div>

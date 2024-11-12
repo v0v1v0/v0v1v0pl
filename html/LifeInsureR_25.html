@@ -1,0 +1,644 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>InsuranceContract.ParameterDefaults</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Default parameters for the InsuranceContract class.</h2>
+
+<h3>Description</h3>
+
+<p>A new contract will be
+pre-filled with these values, and values passed in the constructor (or with
+other setter functions) will override these values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">InsuranceContract.ParameterDefaults
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>The parameter list is a list of lists with the following structure:
+</p>
+<p>Sublists:
+</p>
+
+<ul>
+<li> <p><code>$ContractData</code> ... Contract-specific data (policy period,
+closing, age, sum insured, premium payments, etc.)
+</p>
+</li>
+<li> <p><code>$ContractState</code> ... Current contract state (paid-up, surrender
+penalty already applied, alpha costs already (partially) refunded)
+</p>
+</li>
+<li> <p><code>$ActuarialBases</code> ... Actuarial bases for the contract
+calculation (mortality/invalidity table, guaranteed interest,
+surrender penalty, etc.)
+</p>
+</li>
+<li> <p><code>$Costs</code>, <code>$minCosts</code> ... Expenses charged to the contract (see <code>initializeCosts()</code>)
+</p>
+</li>
+<li> <p><code>$Loadings</code> ... Loadings, rebates and other charges of the
+tariff / contract (tax, unit costs, surcharge for no medial exam, premium/benefit frequency loading)
+</p>
+</li>
+<li> <p><code>$Features</code> ... Peculiarities of the tariff (to enable
+non-standard formulas for certain company-specific historical
+"glitches" in the tariff definitions.)
+</p>
+</li>
+<li> <p><code>$ProfitParticipation</code> ... Profit scheme and profit participation
+rates (default values, can be overwritten per profit scenario)
+</p>
+</li>
+<li> <p><code>$Hooks</code> ... Hook functions to allow modification of various
+calculation aspects (e.g. modify the default cash flows after
+their setup)
+</p>
+</li>
+</ul>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$ContractData</code>
+</h4>
+
+<p>These values are typically set per contract and not by the tariff. Notable
+exceptions are the contract duration in some instances and the premiumPeriod=1
+for single-premium contracts.
+</p>
+
+<dl>
+<dt><code>$id</code></dt>
+<dd>
+<p>ID of the contract (to distinguish individual parts in
+contracts with multiple parts, e.g. dynamic increases),
+default = "Hauptvertrag"</p>
+</dd>
+<dt><code>$sumInsured</code></dt>
+<dd>
+<p>Sum insured, default = 100,000</p>
+</dd>
+<dt><code>$premium</code></dt>
+<dd>
+<p>Premium, given to determine the sumInsured (default: NULL)</p>
+</dd>
+<dt><code>$initialCapital</code></dt>
+<dd>
+<p>Reserve/Capital that is already available
+at contract inception, e.g. from a previous contract. No tax
+or acquisition costs are applied to this capital.</p>
+</dd>
+<dt><code>$YOB (deprecated)</code></dt>
+<dd>
+<p>Year of birth of the insured, used to determine the
+age for the application of the mortality table</p>
+</dd>
+<dt><code>$birthDate</code></dt>
+<dd>
+<p>Date  of birth of the insured, used to determine the
+age for the application of the mortality table. Alternatively,
+the year alone can be passed as <code>YOB</code>.</p>
+</dd>
+<dt><code>$age</code></dt>
+<dd>
+<p>Age of the insured</p>
+</dd>
+<dt><code>$technicalAge</code></dt>
+<dd>
+<p>Technical age of the insured (when the age
+for the application of the mortality table does not coincide
+with the real age)</p>
+</dd>
+<dt><code>$ageDifferences</code></dt>
+<dd>
+<p>Vector of age differences to the first
+insured for contracts with multiple insured (i.e. joint-lives)</p>
+</dd>
+<dt><code>$sex</code></dt>
+<dd>
+<p>Sex of the insured, to allow gender-specific prixing
+(e.g. different mortalities or age modification), default="unisex",
+Type is SexEnum</p>
+</dd>
+<dt><code>$policyPeriod</code></dt>
+<dd>
+<p>Policy Duration (in years)</p>
+</dd>
+<dt><code>$premiumPeriod</code></dt>
+<dd>
+<p>Premium payment period (in year), for
+single-premium contracts, <code>premiumPeriod = 1</code>. Default is
+<code>policyPeriod</code>, i.e. regular premiums during the whole
+contract period</p>
+</dd>
+<dt><code>$deferralPeriod</code></dt>
+<dd>
+<p>deferral period for annuities, i.e. the
+period survival payments start only after this period, typically
+the retirement age.  This applies mostly to tariffs of type
+annuity, although deferral periods are possible (but not common)
+for all other types of insurance, too.</p>
+</dd>
+<dt><code>$guaranteedPeriod</code></dt>
+<dd>
+<p>guaranteed annuity payment period. The
+annuity pays out for this period, even if the insured dies.
+This applies only to tariffs of type annuity.</p>
+</dd>
+<dt><code>$contractClosing</code></dt>
+<dd>
+<p>The date (variable of type Date) when
+the coverage of the contract starts (not neccessarily equal to
+the date when the contract was signed). Typically generated by
+a call to <code>as.Date()</code>. The year is relevant to derive the age
+of the insured, while month and day are relevant for the
+interpolation of the balance sheet reserves</p>
+</dd>
+<dt><code>$blockStart</code></dt>
+<dd>
+<p>For contracts with multiple blocks (e.g.
+multiple dynamic increases, where each increase is modelled
+like a separate contract), this variable holds the offset of
+the current contract block relative to the main contract block.
+The main block starts a 0, dynamic increases start later! This
+value is only used by the parent block (i.e. $t=0$ of the child
+is aligned with $t=blockStart$ of the parent block.</p>
+</dd>
+<dt><code>$premiumPayments</code></dt>
+<dd>
+<p>Whether premiums are paid in advance
+(default) or arrears. Value is of type PaymentTimeEnum
+with possible values "in advance" and "in arrears"</p>
+</dd>
+<dt><code>$benefitPayments</code></dt>
+<dd>
+<p>Whether recurring benefits (e.g. annuities)
+are paid in advance (default) or arrears. Value is of type
+PaymentTimeEnum with possible values "in advance" and
+"in arrears"</p>
+</dd>
+<dt><code>$premiumFrequency</code></dt>
+<dd>
+<p>Number of premium payments per year, default is 1.</p>
+</dd>
+<dt><code>$benefitFrequency</code></dt>
+<dd>
+<p>Number of benefit payments per year, default is 1.</p>
+</dd>
+<dt><code>$premiumRefund</code></dt>
+<dd>
+<p>Proportion of (gross) premiums refunded on
+death (including additional risk, e.g. 1.10 = 110% of paid premiums)</p>
+</dd>
+<dt><code>$premiumRefundPeriod</code></dt>
+<dd>
+<p>The period, during which the premium
+refund on death applies. By default, deferred contracts will
+refund premiums only during the deferral period, all other
+contracts during the whole contract. Default is
+<code>premiumRefundPeriod.default</code></p>
+</dd>
+<dt><code>$premiumIncrease</code></dt>
+<dd>
+<p>The yearly growth factor of the premium,
+i.e. 1.05 means +5% increase each year; a vector describes the
+premiums for all years</p>
+</dd>
+<dt><code>$annuityIncrease</code></dt>
+<dd>
+<p>The yearly growth factor of the annuity
+payments, i.e. 1.05 means +5% increase each year; a vector
+describes the annuity unit payments for all years</p>
+</dd>
+<dt><code>$deathBenefit</code></dt>
+<dd>
+<p>The yearly relative death benefit (relative
+to the initial sum insured); Can be set to a <code>function(len,
+              params, values)</code>, e.g. <code>deathBenefit = deathBenefit.linearDecreasing</code></p>
+</dd>
+<dt><code>$benefitParameter</code></dt>
+<dd>
+<p>(optional) Tariff-specific parameter to
+indicate special benefit conditions (e.g. for non-constant benefits
+the initial starting value, or a minimum benefit, etc.). This
+parameter is not used automatically, but needs to be processed
+by a custom <code>$deathBenefit</code> function.</p>
+</dd>
+<dt><code>$costWaiver</code></dt>
+<dd>
+<p>The fraction of the costs that are waived (only
+those cost components that are defined to be waivable, i.e. by
+defining a corresponding <code>$minCosts</code>). Linearly interpolates
+between <code>$Costs</code> and <code>$minCosts</code>, if the latter is set.
+Otherwise is has no effect.</p>
+</dd>
+<dt><code>$attributes</code></dt>
+<dd>
+<p>Additional custom attributes (as a named list),
+which can be used for particular behaviour of different contracts
+or contract slices.</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$ContractState</code>
+</h4>
+
+<p>Contract-specific status variables holding the status of the contract.
+</p>
+
+<dl>
+<dt><code>$premiumWaiver</code></dt>
+<dd>
+<p>Whether the contract is paid-up.</p>
+</dd>
+<dt><code>$surrenderPenalty</code></dt>
+<dd>
+<p>Whether a surrender penalty still applies
+(e.g. because it has already been applied during a contract change,
+or because due to legal reasons it can no longer be applied)</p>
+</dd>
+<dt><code>$alphaRefunded</code></dt>
+<dd>
+<p>Whether alpha costs have (at least partially)
+been refunded (e.g. when a contract is changed or paid-up). Default
+is not yet refunded.</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$ActuarialBases</code>
+</h4>
+
+<p>Tarif-specific actuarial calculation parameters of the contract. Typically,
+these values are set by the tariff, but can be overridden by contract (e.g.
+while prototyping a new product or a product change).
+</p>
+
+<dl>
+<dt><code>$mortalityTable</code></dt>
+<dd>
+<p>The mortalityTable object describing the
+mortality of the insured</p>
+</dd>
+<dt><code>$invalidityTable</code></dt>
+<dd>
+<p>For contracts with invalidity benefits,
+the mortalityTable object describing the probabilities of
+invalidity</p>
+</dd>
+<dt><code>$invalidityEndsContract</code></dt>
+<dd>
+<p>For contracts with invalidity
+benefits, whether a payment of an invalidity benefit ends the
+contract.</p>
+</dd>
+<dt><code>$i</code></dt>
+<dd>
+<p>Guaranteed yearly interest rate, default is 0.00, i.e. 0%</p>
+</dd>
+<dt><code>$balanceSheetDate</code></dt>
+<dd>
+<p>The day/month when balance sheet reserves
+are calculated. Value of type Date, typically generated with
+<code>as.Date()</code>. The year is actually irrelevant, only the day and
+month are relevant.</p>
+</dd>
+<dt><code>$balanceSheetMethod</code></dt>
+<dd>
+<p>How to interpolate the balance sheet
+reserves (at the balandeSheetDate) from the yearly contractual
+reserves. Either a string "30/360", "act/act", "act/360", "act/365"
+or a function with signature <code>balanceSheetMethod(params, contractDates, balanceDates)</code>
+that returns a vector of coefficients for each year to
+interpolate the reserves available at the given <code>contractDates</code>
+for the desired <code>balanceDates</code></p>
+</dd>
+<dt><code>$unearnedPremiumsMethod</code></dt>
+<dd>
+<p>How to calculate the unearned
+premiums (considering the balance sheet date and the premium
+frequency). A function with signature <code>unearnedPremiumsMethod(params, dates)</code></p>
+</dd>
+<dt><code>$surrenderValueCalculation</code></dt>
+<dd>
+<p>A function describing the surrender
+value calculation. If NULL, the full reserve will be used as
+surrender value. If given, it must be a function with signature
+<code>function(SurrenderReserve, params, values)</code>.</p>
+</dd>
+<dt><code>$premiumWaiverValueCalculation</code></dt>
+<dd>
+<p>A function describing the
+reserve used to derive the premium-free sum insured. If NULL,
+the surrender value will be used. If given, it must be a function
+with signature <code>function(SurrenderReserve, params, values)</code></p>
+</dd>
+<dt><code>$premiumFrequencyOrder</code></dt>
+<dd>
+<p>Order of the approximation for
+payments within the year (unless an extra frequency loading is
+used =&gt; then leave this at 0)</p>
+</dd>
+<dt><code>$benefitFrequencyOrder</code></dt>
+<dd>
+<p>Order of the approximation for
+payments within the year (unless an extra frequency loading is
+used =&gt; then leave this at 0)</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$Costs</code>
+</h4>
+
+<p>Definition of contractual costs charged to the contract. See <code>initializeCosts()</code>.
+</p>
+
+<dl>
+<dt><code>$Costs</code></dt>
+<dd>
+<p>The full cost defined for the contract / tariff,
+usually set with <code>initializeCosts()</code> and <code>setCost()</code></p>
+</dd>
+<dt><code>$minCosts</code></dt>
+<dd>
+<p>The minimum costs defined for the contract / tariff
+that cannot be waived. Either an explicit cost definition structure
+generated by <code>initializeCosts()</code> and <code>setCost()</code>, or a
+<code style="white-space: pre;">⁠function(params, values, costs)⁠</code>, where the full costs are passed
+as third parameter, so the function can modify only those cost parts
+that can be waived at all. </p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$Loadings</code>
+</h4>
+
+
+<dl>
+<dt><code>$ongoingAlphaGrossPremium</code></dt>
+<dd>
+<p>Acquisition cost that increase the gross premium</p>
+</dd>
+<dt><code>$tax</code></dt>
+<dd>
+<p>insurance tax, factor on each premium paid, default is 4%, i.e. <code>i=0.04</code></p>
+</dd>
+<dt><code>$unitcosts</code></dt>
+<dd>
+<p>Annual unit cost for each policy, absolute value (can be a function)</p>
+</dd>
+<dt><code>$security</code></dt>
+<dd>
+<p>Additional security loading on all benefit payments, factor on all benefits</p>
+</dd>
+<dt><code>$noMedicalExam</code></dt>
+<dd>
+<p>Loading when no medicial exam is done, % of SumInsured</p>
+</dd>
+<dt><code>$noMedicalExamRelative</code></dt>
+<dd>
+<p>Loading when no medicial exam is done, % of gross premium</p>
+</dd>
+<dt><code>$sumRebate</code></dt>
+<dd>
+<p>gross premium reduction for large premiums, % of SumInsured</p>
+</dd>
+<dt><code>$extraRebate</code></dt>
+<dd>
+<p>gross premium reduction for any reason, % of SumInsured</p>
+</dd>
+<dt><code>$premiumRebate</code></dt>
+<dd>
+<p>gross premium reduction for large premiums, % of gross premium</p>
+</dd>
+<dt><code>$partnerRebate</code></dt>
+<dd>
+<p>Rebate on premium with all surcharges and
+rebates when more than one contract is written with identical
+parameters. Sums with advanceBonusInclUnitCost and premiumRebate.</p>
+</dd>
+<dt><code>$extraChargeGrossPremium</code></dt>
+<dd>
+<p>extra charges on gross premium
+(smoker, leisure activities, BMI too high, etc.)</p>
+</dd>
+<dt><code>$benefitFrequencyLoading</code></dt>
+<dd>
+<p>Loading on the benefit for premium
+payment frequencies of more than once a year. Format is
+<code>list("1" = 0.0, "2" = 0.0, "4" = 0.0, "12" = 0.0)</code></p>
+</dd>
+<dt><code>$premiumFrequencyLoading</code></dt>
+<dd>
+<p>Loading on the premium for premium
+payment frequencies of more than once a year. Format is
+<code>list("1" = 0.0, "2" = 0.0, "4" = 0.0, "12" = 0.0)</code></p>
+</dd>
+<dt><code>$alphaRefundPeriod</code></dt>
+<dd>
+<p>How long the acquisition costs should be
+(partially) refunded in case of surrender or premium waiver.</p>
+</dd>
+<dt><code>$commissionPeriod</code></dt>
+<dd>
+<p>Period, over which the acquisition costs
+are charged to the contract (if not fully up-front or over the
+whole contract period). This has only an effect for cost definitions
+with duration "CommissionPeriod". Default is 5 years.</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$Features</code>
+</h4>
+
+
+<dl>
+<dt><code>$zillmering</code></dt>
+<dd>
+<p>Whether the contract uses Zillmering (and bases
+reserves on the Zillmer reserve as opposed to the adequate
+reserve) (default: TRUE)</p>
+</dd>
+<dt><code>$betaGammaInZillmer</code></dt>
+<dd>
+<p>Whether beta and gamma-costs should be
+included in the Zillmer premium calculation</p>
+</dd>
+<dt><code>$alphaRefundLinear</code></dt>
+<dd>
+<p>Whether the refund of alpha-costs on
+surrender is linear in t or follows the NPV of an annuity</p>
+</dd>
+<dt><code>$useUnearnedPremiums</code></dt>
+<dd>
+<p>Whether unearned premiums should be
+reported in the balance sheet reserves. Otherwise, a premium
+paid at the beginning of the period is added to the reserve at
+that time for balance-sheet purposes.
+For regular premiums, the default is TRUE, i.e. the balance-sheet
+reserve at time $t$ does not include the premium paid at time
+$t$, but unearned premiums are included in the balance sheet
+reserves. For single-premium contracts, there are no "unearned"
+premiums, but the initial single premium is added to the reserve
+immediately for balance-sheet purposes. In particular, the
+balance sheet reserve at time $t=0$ is not 0, but the
+premium paid. In turn, no unearned premiums are applied.</p>
+</dd>
+<dt><code>$surrenderIncludesCostsReserves</code></dt>
+<dd>
+<p>Whether (administration)
+cost reserves are paid out on surrender (i.e. included in the
+surrender value before surrender penalties are applied)</p>
+</dd>
+<dt><code>$unitcostsInGross</code></dt>
+<dd>
+<p>Whether unit costs are included in the
+gross premium calculation or added after gross premiums. (default: FALSE)</p>
+</dd>
+<dt><code>$absPremiumRefund</code></dt>
+<dd>
+<p>Constant death benefit (typically premium
+refund of a previous contract), relative to the sum insured.</p>
+</dd>
+<dt><code>$alphaCostsCommission</code></dt>
+<dd>
+<p>Whether alpha costs over the commision
+period are given as their actual yearly value ("actual"), or
+whether the given value is the sum ("sum") or the present value
+("presentvalue") over the whole commission period.</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$ProfitParticipation</code>
+</h4>
+
+<p>Parameters describing the profit participation (instance of ProfitParticipation)
+Most element descrive some kind of profit rate (which can vary in time),
+while the bases, on which they are applied is defined in the profit scheme.
+</p>
+
+<dl>
+<dt><code>$advanceProfitParticipation</code></dt>
+<dd>
+<p>Advance profit participation
+rate (percentage rebate of the gross premium)</p>
+</dd>
+<dt><code>$advanceProfitParticipationInclUnitCost</code></dt>
+<dd>
+<p>Advance profit
+participation rate (percentage rebate on the gross premium after all surcharges and unit costs.</p>
+</dd>
+<dt><code>$waitingPeriod</code></dt>
+<dd>
+<p>Waiting period of the profit sharing (e.g.
+no profit in the first two years of a contract, or similar)</p>
+</dd>
+<dt><code>$guaranteedInterest</code></dt>
+<dd>
+<p>Individual contract-specific overrides
+of the guaranteed interest rate (i.e. not keyed by year)</p>
+</dd>
+<dt><code>$interestProfitRate</code></dt>
+<dd>
+<p>Interest profit rate (guaranteed interest
+rate + interest profit rate = total credited rate)</p>
+</dd>
+<dt><code>$totalInterest</code></dt>
+<dd>
+<p>Total credited rate (guarantee + interest profit)</p>
+</dd>
+<dt><code>$mortalityProfitRate</code></dt>
+<dd>
+<p>Mortality Profit rate</p>
+</dd>
+<dt><code>$expenseProfitRate</code></dt>
+<dd>
+<p>Expense profit rate</p>
+</dd>
+<dt><code>$sumProfitRate</code></dt>
+<dd>
+<p>Sum profit rate (for high sumInsured)</p>
+</dd>
+<dt><code>$terminalBonusRate</code></dt>
+<dd>
+<p>Terminal bonus rate (non-terminal-bonus
+fund, but "old" Austrian terminal bonus)</p>
+</dd>
+<dt><code>$terminalBonusFundRate</code></dt>
+<dd>
+<p>Terminal bonus fund rate</p>
+</dd>
+<dt><code>$profitParticipationScheme</code></dt>
+<dd>
+<p>Profit participation scheme (object of class ProfitParticipation)</p>
+</dd>
+<dt><code>$profitComponents</code></dt>
+<dd>
+<p>Profit components of the profit scheme. List containing one or more of <code>c("interest", "risk", "expense", "sum", "terminal")</code></p>
+</dd>
+<dt><code>$profitClass</code></dt>
+<dd>
+<p>String describing the profit class the tariff
+is assigned to. Profit classes are used to bundle similar
+contracts (e.g. following similar risks) together. Profit
+participation rates are defined at the level of profit classes.</p>
+</dd>
+<dt><code>$profitRates</code></dt>
+<dd>
+<p>General, company-wide profit rates, key columns are year and profitClass</p>
+</dd>
+<dt><code>$scenarios</code></dt>
+<dd>
+<p>profit participation scenarios (list of overridden parameters for each scenario)</p>
+</dd>
+</dl>
+<h4>Elements of sublist <code>InsuranceContract.ParameterDefault$Hooks</code>
+</h4>
+
+
+<dl>
+<dt><code>$adjustCashFlows</code></dt>
+<dd>
+<p>Function with signature <code>function(x, params, values, ...)</code> to adjust the benefit/premium cash flows after their setup.</p>
+</dd>
+<dt><code>$adjustCashFlowsCosts</code></dt>
+<dd>
+<p>Function with signature <code>function(x, params, values, ...)</code> to adjust the costs cash flows after their setup.</p>
+</dd>
+<dt><code>$adjustCosts</code></dt>
+<dd>
+<p>Function with signature <code>function(costs, params, values, ...)</code> to adjust the tariff costs after their setup (e.g. contract-specific conditions/waivers, etc.).</p>
+</dd>
+<dt><code>$adjustMinCosts</code></dt>
+<dd>
+<p>Function with signature <code>function(minCosts, costs, params, values, ...)</code> to adjust the tariff minimum (unwaivable) costs after their setup (e.g. contract-specific conditions/waivers, etc.).</p>
+</dd>
+<dt><code>$adjustPresentValues</code></dt>
+<dd>
+<p>Adjust the present value vectors that are later used to derive premiums and reserves. <code>function(presentValues, params, values)</code></p>
+</dd>
+<dt><code>$adjustPresentValuesCosts</code></dt>
+<dd>
+<p>Adjust the present value cost vectors used to derive premiums and reserves. <code>function(presentValuesCosts, params, values)</code></p>
+</dd>
+<dt><code>$adjustPremiumCoefficients</code></dt>
+<dd>
+<p>Function with signature <code>function(coeff, type, premiums, params, values, premiumCalculationTime)</code> to adjust the coefficients for premium calculation after their default setup. Use cases are e.g. term-fix tariffs where the Zillmer premium term contains the administration cost over the whole contract, but not other gamma- or beta-costs.</p>
+</dd>
+<dt><code>$adjustPremiums</code></dt>
+<dd>
+<p>Adjust the resulting premiums. <code>function(premiums = list(premiums, coefficients, sumInsured), params, values)</code></p>
+</dd>
+<dt><code>$adjustPVForReserves</code></dt>
+<dd>
+<p>Adjust the absolute present value vectors used to derive reserves (e.g. when a sum rebate is subtracted from the gamma-cost reserves without influencing the premium calculation). <code>function(absPV, params, values)</code></p>
+</dd>
+<dt><code>$premiumRebateCalculation</code></dt>
+<dd>
+<p>Calculate the actual premium rebate from the rebate rate (e.g. when the premium rate is given as a yearly cost reduction applied to a single-premium contract). <code>function(premiumRebateRate, params = params, values = values)</code></p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">InsuranceContract.ParameterDefaults
+</code></pre>
+
+
+</div>

@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LEGIT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Latent Environmental &amp; Genetic InTeraction (LEGIT) model</h2>
+
+<h3>Description</h3>
+
+<p>Constructs a generalized linear model (glm) with a weighted latent environmental score and weighted latent genetic score using alternating optimization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LEGIT(
+  data,
+  genes,
+  env,
+  formula,
+  start_genes = NULL,
+  start_env = NULL,
+  eps = 0.001,
+  maxiter = 100,
+  family = gaussian,
+  ylim = NULL,
+  print = TRUE,
+  print_steps = FALSE,
+  crossover = NULL,
+  crossover_fixed = FALSE,
+  reverse_code = FALSE,
+  rescale = FALSE,
+  lme4 = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genes</code></td>
+<td>
+<p>data.frame of the variables inside the genetic score <em>G</em> (can be any sort of variable, doesn't even have to be genetic).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>data.frame of the variables inside the environmental score <em>E</em> (can be any sort of variable, doesn't even have to be environmental).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model formula. Use <em>E</em> for the environmental score and <em>G</em> for the genetic score. Do not manually code interactions, write them in the formula instead (ex: G*E*z or G:E:z).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_genes</code></td>
+<td>
+<p>Optional starting points for genetic score (must be the same length as the number of columns of <code>genes</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_env</code></td>
+<td>
+<p>Optional starting points for environmental score (must be the same length as the number of columns of <code>env</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Outcome distribution and link function (Default = gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+<p>If FALSE, nothing except warnings will be printed (Default = TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_steps</code></td>
+<td>
+<p>If TRUE, print the parameters at all iterations, good for debugging (Default = FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crossover</code></td>
+<td>
+<p>If not NULL, estimates the crossover point of <em>E</em> using the provided value as starting point (To test for diathesis-stress vs differential susceptibility).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crossover_fixed</code></td>
+<td>
+<p>If TRUE, instead of estimating the crossover point of E, we force/fix it to the value of "crossover". (Used when creating a diathes-stress model) (Default = FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reverse_code</code></td>
+<td>
+<p>If TRUE, after fitting the model, the genes with negative weights are reverse coded (ex: <code class="reqn">g_rev</code> = 1 - <code class="reqn">g</code>). It assumes that the original coding is in [0,1]. The purpose of this option is to prevent genes with negative weights which cause interpretation problems (ex: depression normally decreases attention but with a negative genetic score, it increases attention). Warning, using this option with GxG interactions could cause nonsensical results since GxG could be inverted. Also note that this may fail with certain models (Default=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>If TRUE, the environmental variables are automatically rescaled to the range [-1,1]. This improves interpretability (Default=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lme4</code></td>
+<td>
+<p>If TRUE, uses lme4::lmer or lme4::glmer; Note that is an experimental feature, bugs may arise and certain functions may fail. Currently only summary(), plot(), GxE_interaction_test(), LEGIT(), LEGIT_cv() work. Also note that the AIC and certain elements ignore the existence of the genes and environment variables, thus the AIC may not be used for variable selection of the genes and the environment. However, the AIC can still be used to compare models with the same genes and environments. (Default=FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of the class "LEGIT" which is list containing, in the following order: a glm fit of the main model, a glm fit of the genetic score, a glm fit of the environmental score, a list of the true model parameters (AIC, BIC, rank, df.residual, null.deviance) for which the individual model parts (main, genetic, environmental) don't estimate properly and the formula.
+</p>
+
+
+<h3>References</h3>
+
+<p>Alexia Jolicoeur-Martineau, Ashley Wazana, Eszter Szekely, Meir Steiner, Alison S. Fleming, James L. Kennedy, Michael J. Meaney, Celia M.T. Greenwood and the MAVAN team. <em>Alternating optimization for GxE modelling with weighted genetic and environmental scores: examples from the MAVAN study</em> (2017). arXiv:1703.08111.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">train = example_2way(500, 1, seed=777)
+fit_best = LEGIT(train$data, train$G, train$E, y ~ G*E, train$coef_G, train$coef_E)
+fit_default = LEGIT(train$data, train$G, train$E, y ~ G*E)
+summary(fit_default)
+summary(fit_best)
+
+train = example_3way(500, 2.5, seed=777)
+fit_best = LEGIT(train$data, train$G, train$E, y ~ G*E*z, train$coef_G, train$coef_E)
+fit_default = LEGIT(train$data, train$G, train$E, y ~ G*E*z)
+summary(fit_default)
+summary(fit_best)
+
+</code></pre>
+
+
+</div>

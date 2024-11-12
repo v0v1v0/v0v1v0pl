@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tslphom_joint</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Implements the tslphom_joint algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Estimates RxC vote transfer matrices (ecological contingency tables) with tslphom_joint
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tslphom_joint(
+  votes_election1,
+  votes_election2,
+  integers = FALSE,
+  solver = "lp_solve",
+  integers.solver = "symphony",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>votes_election1</code></td>
+<td>
+<p>data.frame (or matrix) of order IxJ with the counts to be initially
+mapped to rows. When estimating vote transfer matrices, the votes gained by
+the <em>J</em> political options competing on election 1 (or origin) in the <em>I</em>
+territorial units considered.  The sum by rows of <code>votes_election1</code> and
+<code>votes_election2</code> must coincide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>votes_election2</code></td>
+<td>
+<p>data.frame (or matrix) of order IxK with the counts to be initially mapped
+to columns. When estimating vote transfer matrices, the votes gained by
+the <em>K</em> political options competing on election 2 (or destination) in the <em>I</em>
+territorial units considered. The sum by rows of <code>votes_election1</code> and
+<code>votes_election2</code> must coincide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers</code></td>
+<td>
+<p>A <code>TRUE/FALSE</code> value that indicates whether the problem is solved in integer values
+in both iterations: zero (lphom) and final (including unit) solutions. If <code>TRUE</code>, the LP matrices
+are approximated to the closest integer solution solving the corresponding Integer Linear Program.
+Default, <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used, only
+<code>lp_solve</code> and <code>symphony</code> are allowed. By default, <code>lp_solve</code>. The package <code>Rsymphony</code>
+needs to be installed for the option <code>symphony</code> to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers.solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used to approximate
+to the closest integer solution, only <code>symphony</code> and <code>lp_solve</code> are allowed.
+By default, <code>symphony</code>. The package <code>Rsymphony</code> needs to be installed for the option <code>symphony</code>
+to be used. Only used when <code>integers = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to the function. Not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes</code></td>
+<td>
+<p> A matrix of order JxK with the estimated cross-distribution of votes of elections 1 and 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HETe</code></td>
+<td>
+<p> The estimated heterogeneity index associated to the <code>VTM.votes</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM12</code></td>
+<td>
+<p> The matrix of order JxK with the estimated row-standardized proportions of vote transitions from election 1 to election 2 associated to the <code>VTM.votes</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM21</code></td>
+<td>
+<p> The matrix of order KxJ with the estimated row-standardized proportions of vote transitions from election 2 to election 1 associated to the <code>VTM.votes</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes.units</code></td>
+<td>
+<p> An array of order JxKxI with the estimated matrix of cross-distributions of votes of elections 1 and 2 attained for each unit after congruently adjusting the <strong>lphom_joint()</strong> initial estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EHet12</code></td>
+<td>
+<p> A matrix of order IxK measuring in each unit a distance to the homogeneity hypothesis. That is, the differences under the homogeneity hypothesis between the actual recorded results and the expected results in each territorial unit for each option of election two. The matrix Eik.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EHet21</code></td>
+<td>
+<p> A matrix of order IxJ measuring in each unit a distance to the homogeneity hypothesis. That is, the differences under the homogeneity hypothesis between the actual recorded results and the expected results in each territorial unit for each option of election one. The matrix Eij.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deterministic.bounds</code></td>
+<td>
+<p> A list of two matrices of order JxK and two arrays of order JxKxI containing for each vote transition the lower and upper allowed proportions given the observed aggregates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p> A list containing all the objects with the values used as arguments by the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solution_init</code></td>
+<td>
+<p> A list with the main outputs produced by <strong>lphom_joint()</strong>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose M. Pavia, <a href="mailto:pavia@uv.es">pavia@uv.es</a>
+</p>
+<p>Rafael Romero <a href="mailto:rromero@eio.upv.es">rromero@eio.upv.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Pavia, JM and Romero, R (2024). Symmetry estimating RxC vote transfer matrices from aggregate data. <em>Journal of the Royal Statistical Society, Series A – Statistics in Society</em>, forthcoming.  <a href="https://doi.org/10.1093/jrsssa/qnae013">doi:10.1093/jrsssa/qnae013</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tslphom</code> <code>lphom_dual</code> <code>tslphom_dual</code> <code>nslphom_dual</code> <code>lphom_joint</code> <code>nslphom_joint</code>
+</p>
+<p>Other linear programing ecological inference functions: 
+<code>lclphom()</code>,
+<code>lp_apriori()</code>,
+<code>lphom_dual()</code>,
+<code>lphom_joint()</code>,
+<code>lphom()</code>,
+<code>nslphom_dual()</code>,
+<code>nslphom_joint()</code>,
+<code>nslphom()</code>,
+<code>rslphom()</code>,
+<code>tslphom_dual()</code>,
+<code>tslphom()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- France2017P[, 1:8]
+y &lt;- France2017P[, 9:12]
+y[,1] &lt;- y[,1]  - (rowSums(y) - rowSums(x))
+mt &lt;- tslphom_joint(x, y)
+mt$VTM.votes
+mt$HETe
+</code></pre>
+
+
+</div>

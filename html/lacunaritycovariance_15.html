@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>contagdiscstate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Disc State Contagion</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the disc-state contagion landscape metric as described in (Hingee, 2016; Hingee, 2019). The
+disc-state contagion landscape metric describes the entropy (mixing) between four
+possible states of a disc: </p>
+ <ol>
+<li>
+<p> the disc is completely
+contained in <code class="reqn">\Xi</code> </p>
+</li>
+<li>
+<p> the disc does not intersect <code class="reqn">\Xi</code> </p>
+</li>
+<li>
+<p>the centre of the disc is in <code class="reqn">\Xi</code> but the disc is not contained in
+<code class="reqn">\Xi</code> </p>
+</li>
+<li>
+<p> the disc intersects <code class="reqn">\Xi</code> but the centre is outside
+<code class="reqn">\Xi</code> </p>
+</li>
+</ol>
+<p>Disc-state contagion is a function of the disc radius.
+</p>
+<p>The main difference to classical contagion (O'Neill, 1988) is that disc-state contagion
+is based on the spherical contact distribution instead of pixel neighbours.
+One impact of this design is that the distance with which to quantify the
+mixing between <code class="reqn">\Xi</code> and the background may be chosen by the user by
+choosing the disc radius (for classical contagion this distance is fixed by
+the map resolution).
+</p>
+<p>Note: to create <code>fv</code> objects the function copies about 20 lines of code from the <span class="pkg">spatstat</span> collection of packages.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">contagdiscstate(XiH, XicH, p, normalise = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>XiH</code></td>
+<td>
+<p>Conditional spherical contact distribution function for <code class="reqn">\Xi</code>.
+Typically this is an <code>fv</code> object but could also be a vector of values.
+In applications <code>XiH</code> would likely be estimated from a binary map
+using <code>Hest</code> in <span class="pkg">spatstat.explore</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XicH</code></td>
+<td>
+<p>Conditional spherical contact distribution for the complement of
+<code class="reqn">\Xi</code>. This is called the Conditional Core Probability in Hingee 2016.
+Typically this is an <code>fv</code> object but could also be a vector of values.
+In applications <code>XiH</code> would likely be estimated from a binary map using
+<code>Hest</code> in <span class="pkg">spatstat.explore</span>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The coverage probability of <code class="reqn">\Xi</code>. Can be estimated from binary maps using <code>coverageprob</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalise</code></td>
+<td>
+<p>Optional. If TRUE <code>contagdiscstate</code> normalises the
+results so that all RACS return a value between 0 and 1. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>XiH</code> should be a function of radius that contains (estimates of) the
+probability of a disc of radius <code class="reqn">r</code> not intersecting <code class="reqn">\Xi</code> if the
+disc's centre is not in <code class="reqn">\Xi</code> </p>
+<p style="text-align: center;"><code class="reqn">\code{XiH}(r) = P(B_r(x) \subseteq
+  \Xi^c | x \in \Xi^c).</code>
+</p>
+<p> Similarly <code>XicH</code> should be (an estimate of) the
+probability of a disc being fully contained in <code class="reqn">\Xi</code> given its centre
+is in <code class="reqn">\Xi</code> </p>
+<p style="text-align: center;"><code class="reqn">\code{XicH}(r)\approx P(B_r(x) \subseteq \Xi | x \in
+  \Xi).</code>
+</p>
+<p> These can both be obtained using <code>Hest</code> in
+<span class="pkg">spatstat</span>. For <code>XicH</code> take care to apply <code>Hest</code> to the complement
+of <code class="reqn">\Xi</code> with the observation window <code class="reqn">W</code>.
+</p>
+<p>If <code>normalise</code> is <code>TRUE</code> then the result is divided by
+<code class="reqn">-2ln(2)</code> and increased by 1 so that contagion will always be between 0
+and 1.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>XiH</code> is an <code>fv</code> object then an <code>fv</code> object is returned.
+If <code>XiH</code> is a vector then the returned object is a vector the same length as <code>XiH</code> with each element
+corresponding to the contagion at each <code>r</code> value of <code>XiH</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hingee, K.L. (2016) Statistics for patch observations. <em>International Archives of the Photogrammetry, Remote Sensing and Spatial Information Sciences</em> pp. 235-242. Prague: ISPRS.
+</p>
+<p>Hingee, K.L. (2019) <em>Spatial Statistics of Random Closed Sets for Earth Observations</em>. PhD: Perth, Western Australia: University of Western Australia. Submitted.
+</p>
+<p>O'Neill, R.V., Krummel, J.R., Gardner, R.H., Sugihara, G., Jackson, B., DeAngelis, D.L., et al. (1988) Indices of landscape pattern. <em>Landscape Ecology</em>, 1, 153-162.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xi &lt;- heather$coarse
+obswindow &lt;- Frame(heather$coarse)
+p &lt;- coverageprob(xi, Frame(xi))
+xiH &lt;- Hest(xi, W = obswindow) #Sph. Contact Distrution Estimate
+xicH &lt;- Hest(complement.owin(xi), W = obswindow) #Conditional Core Prob. Estimate
+
+contagion &lt;- contagdiscstate(xiH, xicH, p)
+
+</code></pre>
+
+
+</div>

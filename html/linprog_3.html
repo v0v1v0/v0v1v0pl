@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readMps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read MPS Files</h2>
+
+<h3>Description</h3>
+
+<p>This function reads MPS files - the standard format for Linear Programming problems.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   readMps( file, solve=FALSE, maximum=FALSE )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>a character string naming the file to read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solve</code></td>
+<td>
+<p>logical. Should the problem be solved after reading it
+from the file (using <code>solveLP</code>)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximum</code></td>
+<td>
+<p>logical. Should we maximize or minimize (the default)?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Equality constraints and 'greater than'-bounds are not implemented yet.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>readMps</code> returns a list containing following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>the name of the Linear Programming problem.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvec</code></td>
+<td>
+<p>vector <code class="reqn">c</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bvec</code></td>
+<td>
+<p>vector <code class="reqn">b</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Amat</code></td>
+<td>
+<p>matrix <code class="reqn">A</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>if <code>solve</code> is TRUE, it contains the results of the solving
+process (an object of class <code>solveLP</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Arne Henningsen
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>solveLP</code>, <code>writeMps</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## example of Steinhauser, Langbehn and Peters (1992)
+## Production activities
+cvec &lt;- c(1800, 600, 600)  # gross margins
+names(cvec) &lt;- c("Cows","Bulls","Pigs")
+
+## Constraints (quasi-fix factors)
+bvec &lt;- c(40, 90, 2500)  # endowment
+names(bvec) &lt;- c("Land","Stable","Labor")
+
+## Needs of Production activities
+Amat &lt;- rbind( c(  0.7,   0.35,   0 ),
+               c(  1.5,   1,      3 ),
+               c( 50,    12.5,   20 ) )
+
+## Write to MPS file
+writeMps( "steinh.mps", cvec, bvec, Amat, "Steinhauser" )
+
+## delete all LP objects
+rm( cvec, bvec, Amat )
+
+## Read LP data from MPS file and solve it.
+lp &lt;- readMps( "steinh.mps", TRUE, TRUE )
+
+## Print the results
+lp$res
+
+## remove the MPS file
+file.remove( "steinh.mps" )
+</code></pre>
+
+
+</div>

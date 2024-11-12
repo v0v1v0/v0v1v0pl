@@ -1,0 +1,264 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cens.lqr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Skew-t quantile regression for censored and missing data
+</h2>
+
+<h3>Description</h3>
+
+<p>It fits a linear quantile regression model where the error term is considered to follow an SKT skew-t distribution, that is, the one proposed by Wichitaksorn et.al. (2014). Additionally, the model is capable to deal with missing and interval-censored data at the same time. Degrees of freedom can be either estimated or supplied by the user. It offers estimates and full inference. It also provides envelopes plots and likelihood-based criteria for assessing the fit, as well as fitted and imputed values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cens.lqr(y,x,cc,LL,UL,p=0.5,nu=NULL,precision=1e-06,envelope=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>the response vector of dimension <code class="reqn">n</code> where <code class="reqn">n</code> is the total of observations. It may contain both missing and censored values represented by <code>NaN</code>s.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>design matrix for the fixed effects of dimension <code class="reqn">N x d</code> where <code class="reqn">d</code> represents the number of fixed effects including the intercept, if considered.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cc</code></td>
+<td>
+
+<p>vector of censoring/missing indicators. For each observation it takes 0 if non-censored/missing, 1 if censored/missing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LL</code></td>
+<td>
+
+<p>the vector of lower limits of dimension <code class="reqn">n</code>x<code class="reqn">1</code>. See details section.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>UL</code></td>
+<td>
+
+<p>the vector of upper limits of dimension <code class="reqn">n</code>x<code class="reqn">1</code>. See details section.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>An unique quantile of interest to fit the quantile regression.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+
+<p>It represents the degrees of freedom of the skew-t distribution. When is not provided, we use the MLE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>precision</code></td>
+<td>
+
+<p>The convergence maximum error permitted. By default is 10^-6.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envelope</code></td>
+<td>
+
+<p>if <code>TRUE</code>, it will show a confidence envelope for a curve based on bootstrap replicates.
+it is <code>FALSE</code> by default.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Missing or censored values in the response can be represented imputed as <code>NaN</code>s, since the algorithm only uses the information provided in the lower and upper limits LL and UL. The indicator vector <code>cc</code> must take the value of 1 for these observations.
+</p>
+<p>*Censored and missing data*
+</p>
+<p>If all lower limits are <code>-Inf</code>, we will be dealing with left-censored data.
+Besides, if all upper limits are <code>Inf</code>, this is the case of right-censored data. Interval-censoring is considered when both limits are finites. If some observation is missing, we have not information at all, so both limits must be infinites.
+</p>
+<p>Combinations of all cases above are permitted, that is, we may have left-censored, right-censored, interval-censored and missing data at the same time.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criteria</code></td>
+<td>
+<p>attained criteria value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>fixed effects estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>scale parameter estimate for the error term.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>Estimate of <code>nu</code> parameter detailed above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SE</code></td>
+<td>
+<p>Standard Error estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table</code></td>
+<td>
+<p>Table containing the inference for the fixed effects parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>Log-likelihood value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>Akaike information criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BIC</code></td>
+<td>
+<p>Bayesian information criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HQ</code></td>
+<td>
+<p>Hannan-Quinn information criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>vector containing the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imputed.values</code></td>
+<td>
+<p>vector containing the imputed values for censored/missing observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>vector containing the residuals.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Christian E. Galarza &lt;<a href="mailto:chedgala@espol.edu.ec">chedgala@espol.edu.ec</a>&gt;, Marcelo Bourguignon &lt;<a href="mailto:m.p.bourguignon@gmail.com">m.p.bourguignon@gmail.com</a>&gt; and
+Victor H. Lachos &lt;<a href="mailto:hlachos@ime.unicamp.br">hlachos@ime.unicamp.br</a>&gt;
+</p>
+<p>Maintainer: Christian E. Galarza &lt;<a href="mailto:chedgala@espol.edu.ec">chedgala@espol.edu.ec</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Galarza, C., Lachos, V. H. &amp; Bourguignon M. (2021). A skew-t quantile regression for censored and missing data. Stat.<a href="https://doi.org/10.1002/sta4.379">doi:10.1002/sta4.379</a>.
+</p>
+<p>Galarza, C., Lachos, V. H., Cabral, C. R. B., &amp; Castro, C. L. (2017). Robust quantile regression using a generalized class of skewed distributions. Stat,
+6(1), 113-130.
+</p>
+<p>Wichitaksorn, N., Choy, S. B., &amp; Gerlach, R. (2014). A generalized class of skew distributions and associated robust quantile regression models. Canadian Journal of Statistics, 42(4), 579-596.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lqr</code>,<code>best.lqr</code>,<code>Log.lqr</code>,
+<code>Log.best.lqr</code>,<code>dSKD</code>
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+##Load the data
+data(ais)
+attach(ais)
+
+##Setting
+y&lt;-BMI
+x&lt;-cbind(1,LBM,Sex)
+
+cc = rep(0,length(y))
+LL = UL = rep(NA,length(y))
+
+#Generating a 5% of interval-censored values
+ind = sample(x = c(0,1),size = length(y),
+replace = TRUE,prob = c(0.95,0.05))
+ind1 = (ind == 1)
+
+cc[ind1] = 1
+LL[ind1] = y[ind1] - 10
+UL[ind1] = y[ind1] + 10
+y[ind1] = NA #deleting data
+
+#Fitting the model
+
+# A median regression with unknown degrees of freedom
+out = cens.lqr(y,x,cc,LL,UL,p=0.5,nu = NULL,precision = 1e-6,envelope = TRUE)
+
+# A first quartile regression with 10 degrees of freedom
+out = cens.lqr(y,x,cc,LL,UL,p=0.25,nu = 10,precision = 1e-6,envelope = TRUE)
+
+</code></pre>
+
+
+</div>

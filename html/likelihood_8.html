@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>likeli_4_optim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Use Likelihood with Optim</h2>
+
+<h3>Description</h3>
+
+<p>Wraps the function <code>likeli</code> so you can use it with
+<code>optim</code>.  This allows you to use other optimization methods to
+find maximum likelihood estimates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">likeli_4_optim(par_2_analyze, model, par_names, var, source_data, pdf)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>par_2_analyze</code></td>
+<td>
+<p>Vector of initial values for those parameters that are
+to be optimized.  This should be a vector, NOT a list.  This MUST be a 
+one-dimensional vector - i.e. none of the vector members can be vectors
+themselves (in contrast to the rules for <code>anneal</code>).  <code>optim</code> will
+pass this argument to <code>likeli_4_optim</code> automatically. See the example
+for more.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model function for which to calculate likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_names</code></td>
+<td>
+<p>Character vector with the name for each value in
+<code>par_2_analyze</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>List object with the source for all other non-parameter arguments and
+data used by the model, the PDF, and any sub-functions. This is the same as
+the argument that you pass to <code>anneal</code> or <code>likeli</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_data</code></td>
+<td>
+<p>Data frame containing any needed source data, including
+observed values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>Probability density function to use.  If you want a log
+likelihood value, which is usual, the PDF must calculate the log of its
+result.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This wraps the <code>likeli</code> function so that it can conform to the
+requirements of <code>optim</code>.  Setting up to use this function is
+exactly like setting up to use <code>likeli</code>.
+</p>
+<p>Remember to set the <code>fnscale</code> option in the control list for 
+<code>optim</code> to -1 so that <code>optim</code> performs a maximization rather than 
+the default minimization (see example for details).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A single numeric value for the likelihood.  It is possible for this to be 
+<code>NAN</code> or <code>Inf</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#################
+## Set up for likeli
+#################
+## Use the included crown_rad dataset
+data(crown_rad)
+
+## Create our model function - crown radius is a linear function of DBH.
+## DBH is a column of data from the crown_rad dataset; a and b are single
+## parameter values.
+model &lt;- function (a, b, DBH) {a + b * DBH}
+
+## We are planning to get maximum likelihood estimates for a and b.  Create
+## the list that says where all other functions and data are to be found.
+## Indicate that DBH comes from the column marked "DBH" in the crown_rad dataset.
+var&lt;-list(DBH = "DBH")
+
+## We'll use the normal probability density function dnorm - add its
+## arguments to our parameter list
+## "x" value in PDF is observed value
+var$x &lt;- "Radius"
+
+## The mean is the predicted value, the outcome of the model statement. Use
+## the reserved word "predicted"
+var$mean &lt;- "predicted"
+var$sd &lt;- 1.0
+
+## Have dnorm calculate log likelihood
+var$log &lt;- TRUE
+
+## Set up a vector with initial values for a and b
+par_2_analyze &lt;- c(0.1, 0.1)
+
+## Set up the vector with the names of a and b, so likeli_4_optim knows
+## what the values in for_optim are
+par_names &lt;- c("a", "b")
+
+## Set your choice of optim controls - pass the other likeli_4_optim arguments
+## by name so optim knows they are for likeli_4_optim
+## Remember to set the fnscale option of optim to a negative value to perform
+## a maximization rather than a minimization
+
+## Not run: optim(par_2_analyze, likeli_4_optim, method = "Nelder-Mead",
+  control = list(fnscale = -1), model = model, par_names = par_names,
+  var = var, source_data = crown_rad, pdf = dnorm)
+## End(Not run)
+</code></pre>
+
+
+</div>

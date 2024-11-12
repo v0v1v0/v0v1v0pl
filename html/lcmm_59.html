@@ -1,0 +1,578 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hlme</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of latent class linear mixed models</h2>
+
+<h3>Description</h3>
+
+<p>This function fits linear mixed models and latent class linear mixed models
+(LCLMM) also known as growth mixture models or heterogeneous linear mixed
+models.  The LCLMM consists in assuming that the population is divided in a
+finite number of latent classes. Each latent class is characterised by a
+specific trajectory modelled by a class-specific linear mixed model.  Both
+the latent class membership and the trajectory can be explained according to
+covariates.  This function is limited to a mixture of Gaussian outcomes. For
+other types of outcomes, please see function <code>lcmm</code>. For multivariate
+longitudinal outcomes, please see <code>multlcmm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hlme(
+  fixed,
+  mixture,
+  random,
+  subject,
+  classmb,
+  ng = 1,
+  idiag = FALSE,
+  nwg = FALSE,
+  cor = NULL,
+  data,
+  B,
+  convB = 1e-04,
+  convL = 1e-04,
+  convG = 1e-04,
+  prior,
+  pprior = NULL,
+  maxiter = 500,
+  subset = NULL,
+  na.action = 1,
+  posfix = NULL,
+  verbose = FALSE,
+  returndata = FALSE,
+  var.time = NULL,
+  partialH = FALSE,
+  nproc = 1,
+  clustertype = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>two-sided linear formula object for the fixed-effects in the
+linear mixed model. The response outcome is on the left of <code>~</code> and the
+covariates are separated by <code>+</code> on the right of <code>~</code>.  By default,
+an intercept is included. If no intercept, <code>-1</code> should be the first
+term included on the right of <code>~</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mixture</code></td>
+<td>
+<p>one-sided formula object for the class-specific fixed effects
+in the linear mixed model (to specify only for a number of latent classes
+greater than 1).  Among the list of covariates included in <code>fixed</code>, the
+covariates with class-specific regression parameters are entered in
+<code>mixture</code> separated by <code>+</code>.  By default, an intercept is included.
+If no intercept, <code>-1</code> should be the first term included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+<p>optional one-sided formula for the random-effects in the
+linear mixed model. Covariates with a random-effect are separated by
+<code>+</code>.  By default, an intercept is included. If no intercept, <code>-1</code>
+should be the first term included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>name of the covariate representing the grouping structure
+specified with ”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmb</code></td>
+<td>
+<p>optional one-sided formula describing the covariates in the
+class-membership multinomial logistic model. Covariates included are
+separated by <code>+</code>. By default, classmb=~1 if ng&gt;1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>optional number of latent classes considered. If <code>ng=1</code> (by
+default) no <code>mixture</code> nor <code>classmb</code> should be specified. If
+<code>ng&gt;1</code>, <code>mixture</code> is required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idiag</code></td>
+<td>
+<p>optional logical for the structure of the variance-covariance
+matrix of the random-effects. If <code>FALSE</code>, a non structured matrix of
+variance-covariance is considered (by default).  If <code>TRUE</code> a diagonal
+matrix of variance-covariance is considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nwg</code></td>
+<td>
+<p>optional logical indicating if the variance-covariance of the
+random-effects is class-specific. If <code>FALSE</code> the variance-covariance
+matrix is common over latent classes (by default). If <code>TRUE</code> a
+class-specific proportional parameter multiplies the variance-covariance
+matrix in each class (the proportional parameter in the last latent class
+equals 1 to ensure identifiability).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>optional brownian motion or autoregressive process modeling the
+correlation between the observations.  "BM" or "AR" should be specified,
+followed by the time variable between brackets. By default, no correlation
+is added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>optional data frame containing the variables named in
+<code>fixed</code>, <code>mixture</code>, <code>random</code>, <code>classmb</code> and
+<code>subject</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>optional specification for the initial values for the parameters.
+Three options are allowed: (1) a vector of initial values is entered (the
+order in which the parameters are included is detailed in <code>details</code>
+section).  (2) nothing is specified. A preliminary analysis involving the
+estimation of a standard linear mixed model is performed to choose initial
+values.  (3) when ng&gt;1, a hlme object is entered. It should correspond to
+the exact same structure of model but with ng=1. The program will
+automatically generate initial values from this model. This specification
+avoids the preliminary analysis indicated in (2). Note that due to possible
+local maxima, the <code>B</code> vector should be specified and several different
+starting points should be tried.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convB</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+parameter stability. By default, convB=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convL</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+log-likelihood stability. By default, convL=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convG</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+derivatives. By default, convG=0.0001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>optional name of a covariate containing a prior information
+about the latent class membership. The covariate should be an integer with
+values in 0,1,...,ng. Value 0 indicates no prior for the subject while a
+value in 1,...,ng indicates that the subject belongs to the corresponding
+latent class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pprior</code></td>
+<td>
+<p>optional vector specifying the names of the covariates containing the
+prior probabilities to belong to each latent class. These probabilities should be
+between 0 and 1 and should sum up to 1 for each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>optional maximum number of iterations for the Marquardt
+iterative algorithm. By default, maxiter=500.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>a specification of the rows to be used: defaults to all rows.
+This can be any valid indexing vector for the rows of data or if that is not
+supplied, a data frame made up of the variable used in formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>Integer indicating how NAs are managed. The default is 1
+for 'na.omit'. The alternative is 2 for 'na.fail'. Other options such as
+'na.pass' or 'na.exclude' are not implemented in the current version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posfix</code></td>
+<td>
+<p>Optional vector specifying the indices in vector B of the
+parameters that should not be estimated. Default to NULL, all parameters are
+estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating if information about computation should be
+reported. Default to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returndata</code></td>
+<td>
+<p>logical indicating if data used for computation should be
+returned. Default to FALSE, data are not returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.time</code></td>
+<td>
+<p>optional character indicating the name of the time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partialH</code></td>
+<td>
+<p>optional logical indicating if parameters can be dropped from the
+Hessian matrix to define convergence criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproc</code></td>
+<td>
+<p>the number cores for parallel computation.
+Default to 1 (sequential mode).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustertype</code></td>
+<td>
+<p>optional character indicating the type of cluster for parallel computation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A. THE VECTOR OF PARAMETERS B
+</p>
+<p>The parameters in the vector of initial values <code>B</code> or equivalently in
+the vector of maximum likelihood estimates <code>best</code> are included in the
+following order:
+</p>
+<p>(1) ng-1 parameters are required for intercepts in the latent class
+membership model, and when covariates are included in <code>classmb</code>, ng-1
+paramaters should be entered for each covariate;
+</p>
+<p>(2) for all covariates in <code>fixed</code>, one parameter is required if the
+covariate is not in <code>mixture</code>, ng paramaters are required if the
+covariate is also in <code>mixture</code>;
+</p>
+<p>(3) the variance of each random-effect specified in <code>random</code> (including
+the intercept) when <code>idiag=TRUE</code>, or the inferior triangular
+variance-covariance matrix of all the random-effects when
+<code>idiag=FALSE</code>;
+</p>
+<p>(4) only when <code>nwg=TRUE</code>, ng-1 parameters are required for the ng-1
+class-specific proportional coefficients in the variance covariance matrix
+of the random-effects;
+</p>
+<p>(5) when <code>cor</code> is specified, 1 parameter corresponding to the variance
+of the Brownian motion should be entered with <code>cor=BM</code> and 2 parameters
+corresponding to the correlation and the variance parameters of the
+autoregressive process should be entered
+</p>
+<p>(6) the standard error of the residual error.
+</p>
+<p>B. CAUTIONS
+</p>
+<p>Some caution should be made when using the program:
+</p>
+<p>(1) As the log-likelihood of a latent class model can have multiple maxima,
+a careful choice of the initial values is crucial for ensuring convergence
+toward the global maximum.  The program can be run without entering the
+vector of initial values (see point 2).  However, we recommend to
+systematically enter initial values in <code>B</code> and try different sets of
+initial values.
+</p>
+<p>(2) The automatic choice of initial values we provide requires the
+estimation of a preliminary linear mixed model. The user should be aware
+that first, this preliminary analysis can take time for large datatsets and
+second, that the generated initial values can be very not likely and even
+may converge slowly to a local maximum.  This is the reason why several
+alternatives exist. The vector of initial values can be directly specified
+in <code>B</code> the initial values can be generated (automatically or randomly)
+from a model with <code>ng=</code>. Finally, function <code>gridsearch</code> performs
+an automatic grid search.
+</p>
+<p>(3) Convergence criteria are very strict as they are based on the
+derivatives of the log-likelihood in addition to the parameter stability and
+log-likelihood stability.  In some cases, the program may not converge and
+reach the maximum number of iterations fixed at 100.  In this case, the user
+should check that parameter estimates at the last iteration are not on the
+boundaries of the parameter space.  If the parameters are on the boundaries
+of the parameter space, the identifiability of the model is critical. This
+may happen especially with splines parameters that may be too close to 0
+(lower boundary) or classmb parameters that are too high or low (perfect
+classification). When identifiability of some parameters is suspected, the
+program can be run again from the former estimates by fixing the suspected
+parameters to their value with option posfix. This usually solves the
+problem. An alternative is to remove the parameters of the Beta of Splines
+link function from the inverse of the Hessian with option partialH.  If not,
+the program should be run again with other initial values, with a higher
+maximum number of iterations or less strict convergence tolerances.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The list returned is:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ns</code></td>
+<td>
+<p>number of grouping units in the dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>number of latent classes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>log-likelihood of the model</p>
+</td>
+</tr>
+</table>
+<p> \
+itembestvector of parameter estimates in the same order as
+specified in <code>B</code> and detailed in section <code>details</code>
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>V</code></td>
+<td>
+<p>if the model converged (conv=1 or 3), vector containing the upper triangle
+matrix of variance-covariance estimates of <code>Best</code> with exception for
+variance-covariance parameters of the random-effects for which <code>V</code> contains
+the variance-covariance estimates of the Cholesky transformed parameters displayed in
+<code>cholesky</code>.
+If conv=2, <code>V</code> contains the second derivatives of the log-likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gconv</code></td>
+<td>
+<p>vector of convergence criteria: 1. on the parameters, 2. on the
+likelihood, 3. on the derivatives</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv</code></td>
+<td>
+<p>status of convergence: =1 if the convergence criteria were satisfied,
+=2 if the maximum number of iterations was reached, =3 if the convergence criteria were
+satisfied with a partial Hessian matrix, =4 or 5 if a problem occured
+during optimisation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>number of Marquardt iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>internal information used in related functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>idiag</code></td>
+<td>
+<p>internal information used in related functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>table of individual predictions and residuals; it
+includes marginal predictions (pred_m), marginal residuals (resid_m),
+subject-specific predictions (pred_ss) and subject-specific residuals
+(resid_ss) averaged over classes, the observation (obs) and finally the
+class-specific marginal and subject-specific predictions (with the number of
+the latent class: pred_m_1,pred_m_2,...,pred_ss_1,pred_ss_2,...). If <code>var.time</code>
+is specified, the corresponding measurement time is also included.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pprob</code></td>
+<td>
+<p>table of posterior classification and posterior individual
+class-membership probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xnames</code></td>
+<td>
+<p>list of covariates included in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predRE</code></td>
+<td>
+<p>table containing individual predictions of the random-effects
+: a column per random-effect, a line per subject</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cholesky</code></td>
+<td>
+<p>vector containing the estimates of the Cholesky transformed
+parameters of the variance-covariance matrix of the random-effects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the original data set (if returndata is TRUE)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima, Benoit Liquet and Viviane Philipps
+</p>
+<p><a href="mailto:cecile.proust-lima@inserm.fr">cecile.proust-lima@inserm.fr</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Proust-Lima C, Philipps V, Liquet B (2017). Estimation of Extended Mixed 
+Models Using Latent Classes and Latent Processes: The R Package lcmm. 
+Journal of Statistical Software, 78(2), 1-56. doi:10.18637/jss.v078.i02
+</p>
+<p>Verbeke G and Lesaffre E (1996). A linear mixed-effects model with
+heterogeneity in the random-effects population. Journal of the American
+Statistical Association 91, 217-21
+</p>
+<p>Muthen B and Shedden K (1999). Finite mixture modeling with mixture outcomes
+using the EM algorithm. Biometrics 55, 463-9
+</p>
+<p>Proust C and Jacqmin-Gadda H (2005). Estimation of linear mixed models with
+a mixture of distribution for the random-effects. Computer Methods Programs
+Biomedicine 78, 165-73
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>postprob</code>, <code>plot.hlme</code>,
+<code>summary</code>, <code>predictY</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+##### Example of a latent class model estimated for a varying number
+# of latent classes: 
+# The model includes a subject- (ID) and class-specific linear 
+# trend (intercept and Time in fixed, random and mixture components)
+# and a common effect of X1 and its interaction with time over classes 
+# (in fixed). 
+# The variance of the random intercept and slope are assumed to be equal 
+# over classes (nwg=F).
+# The covariate X3 predicts the class membership (in classmb).
+#
+# !CAUTION: initialization of mixed models with latent classes is 
+# of most importance because of the problem of multimodality of the likelihood.
+# Calls m2a-m2d illustrate the different implementations for the 
+# initial values.
+
+### homogeneous linear mixed model (standard linear mixed model) 
+### with correlated random-effects
+m1&lt;-hlme(Y~Time*X1,random=~Time,subject='ID',ng=1,data=data_hlme)
+summary(m1)
+
+### latent class linear mixed model with 2 classes
+
+# a. automatic specification from G=1 model estimates:
+m2a&lt;-hlme(Y~Time*X1,mixture=~Time,random=~Time,classmb=~X2+X3,subject='ID',
+         ng=2,data=data_hlme,B=m1)
+         
+# b. vector of initial values provided by the user:
+m2b&lt;-hlme(Y~Time*X1,mixture=~Time,random=~Time,classmb=~X2+X3,subject='ID',
+         ng=2,data=data_hlme,B=c(0.11,-0.74,-0.07,20.71,
+                                 29.39,-1,0.13,2.45,-0.29,4.5,0.36,0.79,0.97))
+ 
+# c. random draws from G = 1 model estimates:
+m2c&lt;-hlme(Y~Time*X1,mixture=~Time,random=~Time,classmb=~X2+X3,subject='ID',
+          ng=2,data=data_hlme,B=random(m1))
+
+# d. gridsearch with 50 departures and 10 iterations of the algorithm 
+#     (see function gridsearch for details)
+## Not run: 
+m2d &lt;- gridsearch(rep = 50, maxiter = 10, minit = m1, hlme(Y ~ Time * X1, 
+mixture =~ Time, random =~ Time, classmb =~ X2 + X3, subject = 'ID', ng = 2, 
+data = data_hlme))
+
+
+## End(Not run)  
+          
+
+
+# summary of the estimation process
+summarytable(m1, m2a, m2b, m2c)
+
+# summary of m2a
+summary(m2a)
+
+# posterior classification
+postprob(m2a)
+
+# plot of predicted trajectories using some newdata
+newdata&lt;-data.frame(Time=seq(0,5,length=100),
+X1=rep(0,100),X2=rep(0,100),X3=rep(0,100))
+plot(predictY(m2a,newdata,var.time="Time"),legend.loc="right",bty="l")
+
+
+
+</code></pre>
+
+
+</div>

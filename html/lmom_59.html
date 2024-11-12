@@ -1,0 +1,292 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pel-functions</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parameter estimation for specific distributions by the method of L-moments</h2>
+
+<h3>Description</h3>
+
+<p>Computes the parameters of a probability distribution
+as a function of the <code class="reqn">L</code>-moments.
+The following distributions are recognized:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelexp</code> </td>
+<td style="text-align: left;"> exponential </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelgam</code> </td>
+<td style="text-align: left;"> gamma </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelgev</code> </td>
+<td style="text-align: left;"> generalized extreme-value </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelglo</code> </td>
+<td style="text-align: left;"> generalized logistic </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelgpa</code> </td>
+<td style="text-align: left;"> generalized Pareto </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelgno</code> </td>
+<td style="text-align: left;"> generalized normal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelgum</code> </td>
+<td style="text-align: left;"> Gumbel (extreme-value type I) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelkap</code> </td>
+<td style="text-align: left;"> kappa </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelln3</code> </td>
+<td style="text-align: left;"> three-parameter lognormal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelnor</code> </td>
+<td style="text-align: left;"> normal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelpe3</code> </td>
+<td style="text-align: left;"> Pearson type III </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelwak</code> </td>
+<td style="text-align: left;"> Wakeby </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>pelwei</code> </td>
+<td style="text-align: left;"> Weibull </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+</tr>
+</table>
+<h3>Usage</h3>
+
+<pre><code class="language-R">pelexp(lmom)
+pelgam(lmom)
+pelgev(lmom)
+pelglo(lmom)
+pelgno(lmom)
+pelgpa(lmom, bound = NULL)
+pelgum(lmom)
+pelkap(lmom)
+pelln3(lmom, bound = NULL)
+pelnor(lmom)
+pelpe3(lmom)
+pelwak(lmom, bound = NULL, verbose = FALSE)
+pelwei(lmom, bound = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>Numeric vector containing the <code class="reqn">L</code>-moments of the distribution
+or of a data sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound</code></td>
+<td>
+<p>Lower bound of the distribution.  If <code>NULL</code> (the default),
+the lower bound will be estimated along with the other parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical: whether to print a message when not all
+parameters of the distribution can be computed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Numerical methods and accuracy are as described in
+Hosking (1996, pp. 10–11).
+Exception:
+if <code>pelwak</code> is unable to fit a Wakeby distribution using all 5 <code class="reqn">L</code>-moments,
+it instead fits a generalized Pareto distribution to the first 3 <code class="reqn">L</code>-moments.
+(The corresponding routine in the LMOMENTS Fortran package
+would attempt to fit a Wakeby distribution with lower bound zero.)
+</p>
+<p>The kappa and Wakeby distributions have 4 and 5 parameters respectively
+but cannot attain all possible values of the first 4 or 5 <code class="reqn">L</code>-moments.
+Function <code>pelkap</code> can fit only kappa distributions with
+<code class="reqn">\tau_4 \le (1 + 5 \tau_3^2) / 6</code>
+(the limit is the <code class="reqn">(\tau_3, \tau_4)</code> relation satisfied by the generalized logistic distribution),
+and will give an error if <code>lmom</code> does not satisfy this constraint.
+Function <code>pelwak</code> can fit a Wakeby distribution only if
+the <code class="reqn">(\tau_3,\tau_4)</code> values, when plotted on an <code class="reqn">L</code>-moment ratio diagram,
+lie above a line plotted by <code>lmrd(distributions="WAK.LB")</code>,
+and if <code class="reqn">\tau_5</code> satisfies additional constraints;
+in other cases <code>pelwak</code> will fit a generalized Pareto distribution
+(a special case of the Wakeby distribution) to the first three <code class="reqn">L</code>-moments.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector containing the parameters of the distribution.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J. R. M. (1996).
+Fortran routines for use with the method of <code class="reqn">L</code>-moments, Version 3.
+Research Report RC20525, IBM Research Division, Yorktown Heights, N.Y.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pelp</code> for parameter estimation of a general distribution
+specified by its cumulative distribution function or quantile function.
+</p>
+<p><code>lmrexp</code>, etc., to compute the <code class="reqn">L</code>-moments
+of a distribution given its parameters.
+</p>
+<p>For individual distributions, see their cumulative distribution functions:
+</p>
+
+<table>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfexp</code> </td>
+<td style="text-align: left;"> exponential </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfgam</code> </td>
+<td style="text-align: left;"> gamma </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfgev</code> </td>
+<td style="text-align: left;"> generalized extreme-value </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfglo</code> </td>
+<td style="text-align: left;"> generalized logistic </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfgpa</code> </td>
+<td style="text-align: left;"> generalized Pareto </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfgno</code> </td>
+<td style="text-align: left;"> generalized normal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfgum</code> </td>
+<td style="text-align: left;"> Gumbel (extreme-value type I) </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfkap</code> </td>
+<td style="text-align: left;"> kappa </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfln3</code> </td>
+<td style="text-align: left;"> three-parameter lognormal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfnor</code> </td>
+<td style="text-align: left;"> normal </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfpe3</code> </td>
+<td style="text-align: left;"> Pearson type III </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfwak</code> </td>
+<td style="text-align: left;"> Wakeby </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+<td style="text-align: left;"> <code>cdfwei</code> </td>
+<td style="text-align: left;"> Weibull </td>
+</tr>
+<tr>
+<td style="text-align: right;">
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sample L-moments of Ozone from the airquality data
+data(airquality)
+lmom &lt;- samlmu(airquality$Ozone)
+
+# Fit a GEV distribution
+pelgev(lmom)
+</code></pre>
+
+
+</div>

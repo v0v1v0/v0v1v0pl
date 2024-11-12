@@ -1,0 +1,456 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boot.lmf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Bootstrap resampling for class "lmf"
+</h2>
+
+<h3>Description</h3>
+
+<p>Generates bootstrap replicates of the estimated parameters in a "lmf" model.
+Ordinary bootstrap is performed for the projection matrix, while both
+parametric and ordinary (non-parametric) resampling is available for the
+remaining parameters in the model. In addition, bootstrapping under any choosen
+null hypothesis is available for hypothesis testing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">boot.lmf(object, nboot = 1000, what = c("projection", "alpha", "H0", "all"),
+  asim = c("ordinary", "parametric"), sig.dj = TRUE,
+  H0exp = list(alpha = NULL, M = NULL),
+  H0con = c("fs", "nfs", "ds", "nds"), method = c("BFGS"),
+  control = list(maxit = 500, reltol = sqrt(.Machine$double.eps)), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted object of of class "lmf".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>the number og bootstraps desired.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>what</code></td>
+<td>
+<p>which set of parameters to bootstrap. Options are "projection" to
+only resample projection matrix, growth rate <code class="reqn">(\lambda)</code>, stable age
+distribution (u) and reproductive values (v). "alpha" to resample demographic
+and environmental variances as well as all the estimates selection parameters.
+"H0" to resample temporal coefficients of selection under a given null
+hypothesis (This options requires specification of the additional
+arguments <code>H0exp</code> and <code>H0con</code>). "all" (default) to resample all the
+above mentioned parameters (also here <code>H0exp</code> and <code>H0con</code> must be
+specified for hypothesis testing or only "projection" and "alpha" will
+be resampled).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asim</code></td>
+<td>
+<p>the type of bootstrap for the parameters other than the
+projection matrix (which is always ordinary bootstrapped). Options are
+"parametric" (default) and "ordinary".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.dj</code></td>
+<td>
+<p>logical, <code>TRUE</code>(default) to include uncertainty in the
+estimation of the demographic variance when bootstrapping alpha estimates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0exp</code></td>
+<td>
+<p>a list with the first element a vector containing the expected
+temproal mean coefficients of selection (alpha) and the second element a
+matrix containing the elements of the expected temporal variance-covariance
+matrix (M) under the null hypothesis. This argument needs to be specified to
+perform hypothesis testing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0con</code></td>
+<td>
+<p>the conditions under which the null hypothesis should be tested.
+Options are "fs" to assume fluctuating selection, "nfs" to assume no
+fluctuating selection, "ds" to assume directional selection and "nds" to
+assume no directional selection. "nds" is not implemented due to increased
+risk of Type I error if the assumption is not correct, but is included
+here for completeness.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>defines what optimalization algorithm to be used in the
+maximization of the loglikelihood. Alternatives are: "Nelder-Mead",
+"BFGS" (default), "CG", "L-BFGS-B" and "SANN". Not all are applicable here.
+See <code>?optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control parameters for the maximization of the
+likelihood. <code>maxit</code> sets the maximum number of iterations to use before
+convergence and <code>reltol</code> sets the relative threshold for improvement in
+the likelihood which desides whether to continue maximation or end.
+See <code>?optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to optim for the maximization
+of the loglikelihood. See <code>?optim</code> for options.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The resampling procedures preserve the observed ratios of the different age
+classes during resampling of the projection matrix.
+</p>
+<p>Ordinary bootstrap will often be subject to bias due to few years of data in
+most available data sets within biology (generally &lt;&lt; 40), thus the parametric
+bootstrap is recomended for most purposes.
+</p>
+<p>The bootstrap procedure is closely associated with the method deployed in
+<code>lmf</code> and further details can be found in Engen et al. 2012.
+</p>
+<p>Different from Engen et al. 2012, the sigma2.dj is defined as independent gamma
+distributed variables with <em>shape</em> = <code class="reqn">\frac{(EX)^2}{Var(X)}</code> and
+<em>rate</em> = <code class="reqn">\frac{EX}{Var(X)}</code>. Where <em>X</em> = <code class="reqn">\hat\sigma^2_{dj}</code> and 
+using the mean and variance from in the paper.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>boot.lmf</code> returns a object of class "boot.lmf".
+</p>
+<p>The function <code>summary</code> is used to obtain and
+print a summary of the bootstrap replicates and to print results from tests of
+hypotheses. For construction of confidene intervals for the parameters the
+function <code>ci.boot.lmf</code> is used.
+</p>
+<p>An object of class "boot.lmf" is a list containing at most the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>running.time</code></td>
+<td>
+<p>the total time used for computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.time</code></td>
+<td>
+<p>the time used for maximation of the loglikelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asim</code></td>
+<td>
+<p>the value specified of asim.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>the number of bootstrap replicates generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uage</code></td>
+<td>
+<p>the unique age classes in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nage</code></td>
+<td>
+<p>the number of unique age classes in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>the number of parameters in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uyear</code></td>
+<td>
+<p>the unique years in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyear</code></td>
+<td>
+<p>the number of unique years in the data set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l</code></td>
+<td>
+<p>the estimated projection matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lboot</code></td>
+<td>
+<p>the bootstrap replicates of the projection matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+<p>the deterministic multiplicative growth rate of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>the stable age distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>the vector of reproductive values for each age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>luvboot</code></td>
+<td>
+<p>the bootstrap replicates of <code class="reqn">\lambda</code>, u and v.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.dj</code></td>
+<td>
+<p>a list containing the demographic variance for each age class.
+Sorted by age class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>djboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>sigma2.dj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.d</code></td>
+<td>
+<p>the total demographic variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>sigma2.d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Atboot</code></td>
+<td>
+<p>the bootstrap replicates of the yearly variance-covariance
+matrices. The unscaled variance-covariance matrices are kept constant, but
+each set of yearly estimates are scaled by the bootstrapped <code>sigma2.dj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atboot</code></td>
+<td>
+<p>the bootstrap replicates of the yearly coefficients of
+selection. This can be performed "parametric"(default) or "ordinary".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>the estimated temporal covariance matrix (fluctuating selection).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aM</code></td>
+<td>
+<p>the estimated temporal mean coefficients of selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Mboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>M</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aMboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>aM</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>atCboot</code></td>
+<td>
+<p>the bootstrap replicates of the best linear predictor for
+the estimated yearly coefficients of selection (i.e. corrected for
+sampling errors).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Anf</code></td>
+<td>
+<p>the estimated temporal covariance matrix assuming no
+fluctuating selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anf</code></td>
+<td>
+<p>the estimated temporal mean selection coefficients assuming
+no fluctuating selection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Anfboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>Anf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anfboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>anf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2.e</code></td>
+<td>
+<p>the environmental variance of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>sigma2.e</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eCboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>sigma2.eC</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0aMboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>aM</code> under the
+specified null hypothesis <code>H0exp</code> and the assumption of fluctuating
+selection (<code>Hexp = "fs"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0anfboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>anf</code> under the
+specified null hypothesis <code>H0exp</code> and the assumption of no fluctuating
+selection (<code>Hexp = "nfs"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0atnfboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>at</code> under the
+specified null hypothesis <code>H0exp</code> and the assumption of directional
+selection (<code>Hexp = "ds"</code>). These bootstrap replicates are used to
+generate <code>H0Mnfboot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H0Mnfboot</code></td>
+<td>
+<p>the bootstrap replicates of <code>M</code> under the
+specified null hypothesis <code>H0exp</code> and the assumption of directional
+selection (<code>Hexp = "ds"</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Thomas Kvalnes
+</p>
+
+
+<h3>References</h3>
+
+<p>Engen, S., Saether, B.-E., Kvalnes, T. and Jensen, H. 2012. Estimating fluctuating
+selection in age-structured populations. Journal of Evolutionary Biology, 25, 1487-1499.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmf</code>, <code>ci.boot.lmf</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Data set from Engen et al. 2012
+data(sparrowdata)
+#Fit model
+lmf.1 &lt;- lmf(formula = cbind(recruits, survival) ~ weight + tars,
+               age = age, year = year, data = sparrowdata)
+#Bootstrap parameters
+b.1 &lt;- boot.lmf(object = lmf.1, nboot = 10, sig.dj = TRUE,
+ what = "all", asim = "parametric")
+#Print
+b.1
+#Summary
+summary(b.1)
+#View density plots
+plot(b.1)
+#Test of hypoteses
+b.2 &lt;- boot.lmf(object = lmf.1, nboot = 10, sig.dj = TRUE,
+ what = "H0", H0exp = list(rep(0, 3), matrix(0, ncol = 3, nrow = 3)),
+ asim = "parametric")
+#Summary
+summary(b.2)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,71 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>latrend-parallel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parallel computation using latrend</h2>
+
+<h3>Description</h3>
+
+<p>The model estimation functions support parallel computation through the use of the foreach mechanism.
+In order to make use of parallel execution, a parallel back-end must be registered.
+</p>
+
+
+<h3>Windows</h3>
+
+<p>On Windows, the parallel-package can be used to define parallel socket workers.
+</p>
+<pre>
+nCores &lt;- parallel::detectCores(logical = FALSE)
+cl &lt;- parallel::makeCluster(nCores)
+</pre>
+<p>Then, register the cluster as the parallel back-end using the <code>doParallel</code> package:
+</p>
+<pre>
+doParallel::registerDoParallel(cl)
+</pre>
+<p>If you defined your own <code>lcMethod</code> or <code>lcModel</code> extension classes, make sure to load them on the workers as well.
+This can be done, for example, using:
+</p>
+<pre>
+parallel::clusterEvalQ(cl,
+  expr = setClass('lcMethodMyImpl', contains = "lcMethod"))
+</pre>
+
+
+<h3>Unix</h3>
+
+<p>On Unix systems, it is easier to setup parallelization as the R process is forked.
+In this example we use the <code>doMC</code> package:
+</p>
+<pre>
+nCores &lt;- parallel::detectCores(logical = FALSE)
+doMC::registerDoMC(nCores)
+</pre>
+
+
+<h3>See Also</h3>
+
+<p>latrendRep, latrendBatch, latrendBoot, latrendCV
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(latrendData)
+
+# parallel latrendRep()
+method &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time")
+models &lt;- latrendRep(method, data = latrendData, .rep = 5, parallel = TRUE)
+
+# parallel latrendBatch()
+methods &lt;- lcMethods(method, nClusters = 1:3)
+models &lt;- latrendBatch(methods, data = latrendData, parallel = TRUE)
+
+</code></pre>
+
+
+</div>

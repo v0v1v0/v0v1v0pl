@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.lefkoProj</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot Projection Simulations</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>plot.lefkoProj()</code> produces plots of <code>lefkoProj</code> objects.
+Acts as a convenient wrapper for the <code>plot.default()</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lefkoProj'
+plot(
+  x,
+  variable = "popsize",
+  style = "time",
+  repl = "all",
+  patch = "pop",
+  auto_ylim = TRUE,
+  auto_col = TRUE,
+  auto_lty = TRUE,
+  auto_title = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>lefkoProj</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>The focus variable of the plot to produce. Defaults to
+<code>"popsize"</code>, which produces line plots of the <code>popsize</code> element in
+object <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>style</code></td>
+<td>
+<p>A string denoting ther kind of plot to produce. Currently
+limited to <code>"timeseries"</code>, which shows <code>variable</code> against time on
+the x axis. Other choices include <code>"statespace"</code>, which plots
+<code>variable</code> at one time on the x axis against the same variable in the
+next time on the y axis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repl</code></td>
+<td>
+<p>The replicate to plot. Defaults to <code>"all"</code>, in which case
+all replicates are plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch</code></td>
+<td>
+<p>The patch to plot, as labeled in the <code>labels</code> element in
+object <code>x</code>. Defaults to <code>"pop"</code>, in which case only the final
+population-level projection is plotted. Can also be set to <code>"all"</code>, in
+which case projections for all patches and population in the <code>labels</code>
+element are plotted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_ylim</code></td>
+<td>
+<p>A logical value indicating whether the maximum of the y axis
+should be determined automatically. Defaults to <code>TRUE</code>, but reverts to
+<code>FALSE</code> if any setting for <code>ylim</code> is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_col</code></td>
+<td>
+<p>A logical value indicating whether to shift the color of
+lines associated with each patch automatically. Defaults to <code>TRUE</code>, but
+reverts to <code>FALSE</code> if any setting for <code>col</code> is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_lty</code></td>
+<td>
+<p>A logical value indicating whether to shift the line type
+associated with each replicate automatically. Defaults to <code>TRUE</code>, but
+reverts to <code>FALSE</code> if any setting for <code>lty</code> is given.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_title</code></td>
+<td>
+<p>A logical value indicating whether to add a title to each
+plot. The plot is composed of the concatenated population and patch names.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters used by functions <code>plot.default()</code> and
+<code>lines()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A plot of the results of a <code>projection3()</code> run.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>Output plots are currently limited to time series and state space plots of
+population size.
+</p>
+<p>The default settings will preferentially plot any projections marked as
+<code>0</code> in the <code>patch</code> portion of the <code>labels</code> element of the
+input MPM. This can produce confusing results if a mean MPM resulting from
+the <code>lmean()</code> function is used as input and the <code>add_mean</code> setting
+is set to the default, which is <code>TRUE</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(lathyrus)
+
+sizevector &lt;- c(0, 100, 13, 127, 3730, 3800, 0)
+stagevector &lt;- c("Sd", "Sdl", "VSm", "Sm", "VLa", "Flo", "Dorm")
+repvector &lt;- c(0, 0, 0, 0, 0, 1, 0)
+obsvector &lt;- c(0, 1, 1, 1, 1, 1, 0)
+matvector &lt;- c(0, 0, 1, 1, 1, 1, 1)
+immvector &lt;- c(1, 1, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0)
+indataset &lt;- c(0, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 100, 11, 103, 3500, 3800, 0.5)
+
+lathframe &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec,
+  propstatus = propvector)
+
+lathvert &lt;- verticalize3(lathyrus, noyears = 4, firstyear = 1988,
+  patchidcol = "SUBPLOT", individcol = "GENET", blocksize = 9,
+  juvcol = "Seedling1988", sizeacol = "Volume88", repstracol = "FCODE88",
+  fecacol = "Intactseed88", deadacol = "Dead1988",
+  nonobsacol = "Dormant1988", stageassign = lathframe, stagesize = "sizea",
+  censorcol = "Missing1988", censorkeep = NA, censor = TRUE)
+
+lathrepm &lt;- matrix(0, 7, 7)
+lathrepm[1, 6] &lt;- 0.345
+lathrepm[2, 6] &lt;- 0.054
+
+lathsupp3 &lt;- supplemental(stage3 = c("Sd", "Sd", "Sdl", "Sdl", "Sd", "Sdl"), 
+  stage2 = c("Sd", "Sd", "Sd", "Sd", "rep", "rep"),
+  stage1 = c("Sd", "rep", "Sd", "rep", "all", "all"), 
+  givenrate = c(0.345, 0.345, 0.054, 0.054, NA, NA),
+  multiplier = c(NA, NA, NA, NA, 0.345, 0.054),
+  type = c(1, 1, 1, 1, 3, 3), type_t12 = c(1, 2, 1, 2, 1, 1),
+  stageframe = lathframe, historical = TRUE)
+
+ehrlen3 &lt;- rlefko3(data = lathvert, stageframe = lathframe,
+  year = c(1989, 1990), stages = c("stage3", "stage2", "stage1"),
+  repmatrix = lathrepm, supplement = lathsupp3, yearcol = "year2",
+  indivcol = "individ")
+
+lathproj &lt;- projection3(ehrlen3, nreps = 5, stochastic = TRUE)
+plot(lathproj)
+
+</code></pre>
+
+
+</div>

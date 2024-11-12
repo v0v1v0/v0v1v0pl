@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>glm_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>GLM tests with latent factor mixed models</h2>
+
+<h3>Description</h3>
+
+<p>This function returns significance values for the association between each column of the
+response matrix, Y, and the explanatory variables, X, including correction for unobserved confounders
+(latent factors). The test is based on an LFMM fitted with a ridge or lasso penalty and a generalized linear
+model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">glm_test(Y, X, lfmm.obj, calibrate = "gif", family = binomial(link = "logit"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a response variable matrix with n rows and p columns.
+Each column is a response variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an explanatory variable matrix with n rows and d columns.
+Each column corresponds to an explanatory variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfmm.obj</code></td>
+<td>
+<p>an object of class <code>lfmm</code> returned by the lfmm_lasso
+or lfmm_ridge function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calibrate</code></td>
+<td>
+<p>a character string, "gif". If the "gif" option is set (default),
+significance values are calibrated by using the genomic control method. Genomic control
+uses a robust estimate of the variance of z-scores called "genomic inflation factor".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a description of the error distribution and link function to be used
+in the model. For glm this can be a character string naming a family function,
+a family function or the result of a call to a family function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The response variable matrix Y and the explanatory variable are centered.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list with the following attributes:
+</p>
+
+<ul>
+<li>
+<p> B the effect size matrix with dimensions p x d.
+</p>
+</li>
+<li>
+<p> score a p x d matrix which contains z-scores for each explanatory variable (columns of X),
+</p>
+</li>
+<li>
+<p> pvalue a p x d matrix which contains p-values for each explanatory variable,
+</p>
+</li>
+<li>
+<p> calibrated.pvalue a p x d matrix which contains calibrated p-values for each explanatory variable,
+</p>
+</li>
+<li>
+<p> gif a numeric value for the genomic inflation factor.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kevin Caye, Basile Jumentier, Olivier Francois
+</p>
+
+
+<h3>See Also</h3>
+
+<p>lfmm_test
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(lfmm)
+
+
+## An EWAS example with Y = methylation data 
+## and X = "exposure" 
+## Simulate the data
+
+dat &lt;- lfmm_sampler(n = 100, 
+                    p = 500,
+                    K = 3,
+                    outlier.prop = 0.01,
+                    cs = 0.1,
+                    sigma = 0.2,
+                    B.sd = 5,
+                    B.mean = 0,
+                    U.sd = 1.0,
+                    V.sd = 1.0)
+                    
+Y &lt;- pnorm(dat$Y)
+X &lt;- dat$X
+
+## Fit an LFMM with 2 latent factors
+mod.lfmm &lt;- lfmm_ridge(Y = Y,
+                       X = X, 
+                       K = 3)
+                       
+## Perform association testing using the fitted model:
+pv &lt;- glm_test(Y = pnorm(Y), 
+                X = X,
+                lfmm.obj = mod.lfmm, 
+                family = binomial(link = "probit"),
+                calibrate = "gif")
+                
+## Manhattan plot with true associations shown
+causal &lt;- dat$outlier
+pvalues &lt;- pv$calibrated.pvalue
+plot(-log10(pvalues), 
+     pch = 19, 
+     cex = .3,
+     xlab = "Probe",
+     col = "grey")
+     
+points(causal, 
+      -log10(pvalues)[causal], 
+       col = "blue")
+</code></pre>
+
+
+</div>

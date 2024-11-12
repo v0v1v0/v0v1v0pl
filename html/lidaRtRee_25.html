@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gap_detection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gap detection in a Canopy Height Model</h2>
+
+<h3>Description</h3>
+
+<p>Performs gaps detection on a canopy height model provided as object  of class 
+<code>SpatRaster-class</code>, or computed from the point cloud of 
+objects of class <code>LAS-class</code> or 
+<code>LAScatalog-class</code>. Function <code>dem_filtering</code> 
+is first applied to the canopy height model to remove artefacts. 
+Gaps are then extracted based on several criteria:
+</p>
+
+<ol>
+<li>
+<p> Vegetation height must be smaller than a threshold
+</p>
+</li>
+<li>
+<p> Gap width must be large enough, depending on surrounding canopy height;
+distance to surrounding vegetation is tested with morphological closings
+</p>
+</li>
+<li>
+<p> Gap must have a minimum surface
+</p>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">gap_detection(
+  las,
+  res = 1,
+  ratio = 2,
+  gap_max_height = 1,
+  min_gap_surface = 25,
+  max_gap_surface = +Inf,
+  closing_height_bin = 1,
+  nl_filter = "Median",
+  nl_size = 3,
+  gap_reconstruct = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class <code>SpatRaster-class</code>,
+<code>LAS-class</code> or <code>LAScatalog-class</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric. The size of a grid cell in point cloud coordinates units,
+used to rasterize the point cloud. In case the <code>las</code> argument is a 
+<code>SpatRaster</code> <code>res</code> is not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>numeric. maximum ratio between surrounding canopy height and gap
+distance (a pixel belongs to the gap only if for any vegetation pixel around
+it, the distance to the vegetation pixel is larger than pixel height/ratio).
+If ratio is set to NULL, this criterion is not taken into account</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap_max_height</code></td>
+<td>
+<p>numeric. maximum canopy height to be considered as gap</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_gap_surface</code></td>
+<td>
+<p>numeric. minimum gap surface</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_gap_surface</code></td>
+<td>
+<p>numeric. maximum gap surface</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closing_height_bin</code></td>
+<td>
+<p>numeric. height bin width for morphological closing
+of gaps to test ratio between canopy height and gap distance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nl_filter</code></td>
+<td>
+<p>string. type of non-linear filter to apply to canopy height
+model to remove artefacts, should be an option of <code>dem_filtering</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nl_size</code></td>
+<td>
+<p>numeric. kernel width in pixel for non-linear filtering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap_reconstruct</code></td>
+<td>
+<p>boolean. default behaviour is that areas that do not
+fulfill the ratio criterion are removed from gaps. If set to TRUE, in case
+some pixels of a gap fulfill the distance criterion, the connected pixels that
+fulfill the height criterion are also integrated to it.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>SpatRaster</code> object with three layers: gap labels, gap surface 
+and canopy height model after filter.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dem_filtering</code>, <code>edge_detection</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+
+# fill NA values in canopy height model
+chm_chablais3[is.na(chm_chablais3)] &lt;- 0
+
+# gap detection with distance larger than canopy height / 2
+gaps &lt;- gap_detection(chm_chablais3, ratio = 2, gap_max_height = 1, 
+min_gap_surface = 0)
+
+# gap detection with distance larger than canopy height / 2
+# and reconstruction of border areas
+gaps1 &lt;- gap_detection(chm_chablais3,
+  ratio = 2, gap_max_height = 1, min_gap_surface = 0,
+  gap_reconstruct = TRUE
+)
+
+# gap detection without distance criterion
+gaps2 &lt;- gap_detection(chm_chablais3, ratio = NULL, gap_max_height = 1, 
+min_gap_surface = 0)
+
+# gap id and corresponding surface for third detection parameters
+table(terra::values(gaps2$gap_id)) * terra::res(gaps2$gap_id)[1]^2
+
+# plot original image
+terra::plot(chm_chablais3, main = "Initial image")
+
+# plot binary image of gaps
+terra::plot(gaps$gap_id &gt; 0, main = "Gaps", col = "green", legend = FALSE)
+terra::plot(gaps1$gap_id &gt; 0, main = "Gaps, with reconstruction", col = "green", legend = FALSE)
+terra::plot(gaps2$gap_id &gt; 0, main = "Gaps, no width criterion", col = "green", legend = FALSE)
+
+# plot filtered CHM
+terra::plot(gaps2$filled_chm, main = "Filtered CHM")
+</code></pre>
+
+
+</div>

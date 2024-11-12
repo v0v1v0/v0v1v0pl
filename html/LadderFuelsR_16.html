@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_real_fbh</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuels base height recalculation after after considering distances greater than any number of height bin steps</h2>
+
+<h3>Description</h3>
+
+<p>This function reshapes fuel layers after removing distances equal to any number of height bin steps,
+keeping the first "base height" from those consecutive ones separated by such distance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_real_fbh(depth_metrics, step= 1, number_steps = 1, min_height=1.5, verbose=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>depth_metrics</code></td>
+<td>
+<p>Tree metrics with distances, fuel base heights, and depths
+(output of [get_depths()] function). An object of the class text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>Numeric value for the actual height bin step (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>number_steps</code></td>
+<td>
+<p>Numeric value for the number of height bin steps that can be jumped to reshape fuels layers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_height</code></td>
+<td>
+<p>Numeric value for the actual minimum base height (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical, indicating whether to display informational messages (default is TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p># List of tree metrics:
+</p>
+
+<ul>
+<li>
+<p> treeID: tree ID with strings and numeric values
+</p>
+</li>
+<li>
+<p> treeID1: tree ID with only numeric values
+</p>
+</li>
+<li>
+<p> dist: Distance between consecutive fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hdist - Height of the distance between consecutive fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hcbh - Base height of each fuel separated by a distance greater than the certain number of steps
+</p>
+</li>
+<li>
+<p> depth - Depth of fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hdepth - Height of the depth of fuel layers (m)
+</p>
+</li>
+<li>
+<p> max_height - Maximum height of the tree profile
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A data frame giving the first "base height" from those consecutive ones separated by the number of height bin steps indicated in the function.
+The function returns new fuel layers separated by distances greater than the indicated number of steps.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olga Viedma, Carlos Silva, JM Moreno and A.T. Hudak
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_depths</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)
+library(dplyr)
+#Before running this example, make sure to run get_depths()
+if (interactive()) {
+depth_metrics &lt;- get_depths()
+LadderFuelsR::depth_metrics$treeID &lt;- factor(LadderFuelsR::depth_metrics$treeID)
+
+trees_name1 &lt;- as.character(depth_metrics$treeID)
+trees_name2 &lt;- factor(unique(trees_name1))
+
+fbh_corr_list &lt;- list()
+
+for (i in levels(trees_name2)){
+# Filter data for each tree
+tree3 &lt;- depth_metrics |&gt; dplyr::filter(treeID == i)
+# Get real fbh for each tree
+fbh_corr &lt;- get_real_fbh(tree3, step= 1, number_steps = 1, min_height=1.5, verbose=TRUE)
+# Store fbh values in a list
+fbh_corr_list[[i]] &lt;- fbh_corr
+}
+
+# Combine fbh values for all trees
+effective_fbh &lt;- dplyr::bind_rows(fbh_corr_list)
+effective_fbh$treeID &lt;- factor(effective_fbh$treeID)
+}
+</code></pre>
+
+
+</div>

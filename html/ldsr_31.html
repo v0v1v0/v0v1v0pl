@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PCR_ensemble_selection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Select the best reconstruction</h2>
+
+<h3>Description</h3>
+
+<p>Select the best reconstruction from an ensemble. Experimental, API may change.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PCR_ensemble_selection(
+  Qa,
+  pc,
+  start.year,
+  transform = "log",
+  Z = NULL,
+  agg.type = c("best member", "best overall"),
+  criterion = c("RE", "CE", "nRMSE", "KGE"),
+  return.all.metrics = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Qa</code></td>
+<td>
+<p>Observations: a data.frame of annual streamflow with at least two columns: year and Qa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pc</code></td>
+<td>
+<p>For a single model: a data.frame, one column for each principal component. For an ensemble reconstruction: a list, each element is a data.frame of principal components.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.year</code></td>
+<td>
+<p>Starting year of the climate proxies, i.e, the first year of the paleo period. <code>start.year + nrow(pc) - 1</code> will determine the last year of the study horizon, which must be greater than or equal to the last year in <code>Qa</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>Flow transformation, either "log", "boxcox" or "none". Note that if the Box-Cox transform is used, the confidence interval after back-transformation is simply the back-transform of the trained onfidence interval; this is hackish and not entirely accurate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>A list of cross-validation folds. If <code>NULL</code>, will be created with <code>make_Z()</code> with default settings. Users are advised to use <code>make_Z()</code> to create the cross-validation folds beforehand. See make_Z for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agg.type</code></td>
+<td>
+<p>Type of ensemble aggregate. There are 2 options: 'best member': the member with the best performance score is used; 'best overall': if the ensemble average is better than the best member, it will be used, otherwise the best member will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p>The performance criterion to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.all.metrics</code></td>
+<td>
+<p>Logical, if TRUE, all members' performance scores (and the ensemble average's score, if <code>agg.type == 'best overall'</code>) are returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of two elements:
+</p>
+
+<ul>
+<li>
+<p> choice: The index of the selection. If the ensemble is selected, returns 0.
+</p>
+</li>
+<li>
+<p> cv: the cross-validation results of the choice, see cvPCR for details.
+</p>
+</li>
+<li>
+<p> all.metrics: all members' scores, and if <code>agg.type == 'best overall'</code>, the ensemble average's scores as well, in the last column.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">PCR_ensemble_selection(NPannual, list(NPpc, NPpc[, 1:2]), start.year = 1200,
+                       agg.type = 'best overall', criterion = 'KGE')
+PCR_ensemble_selection(NPannual, list(NPpc, NPpc[, 1:2]), start.year = 1200,
+                       agg.type = 'best overall', criterion = 'KGE')
+</code></pre>
+
+
+</div>

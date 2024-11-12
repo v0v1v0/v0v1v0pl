@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>persisting_outliers</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes outlier persistence for a range of significance values.</h2>
+
+<h3>Description</h3>
+
+<p>This function computes outlier persistence for a range of significance
+values, using the algorithm lookout, an outlier detection method that uses
+leave-one-out kernel density estimates and generalized Pareto distributions
+to find outliers.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">persisting_outliers(
+  X,
+  alpha = seq(0.01, 0.1, by = 0.01),
+  st_qq = 0.9,
+  unitize = TRUE,
+  num_steps = 20
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The input data in a matrix, data.frame, or tibble format. All
+columns should be numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Grid of significance levels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>st_qq</code></td>
+<td>
+<p>The starting quantile for death radii sequence. This will be
+used to compute the starting bandwidth value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unitize</code></td>
+<td>
+<p>An option to normalize the data. Default is <code>TRUE</code>,
+which normalizes each column to <code>[0,1]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_steps</code></td>
+<td>
+<p>The length of the bandwidth sequence.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>out</code></td>
+<td>
+<p>A 3D array of <code>N x num_steps x num_alpha</code> where
+<code>N</code> denotes the number of observations, num_steps denote the length
+of the bandwidth sequence and num_alpha denotes the number of significance
+levels. This is a binary array and the entries are set to 1 if that
+observation is an outlier for that particular bandwidth and significance
+level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>The set of bandwidth values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpdparas</code></td>
+<td>
+<p>The GPD parameters used. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookoutbw</code></td>
+<td>
+<p>The bandwidth chosen by the algorithm <code>lookout</code>
+using persistent homology.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">X &lt;- rbind(
+  data.frame(x = rnorm(500),
+             y = rnorm(500)),
+  data.frame(x = rnorm(5, mean = 10, sd = 0.2),
+             y = rnorm(5, mean = 10, sd = 0.2))
+)
+plot(X, pch = 19)
+outliers &lt;- persisting_outliers(X, unitize = FALSE)
+outliers
+autoplot(outliers)
+</code></pre>
+
+
+</div>

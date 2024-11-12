@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>run_backnow</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run Back Calculation and Estimate Reproduction Numbers</h2>
+
+<h3>Description</h3>
+
+<p>This function performs a back-calculation based on provided epidemic case count data,
+estimating the time distribution of infections and reproduction numbers (r(t)).
+It utilizes extensive input checks and parameter validation to ensure robust model execution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">run_backnow(
+  input,
+  MAX_ITER,
+  norm_sigma,
+  sip,
+  NB_maxdelay,
+  NB_size,
+  n_trunc = NB_size,
+  workerID = NULL,
+  printProgress = 0,
+  preCalcTime = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>A data frame or list that includes epidemic data with either class 'caseCounts'
+or 'lineList'. The input type determines initial processing steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MAX_ITER</code></td>
+<td>
+<p>Integer, maximum number of iterations for the back-calculation model.
+Requires at least 2000 iterations; high numbers can significantly increase runtime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm_sigma</code></td>
+<td>
+<p>Numeric, the standard deviation for the normal distribution in the Bayesian framework.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sip</code></td>
+<td>
+<p>Vector of numeric values specifying the serial interval probabilities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NB_maxdelay</code></td>
+<td>
+<p>Integer, the maximum delay for the right-truncated negative binomial distribution used in modeling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NB_size</code></td>
+<td>
+<p>Integer, the size parameter for the negative binomial distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_trunc</code></td>
+<td>
+<p>Integer, the truncation number for the final result matrices (defaults to 'NB_size').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>workerID</code></td>
+<td>
+<p>Optional integer to specify a worker ID for parallel processing frameworks; defaults to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>printProgress</code></td>
+<td>
+<p>Binary integer (0 or 1), specifying whether to print progress to console; affects performance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>preCalcTime</code></td>
+<td>
+<p>Boolean, if TRUE, the function calculates a preliminary runtime estimate before full execution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to underlying functions when converting input to the required format.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function ensures input data is of the correct class and processes it accordingly.
+It handles different input classes by either converting 'caseCounts' to 'lineList' or
+directly using ‘lineList'. The function stops with an error if the input doesn’t meet expected standards.
+It performs simulations to estimate both the back-calculation of initial infections and reproduction numbers
+over time, while checking and adjusting for potential NA values and ensuring that all conditions for the
+model parameters are met. Output includes estimates of initial infections and reproduction numbers along
+with diagnostic statistics.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class 'backnow' with the following structure
+</p>
+<p>- est_back: back-calculated case counts
+</p>
+<p>- est_back_date: dates for back-calculated case counts 
+</p>
+<p>- est_rt: back-calculated R(r)
+</p>
+<p>- est_rt_date: dates for back-calculated R(t)
+</p>
+<p>- geweke_back: Geweke diagnostics for the estimated back-calculation of cases
+</p>
+<p>- geweke_rt; Geweke diagnostics for R(t)
+</p>
+<p>- report_date: a vector of dates, matches reported_cases
+</p>
+<p>- report_cases: a vector of reported cases
+</p>
+<p>- MAX_ITER: the input for 'MAX_ITER'
+</p>
+<p>- norm_sigma: the input for 'norm_sigma'
+</p>
+<p>- NB_maxdelay: the input for 'NB_maxdelay'
+</p>
+<p>- si: the input for serial interval 'si'
+</p>
+<p>- NB_size: the input for 'NB_size'
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("sample_onset_dates")
+data("sample_report_dates")
+line_list &lt;- create_linelist(sample_report_dates, sample_onset_dates)
+sip &lt;- si(14, 4.29, 1.18)
+results &lt;- run_backnow(
+  line_list, 
+  MAX_ITER = as.integer(2000), 
+  norm_sigma = 0.5, 
+  sip = sip,
+  NB_maxdelay = as.integer(20), 
+  NB_size = as.integer(6), 
+  workerID = 1, 
+  printProgress = 1, 
+  preCalcTime = TRUE)
+
+</code></pre>
+
+
+</div>

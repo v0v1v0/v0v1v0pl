@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>delta_Taylor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate of delta by Taylor approximation</h2>
+
+<h3>Description</h3>
+
+<p>Computes an initial estimate of <code class="reqn">\delta</code> based on the Taylor
+approximation of the kurtosis of Lambert W <code class="reqn">\times</code> Gaussian RVs. See
+Details for the formula.
+</p>
+<p>This is the initial estimate for <code>IGMM</code> and <code>delta_GMM</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">delta_Taylor(y, kurtosis.y = kurtosis(y), distname = "normal")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kurtosis.y</code></td>
+<td>
+<p>kurtosis of <code class="reqn">y</code>; default: empirical kurtosis of data <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>string; name of the distribution. Currently only supports <code>"normal"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The second order Taylor approximation of the theoretical kurtosis of a
+heavy tail Lambert W x Gaussian RV around <code class="reqn">\delta = 0</code> 
+equals
+</p>
+<p style="text-align: center;"><code class="reqn"> \gamma_2(\delta) = 3 + 12 \delta + 66 \delta^2 + \mathcal{O}(\delta^3). </code>
+</p>
+
+<p>Ignoring higher order terms, using the empirical estimate on the left hand side, and 
+solving for <code class="reqn">\delta</code> yields (positive root) 
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat{\delta}_{Taylor} = \frac{1}{66} \cdot \left( \sqrt{66
+\widehat{\gamma}_2(\mathbf{y}) - 162}-6 \right), </code>
+</p>
+ 
+<p>where <code class="reqn">\widehat{\gamma}_2(\mathbf{y})</code> is the empirical kurtosis of <code class="reqn">\mathbf{y}</code>.
+</p>
+<p>Since the kurtosis is finite only for <code class="reqn">\delta &lt; 1/4</code>,
+<code>delta_Taylor</code> upper-bounds the returned estimate by <code class="reqn">0.25</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>scalar; estimated <code class="reqn">\delta</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>IGMM</code>  to estimate all parameters jointly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(2)
+# a little heavy-tailed (kurtosis does exist)
+y &lt;- rLambertW(n = 1000, theta = list(beta = c(0, 1), delta = 0.2), 
+               distname = "normal")
+# good initial estimate since true delta=0.2 close to 0, and
+# empirical kurtosis well-defined.
+delta_Taylor(y) 
+delta_GMM(y) # iterative estimate
+
+y &lt;- rLambertW(n = 1000, theta = list(beta = c(0, 1), delta = 1), 
+               distname = "normal") # very heavy-tailed (like a Cauchy)
+delta_Taylor(y) # bounded by 1/4 (as otherwise kurtosis does not exist)
+delta_GMM(y) # iterative estimate
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,325 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastmode</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Rapidly converging algorithm for calculating posterior modes
+in linear mixed models
+</h2>
+
+<h3>Description</h3>
+
+<p>Computes the marginal posterior mode of the variance
+parameters in linear mixed models using a rapidly converging
+procedure described by Schafer (1998), which combines Fisher
+scoring with an ECME algorithm. The method is a minor
+modification of the restricted maximum-likelihood (RML)
+procedure used in "fastrml". The model is identical to
+that of "fastrml" with the addition of prior
+distributions for the variance parameters.
+</p>
+<p>For a description of the prior distribution, see the "Details"
+section below.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastmode(y, subj, pred, xcol, zcol, prior, vmax, occ, start,
+   maxits=100, eps=0.0001)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<p>Identical to those for the function "fastrml", with one
+additional required argument:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>vector of responses. This is simply the individual yi vectors
+stacked upon one another. Each element of y represents the 
+observed response for a particular subject-occasion, or for a
+particular unit within a cluster.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subj</code></td>
+<td>
+
+<p>vector of same length as y, giving the subject (or cluster)
+indicators i for the elements of y. For example, suppose 
+that y is c(y1,y2,y3,y4) where length(y1)=2, length(y2)=3,
+length(y3)=2, and length(y4)=7. Then subj should be
+c(1,1,2,2,2,3,3,4,4,4,4,4,4,4).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+
+<p>matrix of covariates used to predict y. The number of rows
+should be length(y). The first column will typically be
+constant (one), and the remaining columns correspond to other
+variables appearing in Xi and Zi.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xcol</code></td>
+<td>
+
+<p>vector of integers indicating which columns of pred will be
+used in Xi. That is, pred[,xcol] is the Xi matrices (stacked
+upon one another.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zcol</code></td>
+<td>
+
+<p>vector of integers indicating which columns of pred will be
+used in Zi. That is, pred[,zcol] is the Zi matrices (stacked
+upon one another).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+
+<p>A list with four components specifying the hyperparameters of
+the prior distribution applied to sigma2 and psi. The
+components must be named "a", "b", "c", and "Dinv". All are
+scalars except for "Dinv", which is a matrix of dimension
+c(length(zcol),length(zcol)).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmax</code></td>
+<td>
+
+<p>optional matrix of dimension c(max(occ),max(occ)) from which
+the Vi matrices will be extracted. In a longitudinal dataset, 
+vmax would represent the Vi matrix for an individual with
+responses at all possible occasions 1,2,...,nmax=max(occ);
+for individuals with responses at only a subset of these
+occasions, the Vi will be obtained by extracting the rows
+and columns of vmax for those occasions. If no vmax is
+specified by the user, an identity matrix is used. In most
+applications of this model one will want to have Vi =
+identity, so most of the time this argument can be omitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occ</code></td>
+<td>
+
+<p>vector of same length as y indicating the "occasions" for the
+elements of y. This argument is relevant only if a
+non-identity vmax is specified. In a longitudinal dataset
+where each individual is measured on at most nmax distinct
+occasions, each element of y corresponds to one
+subject-occasion, and the elements of occ should be coded as
+1,2,...,nmax to indicate these occasion labels. (You should
+label the occasions as 1,2,...,nmax even if they are not
+equally spaced in time; the actual times of measurement will
+be incorporated into the matrix "pred".) 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>optional starting values of the parameters. If this argument
+is not given then the function chooses its own starting values.
+This argument should be a list of three elements named
+"beta", "psi", and "sigma2". Note that "beta" should be a
+vector of the same length as "xcol", "psi" should be a
+matrix of dimension c(length(zcol),length(zcol)), and
+"sigma2" should be a scalar.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxits</code></td>
+<td>
+
+<p>maximum number of cycles to be performed.
+The algorithm runs to convergence or until "maxits"
+iterations, whichever comes first.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>convergence criterion. The algorithm is considered to have
+converged if the relative differences in all parameters from
+one iteration to the next are less than eps–that is, if
+all(abs(new-old)&lt;eps*abs(old)).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm is described in the appendix of Schafer (1998).
+Scoring is carried out on log(sigma2) and the nonredundant
+elements of the inverse of psi/sigma2, taking logs of the
+diagonal elements. Upon convergence, the estimates  represent
+the mode of the joint posterior density of 1/sigma2 and the
+inverse of psi, marginalized (i.e. integrated) over beta.
+</p>
+<p>The prior distribution applied to the within-unit residual
+variance is scaled inverted-chisquare,
+</p>
+<p>sigma2 <code class="reqn">\sim</code> a / chisq(b),
+</p>
+<p>where chisq(b) denotes a chisquare random variable with b
+degrees of freedom, and a and b are user-defined
+hyperparameters. Values for the hyperparmeters may be chosen
+by regarding a/b as a rough prior guess for sigma2, and as
+the imaginary degrees of freedom on which this guess is based.
+</p>
+<p>The prior distribution applied to the between-unit covariance
+matrix is inverted Wishart,
+</p>
+<p>psiinv <code class="reqn">\sim</code> W(c,D),
+</p>
+<p>where psiinv is the inverse of the between-unit covariance
+matrix psi, and W(c,D) denotes a Wishart distribution with
+degrees of freedom c and scale matrix D. Values for the
+hyperparameters may be chosen by regarding Dinv/c (the inverse
+of D divided by c) as a rough prior guess for psi, and c as
+the imaginary degrees of freedom on which this guess is based.
+</p>
+<p>An improper uniform prior density function is applied to
+the fixed effects beta.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>vector of same length as "xcol" containing estimated fixed
+effects. This estimate represents the posterior mean for beta,
+conditional upon the estimated values of the variance
+parameters sigma2 and psi.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+
+<p>estimate of residual error variance. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+
+<p>matrix of dimension c(length(zcol),length(zcol)) containing
+estimated variances and covariances of the random effects.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+
+<p>T if the algorithm converged, F if it did not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+
+<p>number of iterations actually performed. Will be equal
+to "maxits" if converged=F.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reject</code></td>
+<td>
+
+<p>a logical vector of length iter indicating, for each
+iteration, whether the scoring estimates were rejected
+and replaced by ECME estimates (T), or whether the scoring
+estimates were accepted (F). Scoring estimates are rejected
+if they do not increase the log-posterior density.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logpost</code></td>
+<td>
+
+<p>vector of length "iter" reporting the value of the
+log-posterior density at each iteration.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.beta</code></td>
+<td>
+
+<p>matrix of dimension c(length(xcol),length(xcol)) containing
+estimated variances and covariances for elements of "beta".
+These are conventional estimates which regard the variance
+parameters (sigma2 and psi) as fixed at their estimated
+values. 
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Schafer, J.L. (1998) Some improved procedures for linear mixed
+models. Submitted to Journal of the American Statistical
+Association.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ecmeml</code>, <code>ecmerml</code>,
+<code>fastml</code>, <code>fastrml</code>,
+<code>mgibbs</code>, <code>fastmcmc</code>,
+<code>example</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+For a detailed example, see the file "example.R" distributed
+with this library.
+
+
+## End(Not run)</code></pre>
+
+
+</div>

@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update_values</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>update values in a conductanceMatrix</h2>
+
+<h3>Description</h3>
+
+<p>Apply a function to values in the <code>conductanceMatrix</code> that coincide with the supplied sf object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">update_values(x, sf, FUN)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>conductanceMatrix</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sf</code></td>
+<td>
+<p><code>sf</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p><code>function</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An updated conductanceMatrix is produced by assessing which areas of the conductanceMatrix coincide with the supplied sf object. The values within the areas that coincide with the sf object are modified based on the supplied function
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>conductanceMatrix</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joseph Lewis
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+r &lt;- terra::rast(system.file("extdata/SICILY_1000m.tif", package="leastcostpath"))
+
+slope_cs &lt;- create_slope_cs(x = r, cost_function = "tobler", neighbours = 4)
+
+locs &lt;- sf::st_sf(geometry = sf::st_sfc(
+sf::st_point(c(960745, 4166836)),
+crs = terra::crs(r)))
+
+locs &lt;- sf::st_buffer(x = locs, dist = 25000)
+
+slope_cs2 &lt;- update_values(x = slope_cs, sf = locs, 
+FUN = function(j) { j * 0.6})
+
+slope_cs3 &lt;- update_values(x = slope_cs, sf = locs, 
+FUN = function(j) { j + 10})
+
+slope_cs4 &lt;- update_values(x = slope_cs, sf = locs, 
+FUN = function(j) { replace(x = j, values = 0)})
+</code></pre>
+
+
+</div>

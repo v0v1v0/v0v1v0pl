@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>annotate_y_axis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Annotations on the axis</h2>
+
+<h3>Description</h3>
+
+<p>Annotations on the axis
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">annotate_y_axis(
+  label,
+  y,
+  side = waiver(),
+  print_label = TRUE,
+  print_value = TRUE,
+  print_both = TRUE,
+  parsed = FALSE,
+  ...
+)
+
+annotate_x_axis(
+  label,
+  x,
+  side = waiver(),
+  print_label = TRUE,
+  print_value = TRUE,
+  print_both = TRUE,
+  parsed = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Text to print</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y, x</code></td>
+<td>
+<p>Position of the annotation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>side</code></td>
+<td>
+<p>left or right, or top or bottom side to print annotation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_label, print_value, print_both</code></td>
+<td>
+<p>Logical; what to show on annotation. Label and/or value.
+<code>print_both</code> is shortcut for setting both <code>print_label</code> and
+<code>print_value</code>. When both is TRUE, uses argument <code>sep</code> to
+separate the label and value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parsed</code></td>
+<td>
+<p>Logical (default <code>FALSE</code>),
+when <code>TRUE</code>, uses mathplot for outputting expressions.
+See section "Showing values".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Style settings for label and tick:
+colour, hjust, vjust, size, fontface, family, rot.
+When <code>waiver()</code> (default),
+the relevant theme element is used.</p>
+</td>
+</tr>
+</table>
+<h3></h3>
+
+<p>Showing values:
+See plotmath for using mathematical expressions.
+The function uses a simple replacement strategy where the literal strings
+<code>.(y)</code> and <code>.(val)</code> are replaced by the value after round of to
+a number of digits, as given by argument <code>digits</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+
+p &lt;- ggplot(mtcars, aes(mpg, hp, colour=disp)) + geom_point()
+
+l &lt;- p + annotate_y_axis('mark at', y=200, tick=TRUE)
+l
+
+(l + annotate_x_axis('| good economy -&gt;', x=25, print_value=FALSE, hjust=0, tick=TRUE))
+
+l + annotate_y_axis("x^2 == .(y)", y=150, parsed=FALSE,  tick=FALSE) +
+    annotate_y_axis("x^2 + bar(x) == .(y)", y=mean(mtcars$hp), parsed=TRUE, tick=TRUE)
+
+l + annotate_y_axis("bar(x) == .(y)", y = mean(mtcars$hp),  parsed=TRUE, tick=FALSE) 
+# use double equal signs, or the output becomes '=(...)' for some reason.
+
+l + annotate_y_axis('this is midway', y=sum(range(mtcars$hp))/2, print_value = FALSE, side='left')
+
+# work around if an axis only contains parsed expressions
+p + annotate_y_axis("bar(x) == .(y)", y = mean(mtcars$hp),  parsed=TRUE, tick=FALSE) +
+  annotate_y_axis("some long string", y=100, tick=FALSE, print_value=FALSE, colour=NA)
+
+
+# Works together with other functions
+p &lt;- p + theme_light() + theme(panel.border=element_blank(),
+                               axis.line = element_line(), 
+                               axis.ticks = element_line(colour='black')) 
+p + coord_capped_cart(bottom='right') + 
+  annotate_y_axis('More than I\ncan afford', y=125, 
+                  print_value=FALSE, tick=TRUE)
+</code></pre>
+
+
+</div>

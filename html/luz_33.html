@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_callback_tfevents</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>tfevents callback</h2>
+
+<h3>Description</h3>
+
+<p>Logs metrics and other model information in the tfevents file format.
+Assuming tensorboard is installed, result can be visualized with
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_callback_tfevents(logdir = "logs", histograms = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>logdir</code></td>
+<td>
+<p>A directory to where log will be written to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>histograms</code></td>
+<td>
+<p>A boolean specifying if histograms of model weights should
+be logged. It can also be a character vector specifying the name of the parameters
+that should be logged (names are the same as <code>names(model$parameters)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Currently not used. For future expansion.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<div class="sourceCode"><pre>tensorboard --logdir=logs
+</pre></div>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (torch::torch_is_installed()) {
+library(torch)
+x &lt;- torch_randn(1000, 10)
+y &lt;- torch_randn(1000, 1)
+
+model &lt;- nn_linear %&gt;%
+  setup(loss = nnf_mse_loss, optimizer = optim_adam) %&gt;%
+  set_hparams(in_features = 10, out_features = 1) %&gt;%
+  set_opt_hparams(lr = 1e-4)
+
+tmp &lt;- tempfile()
+
+model %&gt;% fit(list(x, y), valid_data = 0.2, callbacks = list(
+  luz_callback_tfevents(tmp, histograms = TRUE)
+))
+}
+</code></pre>
+
+
+</div>

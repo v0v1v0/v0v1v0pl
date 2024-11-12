@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summaryplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summary of models</h2>
+
+<h3>Description</h3>
+
+<p>This function provides a plot summarizing the results of different models
+fitted by <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>, <code>Jointlcmm</code>,
+<code>mpjlcmm</code> or <code>externVar</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">summaryplot(
+  m1,
+  ...,
+  which = c("BIC", "entropy", "ICL"),
+  mfrow = c(1, length(which)),
+  xaxis = "G"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m1</code></td>
+<td>
+<p>an object of class <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>,
+<code>Jointlcmm</code>, <code>mpjlcmm</code>, <code>externVar</code> or <code>externVar</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments, in particular other objects of class
+<code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>, <code>Jointlcmm</code> or <code>mpjlcmm</code>, and
+graphical parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>character vector indicating which results should be plotted.
+Possible values are "loglik", "conv", "npm", "AIC", "BIC", "SABIC",
+"entropy", "ICL", "ICL1", "ICL2".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfrow</code></td>
+<td>
+<p>for multiple plots, number of rows and columns to split the graphical device.
+Default to one line and length(which) columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xaxis</code></td>
+<td>
+<p>the abscissa of the plot. Default to "G", the number of latent classes.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Can be reported the usual criteria used to assess the fit and the clustering
+of the data:
+- maximum log-likelihood L (the higher the better)
+- number of parameters P, number of classes G, convergence criterion (1 = converged)
+- AIC (the lower the better) computed as -2L+2P 
+- BIC (the lower the better) computed as -2L+ P log(N) where N is the number of subjects
+- SABIC (the lower the better) computed as -2L+ P log((N+2)/24)
+- Entropy (the closer to one the better) computed as 1-sum[pi_ig*log(pi_ig)]/(N*log(G))
+where pi_ig is the posterior probability that subject i belongs to class g
+- ICL (the lower the better) computed in two ways : ICL1 = BIC - sum[pi_ig*log(pi_ig)]
+or ICL2 = BIC - 2*sum(log(max(pi_ig)), where the max is taken over the classes for each subject.
+- 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sasha Cuau, Viviane Philipps, Cecile Proust-Lima
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary</code>, <code>summarytable</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(NormPsy)
+paquid$normMMSE &lt;- normMMSE(paquid$MMSE)
+paquid$age65 &lt;- (paquid$age - 65)/10
+m1 &lt;- hlme(normMMSE~age65+I(age65^2)+CEP, random=~age65+I(age65^2), subject='ID', data=paquid)
+m2 &lt;- hlme(normMMSE~age65+I(age65^2)+CEP, random=~age65+I(age65^2), subject='ID', data=paquid,
+ng = 2, mixture=~age65+I(age65^2), B=m1)
+m3g &lt;- gridsearch(hlme(normMMSE~age65+I(age65^2)+CEP, random=~age65+I(age65^2), subject='ID',
+data=paquid, ng=3, mixture=~age65+I(age65^2)), rep=100, maxiter=30, minit=m1)
+summaryplot(m1, m2, m3g, which=c("BIC","entropy","ICL"),bty="l",pch=20,col=2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

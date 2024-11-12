@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>theoLmoms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Theoretical L-moments and L-moment Ratios using Integration of the Quantile Function</h2>
+
+<h3>Description</h3>
+
+<p>Compute the theoretrical L-moments for a vector. A theoretrical L-moment in integral form is
+</p>
+<p style="text-align: center;"><code class="reqn"> \lambda_r = \frac{1}{r}
+                               \sum^{r-1}_{k=0}{(-1)^k {r-1 \choose k}
+        \frac{r!\:I_r}{(r-k-1)!\,k!}
+       } \mbox{,}</code>
+</p>
+
+<p>in which
+</p>
+<p style="text-align: center;"><code class="reqn"> I_r = \int^1_0 x(F) \times F^{r-k-1}(1-F)^{k}\,\mathrm{d}F \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile function of the random variable <code class="reqn">X</code> for nonexceedance probability <code class="reqn">F</code>, and <code class="reqn">r</code> represents the order of the L-moments. This function actually dispatches to <code>theoTLmoms</code> with <code>trim=0</code> argument.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">theoLmoms(para, nmom=5, minF=0, maxF=1, quafunc=NULL,
+                nsim=50000, fold=5,
+                silent=TRUE, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>A distribution parameter object such as from <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>The number of moments to compute. Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-zero (but very small)  if the integral is divergent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-unity (but still very close [perhaps <code>1 - minF</code>]) if the integral is divergent.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quafunc</code></td>
+<td>
+<p>An optional and arbitrary quantile function that simply needs to except a nonexceedance probability and the parameter object in <code>para</code>. This is a feature that permits computation of the L-moments of a quantile function that does not have to be implemented in the greater overhead hassles of the <span class="pkg">lmomco</span> style. This feature might be useful for estimation of quantile function mixtures or those distributions not otherwise implemented in this package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Simulation size for Monte Carlo integration is such is internally deemed necessary (see <code>silent</code> argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+<p>The number of fractions or number of folds of <code>nsim</code>, which in other words, means that <code>nsim</code> is divided by <code>folds</code> and a loop creating <code>folds</code> integrations of <code>nsim/folds</code> is used from which the mean and mean absolute error of the integrand are computed. This is to try to recover similar output as <code>integrate()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>The argument of <code>silent</code> for the <code>try()</code> operation wrapped on <code>integrate()</code>. If set true and the integral is probability divergent, Monte Carlo integration is triggered using <code>nsim</code> and <code>folds</code>. The user would have to set <code>verbose=TRUE</code> to then acquire the returned table in <code>integration_table</code> of the integration passes including those are or are not Monte Carlo.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Toggle verbose output. Because the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code> is used to perform the numerical integration, it might be useful to see selected messages regarding the numerical integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Vector of the TL-moments. First element is <code class="reqn">\lambda_1</code>, second element is <code class="reqn">\lambda_2</code>, and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Vector of the L-moment ratios. Second element is <code class="reqn">\tau_2</code>, third element is <code class="reqn">\tau_3</code> and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Level of symmetrical trimming used in the computation, which will equal zero (the ordinary L-moments) because this function dispatches to <code>theoTLmoms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the L-moments: “theoLmoms”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>theoTLmoms</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para &lt;- vec2par(c(0,1), type='nor') # standard normal
+TL00 &lt;- theoLmoms(para) # compute ordinary L-moments
+</code></pre>
+
+
+</div>

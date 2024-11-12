@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldBounds</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Group Sequential Boundaries Using Spending Functions</h2>
+
+<h3>Description</h3>
+
+<p>'ldBounds' determines group sequential boundaries for interim analyses
+of accumulating data in clinical trials using the Lan-DeMets alpha
+spending function method.  These can be used as guidelines for early
+stopping of the trial.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldBounds(t, t2, iuse=1, asf=NULL, alpha=0.05, phi=rep(1,length(alpha)),
+       sides=2, ztrun=rep(Inf,length(alpha)))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>a vector of analysis times or a number of analysis times.  If
+the number of analyses is specified, they are assumed to be equally
+spaced. Analysis times must be increasing and in
+(0,1].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t2</code></td>
+<td>
+<p>the second time scale, usually in terms of amount of
+accumulating information.  By default, same as <code>t</code> or the
+analysis times corresponding to <code>t</code> looks.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iuse</code></td>
+<td>
+<p>the type of alpha spending function(s) to use for bounds.
+If two-sided bounds are calculated and <code>iuse</code> is a single
+value, the same type will be used for each of the two boundaries.
+If a vector of length two is given, the two values will be used for
+lower and upper bounds, respectively.  Details of specification are given below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>asf</code></td>
+<td>
+<p>a list of one or two functions to be used as alpha spending
+function(s).  Used with <code>iuse</code>=5 (See below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Type I error(s).  In two-sided situations, alpha can be a
+single value, indicating symmetric type I error control (half of
+alpha for each boundary).  If a vector of length two is given,
+this corresponds to the amount allocated to the lower and upper
+boundaries, respectively.  The total alpha must be greater than 0
+and less than or equal to 1.  When <code>iuse</code>=5, any alpha
+specified is ignored (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>a vector of values used when <code>iuse</code>=3 or 4 (See
+below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sides</code></td>
+<td>
+<p>Designates one- or two-sided bounds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ztrun</code></td>
+<td>
+<p>a vector of values specifying where to truncate lower and
+upper boundaries, respectively.  Default is no truncation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is based on a Fortran program, 'ld98', by Reboussin, DeMets, Kim,
+and Lan.  It has some advantages, like making use of probability
+distributions in R and the ability to specify any valid spending
+function without changing the program.
+</p>
+<p><code>iuse</code> values of 1 and 2 correspond to alpha spending functions
+which give O'Brien Fleming and Pocock type boundaries, respectively.
+A value of 3 is the power family.  Here, the spending function is
+<code class="reqn">\alpha t^{\phi}</code>, where <code class="reqn">\phi</code> must be greater than 0.  A value of 4 is the
+Hwang-Shih-DeCani family, with spending function
+<code class="reqn">\alpha (1-e^{-\phi t})/(1-e^{-\phi})</code>, where <code class="reqn">\phi</code> cannot be 0.
+</p>
+<p>With <code>iuse</code>=5, the user will specify any alpha spending function
+as <code>asf</code>.  Such a function asf() must be of class 'function',
+satisfy asf(t)<code class="reqn">\leq</code>1 for t in (0,1), and be strictly increasing. Alpha
+will be derived as asf(1).  If two spending functions are specified,
+they represent the lower and upper boundary spending functions,
+respectively, with the values at time 1 designating the lower and
+upper alphas, respectively.  
+Currently, this option cannot be used for one side of the boundary
+with one of the other options for the other side.  In other words, the
+user may define one spending function for a one-sided boundary or two
+for a two-sided boundary, symmetric or asymmetric, but cannot define
+one spending function and select the other from <code>iuse</code> 1 through
+4.
+</p>
+
+
+<h3>Value</h3>
+
+<p>'ldBounds' returns an object of 'class' '"ldBounds"'.
+</p>
+<p>An object of class '"ldBounds"' is a list containing the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>bounds.type</code></td>
+<td>
+<p>the type of bounds: 1 is 'one-sided', 2 is
+'two-sided symmetric', and 3 is 'two-sided asymmetric'. For
+non-alpha-spending function boundaries (see 'commonbounds'
+function) 4, 5, and 6 correspond, respectively, to types 1 through
+3 above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spending.type</code></td>
+<td>
+<p>the type(s) of spending function.  A descriptive
+version of the value(s) used for <code>iuse</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>the original time scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>the second (information) time scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the alpha(s) used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overall.alpha</code></td>
+<td>
+<p>if two-sided, the sum of the two alphas.  If
+one-sided, just alpha.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower.bounds</code></td>
+<td>
+<p>the vector of lower boundaries calculated.  Should be
+ignored if one-sided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper.bounds</code></td>
+<td>
+<p>the vector of upper boundaries calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exit.pr</code></td>
+<td>
+<p>the vector of cumulative exit probabilities at each analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diff.pr</code></td>
+<td>
+<p>the vector of exit probabilities accumulated at each
+analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nom.alpha</code></td>
+<td>
+<p>the nominal alpha level to be used at each analysis
+(i.e., bound has been crossed if the p-value at that time is less
+than this value).  Not given for two-sided asymmetric boundaries.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Charlie Casper <a href="mailto:charlie.casper@hsc.utah.edu">charlie.casper@hsc.utah.edu</a>, Thomas Cook <a href="mailto:cook@biostat.wisc.edu">cook@biostat.wisc.edu</a>, and Oscar A. Perez</p>
+
+
+<h3>References</h3>
+
+<p>Reboussin, D. M., DeMets, D. L., Kim, K. M., and Lan,
+K. K. G. (2000) Computations for group sequential boundaries using the
+Lan-DeMets spending function method. <em>Controlled Clinical Trials</em>,
+21:190-207.
+</p>
+<p>Fortran program 'ld98' by the same authors as above.
+</p>
+<p>DeMets, D. L. and Lan, K. K. G. (1995) <em>Recent Advances in Clinical
+Trial Design and Analysis</em>, Thall, P. F. (ed.). Boston: Kluwer
+Academic Publishers.
+</p>
+<p>Lan, K. K. G. and DeMets, D. L. (1983) Discrete sequential boundaries
+for clinical trials. <em>Biometrika</em>, 70:659-63.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Generic functions <code>summary.ldBounds</code> and
+<code>plot.ldPower</code>.
+</p>
+<p><code>ldPower</code> for exit probabilities given boundaries OR drift
+(effect) given power OR confidence interval OR adjusted p-value.
+</p>
+<p><code>commonbounds</code> for some commonly used boundaries that do not use alpha spending.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">   ## From Reboussin, et al. (2000)
+
+   #t &lt;- seq(0.2,1,length=5)
+   #obf.bd &lt;- ldBounds(t)
+   #summary(obf.bd)
+   #plot(obf.bd)
+
+   # Equivalent bounds to above
+   obf.bd2 &lt;- ldBounds(5)
+
+   t &lt;- c(0.2292,0.3333,0.4375,0.5833,0.7083,0.8333)
+   t2 &lt;- c(56,77,126,177,247,318)
+   power.fam &lt;- ldBounds(t,t2,iuse=3,alpha=0.05)
+   summary(power.fam)
+
+</code></pre>
+
+
+</div>

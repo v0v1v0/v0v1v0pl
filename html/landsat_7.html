@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>georef</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Simple image-matching georeferencing function.
+</h2>
+
+<h3>Description</h3>
+
+<p>Finds best fit between target image and tofix image by minimizing RMSE between the two. The tofix image is moved one pixel at a time horizontally or vertically. Simple automated georeferencing is adequate for some image-processing tasks.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">georef(target, tofix, maxdist = 1000, startx = 0, starty = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+
+<p>A georeferenced base image; can be matrix, dataframe or SpatialGridDataFrame.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tofix</code></td>
+<td>
+
+<p>The image to be georeferenced; can be matrix, dataframe or SpatialGridDataFrame.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdist</code></td>
+<td>
+
+<p>The greatest distance to move the tofix image. If this is exceeded, the function will stop. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startx</code></td>
+<td>
+
+<p>Shift the tofix image this many pixels in the x direction before beginning, to avoid local minimum.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starty</code></td>
+<td>
+
+<p>Shift the tofix image this many pixels in the y direction before beginning, to avoid local minimum.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function offers a simplistic approach to georeferencing using an iterative algorithm that at each step moves the tofix image one pixel in the direction that produces the greatest reduction in RMSE. When RMSE no longer decreases or maxdist is reached, the algorithm stops, assuming that the tofix image now matches the reference target image. This algorithm can produce local minima. Results should always be checked visually.
+</p>
+<p>Note: this algorithm is only effective with images larger than the samples included with this package. The July and November images are already georectified, but this function will show them as needing considerable adjustment. Images of at least 1000x1000 pixels are necessary for adequate results.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>shiftx </code></td>
+<td>
+<p>The x-direction shift to get the best match (lowest RMSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shifty </code></td>
+<td>
+<p>The y-direction shift to get the best match (lowest RMSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initrmse </code></td>
+<td>
+<p>Initial RMSE between target and tofix images.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>currrmse </code></td>
+<td>
+<p>Lowest RMSE, after shiftx and shifty pixel adjustments. Will be 9999 if maxdist is exceeded.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sarah Goslee
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>geoshift</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># to use for georeferencing
+data(nov3)
+data(july3)
+july.shift &lt;- georef(nov3, july3, maxdist=50) # match july to november
+july3.corr &lt;- geoshift(july3, padx=50, pady=50, july.shift$shiftx, july.shift$shifty)
+
+# only need to run georef once for a particular date
+# use the same correction for all bands
+data(july4)
+july4.corr &lt;- geoshift(july4, padx=50, pady=50, july.shift$shiftx, july.shift$shifty)
+
+</code></pre>
+
+
+</div>

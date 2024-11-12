@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expect.max.ostat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the Expectation of a Maximum (or Minimum and others) Order Statistic</h2>
+
+<h3>Description</h3>
+
+<p>The maximum (or minimum) expectation of an order statistic can be directly used for L-moment computation through either of the following two equations (Hosking, 2006) as dictated by using the maximum (<code class="reqn">\mathrm{E}[X_{k:k}]</code>, <code>expect.max.ostat</code>) or minimum (<code class="reqn">\mathrm{E}[X_{1:k}]</code>, <code>expect.min.ostat</code>):
+</p>
+<p style="text-align: center;"><code class="reqn">
+\lambda_r = (-1)^{r-1} \sum_{k=1}^r (-1)^{r-k}k^{-1}{r-1 \choose k-1}{r+k-2 \choose k-1}\mathrm{E}[X_{1:k}]\mbox{,}
+</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">
+\lambda_r = \sum_{k=1}^r (-1)^{r-k}k^{-1}{r-1 \choose k-1}{r+k-2 \choose k-1}\mathrm{E}[X_{k:k}]\mbox{.}
+</code>
+</p>
+
+<p>In terms of the quantile function <code>qlmomco</code>, the expectation of an order statistic (Asquith, 2011, p. 49) is
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \mathrm{E}[X_{j:n}] = n {n-1 \choose j - 1}\int^1_0 \! x(F)\times F^{j-1} \times (1-F)^{n-j}\; \mathrm{d}F\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile function, <code class="reqn">F</code> is nonexceedance probability, <code class="reqn">n</code> is sample size, and <code class="reqn">j</code> is the <code class="reqn">j</code>th order statistic.
+</p>
+<p>In terms of the probability density function (PDF) <code>dlmomco</code> and cumulative density function (CDF) <code>plmomco</code>, the expectation of an order statistic (Asquith, 2011, p. 50) is
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathrm{E}[X_{j:n}] = \frac{1}{\mathrm{B}(j,n-j+1)}\int_{-\infty}^{\infty} [F(x)]^{j-1}[1-F(x)]^{n-j} x\, f(x)\;\mathrm{d} x\mbox{,}
+</code>
+</p>
+
+<p>where <code class="reqn">F(x)</code> is the CDF, <code class="reqn">f(x)</code> is the PDF, and <code class="reqn">\mathrm{B}(j, n-j+1)</code> is the complete Beta function, which in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> is <code>beta</code> with the same argument order as shown above.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">expect.max.ostat(n, para=NULL, cdf=NULL, pdf=NULL, qua=NULL,
+                 j=NULL, lower=-Inf, upper=Inf, aslist=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>A distribution parameter list from a function such as <code>vec2par</code> or <code>lmom2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cdf</code></td>
+<td>
+<p>cumulative distribution function of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>probability density function of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qua</code></td>
+<td>
+<p>quantile function of the distribution. If this is defined, then <code>cdf</code> and <code>pdf</code> are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>j</code></td>
+<td>
+<p>The <code class="reqn">j</code>th value of the order statistic, which defaults to <var>n=j</var> (the maximum order statistic) if <code>j=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>The lower limit for integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>The upper limit for integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aslist</code></td>
+<td>
+<p>A logically triggering whether an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned instead of just the expection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass to the three distribution functions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>qua != NULL</code>, then the first order-statistic expectation equation above is used, and any function that might have been set in <code>cdf</code> and <code>pdf</code> is <em>ignored</em>. If the limits are infinite (default), then the limits of the integration will be set to <code class="reqn">F\!\downarrow = 0</code> and  <code class="reqn">F\!\uparrow = 1</code>. The user can replace these by setting the limits to something “near” zero and(or) “near” 1. Please consult the <b>Note</b> below concerning more information about the limits of integration.
+</p>
+<p>If <code>qua == NULL</code>, then the second order-statistic expectation equation above is used and <code>cdf</code> and <code>pdf</code> must be set. The default <code class="reqn">\pm\infty</code> limits are used unless the user <em>knows</em> otherwise for the distribution or through supervision provides their meaning of <em>small</em> and <em>large</em>.
+</p>
+<p>This function requires the user to provide either the <code>qua</code> or the <code>cdf</code> and <code>pdf</code> functions, which is somewhat divergent from the typical flow of logic of <span class="pkg">lmomco</span>. This has been done so that <code>expect.max.ostat</code> can be used readily for experimental distribution functions. It is suggested that the parameter object be left in the <span class="pkg">lmomco</span> style (see <code>vec2par</code>) even if the user is providing their own distribution functions.
+</p>
+<p>Last comments: This function is built around the idea that either (1) the <code>cdf</code> and <code>pdf</code> ensemble or (2) <code>qua</code> exist in some clean analytical form and therefore the <code>qua=NULL</code> is the trigger on which order statistic expectation integral is used. This precludes an attempt to compute the support of the distribution  internally, and thus providing possibly superior (more refined) <code>lower</code> and <code>upper</code> limits. Here is a suggested re-implementation using the support of the Generalized Extreme Value distribution:
+</p>
+<pre>
+para &lt;- vec2par(c(100, 23, -0.5), type="gev")
+lo &lt;- quagev(0, para) # The value 54
+hi &lt;- quagev(1, para) # Infinity
+E22 &lt;- expect.max.ostat(2, para=para,cdf=cdfgev, pdf=pdfgev,
+                           lower=lo, upper=hi)
+E21 &lt;- expect.min.ostat(2, para=para,cdf=cdfgev, pdf=pdfgev,
+                           lower=lo, upper=hi)
+L2 &lt;- (E22 - E21)/2 # definition of L-scale
+cat("L-scale: ", L2, "(integration)",
+    lmomgev(para)$lambdas[2], "(theory)\n")
+# The results show 33.77202 as L-scale.
+</pre>
+<p>The design intent makes it possible for some arbitrary and(or) new quantile function with difficult <code>cdf</code> and <code>pdf</code> expressions (or numerical approximations) to not be needed as the L-moments are explored. Contrarily, perhaps some new <code>pdf</code> exists and simple integration of it is made to get the <code>cdf</code> but the <code>qua</code> would need more elaborate numerics to invert the <code>cdf</code>. The user could then still explore the L-moments with supervision on the integration limits or foreknowledge of the support of the distribution.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The expectation of the maximum order statistic, unless <code class="reqn">j</code> is specified and then the expectation of that order statistic is returned. This similarly holds if the <code>expect.min.ostat</code> function is used except “maximum” becomes the “minimum”.
+</p>
+<p>Alternatively, an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of approach used: “bypdfcdf” means the PDF and CDF of the distribution were used, and alternatively “byqua” means that the quantile function was used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>See previous discussion of value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abs.error</code></td>
+<td>
+<p>Estimate of the modulus of the absolute error from <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subdivisions</code></td>
+<td>
+<p>The number of subintervals produced in the subdivision process from <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>“OK” or a character string giving the error message.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>A function such as this might be helpful for computations involving distribution mixtures. Mixtures are readily made using the algebra of quantile functions (Gilchrist, 2000; Asquith, 2011, sec. 2.1.5 “The Algebra of Quantile Functions”).
+</p>
+<p>Last comments: Internally, judicious use of logarithms and exponents for the terms involving the <code class="reqn">F</code> and <code class="reqn">1-F</code> and the quantities to the left of the intergrals shown above are made in an attempt to maximize stability of the function without the user having to become too invested in the <code>lower</code> and <code>upper</code> limits. For example, <code class="reqn">(1-F)^{n-j} \rightarrow \exp([n-j]\log(1-F))</code>. Testing indicates that this coding practice is quite useful. But there will undoubtedly be times for which the user needs to be informed enough about the expected value on return to identify that tweaking to the integration limits is needed. Also use of <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> functions <code>lbeta</code> and <code>lchoose</code> is made to maximize operations in logarithmic space.
+</p>
+<p>For <span class="pkg">lmomco</span> v.2.1.+: Because of the extensive use of exponents and logarithms as described, enhanced deep tail estimation of the extrema for large <code class="reqn">n</code> and large or small <code class="reqn">j</code> results. This has come at the expense that expectations can be computed when the expectations actually do not exist. An error in the integration no longer occurs in <span class="pkg">lmomco</span>. For example, the Cauchy distribution has infinite extrema but this function (for least for a selected parameter set and <code>n=10</code>) provides apparent values for the <code class="reqn">\mathrm{E}[X_{1:n}]</code> and <code class="reqn">\mathrm{E}[X_{n:n}]</code> when the <code>cdf</code> and <code>pdf</code> are used but not when the <code>qua</code> is used. Users are cautioned to not rely on <code>expect.max.ostat</code> “knowing” that a given distribution has undefined order statistic extrema. Now for the Cauchy case just described, the extrema for <code class="reqn">j = [1, n]</code> are hugely(!) greater in magnitude than for <code class="reqn">j = [2, (n-1)]</code>, so some resemblance of <em>infinity</em> remains.
+</p>
+<p>The alias <code>eostat</code> is a shorter name dispatching to <code>expect.max.ostat</code> all of the arguments.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+<p>Gilchrist, W.G., 2000, Statistical modelling with quantile functions: Chapman and Hall/CRC, Boca Raton.
+</p>
+<p>Hosking, J.R.M., 2006, On the characterization of distributions by their L-moments: Journal of Statistical Planning and Inference, v. 136, no. 1, pp. 193–198.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>theoLmoms.max.ostat</code>, <code>expect.min.ostat</code>, <code>eostat</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para &lt;- vec2par(c(10, 100), type="nor")
+n &lt;- 12
+# The three outputted values from should be similar:
+# (1) theoretical, (2) theoretical, and (3) simulation
+expect.max.ostat(n, para=para, cdf=cdfnor, pdf=pdfnor)
+expect.max.ostat(n, para=para, qua=quanor)
+mean(sapply(seq_len(1000), function(x) { max(rlmomco(n, para))}))
+
+eostat(8, j=5, qua=quagum, para=vec2par(c(1670, 1000), type="gum"))
+
+## Not run: 
+para &lt;- vec2par(c(1280, 800), type="nor")
+expect.max.ostat(10, j=9, para, qua=quanor)
+[1] 2081.086      # SUCCESS ---------------------------
+expect.max.ostat(10, j=9, para, pdf=pdfnor, cdf=cdfnor,
+                                lower=-1E3, upper=1E6)
+[1] 1.662701e-06  # FAILURE ---------------------------
+expect.max.ostat(10, j=9, para, pdf=pdfnor, cdf=cdfnor,
+                                lower=-1E3, upper=1E5)
+[1] 2081.086      # SUCCESS ---------------------------
+## End(Not run)
+</code></pre>
+
+
+</div>

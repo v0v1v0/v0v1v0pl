@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>project</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Project a vector on the border of the region defined by a set of linear (in)equality restrictions.</h2>
+
+<h3>Description</h3>
+
+<p>Compute a vector, closest to <code>x</code> in the Euclidean sense, satisfying a set of linear (in)equality restrictions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">project(
+  x,
+  A,
+  b,
+  neq = length(b),
+  w = rep(1, length(x)),
+  eps = 0.01,
+  maxiter = 1000L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>[<code>numeric</code>] Vector that needs to satisfy the linear restrictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>[<code>matrix</code>] Coefficient matrix for linear restrictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>[<code>numeric</code>] Right hand side of linear restrictions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neq</code></td>
+<td>
+<p>[<code>numeric</code>] The first <code>neq</code> rows in <code>A</code> and <code>b</code> are treated as linear equalities. 
+The others as Linear inequalities of the form <code class="reqn">Ax&lt;=b</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>[<code>numeric</code>] Optional weight vector of the same length as <code>x</code>. Must be positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>The maximum allowed deviation from the constraints (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>maximum number of iterations</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>list</code> with the following entries:
+</p>
+
+<ul>
+<li>
+<p><code>x</code>: the adjusted vector
+</p>
+</li>
+<li>
+<p><code>status</code>: Exit status:
+</p>
+
+<ul>
+<li>
+<p>0: success
+</p>
+</li>
+<li>
+<p>1: could not allocate enough memory (space for approximately <code class="reqn">2(m+n)</code> <code>double</code>s is necessary).
+</p>
+</li>
+<li>
+<p>2: divergence detected (set of restrictions may be contradictory)
+</p>
+</li>
+<li>
+<p>3: maximum number of iterations reached
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p><code>eps</code>: The tolerance achieved after optimizing (see Details).
+</p>
+</li>
+<li>
+<p><code>iterations</code>: The number of iterations performed.
+</p>
+</li>
+<li>
+<p><code>duration</code>: the time it took to compute the adjusted vector
+</p>
+</li>
+<li>
+<p><code>objective</code>: The (weighted) Euclidean distance between the initial and the adjusted vector
+</p>
+</li>
+</ul>
+<h3>Details</h3>
+
+<p>The tolerance <code>eps</code> is defined as the maximum absolute value of the difference vector 
+<code class="reqn">\boldsymbol{Ax}-\boldsymbol{b}</code> for equalities. For inequalities, the difference vector
+is set to zero when it's value is lesser than zero (i.e. when the restriction is satisfied). The
+algorithm iterates until either the tolerance is met, the number of allowed iterations is
+exceeded or divergence is detected.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sparse_project</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# the system 
+# x + y = 10
+# -x &lt;= 0   # ==&gt; x &gt; 0
+# -y &lt;= 0   # ==&gt; y &gt; 0
+#
+A &lt;- matrix(c(
+   1,1,
+  -1,0,
+   0,-1), byrow=TRUE, nrow=3
+)
+b &lt;- c(10,0,0)
+
+# x and y will be adjusted by the same amount
+project(x=c(4,5), A=A, b=b, neq=1)
+
+# One of the inequalies violated
+project(x=c(-1,5), A=A, b=b, neq=1)
+
+# Weighted distances: 'heavy' variables change less
+project(x=c(4,5), A=A, b=b, neq=1, w=c(100,1))
+
+# if w=1/x0, the ratio between coefficients of x0 stay the same (to first order)
+x0 &lt;- c(x=4,y=5)
+x1 &lt;- project(x=x0,A=A,b=b,neq=1,w=1/x0)
+
+x0[1]/x0[2]
+x1$x[1] / x1$x[2]
+
+
+
+</code></pre>
+
+
+</div>

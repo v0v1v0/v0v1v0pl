@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regfit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a regional frequency distribution</h2>
+
+<h3>Description</h3>
+
+<p>Fits a frequency distribution to a vector of regional average
+<code class="reqn">L</code>-moments.  Returns an object of class <code>"rfd"</code>,
+which contains the specification of the regional frequency distribution:
+the quantile function, parameters of the regional growth curve,
+and the index-flood values (site-specific scale factors) for each site.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regfit(regdata, dist)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>regdata</code></td>
+<td>
+<p>Object of class <code>regdata</code>, containing
+summary statistics of the data for the sites in a region.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>Character string specifying the distribution to be fitted.
+See “Details” below.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes regional average <code class="reqn">L</code>-moments
+(by calling <code>regavlmom</code>) and fits a probability distribution
+to the regional average <code class="reqn">L</code>-moments.
+This distribution has mean 1, i.e., the index flood is the
+mean of the distribution.
+</p>
+<p>For distribution <code>dist</code> there should exist a function to estimate
+the parameters of the distribution given a set of <code class="reqn">L</code>-moments.
+The function should have a name that is the character string <code>"pel"</code>
+followed by the character string <code>dist</code>.
+It should accept a single argument, a vector containing <code class="reqn">L</code>-moments
+<code class="reqn">\ell_1</code>, <code class="reqn">\ell_2</code>, <code class="reqn">t_3</code>, <code class="reqn">t_4</code>, etc.,
+and return a vector of distribution parameters.
+</p>
+<p>For distribution <code>dist</code> there should also exist a quantile function,
+which should have a name that is the character string
+<code>"qua"</code> followed by the character string <code>dist</code>.
+It should accept two arguments: a vector of probabilities
+and a vector containing the parameters of the distribution.
+</p>
+<p>The search path used to find the <code>"pel"</code> and <code>"qua"</code> functions
+is the same as for arguments supplied to <code>regfit</code>, i.e.
+the enclosing frames of the function, followed by the search path
+specified by <code>search()</code>.
+</p>
+<p>The estimation routines and quantile functions in package <span class="pkg">lmom</span>
+have the form described here.   For example, to use a
+generalized extreme value distribution set <code>dist</code> to be
+the string <code>"gev"</code>; then the fitting function <code>pelgev</code>
+and the quantile function <code>quagev</code> will be used
+(unless these functions have been masked by another object
+on the search path).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"rfd"</code>,
+containing the specification of the regional frequency distribution:
+It is a list with the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The character string <code>dist</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>Vector containing the parameters of the fitted regional distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qfunc</code></td>
+<td>
+<p>The quantile function of distribution <code>dist</code>.
+It is a function that takes a single argument, a vector of probabilities,
+and returns a vector of quantiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rmom</code></td>
+<td>
+<p>The regional average <code class="reqn">L</code>-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>Index flood values at each site.  This is a named vector
+whose values are the index flood values at each site, from <code>regdata[[3]]</code>,
+and whose names are the site names, from <code>regdata[[1]]</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Cascades)                  # An object of class "regdata"
+rfit &lt;- regfit(Cascades, "gno") # Fit a generalized normal distribution
+rfit                            # Print details of the fitted distribution
+                                #   (components 'dist' and 'para')
+rfit$index                      # Index flood values
+
+evplot(rfit)                    # Plot the regional growth curve
+evplot(qfunc=rfit$qfunc)        # The same, but with more typing
+evplot(qfunc=regqfunc(rfit))    # The same, with still more typing
+</code></pre>
+
+
+</div>

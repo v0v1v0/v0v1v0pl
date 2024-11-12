@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vec2par</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert a Vector of Parameters to a Parameter Object of a Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function converts a vector of parameters to a parameter object of a distribution. The type of distribution is specified in the
+argument list:
+<code>aep4</code>, <code>cau</code>, <code>exp</code>, <code>gam</code>, <code>gep</code>, <code>gev</code>,
+<code>glo</code>, <code>gno</code>, <code>gpa</code>, <code>gum</code>, <code>kap</code>,
+<code>kur</code>, <code>lap</code>, <code>lmrq</code>, <code>ln3</code>, <code>nor</code>,
+<code>pe3</code>, <code>ray</code>, <code>revgum</code>, <code>rice</code>, <code>st3</code>,
+<code>texp</code>, <code>wak</code>, and <code>wei</code>. These abbreviations and only these are used in routing logic within <span class="pkg">lmomco</span>. There is no provision for fuzzy matching. However, if the distribution type is not identified, then the function issues a warning, but goes ahead and creates the parameter list and of course can not check for the validity of the parameters. If one has a need to determine on-the-fly the number of parameters in a distribution as supported in <span class="pkg">lmomco</span>, then see the <code>dist.list</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vec2par(vec, type, nowarn=FALSE, paracheck=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>vec</code></td>
+<td>
+<p>A vector of parameter values for the distribution specified by type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Three character distribution type (for example, <code>type='gev'</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nowarn</code></td>
+<td>
+<p>A logical switch on warning suppression. If <code>TRUE</code> then <code>options(warn=-1)</code> is made and restored on return. This switch is to permit calls in which warnings are not desired as the user knows how to handle the returned value—say in an optimization algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters and checked for validity. Overriding of this check might be extremely important and needed for use of the distribution quantile function in the context of TL-moments with nonzero trimming.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for the <code>are.par.valid</code> call that is made internally.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the distribution is a Reverse Gumbel (<code>type=revgum</code>) or Generalized Pareto (<code>type=gpa</code>), which are 2-parameter or 3-parameter distributions, the third or fourth value in the vector is the <code class="reqn">\zeta</code> of the distribution. <code class="reqn">\zeta</code> represents the fraction of the sample that is noncensored, or number of observed (noncensored) values divided by the sample size. The <code class="reqn">\zeta</code> represents censoring on the right, that is there are unknown observations above a threshold or the largest observed sample. Consultation of <code>parrevgum</code> or <code>pargpaRC</code> should elucidate the censoring discussion.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned. This list should contain at least the following items, but some distributions such as the <code>revgum</code> have extra.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution in three character format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Attribute specifying source of the parameters—“vec2par”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If the <code>type</code> is not amongst the official list given above, then the <code>type</code> given is loaded into the <code>type</code> element of the returned list and an other element <code>isuser = TRUE</code> is also added. There is no <code>isuser</code> created if the distribution is supported by <span class="pkg">lmomco</span>. This is an attempt to given some level of flexibility so that others can create their own distributions or conduct research on derivative code from <span class="pkg">lmomco</span>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmom2par</code>, <code>par2vec</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para &lt;- vec2par(c(12,123,0.5),'gev')
+Q &lt;- quagev(0.5,para)
+
+my.custom &lt;- vec2par(c(2,2), type='myowndist') # Think about making your own
+</code></pre>
+
+
+</div>

@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>influence.lmw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regression Diagnostics for <code>lmw</code> and <code>lmw_est</code> objects</h2>
+
+<h3>Description</h3>
+
+<p><code>influence()</code> produces influence measures for <code>lmw</code> objects that
+can be used as regression diagnostics to identify influential cases. These
+functions produce similar outputs to <code>lm.influence()</code> but also
+include the sample influence curve (SIC) values, which combine information
+about the hat values, residuals, and implied regression weights.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmw'
+influence(model, outcome, data = NULL, ...)
+
+## S3 method for class 'lmw_est'
+influence(model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>an <code>lmw</code> or <code>lmw_est</code> object; the output of a call to
+<code>lmw()</code> or <code>lmw_est()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>the name of the outcome variable. Can be supplied as a string
+containing the name of the outcome variable or as the outcome variable
+itself. If not supplied, the outcome variable in the <code>formula</code> supplied
+to <code>lmw()</code>, if any, will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame containing the outcome variable named in
+<code>outcome</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>influence()</code> computes the hat values, (weighted) residuals, and sample
+influence curve (SIC) values for each unit, which can be used as regression
+diagnostics to assess influence. The weighted residuals are weighted by the
+sampling weights (if supplied), not the implied regression weights. The SIC
+values are computed as <code>SIC = (N-1) * w * r / (1 - h)</code>, where <code>N</code>
+is the sample size, <code>w</code> are the units' implied regression weights,
+<code>r</code> are the (weighted) residuals, and <code>h</code> are the hat values. SIC
+values are scaled to have a maximum of 1. Higher values indicate greater
+relative influence.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>hat</code></td>
+<td>
+<p>a vector containing
+the diagonal of the hat matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wt.res</code></td>
+<td>
+<p>a vector of (weighted)
+residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sic</code></td>
+<td>
+<p>a vector containing the scaled SIC values.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p><code>influence.lmw()</code> uses non-standard evaluation to interpret its
+<code>outcome</code> argument. For programmers who wish to use
+<code>influence.lmw()</code> inside other functions, an effective way to pass the
+name of an arbitrary outcome (e.g., <code>y</code> passed as a string) is to use
+<code>do.call()</code>, for example: </p>
+<pre>fun &lt;- function(m, y, d) {
+do.call("influence", list(m, y, d)) } </pre>
+<p> When using <code>influence.lmw()</code>
+inside <code>lapply()</code> or <code>purrr::map</code> to loop over outcomes, this
+syntax must be used as well.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.lmw()</code> for plotting the SIC values;
+<code>lm.influence()</code> for influence measures for <code>lm</code> objects,
+which do not include SIC values; <code>hatvalues()</code> for hat values for
+<code>lm</code> objects (note that <code>lmw_est</code> objects also have a
+<code>hatvalues()</code> method).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("lalonde")
+
+# URI regression for ATT
+lmw.out1 &lt;- lmw(~ treat + age + education + race + married +
+                     nodegree + re74 + re75,
+                data = lalonde, estimand = "ATT",
+                method = "URI", treat = "treat")
+
+# Influence for re78 outcome
+infl &lt;- influence(lmw.out1, outcome = "re78")
+str(infl)
+
+# Can also be used after lmw_est():
+lmw.est1 &lt;- lmw_est(lmw.out1, outcome = "re78")
+all.equal(infl,
+          influence(lmw.est1))
+
+</code></pre>
+
+
+</div>

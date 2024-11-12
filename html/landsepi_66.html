@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multiN</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Allocation of cultivars</h2>
+
+<h3>Description</h3>
+
+<p>Algorithm based on latent Gaussian fields to allocate two different types of crops across
+a landscape.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multiN(d, area, prop, range = 0, algo = "random")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>a symmetric matrix of the pairwise distances between the centroids of the fields of the landscape.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>vector containing field areas.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop</code></td>
+<td>
+<p>proportion of landscape surface covered by the second type of crop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+<p>range of spatial autocorrelation between fields (must be greater or equal 0). The greater
+the value of range, the higher the degree of spatial aggregation (roughly, range between 0 and 0.1 for
+fragmented landscapes, between 0.1 and 0.5 for balanced
+landscapes, between 0.5 and 3 for aggregated landscapes, and above 3 for highly aggregated landscapes).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algo</code></td>
+<td>
+<p>the algorithm used for the computation of the variance-covariance matrix of the multivariate
+normal distribution: "exp" for exponential function, "periodic" for periodic function,
+"random" for random draw (see details). If algo="random", the parameter range is ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This algorithm allows the control of the proportions of each type of crop in terms of surface
+coverage, and their level of spatial aggregation. A random vector of values is drawn from a multivariate
+normal distribution with expectation 0 and a variance-covariance matrix which depends on the pairwise
+distances between the centroids of the fields. Two different functions allow the computation of the
+variance-covariance matrix to allocate crops with more or less spatial aggregation (depending on the
+value of the range parameter). The exponential function codes for an exponential decay of the spatial
+autocorrelation as distance between fields increases. The periodic function codes for a periodic fluctuation
+of the spatial autocorrelation as distance between fields increases. Alternatively, a normal distribution
+can be used for a random allocation of the types of crops.
+Next, the two types of crops are allocated to different fields depending on whether
+the value drawn from the multivariate normal distribution is above or below a threshold. The proportion
+of each type of crop in the landscape is controlled by the value of this threshold (parameter prop).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe containing the index of each field (column 1) and the index (0 or 1) of the type
+of crop grown on these fields (column 2).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>AgriLand, allocateLandscapeCroptypes
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+d &lt;- matrix(rpois(100, 100), nrow = 10)
+d &lt;- d + t(d) ## ensures that d is symmetric
+area &lt;- data.frame(id = 1:10, area = 10)
+multiN(d, area, prop = 0.5, range = 0.5, algo = "periodic")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

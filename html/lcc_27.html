@@ -1,0 +1,197 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lccPlot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot Fitted Curves from an <code>lcc</code> Object.</h2>
+
+<h3>Description</h3>
+
+<p>A plot of predictions versus the time covariate is
+generated. Predicted values are joined by lines while sampled
+observations are represented by circles. If the argument
+<code>components=TRUE</code> is considered in the <code>lcc</code> object,
+single plots of each statistics are returned on differents pages.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lccPlot(obj, type, control, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>an object inheriting from class "lcc", representing a
+fitted lcc model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character string. If <code>type = "lcc"</code>, the output is
+the LCC plot; if <code>type = "lpc"</code>, the output is the LPC plot;
+and if <code>type = "la"</code> the output is the LA plot. Types "lpc"
+and "la" are available only if <code>components = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control values or character strings
+returned by the function <code>plotControl</code>. Defaults to an
+empty list.  The list may contain the following components:
+</p>
+ <dl>
+<dt>
+<code>shape</code>:</dt>
+<dd>
+<p>draw points considering a shape
+parameter. Possible shape values are the numbers 0 to 25, and 32
+to 127; see
+<code>aes_linetype_size_shape</code>. Default is
+<code>1</code>.</p>
+</dd>
+<dt>
+<code>colour</code>:</dt>
+<dd>
+<p>specification for lines color. Default is
+<code>"black"</code>.</p>
+</dd>
+<dt>
+<code>size</code>:</dt>
+<dd>
+<p>specification for lines size. Should be
+specified with a numerical value (in millimetres); see
+<code>aes_linetype_size_shape</code>. Default is
+<code>0.5</code>.</p>
+</dd>
+<dt>
+<code>xlab</code>:</dt>
+<dd>
+<p>title for the <code>x</code> axis.  Default is
+<code>"Time"</code>.</p>
+</dd>
+<dt>
+<code>ylab</code>:</dt>
+<dd>
+<p>title for the <code>y</code> axis. Default is "LCC",
+"LPC", or "LA"</p>
+</dd>
+<dt>
+<code>scale_y_continuous</code>:</dt>
+<dd>
+<p>numeric vector of length two
+providing limits of the scale. Default is
+<code>c(0,1)</code>.</p>
+</dd>
+<dt>
+<code>all.plot</code>:</dt>
+<dd>
+<p><code>viewport</code> functions for the <code>lcc</code>
+class. If <code>TRUE</code>, the default, returns an object created by the
+<code>viewport</code> function with multiple plots on a
+single page. If <code>FALSE</code> returns a single
+<code>ggplot</code> object by different pages using the
+<code>marrangeGrob</code> function.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to be passed to
+<code>facet_wrap</code> function</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return value, called for side effects
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thiago de Paula Oliveira, <a href="mailto:thiago.paula.oliveira@alumni.usp.br">thiago.paula.oliveira@alumni.usp.br</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Lin, L. A Concordance Correlation Coefficient to
+Evaluate Reproducibility. <em>Biometrics</em>, 45, n. 1, 255-268,
+1989.
+</p>
+<p>Oliveira, T.P.; Hinde, J.; Zocchi S.S. Longitudinal
+Concordance Correlation Function Based on Variance Components: An
+Application in Fruit Color Analysis. <em>Journal of
+Agricultural, Biological, and Environmental Statistics</em>, v. 23,
+n. 2, 233–254, 2018.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lcc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(hue)
+## Second degree polynomial model with random intercept, slope and
+## quadratic term
+fm1&lt;-lcc(data = hue, subject = "Fruit", resp = "H_mean",
+         method = "Method", time = "Time", qf = 2, qr = 2,
+         components=TRUE)
+lccPlot(fm1, type="lcc")
+lccPlot(fm1, type="lpc")
+lccPlot(fm1, type="la")
+
+## Using themes of ggplot2 package
+lccPlot(fm1, type = "lpc")+
+ ylim(0,1) +
+ geom_hline(yintercept = 1, linetype = "dashed") +
+ scale_x_continuous(breaks = seq(1,max(hue$Time),2))+
+ theme_bw() +
+ theme(legend.position = "none", aspect.ratio = 1,
+  axis.line.x = element_line(color="black", size = 0.5),
+  axis.line.y = element_line(color="black", size = 0.5),
+  axis.title.x = element_text(size=14),
+  axis.title.y = element_text(size=14),
+  axis.text.x = element_text(size = 14, face = "plain"),
+  axis.text.y = element_text(size = 14, face = "plain"))
+
+## Using the key (+) to constructing sophisticated graphics
+lccPlot(fm1, type="lcc") +
+ scale_y_continuous(limits=c(-1, 1)) +
+ labs(title="My title",
+ y ="Longitudinal Concordance Correlation",
+ x = "Time (Days)")
+
+## Runing all.plots = FALSE and saving plots as pdf
+## Not run: 
+data(simulated_hue_block)
+attach(simulated_hue_block)
+fm2&lt;-lcc(data = simulated_hue_block, subject = "Fruit",
+         resp = "Hue", method = "Method",time = "Time",
+         qf = 2, qr = 1, components = TRUE, covar = c("Block"),
+         time_lcc = list(n=50, from=min(Time), to=max(Time)))
+ggsave("myplots.pdf",
+       lccPlot(fm2, type="lcc", scales = "free"))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

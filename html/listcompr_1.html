@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gen.list</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate Lists, Vectors, Data Frames and Matrices with List Comprehension</h2>
+
+<h3>Description</h3>
+
+<p>Functions to transform a base expression containing free variables into a list, a vector, a data frame, or a matrix
+based on variable ranges and additional conditions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gen.list(.expr, ...)
+
+gen.vector(.expr, ...)
+
+gen.data.frame(.expr, ..., byrow = FALSE)
+
+gen.matrix(.expr, ..., byrow = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.expr</code></td>
+<td>
+<p>A base expression containing free variables which is evaluated for all combinations of variables, 
+where the combinations of variables are given by the ranges and conditions (see <code>...</code> parameters).
+</p>
+<p>Expected structure of <code>.expr</code>:
+</p>
+
+<ul>
+<li>
+<p> For <code>gen.list</code> it may have arbitrary structure (including a list).
+</p>
+</li>
+<li>
+<p> For <code>gen.vector</code> a value (i.e., a vector of length 1) is expected.
+</p>
+</li>
+<li>
+<p> For <code>gen.data.frame</code> a (named) vector or list is expected which describes exactly one row of the data frame.
+Use <code>list(name = val)</code> if <code>val</code> is a non-fundamental type like <code>difftime</code>.
+</p>
+</li>
+<li>
+<p> For <code>gen.matrix</code> either a (named) vector/list (like <code>gen.data.frame</code>) or a scalar is expected.
+In the first case, we expect the same as for <code>gen.data.frame</code>.
+In the latter case we expect exactly two variables (inducing rows and columns where the order depends on <code>byrow</code>) within the <code>...</code> arguments.
+</p>
+</li>
+</ul>
+<p>Within <code>.expr</code> it is allowed to use functions and predefined constants from the parent environment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arbitrary many variable ranges and conditions.
+For all free variables occurring in <code>.expr</code> a range must be assigned, e.g., <code>x = 1:3, y = 1:5</code> for an expression <code>x + y</code>. 
+At least one variable range is required.
+The ranges may depend on each other, e.g., <code>x = 1:3, y = x:3</code> or a substitution like <code>x = 1:3, y = 2 * x</code> is allowed.
+The generated values can be further restricted by conditions like <code>x &lt;= y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>byrow</code></td>
+<td>
+<p>Logical. If <code>FALSE</code> (the default), the elements of a vector within <code>.expr</code> are taken as columns. 
+Otherwise, they are taken as rows.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The result of <code>gen.list</code> is a list (a vector for <code>gen.vector</code>) containing an entry for each combination of the free variables (i.e., the Cartesian product), 
+where all the free variables in <code>.expr</code> are substituted.
+The function <code>gen.vector</code> returns a vector while <code>gen.list</code> may contain also more complex substructures (like vectors or lists).
+</p>
+<p>The output of <code>gen.data.frame</code> is a data frame where each substituted <code>.expr</code> entry is one row.
+The base expression <code>.expr</code> should contain a (named) vector or list, such that each entry of this vector becomes a column of the returned data frame.
+If the vector contains a single literal without a name, this is taken as column name. For instance, <code>gen.data.frame(a, a = 1:5)</code> returns the same as <code>gen.data.frame(c(a = a), a = 1:5)</code>.
+Default names 'V1', 'V2', ... are used, if no names are given and names can't be automatically detected.
+</p>
+<p>The result of <code>gen.matrix</code>:
+</p>
+
+<ul>
+<li>
+<p> It's similar to <code>gen.data.frame</code>, if <code>.expr</code> evaluates to a vector of length &gt; 1, or row/column names are given.
+Each substituted <code>.expr</code> entry is one row of the matrix.
+In contrast to <code>gen.data.frame</code>, column names are not auto-generated, e.g., <code>gen.matrix(c(a_1, a_2), a_ = 1:2)</code> is an unnamed matrix.
+If the <code>.expr</code> argument has explicit names (e.g., <code>c(a_1 = a_1, a_2 = a_2)</code>), these column names are assigned to the resulting matrix.
+</p>
+</li>
+<li>
+<p> It's a matrix where the rows and columns are induced by the two variables within <code>...</code>, if <code>.expr</code> is a scalar, and no names or conditions are given.
+If <code>byrow</code> is <code>FALSE</code>, the second variable (i.e., the inner loop) refers to the columns, otherwise it refers to the rows.
+For instance, <code>gen.matrix(i + j, i = 1:3, j = 1:2)</code> is a matrix with 3 rows and 2 columns.
+For <code>gen.matrix(i + j, i = 1:3, j = 1:2, byrow = TRUE)</code> we get 2 rows and 3 columns.
+</p>
+</li>
+</ul>
+<p>All expressions and conditions are applied to each combination of the free variables separately, i.e., they are applied row-wise and not vector-wise. 
+For instance, the term <code>sum(x,y)</code> (within <code>.expr</code> or a condition) is equivalent to <code>x+y</code>.
+</p>
+
+
+<h3>Indices for variables</h3>
+
+<p>A range for a variable ending with an underscore (like <code>x_</code>) defines a set of ranges affecting all variables named <code>{varname}_{index}</code>, e.g. <code>x_1</code>.
+For instance, in <code>gen.vector(x_1 + x_2 + x_3, x_ = 1:5)</code> the variables <code>x_1, x_2, x_3</code> are all ranging in <code>1:5</code>.
+This can be overwritten for each single <code>x_i</code>, e.g., an additional argument <code>x_3 = 1:3</code> assigns the range <code>1:3</code> to <code>x_3</code> while <code>x_1</code> and <code>x_2</code> keep the range <code>1:5</code>.
+A group of indexed variables is kept always sorted according to the position of the main variable <code>{varname}_</code>. 
+For instance, the two following statements produce the same results:
+</p>
+
+<ul>
+<li> <p><code>gen.vector(x_1 + x_2 + a, x_ = 1:5, a = 1:2, x_1 = 1:2)</code>
+</p>
+</li>
+<li> <p><code>gen.vector(x_1 + x_2 + a, x_1 = 1:2, x_2 = 1:5, a = 1:2)</code>
+</p>
+</li>
+</ul>
+<h3>Folded expressions</h3>
+
+<p>Expressions and conditions support a <code>...</code>-notation which works as follows:
+</p>
+
+<ul>
+<li>
+<p> A vector like <code>c(x_1, ..., x_4)</code> is a shortcut for <code>c(x_1, x_2, x_3, x_4)</code>. 
+</p>
+</li>
+<li>
+<p> A named vector like <code>c(a_1 = x_1, ..., a_3 = x_3)</code> is a shortcut for <code>c(a_1 = x_1, a_2 = x_2, a_3 = x_3)</code>. 
+</p>
+</li>
+<li>
+<p> A n-ary function argument like <code>sum(x_1, ..., x_4)</code> is a shortcut for <code>sum(x_1, x_2, x_3, x_4)</code>.
+</p>
+</li>
+<li>
+<p> Repeated expressions of binary operators can be abbreviated with the <code>...</code> expressions as follows:
+<code>x_1 + ... + x_4</code> is a shortcut for <code>x_1 + x_2 + x_3 + x_4</code>. 
+Note that, due to operator precedence, <code>1 + x_1 + ... + x_4</code> will not work, but <code>1 + (x_1 + ... + x_4)</code> works as expected.
+</p>
+</li>
+<li>
+<p> For non-commutative operators, <code>x_1 - ... - x_4</code> is a shortcut for <code>x_1 - x_2 - x_3 - x_4</code> which is evaluated as <code>((x_1 - x_2) - x_3) - x_4</code>.
+</p>
+</li>
+</ul>
+<p>The conditions may contain itself list comprehension expressions, e.g., <code>gen.logical.and</code> to compose and-connected logical expressions.
+</p>
+
+
+<h3>Character patterns</h3>
+
+<p>In expression there may occur characters with <code>{}</code>-placeholders. 
+The content of these placeholders is evaluated like any other part of an expression and converted to a character.
+For example, <code>"a{x}"</code> is transformed into <code>"a1"</code> for <code>x = 1</code>. 
+Double brackets are transformed into a single bracket without evaluating the inner expression.
+For instance, <code>"var{x + 1}_{{a}}"</code> is transformed into <code>"var2_{a}"</code> for <code>x = 1</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gen.named.list</code> to generate named structures, 
+<code>gen.list.expr</code> to generate expressions to be evaluated later, 
+<code>gen.logical.and</code> to generate logical and/or conditions,
+and listcompr for an overview of all list comprehension functions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Sum of 1:x
+gen.vector(sum(1:x), x = 1:10)
+
+# Same as above, but return as text
+gen.list("sum of 1 to {x} is {sum(1:x)}", x = 1:5)
+
+# A list containing vectors [1], [1, 2], [1, 2, 3], ...
+gen.list(gen.vector(i, i = 1:n), n = 1:10)
+
+# A data frame of tuples (x_1, x_2, x_3) summing up to 10
+gen.data.frame(c(x_1, ..., x_3), x_ = 1:10, x_1 + ... + x_3 == 10)
+
+# Same as above, but restrict to ascending tuples with x_i &lt;= x_(i+1)
+gen.data.frame(c(x_1, ..., x_3), x_1 = 1:10, x_2 = x_1:10, x_3 = x_2:10,
+               x_1 + ... + x_3 == 10)
+
+# A data frame containing the numbers in 2:20, the sum of their divisors
+# and a flag if they are "perfect" (sum of divisors equals the number)
+gen.data.frame(list(n, sumdiv, perfect = (n == sumdiv)), n = 2:20, 
+               sumdiv = sum(gen.vector(x, x = 1:(n-1), n %% x == 0)))
+               
+# A diagonal matrix with (1, ..., 5) on the diagonal
+gen.matrix(if (i == j) i else 0, i = 1:5, j = 1:5)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mlmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit Multiple Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Fit several linear mixed models, extract relevant coefficients, and combine them into a single table.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mlmm(
+  ...,
+  data,
+  by,
+  contrast.rbind = NULL,
+  effects = NULL,
+  robust = FALSE,
+  df = TRUE,
+  ci = TRUE,
+  name.short = c(TRUE, TRUE),
+  transform.sigma = NULL,
+  transform.k = NULL,
+  transform.rho = NULL,
+  transform.names = TRUE,
+  trace = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>lmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[data.frame] dataset (in the long format) containing the observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>[character] variable used to split the dataset. On each split a seperate linear mixed model is fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrast.rbind</code></td>
+<td>
+<p>[character or numeric matrix] Contrast to be be applied to compare the groups.
+Argument passed to the argument <code>effects</code> of <code>rbind.Wald_lmm</code>.
+Right hand side can be specified via an attribute <code>"rhs"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>[character or numeric matrix] Linear combinations of coefficients relative to which Wald test should be computed.
+Argument passed to <code>anova.lmm</code>.
+Right hand side can be specified via an attribute <code>"rhs"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>[logical] Should robust standard errors (aka sandwich estimator) be output instead of the model-based standard errors.
+Argument passed to <code>anova.lmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>[logical] Should the degree of freedom be computed using a Satterthwaite approximation?
+Argument passed to <code>anova.lmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>[logical] Should a confidence interval be output for each hypothesis?
+Argument passed to <code>anova.lmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.short</code></td>
+<td>
+<p>[logical vector of length 2] use short names for the output coefficients:
+omit the name of the by variable, omit the regression variable name when the same regression variable is used in all models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.sigma, transform.k, transform.rho, transform.names</code></td>
+<td>
+<p>[character] transformation used on certain type of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>[interger, &gt;0] Show the progress of the execution of the function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>Grouping variable</b> in argument repetition: when numeric, it will be converted into a factor variable, possibly adding a leading 0 to preserve the ordering.
+This transformation may cause inconsistency when combining results between different <code>lmm</code> object. 
+This is why the grouping variable should preferably be of type character or factor.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>confint.mlmm</code> for a data.frame containing estimates with their uncertainty. <br><code>summary.mlmm</code> for a summary of the model and estimates. <br><code>autoplot.Wald_lmm</code> for a graphical display. <br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### univariate regression ####
+if(require(lava) &amp;&amp; require(multcomp)){
+
+set.seed(10)
+d1 &lt;- cbind(sim(lvm(Y~0.5*X1), 25), group = "A")
+d2 &lt;- cbind(sim(lvm(Y~0.1*X1), 100), group = "B")
+d3 &lt;- cbind(sim(lvm(Y~0.01*X1), 1000), group = "C")
+d1$id &lt;- 1:NROW(d1)
+d2$id &lt;- 1:NROW(d2)
+d3$id &lt;- 1:NROW(d3)
+
+d &lt;- rbind(d1,d2,d3)
+
+e.mlmm &lt;- mlmm(Y~X1, data = d, by = "group", effects = "X1=0")
+summary(e.mlmm)
+summary(e.mlmm, method = "single-step")
+summary(e.mlmm, method = "single-step2")
+
+## re-work contrast
+summary(anova(e.mlmm, effects = mcp(X1 = "Dunnett")), method = "none")
+## summary(mlmm(Y~X1, data = d, by = "group", effects = mcp(X1="Dunnett")))
+}
+
+#### multivariate regression ####
+set.seed(10)
+dL &lt;- sampleRem(250, n.times = 3, format = "long")
+
+e.mlmm &lt;- mlmm(Y~X1+X2+X6, repetition = ~visit|id, data = dL,
+               by = "X4", structure = "CS")
+summary(e.mlmm)
+
+e.mlmmX1 &lt;- mlmm(Y~X1+X2+X6, repetition = ~visit|id, data = dL,
+               by = "X4", effects = "X1=0", structure = "CS")
+summary(e.mlmmX1)
+summary(e.mlmmX1, method = "single-step")
+
+</code></pre>
+
+
+</div>

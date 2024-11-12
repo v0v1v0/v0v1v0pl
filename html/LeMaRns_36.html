@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_annual_catch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get annual catch for each species, catch per unit effort or catch per gear</h2>
+
+<h3>Description</h3>
+
+<p>Get annual catch for each species, the Catch Per Unit Effort (CPUE) or the Catch Per Gear (CPG)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_annual_catch(inputs, outputs, ...)
+
+## S4 method for signature 'missing,missing'
+get_annual_catch(
+  Catch,
+  years = (dim(Catch)[3] + (inc_first - 1)) * phi_min,
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+
+## S4 method for signature 'LeMans_param,missing'
+get_annual_catch(
+  inputs,
+  Catch,
+  years = (dim(Catch)[3] + (inc_first - 1)) * inputs@phi_min,
+  inc_first = FALSE
+)
+
+## S4 method for signature 'LeMans_param,LeMans_outputs'
+get_annual_catch(
+  inputs,
+  outputs,
+  years = (dim(outputs@Catch)[3] + (inc_first - 1)) * inputs@phi_min,
+  inc_first = FALSE
+)
+
+## S4 method for signature 'missing,LeMans_outputs'
+get_annual_catch(
+  outputs,
+  years = (dim(outputs@Catch)[3] + (inc_first - 1)) * phi_min,
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+
+get_CPUE(inputs, outputs, ...)
+
+## S4 method for signature 'LeMans_param,LeMans_outputs'
+get_CPUE(inputs, outputs, effort, years = nrow(effort), inc_first = FALSE)
+
+## S4 method for signature 'LeMans_param,missing'
+get_CPUE(inputs, Catch, effort, years = nrow(effort), inc_first = FALSE)
+
+## S4 method for signature 'missing,LeMans_outputs'
+get_CPUE(
+  outputs,
+  Qs,
+  effort,
+  years = nrow(effort),
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+
+## S4 method for signature 'missing,missing'
+get_CPUE(
+  Catch,
+  Qs,
+  effort,
+  years = nrow(effort),
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+
+get_CPG(inputs, outputs, ...)
+
+## S4 method for signature 'LeMans_param,LeMans_outputs'
+get_CPG(inputs, outputs, effort, years = nrow(effort), inc_first = FALSE)
+
+## S4 method for signature 'LeMans_param,missing'
+get_CPG(inputs, Catch, effort, years = nrow(effort), inc_first = FALSE)
+
+## S4 method for signature 'missing,LeMans_outputs'
+get_CPG(
+  outputs,
+  Qs,
+  effort,
+  years = nrow(effort),
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+
+## S4 method for signature 'missing,missing'
+get_CPG(
+  Catch,
+  Qs,
+  effort,
+  years = nrow(effort),
+  phi_min = 0.1,
+  inc_first = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p>A <code>LeMans_param</code> object containing the parameter values of the current LeMans model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputs</code></td>
+<td>
+<p>A <code>LeMans_outputs</code> object containing the outputs of the model run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Catch</code></td>
+<td>
+<p>An array with dimensions <code>nsc</code>, <code>nfish</code> and <code>tot_time</code> representing the number of individuals in each length class for each time step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>years</code></td>
+<td>
+<p>A numeric value representing the number of years included in <code>Catch</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi_min</code></td>
+<td>
+<p>A numeric value representing the time step of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inc_first</code></td>
+<td>
+<p>A logical statement indicating whether the first time step of <code>Catch</code> should be included. The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effort</code></td>
+<td>
+<p>A matrix with dimensions <code>years</code> and the number of fishing gears, representing fishing effort in each year for each gear.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Qs</code></td>
+<td>
+<p>An array of dimensions <code>nsc</code>, <code>nfish</code> and <code>gear</code> representing the catchability of each species by each of the fishing gears.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>get_annual_catch</code> returns a matrix with dimensions <code>years</code> and <code>length(species)</code> where the <code>i,j</code>th element represents the total catch (g) of the <code>j</code>th <code>species</code> in the <code>i</code>th year.
+</p>
+<p><code>get_CPUE</code> returns a matrix with dimensions <code>tot_time</code> and <code>nfish</code> where the <code>i,j</code>th element represents the CPUE in the <code>i</code>th time step for the <code>j</code>th species.
+</p>
+<p><code>get_CPG</code> returns an array with dimensions <code>nfish</code>, <code>dim(Qs[3])</code> and the number of time steps, where the <code>i,j,k</code>th element denotes the total catch of the <code>i</code>th species by the <code>j</code>th gear in the <code>k</code>th time step.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up and run the model
+NS_params &lt;- LeMansParam(NS_par, tau=NS_tau, eta=rep(0.25, 21), L50=NS_par$Lmat, other=1e12)
+effort &lt;- matrix(0.5, 10, dim(NS_params@Qs)[3])
+model_run &lt;- run_LeMans(NS_params, years=10, effort=effort)
+
+# Get annual catch
+get_annual_catch(inputs=NS_params, outputs=model_run)
+
+# Calculate the CPUE
+get_CPUE(inputs=NS_params, outputs=model_run, effort=effort)
+
+# Calculate Catch Per Gear (CPG)
+get_CPG(inputs=NS_params, outputs=model_run, effort=effort)
+</code></pre>
+
+
+</div>

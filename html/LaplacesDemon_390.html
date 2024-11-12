@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dist.Multivariate.t.Precision.Cholesky</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multivariate t Distribution: Precision-Cholesky Parameterization</h2>
+
+<h3>Description</h3>
+
+<p>These functions provide the density and random number generation for
+the multivariate t distribution, otherwise called the multivariate
+Student distribution. These functions use the precision and Cholesky
+parameterization.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dmvtpc(x, mu, U, nu=Inf, log=FALSE)
+rmvtpc(n=1, mu, U, nu=Inf)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This is either a vector of length <code class="reqn">k</code> or a matrix with 
+a number of columns, <code class="reqn">k</code>, equal to the number of columns in
+precision matrix <code class="reqn">\Omega</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>This is the number of random draws.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>This is a numeric vector representing the location parameter,
+<code class="reqn">\mu</code> (the mean vector), of the multivariate distribution
+(equal to the expected value when <code>df &gt; 1</code>, otherwise
+represented as <code class="reqn">\nu &gt; 1</code>). It must be of length
+<code class="reqn">k</code>, as defined above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>This is a <code class="reqn">k \times k</code> upper-triangular of the
+precision matrix that is Cholesky fator <code class="reqn">\textbf{U}</code> of
+precision matrix <code class="reqn">\Omega</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>This is the degrees of freedom <code class="reqn">\nu</code>, which must be
+positive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>Logical. If <code>log=TRUE</code>, then the logarithm of the
+density is returned.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p> Application: Continuous Multivariate
+</p>
+</li>
+<li>
+<p> Density: </p>
+<p style="text-align: center;"><code class="reqn">p(\theta) =
+    \frac{\Gamma((\nu+k)/2)}{\Gamma(\nu/2)\nu^{k/2}\pi^{k/2}}
+    |\Omega|^{1/2} (1 + \frac{1}{\nu} (\theta-\mu)^T \Omega
+    (\theta-\mu))^{-(\nu+k)/2}</code>
+</p>
+
+</li>
+<li>
+<p> Inventor: Unknown (to me, anyway)
+</p>
+</li>
+<li>
+<p> Notation 1: <code class="reqn">\theta \sim \mathrm{t}_k(\mu,
+    \Omega^{-1}, \nu)</code>
+</p>
+</li>
+<li>
+<p> Notation 2: <code class="reqn">p(\theta) = \mathrm{t}_k(\theta | \mu,
+    \Omega^{-1}, \nu)</code>
+</p>
+</li>
+<li>
+<p> Parameter 1: location vector <code class="reqn">\mu</code>
+</p>
+</li>
+<li>
+<p> Parameter 2: positive-definite <code class="reqn">k \times k</code> precision
+matrix <code class="reqn">\Omega</code>
+</p>
+</li>
+<li>
+<p> Parameter 3: degrees of freedom <code class="reqn">\nu &gt; 0</code>
+</p>
+</li>
+<li>
+<p> Mean: <code class="reqn">E(\theta) = \mu</code>, for <code class="reqn">\nu &gt; 1</code>, otherwise undefined
+</p>
+</li>
+<li>
+<p> Variance: <code class="reqn">var(\theta) = \frac{\nu}{\nu - 2}
+    \Omega^{-1}</code>, for <code class="reqn">\nu
+    &gt; 2</code>
+</p>
+</li>
+<li>
+<p> Mode: <code class="reqn">mode(\theta) = \mu</code>
+</p>
+</li>
+</ul>
+<p>The multivariate t distribution, also called the multivariate Student or
+multivariate Student t distribution, is a multidimensional extension of the
+one-dimensional or univariate Student t distribution. A random vector is
+considered to be multivariate t-distributed if every linear
+combination of its components has a univariate Student t-distribution.
+</p>
+<p>It is usually parameterized with mean and a covariance matrix, or in
+Bayesian inference, with mean and a precision matrix, where the
+precision matrix is the matrix inverse of the covariance matrix. These
+functions provide the precision parameterization for convenience and
+familiarity. It is easier to calculate a multivariate t density
+with the precision parameterization, because a matrix inversion can be
+avoided. The precision matrix is replaced with an upper-triangular
+<code class="reqn">k \times k</code> matrix that is Cholesky factor
+<code class="reqn">\textbf{U}</code>, as per the <code>chol</code> function for Cholesky
+decomposition.
+</p>
+<p>This distribution has a mean parameter vector <code class="reqn">\mu</code> of length
+<code class="reqn">k</code>, and a <code class="reqn">k \times k</code> precision matrix
+<code class="reqn">\Omega</code>, which must be positive-definite. When degrees of
+freedom <code class="reqn">\nu=1</code>, this is the multivariate Cauchy distribution.
+</p>
+<p>In practice, <code class="reqn">\textbf{U}</code> is fully unconstrained for proposals
+when its diagonal is log-transformed. The diagonal is exponentiated
+after a proposal and before other calculations. Overall, the Cholesky
+parameterization is faster than the traditional parameterization.
+Compared with <code>dmvtp</code>, <code>dmvtpc</code> must additionally
+matrix-multiply the Cholesky back to the precision matrix, but it
+does not have to check for or correct the precision matrix to
+positive-definiteness, which overall is slower. Compared with
+<code>rmvtp</code>, <code>rmvtpc</code> is faster because the Cholesky decomposition
+has already been performed.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>dmvtpc</code> gives the density and 
+<code>rmvtpc</code> generates random deviates.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>chol</code>,
+<code>dwishartc</code>,
+<code>dmvc</code>,
+<code>dmvcp</code>,
+<code>dmvtc</code>,
+<code>dst</code>,
+<code>dstp</code>, and
+<code>dt</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+x &lt;- seq(-2,4,length=21)
+y &lt;- 2*x+10
+z &lt;- x+cos(y) 
+mu &lt;- c(1,12,2)
+Omega &lt;- matrix(c(1,2,0,2,5,0.5,0,0.5,3), 3, 3)
+U &lt;- chol(Omega)
+nu &lt;- 4
+f &lt;- dmvtpc(cbind(x,y,z), mu, U, nu)
+X &lt;- rmvtpc(1000, c(0,1,2), U, 5)
+joint.density.plot(X[,1], X[,2], color=TRUE)
+</code></pre>
+
+
+</div>

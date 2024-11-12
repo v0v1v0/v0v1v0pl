@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sl2acfbase</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Convert between vector and season-lag representations</h2>
+
+<h3>Description</h3>
+
+<p>Convert between vector and season-lag representations of
+autocovariances of multivariate and periodically correlated time
+series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sl2acfbase(mat, maxlag, fullblocks = FALSE)
+
+acfbase2sl(acf)
+
+sl2vecacf(mat, maxlag, fullblocks = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>acf</code></td>
+<td>
+<p>an acf as returned by base R <code>acf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mat</code></td>
+<td>
+
+<p>a matrix containing autocovariances in season-lag arrangement.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxlag</code></td>
+<td>
+<p>maximal lag, a positive integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fullblocks</code></td>
+<td>
+<p>if TRUE, keep full blocks only.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These functions rearrange autocovariances and autocorrelations between
+the native season-lag arrangement in package “pcts” and the vector
+representations of the corresponding mutivariate models (vector of
+seasons representation of periodic models). Variable <code class="reqn">s</code> is taken
+be season <code class="reqn">s</code> and vice versa in the opposite direction.
+</p>
+<p>“acfbase” in the names of the functions refers to the representation
+returned by base function <code>acf</code>.
+</p>
+<p><code>acfbase2sl</code> rearranges a multivariate acf in season-lag form.
+</p>
+<p><code>sl2acfbase</code> rearranges a season-lag form into the multivariate
+form used by base function <code>acf</code>.
+</p>
+<p><code>sl2vecacf</code> is similar to <code>sl2acfbase</code> but the result is
+such that the lag is in the third dimension and <code>r[ , , k]</code> is
+<code class="reqn">Cov(X_{t}, X_{t-k})</code> (not its transpose). See also the examples
+below and in <code>acf2Lagged</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>for <code>acfbase2sl</code>, a matrix.
+</p>
+<p>for <code>sl2acfbase</code> and <code>sl2vecacf</code>, an array.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Georgi N. Boshnakov</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## use a character matrix to illustrate the positions of the elements
+matsl &lt;- rbind(paste0("Ra", 0:3), paste0("Rb", 0:3))
+matsl
+## convert to what I consider "standard" vec format R(k)=EX_tX_{t-k}'
+sl2vecacf(matsl)
+## convert to the format from acf() (R(k) is the transposed from mine).
+sl2acfbase(matsl)
+identical(sl2vecacf(matsl), aperm(sl2acfbase(matsl), c(3, 2, 1))) # TRUE
+
+## by default the conversion is lossles;
+## so this contains all values from the original and some NA's:
+sl2acfbase(matsl)
+## the orignal, matsl, can be restored:
+acfbase2sl(sl2acfbase(matsl))
+identical(acfbase2sl(sl2acfbase(matsl)), matsl)  # TRUE
+
+## this drops some values (if necessary) to keep complete block only
+sl2acfbase(matsl, fullblocks = TRUE)
+</code></pre>
+
+
+</div>

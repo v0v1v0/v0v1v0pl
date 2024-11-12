@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>linkSAGA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Identifies SAGA GIS Installations and returns linking Informations</h2>
+
+<h3>Description</h3>
+
+<p>Finds the existing <a href="https://saga-gis.sourceforge.io/">SAGA GIS</a> installation(s), 
+generates and sets the necessary path and system variables for a seamless use of the command 
+line calls of the 'SAGA GIS' CLI API, setup valid system variables for calling a default 
+<code>rsaga.env</code> and by this makes available the <code>RSAGA</code> wrapper functions.<br>
+All existing installation(s) means that it looks for the <code>saga_cmd</code> or <code>saga_cmd.exe</code> 
+executables. If the file is found it is assumed to be a valid 'SAGA GIS' installation. If it is called without any argument the most recent (i.e. highest) SAGA GIS version will be linked.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">linkSAGA(
+  default_SAGA = NULL,
+  searchLocation = "default",
+  ver_select = FALSE,
+  quiet = TRUE,
+  returnPaths = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>default_SAGA</code></td>
+<td>
+<p>string contains path to <code>RSAGA</code> binaries</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>searchLocation</code></td>
+<td>
+<p>drive letter to be searched, for Windows systems default
+is <code>C:</code>, for Linux systems default is <code>/usr/bin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ver_select</code></td>
+<td>
+<p>boolean default is FALSE. If there is more than one 'SAGA GIS' installation and <code>ver_select</code> = TRUE the user can select interactively the preferred 'SAGA GIS' version</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>boolean  switch for supressing console messages default is TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnPaths</code></td>
+<td>
+<p>boolean if set to FALSE the paths of the selected version are written 
+to the PATH variable only, otherwise all paths and versions of the installed SAGA versions ae returned.#'@details If called without any parameter <code>linkSAGA()</code> it performs a full search over <code>C:</code>. If it finds one or more 'SAGA GIS' binaries it will take the first hit. You have to set <code>ver_select = TRUE</code> for an interactive selection of the preferred version. Additionally the selected SAGA paths are added to the environment and the global variables <code>sagaPath</code>, <code>sagaModPath</code> and <code>sagaCmd</code> will be created.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the selected <code>RSAGA</code> path variables <code>$sagaPath</code>,<code>$sagaModPath</code>,<code>$sagaCmd</code> and potentially other installations <code>$installed</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>The 'SAGA GIS' wrapper <a href="https://CRAN.R-project.org/package=RSAGA">RSAGA</a> 
+package was updated several times however it covers currently (May 2014) only 'SAGA GIS' 
+versions from  2.3.1 LTS - 8.4.1 The fast evolution of 'SAGA GIS' makes it highly impracticable
+to keep the wrapper adaptions in line (currently 9.4). <code>RSAGA</code> will meet all linking needs perfectly if 
+you use 'SAGA GIS' versions from 2.0.4 - 7.5.0. <br>  However you must call <code>rsaga.env</code> using the <code>rsaga.env(modules = saga$sagaModPath)</code> assuming that <code>saga</code> contains the returnPaths of <code>linkSAGA</code> 
+In addition the very promising  <a href="https://github.com/stevenpawley/Rsagacmd">Rsagacmd</a> wrapper package is providing a new list oriented wrapping tool.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+# call if you do not have any idea if and where SAGA GIS is installed
+# it will return a list with the selected and available SAGA installations
+# it prepares the system for running the selected SAGA version via RSAGA or CLI
+linkSAGA()
+
+# overriding the default environment of rsaga.env call 
+
+saga&lt;-linkSAGA()
+if (saga$exist) {
+require(RSAGA)
+RSAGA::rsaga.env(path = saga$installed$binDir[1],modules = saga$installed$moduleDir[1])
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

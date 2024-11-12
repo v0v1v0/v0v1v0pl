@@ -1,0 +1,172 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>listdown</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a listdown Object</h2>
+
+<h3>Description</h3>
+
+<p>A listdown object provides information for how a presentation
+list should be used to create an R Markdown document. It requires an
+unquoted expression indicating how the presentation list will be loaded.
+In addition, libraries required by the outputted document and other
+parameters can be specified.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">listdown(
+  package = NULL,
+  decorator = list(),
+  decorator_chunk_opts = list(),
+  default_decorator = identity,
+  setup_expr = NULL,
+  init_expr = NULL,
+  load_cc_expr = NULL,
+  ...,
+  chunk_opts = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+<p>a quoted list of package required by the outputted document.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decorator</code></td>
+<td>
+<p>a named list mapping the potential types of list elements
+to a decorator function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decorator_chunk_opts</code></td>
+<td>
+<p>a named list mapping the potential types of list
+elements to chunk options that should be included for those types.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>default_decorator</code></td>
+<td>
+<p>the decorator to use for list elements whose type
+is not inherited from the decorator list. If NULL then the those
+elements will not be included when the chunks are written. By default
+this is identity, meaning that the elements will be passed directly
+(through the identity() function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setup_expr</code></td>
+<td>
+<p>an expression that is added before package are 
+loaded. The expression is put into a chunk named 'setup' with option
+'include = FALSE' and is intended for initializing the document. For
+example the expression 'knitr::opts_chunk$set(echo = FALSE)' could be
+used to turn echo'ing off for the entire document.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_expr</code></td>
+<td>
+<p>an initial expression that will be added to the outputted
+document after the libraries have been called. This expression appears
+after packages are loaded and before data is read.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>load_cc_expr</code></td>
+<td>
+<p>either an unquoted expression or a character string
+that will be turned into an unquoted expression via str2lang to load the 
+presentation list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>default options sent to the chunks of the outputted document.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk_opts</code></td>
+<td>
+<p>a named list of options sent to the chunks of outputted
+documents. Note: takes priority over argument provided to ...</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An S3 object of type 'listdown'
+</p>
+
+<ul>
+<li>
+<p> load_cc_expr - the R expression to load computational components.
+</p>
+</li>
+<li>
+<p> decorator - the list element decorators.
+</p>
+</li>
+<li>
+<p> package - package dependencies for the document.
+</p>
+</li>
+<li>
+<p> init_expr - the R expression to run initially.
+</p>
+</li>
+<li>
+<p> setup_expr - the R expression to run on setup.
+</p>
+</li>
+<li>
+<p> decorator_chunk_options - the R Markdown chunk options.
+</p>
+</li>
+<li>
+<p> default_decorator - the set of default decorators.
+</p>
+</li>
+<li>
+<p> chunk_opts - the default R Markdown chunk options.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+cc &lt;- list(
+    iris = iris,
+     Sepal.Length = list(
+       Sepal.Width = ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+            geom_point(),
+       Petal.Length = ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+            geom_point(),
+     Colored = list(
+          Sepal.Width = ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width,
+            color = Species)) + geom_point(),
+          Petal.Length = ggplot(iris, aes(x = Sepal.Length, y = Petal.Length,
+            color = Species)) + geom_point())))
+
+header &lt;- ld_rmarkdown_header("Test header", author = "Some Dude",
+                              date = "2020")
+
+ld &lt;- listdown(package = "ggplot2")
+
+ld_bundle_doc(cc, header, ld)
+</code></pre>
+
+
+</div>

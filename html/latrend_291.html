@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcFitMethods</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Method fit modifiers</h2>
+
+<h3>Description</h3>
+
+<p>A collection of special methods that adapt the fitting procedure of the underlying longitudinal cluster method.
+</p>
+<p>NOTE: the underlying implementation is experimental and may change in the future.
+</p>
+<p>Supported fit methods:
+</p>
+
+<ul>
+<li> <p><code>lcFitConverged</code>: Fit a method until a converged result is obtained.
+</p>
+</li>
+<li> <p><code>lcFitRep</code>: Repeatedly fit a method and return the best result based on a given internal metric.
+</p>
+</li>
+<li> <p><code>lcFitRepMin</code>: Repeatedly fit a method and return the best result that minimizes the given internal metric.
+</p>
+</li>
+<li> <p><code>lcFitRepMax</code>: Repeatedly fit a method and return the best result that maximizes the given internal metric.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcFitConverged(method, maxRep = Inf)
+
+lcFitRep(method, rep = 10, metric, maximize)
+
+lcFitRepMin(method, rep = 10, metric)
+
+lcFitRepMax(method, rep = 10, metric)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The <code>lcMethod</code> to use for fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxRep</code></td>
+<td>
+<p>The maximum number of fit attempts</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>The number of fits</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric</code></td>
+<td>
+<p>The internal metric to assess the fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maximize</code></td>
+<td>
+<p>Whether to maximize the metric. Otherwise, it is minimized.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Meta methods are immutable and cannot be updated after instantiation. Calling <code>update()</code> on a meta method is only used to update arguments of the underlying lcMethod object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(latrendData)
+method &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time", nClusters = 2)
+metaMethod &lt;- lcFitConverged(method, maxRep = 10)
+metaMethod
+model &lt;- latrend(metaMethod, latrendData)
+
+data(latrendData)
+method &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time", nClusters = 2)
+repMethod &lt;- lcFitRep(method, rep = 10, metric = "RSS", maximize = FALSE)
+repMethod
+model &lt;- latrend(repMethod, latrendData)
+
+minMethod &lt;- lcFitRepMin(method, rep = 10, metric = "RSS")
+
+maxMethod &lt;- lcFitRepMax(method, rep = 10, metric = "ASW")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,299 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>headrick.sheng.lalpha</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sample Headrick and Sheng L-alpha</h2>
+
+<h3>Description</h3>
+
+<p>Compute the sample “Headrick and Sheng L-alpha” (<code class="reqn">\alpha_L</code>) (Headrick and Sheng, 2013) by
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha_L = \frac{d}{d-1}
+   \biggl(1 - \frac{\sum_j \lambda^{(j)}_2}{\sum_j \lambda^{(j)}_2 + \sum\sum_{j\ne j'} \lambda_2^{(jj')}} \biggr)\mathrm{,}</code>
+</p>
+
+<p>where <code class="reqn">j = 1,\ldots,d</code> for dimensions <code class="reqn">d</code>, the <code class="reqn">\sum_j \lambda^{(j)}_2</code> is the summation of all the 2nd order (univariate) L-moments (L-scales, <code class="reqn">\lambda^{(j)}_2</code>), and the double summation is the summation of all the 2nd-order L-comoments (<code class="reqn">\lambda_2^{(jj')}</code>). In other words, the double summation is the sum total of all entries in both the lower and upper triangles (not the primary diagonal) of the L-comoment matrix (the L-scale and L-coscale [L-covariance] matrix) (<code>Lcomoment.matrix</code>).
+</p>
+<p>The <code class="reqn">\alpha_L</code> is closely related in structural computation as the well-known “Cronbach alpha” (<code class="reqn">\alpha_C</code>). These are coefficients of reliability, which commonly ranges from 0 to 1, that provide what some methodologists portray as an overall assessment of a measure's reliability. If all of the scale items are entirely independent from one another, meaning that they are not correlated or share no covariance, then <code class="reqn">\alpha_C</code> is 0, and, if all of the items have high covariances, then <code class="reqn">\alpha_C</code> will approach 1 as the number of items in the scale approaches infinity. The higher the <code class="reqn">\alpha_C</code> coefficient, the more the items have shared covariance and probably measure the same underlying concept. Theoretically, there is no lower bounds for <code class="reqn">\alpha_{C,L}</code>, which can add complicating nuances in bootstrap or simulation study of both <code class="reqn">\alpha_C</code> and <code class="reqn">\alpha_L</code>. Negative values are considered a sign of something potentially wrong about the measure related to items not being positively correlated with each other, or a scoring system for a question item reversed. (This paragraph in part paraphrases <code>data.library.virginia.edu/using-and-interpreting-cronbachs-alpha/</code><br> (accessed May 21, 2023; dead link April 18, 2024) and other general sources.)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">headrick.sheng.lalpha(x, bycovFF=FALSE, a=0.5, digits=8, ...)
+
+lalpha(x, bycovFF=FALSE, a=0.5, digits=8, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>data.frame</code> of the random observations for the <code class="reqn">d</code> random variables <code class="reqn">X</code>, which must be suitable for internal dispatch to the <code>Lcomoment.matrix</code> function for computation of the 2nd-order L-comoment matrix. Alternatively, <code>x</code> can be a precomputed 2nd-order L-comoment matrix (L-scale and L-coscale matrix) as shown by the following usage: <code>lalpha(Lcomoment.matrix(x, k=2)$matrix).</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bycovFF</code></td>
+<td>
+<p>A logical triggering the covariance pathway for the computation and bypassing the call to the L-comoments. The additional arguments can be used to control the <code>pp</code> function that is called internally to estimate nonexceedance probabilities and the “covariance pathway” (see <b>Details</b>). If <code>bycovFF</code> is <code>FALSE</code>, then the direct to L-comoment computation is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>The plotting position argument <code>a</code> to the <code>pp</code> function that is hardwired here to Hazen in contrast to the default <code>a=0</code> of <code>pp</code> (Weibull) for reasoning shown in this documentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Number of digits for rounding on the returned value(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Headrick and Sheng (2013) propose <code class="reqn">\alpha_L</code> to be an alternative estimator of reliability based on L-comoments. Those authors describe its context as follows: “Consider [a statistic] alpha (<code class="reqn">\alpha</code>) in terms of a model that decomposes an observed score into the sum of two independent components: a true unobservable score <code class="reqn">t_i</code> and a random error component <code class="reqn">\epsilon_{ij}</code>.”
+</p>
+<p>Those authors continue “The model can be summarized as
+<code class="reqn">X_{ij} = t_i + \epsilon_{ij}\mathrm{,}</code> where <code class="reqn">X_{ij}</code> is the observed score associated with the <code class="reqn">i</code>th examinee on the <code class="reqn">j</code>th test item, and where <code class="reqn">i = 1,...,n</code> [for sample size <code class="reqn">n</code>]; <code class="reqn">j = 1,\ldots,d</code>; and the error terms (<code class="reqn">\epsilon_{ij}</code>) are independent with a mean of zero.” Those authors comment that “inspection of [this model] indicates that this particular model restricts the true score <code class="reqn">t_i</code> to be the same across all <code class="reqn">d</code> test items.”
+</p>
+<p>Those authors show empirical results for a simulation study, which indicate that <code class="reqn">\alpha_L</code> can be “substantially superior” to [a different formulation of <code class="reqn">\alpha_C</code> (Cronbach's alpha) based on product moments (the variance-covariance matrix)] in “terms of relative bias and relative standard error when distributions are heavy-tailed and sample sizes are small.”
+</p>
+<p>Those authors show (Headrick and Sheng, 2013, eqs. 4 and 5) the reader that the second L-comoments of <code class="reqn">X_j</code> and <code class="reqn">X_{j'}</code> can alternatively be expressed as
+<code class="reqn">\lambda_2(X_j) = 2\mathrm{Cov}(X_j, F(X_j))</code> and <code class="reqn">\lambda_2(X_{j'}) = 2\mathrm{Cov}(X_{j'}, F(X_{j'}))</code>. The second L-comoments of <code class="reqn">X_j</code> toward (with respect to) <code class="reqn">X_{j'}</code> and <code class="reqn">X_{j'}</code> toward (with respect to) <code class="reqn">X_j</code> are <code class="reqn">\lambda_2^{(jj')} = 2\mathrm{Cov}(X_j, F(X_{j'}))</code> and <code class="reqn">\lambda_2^{(j'j)} = 2\mathrm{Cov}(X_{j'}, F(X_j))</code>. The respective cumulative distribution functions are denoted <code class="reqn">F(x_j)</code> (nonexceedance probabilities). Evidently, those authors present the L-moments and L-comoments this way because their first example (thanks for detailed numerics!) already contain nonexceedance probabilities.
+</p>
+<p>This apparent numerical difference between the version using estimates of nonexceedance probabilities for the data (the “covariance pathway”) compared to a “direct to L-comoment” pathway might be more than academic concern.
+</p>
+<p>The <b>Examples</b> provide comparison and brief discussion of potential issues involved in the direct L-comoments and the covariance pathway. The discussion leads to interest in the effects of ties and their handling and the question of <code class="reqn">F(x_j)</code> estimation by plotting position (<code>pp</code>). The <b>Note</b> section of this documentation provides expanded information and insights to <code class="reqn">\alpha_L</code> computation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The <code class="reqn">\alpha_L</code> statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pitems</code></td>
+<td>
+<p>The number of items (column count) in the <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The sample size (row count), if applicable, to the contents of <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>Any pertinent messages about the computations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the Headrick and Sheng L-alpha: “headrick.sheng.lalpha” or “lalpha.star()”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Headrick and Sheng (2013) use <code class="reqn">k</code> to represent <code class="reqn">d</code> as used here. The change is made because <code>k</code> is an L-comoment order argument already in use by <code>Lcomoment.matrix</code>.
+</p>
+<p><b>Demonstration of Nuances of L-alpha</b>—Consider Headrick and Sheng (2013, tables 1 and 2) and the effect of those authors' covariance pathway to <code class="reqn">\alpha_L</code>:
+</p>
+<pre>
+  X1 &lt;- c(2, 5, 3, 6, 7, 5, 2, 4, 3, 4) # Table 1 in Headrick and Sheng (2013)
+  X2 &lt;- c(4, 7, 5, 6, 7, 2, 3, 3, 5, 4)
+  X3 &lt;- c(3, 7, 5, 6, 6, 6, 3, 6, 5, 5)
+  X  &lt;- data.frame(X1=X1, X2=X2, X3=X3)
+  lcm2 &lt;- Lcomoment.matrix(X, k=2)
+  print(lcm2$matrix, 3)
+  #       [,1]  [,2]  [,3]
+  # [1,] 0.989 0.567 0.722
+  # [2,] 0.444 1.022 0.222
+  # [3,] 0.644 0.378 0.733
+</pre>
+<p>Now, compare the above matrix to Headrick and Sheng (2013, table 2) where it is immediately seen that the matrices are not the same before the summations are applied to compute <code class="reqn">\alpha_L</code>.
+</p>
+<pre>
+  #       [,1]  [,2]  [,3]
+  # [1,] 0.989 0.500 0.789
+  # [2,] 0.500 1.022 0.411
+  # [3,] 0.667 0.333 0.733
+</pre>
+<p>Now, consider how the nonexceedances in Headrick and Sheng (2013, table 1) might have been computed w/o following their citation to original sources. It can be shown with reference to the first example above that these nonexceedance probabilities match.
+</p>
+<pre>
+  FX1 &lt;- rank(X$X1, ties.method="average") / length(X$X1)
+  FX2 &lt;- rank(X$X2, ties.method="average") / length(X$X2)
+  FX3 &lt;- rank(X$X3, ties.method="average") / length(X$X3)
+</pre>
+<p>Notice in Headrick and Sheng (2013, table 1) that there is no zero probability, but there is a unity and some of the probabilities are tied. Ties have numerical ramifications. Let us now look at other L-alphas using the nonexceedance pathway and use different definitions of nonexceedance estimation and inspect the results:
+</p>
+<pre>
+  # lmomco documentation says pp() uses ties.method="first"
+  lalpha(X, bycovFF=TRUE, a=0     )$alpha
+  # [1] 0.7448583  # unbiased probs all distributions
+  lalpha(X, bycovFF=TRUE, a=0.3173)$alpha
+  # [1] 0.7671384  # Median probs for all distributions
+  lalpha(X, bycovFF=TRUE, a=0.35  )$alpha
+  # [1] 0.7695105  # Often used with probs-weighted moments
+  lalpha(X, bycovFF=TRUE, a=0.375 )$alpha
+  # [1] 0.771334   # Blom, nearly unbiased quantiles for normal
+  lalpha(X, bycovFF=TRUE, a=0.40  )$alpha
+  # [1] 0.7731661  # Cunnane, appox quantile unbiased
+  lalpha(X, bycovFF=TRUE, a=0.44  )$alpha
+  # [1] 0.7761157  # Gringorten, optimized for Gumbel
+  lalpha(X, bycovFF=TRUE, a=0.5   )$alpha
+  # [1] 0.7805825  # Hazen, traditional choice
+                   # This the plotting position (i-0.5) / n
+</pre>
+<p>This is not a particularly pleasing situation because the choice of the plotting position affects the <code class="reqn">\alpha_L</code>. The Hazen definition <code>lalpha(X[,1:3], bycovFF=FALSE)</code> using direct to L-comoments matches the last computation shown (<code class="reqn">\alpha_L = 0.7805825</code>). A question, thus, is does this matching occur because of the nature of the ties and structure of the L-comoment algorithm itself? A note to this question involves a recognition that the answer is yes because L-comoments use a <code>sort()</code> operation and does not use <code>rank()</code> because the weights for the linear combinations are used and the covariance pathway <code>2*cov(x$X3, x$FX2)</code>, for instance.
+</p>
+<p>Recognizing that the direct to L-comoments alpha equals the covariance pathway with Hazen plotting positions, let us look at L-comoments:
+</p>
+<pre>
+  lmomco::Lcomoment.Lk12 ------&gt; snippet
+       X12 &lt;- X1[sort(X2, decreasing = FALSE, index.return = TRUE)$ix]
+       n &lt;- length(X1)
+       SUM &lt;- sum(sapply(1:n, function(r) { Lcomoment.Wk(k, r, n) * X12[r] }))
+       return(SUM/n)
+</pre>
+<p>Notice that a <code>ties.method</code> is not present but kind of implicit as ties first by the index return of the <code>sort()</code> and notice the return of a <code>SUM/n</code> though this is an L-comoment and not an nonexceedance probability.
+</p>
+<p>Let us run through the tie options using a plotting position definition (<code class="reqn">i / n</code>) matching the computations of Headrick and Sheng (2013) (<code>"average"</code>, <code>A=0</code>, <code>B=0</code> for <code>pp</code>) and the first computation <code class="reqn">\alpha_L = 0.807</code> matches that reported by Headrick and Sheng (2013, p. 4):
+</p>
+<pre>
+  for(tie in c("average", "first", "last", "min", "max")) { # random left out
+    Lalpha &lt;- lalpha(X, bycovFF=TRUE,
+                        a=NULL, A=0, B=0, ties.method=tie)$alpha
+    message("Ties method ", stringr::str_pad(tie, 7, pad=" "),
+            " provides L-alpha = ", Lalpha)
+  }
+  # Ties method average provides L-alpha = 0.80747664
+  # Ties method   first provides L-alpha = 0.78058252
+  # Ties method    last provides L-alpha = 0.83243243
+  # Ties method     min provides L-alpha = 0.81363468
+  # Ties method     max provides L-alpha = 0.80120709
+</pre>
+<p>Let us run through the tie options again using a different plotting position estimator (<code class="reqn">(n-0.5) / (n+0.5)</code>):
+</p>
+<pre>
+  for(tie in c("average", "first", "last", "min", "max")) { # random left out
+    Lalpha &lt;- lalpha(X, bycovFF=TRUE,
+                        a=NULL, A=-0.5, B=0.5, ties.method=tie)$alpha
+    message("Ties method ", stringr::str_pad(tie, 7, pad=" "),
+            " provides L-alpha = ", Lalpha)
+  }
+  # Ties method average provides L-alpha = 0.78925733
+  # Ties method   first provides L-alpha = 0.76230208
+  # Ties method    last provides L-alpha = 0.81431215
+  # Ties method     min provides L-alpha = 0.79543602
+  # Ties method     max provides L-alpha = 0.78296931
+</pre>
+<p>We see obviously that the decision on how to treat ties has some influence on the computation involving the covariance pathway. This is not an entirely satisfactory situation, but perhaps the distinction does not matter much? The direct L-comoment pathway seems to avoid this issue because <code>sort()</code> is stable and like <code>ties.method="first"</code>. Experiments suggest that <code>a=0.5</code> (Hazen plotting positions) produces the same results as direct L-comoment (see the next section). However, as the following code set shows:
+</p>
+<pre>
+  for(tie in c("average", "first", "last", "min", "max")) { # random left out
+    Lalpha1 &lt;- lalpha(X, bycovFF=TRUE, a=0.5, ties.method=tie)$alpha
+    Lalpha2 &lt;- lalpha(X, bycovFF=TRUE, a=NULL, A=-0.5, B=0, ties.method=tie)$alpha
+    Lalpha3 &lt;- lalpha(X, bycovFF=TRUE, a=NULL, A=-1  , B=0, ties.method=tie)$alpha
+    Lalpha4 &lt;- lalpha(X, bycovFF=TRUE, a=NULL, A=   0, B=0, ties.method=tie)$alpha
+    print(c(Lalpha1, Lalpha2, Lalpha3, Lalpha4))
+  }
+</pre>
+<p>The <code class="reqn">\alpha_L</code> for a given tie setting are all equal as long as the demoninator of the plotting position (<code class="reqn">(i + A) / (n + B)</code>) has <code>B=0</code>. The <code>a=0.5</code> produces Hazen, the <code>a=NULL, A=-0.5</code> produces Hazen, though <code>a=NULL, A=-1</code> (lower limit of <code>A</code>) and <code>a=NULL, A=0</code> (upper limit of <code>A</code> given <code>B</code>) also produces the same. This gives us as-implemented-proof that the sensitivity to the <code class="reqn">\alpha_L</code> computation is in the sorting and the denominator of the plotting position formula. The prudent default settings for when the <code>bycovFF</code> argument is true seems to have the <code class="reqn">a=-0.5</code> as nonexceedance probabilities are computed by the well-known Hazen description and with the tie method as first, the computations match direct to L-comoments.
+</p>
+<p><b>Demonstration of Computational Times</b>—A considerable amount of documentation and examples are provided here about the two pathways that <code class="reqn">\alpha_L</code> can be computed: (1) direct by L-comoments or (2) covariance pathway requiring precomputed estimates of the nonexceedance probabilities using a <code>ties.method="first"</code> (default <code>pp</code>). The following example shows numerical congruence between the two pathways if the so-called Hazen plotting positions (<code>a=0.5</code>, see <code>pp</code>) are requested with the implicit default of <code>ties.method="first"</code>. However, the computational time of the direct method is quite a bit longer because of latencies in the weight factor computations involved in the L-comoments and nested <code>for</code> loops.
+</p>
+<pre>
+  set.seed(1)
+  R &lt;- 1:10; nsam &lt;- 1E5 # random and uncorrelated scores in this measure
+  Z &lt;- data.frame( I1=sample(R, nsam, replace=TRUE),
+                   I2=sample(R, nsam, replace=TRUE),
+                   I3=sample(R, nsam, replace=TRUE),
+                   I4=sample(R, nsam, replace=TRUE) )
+  system.time(AnF &lt;- headrick.sheng.lalpha(Z, bycovFF=FALSE)$alpha)
+  system.time(AwF &lt;- headrick.sheng.lalpha(Z, bycovFF=TRUE )$alpha) # Hazen
+  #    user  system elapsed
+  #  30.382   0.095  30.501    AnF ---&gt; 0.01370302
+  #    user  system elapsed
+  #   5.054   0.030   5.092    AwF ---&gt; 0.01370302
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Headrick, T.C., and Sheng, Y., 2013, An alternative to Cronbach's alpha—An L-moment-based measure of internal-consistency reliability: <em>in</em> Millsap, R.E., van der Ark, L.A., Bolt, D.M., Woods, C.M. (eds) New Developments in Quantitative Psychology, Springer Proceedings in Mathematics and Statistics, v. 66, <a href="https://doi.org/10.1007/978-1-4614-9348-8_2">doi:10.1007/978-1-4614-9348-8_2</a>.
+</p>
+<p>Headrick, T.C., and Sheng, Y., 2013, A proposed measure of internal consistency reliability—Coefficient L-alpha: Behaviormetrika, v. 40, no. 1, pp. 57–68, <a href="https://doi.org/10.2333/bhmk.40.57">doi:10.2333/bhmk.40.57</a>.
+</p>
+<p>Béland, S., Cousineau, D., and Loye, N., 2017, Using the McDonald's omega coefficient instead of Cronbach's alpha [French]: McGill Journal of Education, v. 52, no. 3, pp. 791–804, <a href="https://doi.org/10.7202/1050915ar">doi:10.7202/1050915ar</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lcomoment.matrix</code>, <code>pp</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Table 1 in Headrick and Sheng (2013)
+TV1 &lt;- # Observations in cols 1:3, estimated nonexceedance probabilities in cols 4:6
+c(2, 4, 3, 0.15, 0.45, 0.15,       5, 7, 7, 0.75, 0.95, 1.00,
+  3, 5, 5, 0.35, 0.65, 0.40,       6, 6, 6, 0.90, 0.80, 0.75,
+  7, 7, 6, 1.00, 0.95, 0.75,       5, 2, 6, 0.75, 0.10, 0.75,
+  2, 3, 3, 0.15, 0.25, 0.15,       4, 3, 6, 0.55, 0.25, 0.75,
+  3, 5, 5, 0.35, 0.65, 0.40,       4, 4, 5, 0.55, 0.45, 0.40)
+T1 &lt;- matrix(ncol=6, nrow=10)
+for(r in seq(1,length(TV1), by=6)) T1[(r/6)+1, ] &lt;- TV1[r:(r+5)]
+colnames(T1) &lt;- c("X1", "X2", "X3", "FX1", "FX2", "FX3"); T1 &lt;- as.data.frame(T1)
+
+lco2 &lt;- matrix(nrow=3, ncol=3)
+lco2[1,1] &lt;- lmoms(T1$X1)$lambdas[2]
+lco2[2,2] &lt;- lmoms(T1$X2)$lambdas[2]
+lco2[3,3] &lt;- lmoms(T1$X3)$lambdas[2]
+lco2[1,2] &lt;- 2*cov(T1$X1, T1$FX2); lco2[1,3] &lt;- 2*cov(T1$X1, T1$FX3)
+lco2[2,1] &lt;- 2*cov(T1$X2, T1$FX1); lco2[2,3] &lt;- 2*cov(T1$X2, T1$FX3)
+lco2[3,1] &lt;- 2*cov(T1$X3, T1$FX1); lco2[3,2] &lt;- 2*cov(T1$X3, T1$FX2)
+headrick.sheng.lalpha(lco2)$alpha     # Headrick and Sheng (2013): alpha = 0.807
+# 0.8074766
+headrick.sheng.lalpha(Lcomoment.matrix(T1[,1:3], k=2)$matrix)$alpha
+# 0.7805825
+headrick.sheng.lalpha(T1[,1:3])$alpha #              FXs not used: alpha = 0.781
+# 0.7805825
+headrick.sheng.lalpha(T1[,1:3], bycovFF=TRUE)$alpha  # a=0.5, Hazen by default
+# 0.7805825
+headrick.sheng.lalpha(T1[,1:3], bycovFF=TRUE, a=0.5)$alpha
+# 0.7805825
+</code></pre>
+
+
+</div>

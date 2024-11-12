@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>distee</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate distance between two gene expression data sets</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a distance between all pairs of individuals for two gene
+expression data sets
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">distee(
+  e1,
+  e2 = NULL,
+  d.method = c("rmsd", "cor"),
+  labels = c("e1", "e2"),
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>e1</code></td>
+<td>
+<p>Numeric matrix of gene expression data, as individuals x genes.
+The row and column names must contain individual and gene identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e2</code></td>
+<td>
+<p>(Optional) Like <code>e1</code>.  An appreciable number of individuals
+and genes must be in common.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d.method</code></td>
+<td>
+<p>Calculate inter-individual distance as RMS difference or as
+correlation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>Two character strings, to use as labels for the two data
+matrices in subsequent output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if TRUE, give verbose output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We calculate the pairwise distance between all individuals (rows) in
+<code>e1</code> and all individuals in <code>e2</code>.  This distance is either the RMS
+difference (<code>d.method="rmsd"</code>) or the correlation
+(<code>d.method="cor"</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with <code>nrow(e1)</code> rows and <code>nrow(e2)</code> columns,
+containing the distances.  The individual IDs are in the row and column
+names.  The matrix is assigned class <code>"lineupdist"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl W Broman, <a href="mailto:broman@wisc.edu">broman@wisc.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pulldiag()</code>, <code>omitdiag()</code>,
+<code>summary.lineupdist()</code>, <code>plot2dist()</code>,
+<code>disteg()</code>, <code>corbetw2mat()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# load the example data
+data(expr1, expr2)
+
+
+# find samples in common
+id &lt;- findCommonID(expr1, expr2)
+
+# calculate correlations between cols of x and cols of y
+thecor &lt;- corbetw2mat(expr1[id$first,], expr2[id$second,])
+
+# subset at genes with corr &gt; 0.8 and scale values
+expr1s &lt;- expr1[,thecor &gt; 0.8]/1000
+expr2s &lt;- expr2[,thecor &gt; 0.8]/1000
+
+# calculate distance (using "RMS difference" as a measure)
+d1 &lt;- distee(expr1s, expr2s, d.method="rmsd", labels=c("1","2"))
+
+# calculate distance (using "correlation" as a measure...really similarity)
+d2 &lt;- distee(expr1s, expr2s, d.method="cor", labels=c("1", "2"))
+
+# pull out the smallest 8 self-self correlations
+sort(pulldiag(d2))[1:8]
+
+# summary of results
+summary(d1)
+summary(d2)
+
+# plot histograms of RMS distances
+plot(d1)
+
+# plot histograms of correlations
+plot(d2)
+
+# plot distances against one another
+plot2dist(d1, d2)
+
+</code></pre>
+
+
+</div>

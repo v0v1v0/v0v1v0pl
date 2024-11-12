@@ -1,0 +1,327 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>theoTLmoms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The Theoretical Trimmed L-moments and TL-moment Ratios using Integration of the Quantile Function</h2>
+
+<h3>Description</h3>
+
+<p>Compute the theoretrical trimmed L-moments (TL-moments) for a vector. The level of symmetrical or asymmetrical trimming is
+specified. A theoretrical TL-moment in integral form is
+</p>
+<p style="text-align: center;"><code class="reqn"> \lambda^{(t_1,t_2)}_r = \underbrace{\frac{1}{r}}_{\stackrel{\mbox{average}}{\mbox{of terms}}}
+                               \sum^{r-1}_{k=0} \overbrace{(-1)^k}^{\mbox{differences}}
+          \underbrace{ r-1 \choose k }_{\mbox{combinations}}
+        \frac{\overbrace{(r+t_1+t_2)!}^{\mbox{sample size}}\: I^{(t_1,t_2)}_r}
+     {\underbrace{(r+t_1-k-1)!}_{\mbox{left tail}}
+      \underbrace{(t_2+k)!}_{\mbox{right tail}}} \mbox{, in which }</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn"> I^{(t_1,t_2)}_r = \int^1_0
+                              \underbrace{x(F)}_{\stackrel{\mbox{quantile}}{\mbox{function}}} \times
+                              \overbrace{F^{r+t_1-k-1}}^{\mbox{left tail}}
+      \overbrace{(1-F)^{t_2+k}}^{\mbox{right tail}} \,\mathrm{d}F \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x(F)</code> is the quantile function of the random variable <code class="reqn">X</code> for nonexceedance probability <code class="reqn">F</code>, <code class="reqn">t_1</code> represents the trimming level of the <code class="reqn">t_1</code>-smallest, <code class="reqn">t_2</code> represents the trimming level of the <code class="reqn">t_2</code>-largest values, <code class="reqn">r</code> represents the order of the L-moments. This function loops across the above equation for each <code>nmom</code> set in the argument list. The function <code class="reqn">x(F)</code> is computed through the <code>par2qua</code> function. The distribution type is determined using the <code>type</code> attribute of the <code>para</code> argument—the parameter object.
+</p>
+<p>As of version 1.5.2 of <span class="pkg">lmomco</span>, there exists enhanced error trapping on integration failures in <br><code>theoTLmoms</code>. The function now abandons operations should any of the integrations for the <code class="reqn">r</code>th L-moment fail for reasons such as divergent integral or round off problems. The function returns NAs for all L-moments in <code>lambdas</code> and <code>ratios</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">theoTLmoms(para, nmom=5, trim=NULL, leftrim=NULL, rightrim=NULL,
+                 minF=0, maxF=1, quafunc=NULL,
+                 nsim=50000, fold=5,
+                 silent=TRUE, verbose=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>A distribution parameter object of this package such as by <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>The number of moments to compute. Default is 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Level of symmetrical trimming to use in the computations.
+Although <code>NULL</code> in the argument list, the default is 0—the usual L-moment is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftrim</code></td>
+<td>
+<p>Level of trimming of the left-tail of the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rightrim</code></td>
+<td>
+<p>Level of trimming of the right-tail of the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-zero (but small) if you have a divergent integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxF</code></td>
+<td>
+<p>The end point of nonexceedance probability in which to perform the integration. Try setting to non-unity (but close) if you have a divergent integral.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quafunc</code></td>
+<td>
+<p>An optional and arbitrary quantile function that simply needs to except a nonexceedance probability and the parameter object in <code>para</code>. This is a feature that permits computation of the L-moments of a quantile function that does not have to be implemented in the greater overhead hassles of the <span class="pkg">lmomco</span> style. This feature might be useful for estimation of quantile function mixtures or those distributions not otherwise implemented in this package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Simulation size for Monte Carlo integration is such is internally deemed necessary (see <code>silent</code> argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fold</code></td>
+<td>
+<p>The number of fractions or number of folds of <code>nsim</code>, which in other words, means that <code>nsim</code> is divided by <code>folds</code> and a loop creating <code>folds</code> integrations of <code>nsim/folds</code> is used from which the mean and mean absolute error of the integrand are computed. This is to try to recover similar output as <code>integrate()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>The argument of <code>silent</code> for the <code>try()</code> operation wrapped on <code>integrate()</code>. If set true and the integral is probability divergent, Monte Carlo integration is triggered using <code>nsim</code> and <code>folds</code>. The user would have to set <code>verbose=TRUE</code> to then acquire the returned table in <code>integrations</code> of the integration passes including those are or are not Monte Carlo.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Toggle verbose output. Because the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code> is used to perform the numerical integration, it might be useful to see selected messages regarding the numerical integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Vector of the TL-moments. First element is
+<code class="reqn">\lambda^{(t_1,t_2)}_1</code>, second element is <code class="reqn">\lambda^{(t_1,t_2)}_2</code>, and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Vector of the L-moment ratios. Second element is
+<code class="reqn">\tau^{(t_1,t_2)}</code>, third element is <code class="reqn">\tau^{(t_1,t_2)}_3</code> and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Level of symmetrical trimming used in the computation, which will equal <code>NULL</code> if asymmetrical trimming was used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftrim</code></td>
+<td>
+<p>Level of left-tail trimming used in the computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rightrim</code></td>
+<td>
+<p>Level of right-tail trimming used in the computation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Echo of the <code>nsim</code> argument if and only if at least one Monte Carlo integration was required, otherwise this is set to “not needed” on the return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Echo of the <code>folds</code> argument if and only if at least one Monte Carlo integration was required, otherwise this is set to “not needed” on the return.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>monte_carlo</code></td>
+<td>
+<p>A logical vector of whether one or more Monte Carlo integrations was needed for the <code>r</code>-th index of the vector during the integrations for the <code class="reqn">r</code>-th L-moment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the L-moments: “theoTLmoms” or switched to “theoLmoms” if this function was dispatched from <code>theoLmoms</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integrations</code></td>
+<td>
+<p>If <code>verbose=TRUE</code>, then the results of the integrations are a data frame stored here. Otherwise, <code>integrations</code> is not present in the list.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>An extended example of a <em>unique application</em> of the TL-moments is useful to demonstrate capabilities of the <span class="pkg">lmomco</span> package API.  Consider the following example in which the analyst has 21 years of data for a given spatial location. Based on regional analysis, the highest value (the <code>outlier</code> = 21.12) is known to be exotically high but also documentable as not representing say a transcription error in the source database. The regional analysis also shows that the Generalized Extreme Value (GEV) distribution is appropriate.
+</p>
+<p>The analyst is using a complex L-moment computational framework (say a software package called <b>BigStudy.R</b>) in which only the input data are under the control of the analyst or it is too risky to modify <b>BigStudy.R</b>. Yet, it is desired to somehow acquire robust estimation. The <code>outlier</code> value can be accommodated by estimating a pseudo-value and then simply make a substitution in the input data file for <b>BigStudy.R</b>.
+</p>
+<p>The following code initiates pseudo-value estimation by storing the original 20 years of data in variable <code>data.org</code> and then extending these data with the <code>outlier</code>. The usual sample L-moments are computed in <code>first.lmr</code> and will only be used for qualitative comparison. A 3-dimensional optimizer will be used for the GEV so the starting point is stored in <code>first.par</code>.
+</p>
+<pre>
+  data.org  &lt;- c(5.19, 2.58, 7.59, 3.22, 7.50, 4.05, 2.54, 9.00, 3.93, 5.15,
+                 6.80, 2.10, 8.44, 6.11, 3.30, 5.75, 3.52, 3.48, 6.32, 4.07)
+  outlier   &lt;- 21.12;            the.data  &lt;- c(data.org, outlier)
+  first.lmr &lt;- lmoms(the.data);  first.par &lt;- pargev(first.lmr)
+</pre>
+<p>Robustness is acquired by computing the sample TL-moments such that the <code>outlier</code> is quantitatively removed by single trimming from the right side as the follow code shows:
+</p>
+<pre>
+  trimmed.lmr &lt;- TLmoms(the.data, rightrim=1, leftrim=0)
+</pre>
+<p>The objective now is to fit a GEV to the sample TL-moments in <code>trimmed.lmr</code>. However, the right-trimmed only (<code class="reqn">t_1 = 0</code> and <code class="reqn">t_2 = 1</code>) version of the TL-moments is being used and analytical solutions to the GEV for <code class="reqn">t = (0,1)</code> are lacking or perhaps they are too much trouble to derive. The <code>theoTLmoms</code> function provides the avenue for progress because of its numerical integration basis for acquistion of the TL-moments. An objective function for the <code class="reqn">t_2 = 1</code> TL-moments of the GEV is defined and based on the sum of square errors of the first three TL-moments:
+</p>
+<pre>
+  "afunc" &lt;- function(par, tarlmr=NULL, p=3) {
+              the.par  &lt;- vec2par(par, type="gev", paracheck=FALSE)
+              fit.tlmr &lt;- theoTLmoms(the.par, rightrim=1, leftrim=0)
+              return(sum((tarlmr$lambdas[1:p] - fit.tlmr$lambdas[1:p])^2))
+  }
+</pre>
+<p>and then optimize on this function and make a qualitative comparison between the original sample L-moments (untrimmed) to the equivalent L-moments (untrimmed) of the GEV having TL-moments equaling those in <code>trimmed.lmr</code>:
+</p>
+<pre>
+  rt &lt;- optim(first.par$para, afunc, tarlmr=trimmed.lmr)
+  last.lmr &lt;- lmomgev(vec2par(rt$par, type="gev"))
+
+  message("# Original sample    L-moment lambdas: ",
+           paste(round(first.lmr$lambdas[1:3], digits=4), collapse=" "))
+  message("# Targeting back-fit L-moment lambdas: ",
+           paste(round(last.lmr$lambdas[ 1:3], digits=4), collapse=" "))
+  # Original sample    L-moment lambdas: 5.7981 1.8565 0.7287
+  # Targeting back-fit L-moment lambdas: 5.5916 1.6501 0.5223
+</pre>
+<p>The primary result on comparison of the <code class="reqn">\lambda_r</code> shows that the L-scale drops substantially as does L-skew: (<code class="reqn">\tau_3 = 0.7287 / 1.8565 = 0.3925 \rightarrow \lambda_3^{(t_2{=}1)} = 0.5223 / 1.6501 = 0.3165</code>).
+</p>
+<p>Now that the target L-moments (not TL-moments) are known (<code>last.lmr</code>), it is possible to optimize again on the value for the <code>outlier</code> that would provide the <code>last.lmr</code> within the greater computational framework in use by the analyst.
+</p>
+<pre>
+  "bfunc" &lt;- function(x, tarlmr=NULL, p=3) {
+              sam.lmr &lt;- lmoms(c(data.org, x))
+              return(sum((tarlmr$lambdas[1:p] - sam.lmr$lambdas[1:p])^2))
+  }
+  suppressWarnings(outlier.rt &lt;- optim(outlier, bfunc, tarlmr=last.lmr))
+  # silence warning about 1D optimization with optim(), well behaved here
+
+  pseudo.outlier &lt;- round(outlier.rt$par, digits=2)
+  final.lmr &lt;- lmoms(c(data.org, pseudo.outlier))
+
+  message("# Resulting new L-moment lambdas: ",
+          paste(round(final.lmr$lambdas[1:3], digits=4), collapse=" "))
+  # Resulting new L-moment lambdas: 5.5914 1.6499 0.5221
+
+  message("# Pseudo-value for highest value: ", round(outlier.rt$par, digits=2))
+  # Pseudo-value for highest value: 16.78
+</pre>
+<p>Where the second optimization shows that if the largest value for the 21 years of data is given a value of <code class="reqn">16.78</code> instead of its original value of <code class="reqn">21.12</code> that the sample L-moments (untrimmed) will be consistent as if the TL-moments <code class="reqn">t = (0,1)</code> has been somehow used without resorting to a risky re-coding of the greater computational framework.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Elamir, E.A.H., and Seheult, A.H., 2003, Trimmed L-moments: Computational Statistics and Data Analysis, v. 43, pp. 299–314.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>theoLmoms</code>, <code>TLmoms</code>, <code>tlmr2par</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">para &lt;- vec2par(c(0, 1), type='nor') # standard normal
+TL00 &lt;- theoTLmoms(para) # compute ordinary L-moments
+TL30 &lt;- theoTLmoms(para, leftrim=3, rightrim=0) # trim 3 smallest samples
+
+# Let us look at the difference from simulation to theoretrical using
+# L-kurtosis and asymmetrical trimming for generalized Lambda dist.
+n     &lt;- 100 # really a much larger sample should be used---for speed
+P     &lt;- vec2par(c(10000, 10000, 6, 0.4),type='gld')
+Lkurt &lt;- TLmoms(quagld(runif(n),P), rightrim=3, leftrim=0)$ratios[4]
+theoLkurt &lt;- theoTLmoms(P, rightrim=3, leftrim=0)$ratios[4]
+Lkurt - theoLkurt # as the number for runif goes up, this
+                  # difference goes to zero
+
+# Example using the Generalized Pareto Distribution
+# to verify computations from theoretical and sample stand point.
+n      &lt;- 100 # really a much larger sample should be used---for speed
+P      &lt;- vec2par(c(12, 34, 4),type='gpa')
+theoTL &lt;- theoTLmoms(P, rightrim=2, leftrim=4)
+samTL  &lt;- TLmoms(quagpa(runif(n),P), rightrim=2, leftrim=4)
+del    &lt;- samTL$ratios[3] - theoTL$ratios[3] # if n is large difference
+                                             # is small
+str(del)
+
+## Not run: 
+  "cusquaf" &lt;- function(f, para, ...) { # Gumbel-Normal product
+     g &lt;- vec2par(c(para[1:2]), type="gum")
+     n &lt;- vec2par(c(para[3:4]), type="nor")
+     return(par2qua(f,g)*par2qua(f,n))
+  }
+  para &lt;- c(5.6, .45, 3, .3)
+  theoTLmoms(para, quafunc=cusquaf) # L-skew = 0.13038711
+## End(Not run)
+
+## Not run: 
+  # This example has a divergent integral triggered on the last of the inner
+  # loop of the 4th L-moment call. Monte Carlo (MC) integration is thus triggered.
+  # The verbose=TRUE saves numerical or MC integration result table to the return.
+  para   &lt;-  vec2par(c(2.00,  2.00, -0.20, -0.55), type="kap")
+  lmrbck &lt;- lmomkap(   para, nmom=5)
+  # print(lmrbck$lambdas) 3.1189568 1.9562688 0.4700229 0.4078741 0.1974055
+  lmrthe &lt;- theoTLmoms2(para, nmom=5, verbose=TRUE)              # seed dependent
+  # print(lmrthe$lambdas) 3.1189569 1.9562686 0.4700227 0.4068539 0.1974049
+  parkap(lmrbck)$para # 2.00       2.00     -0.20      -0.55
+  parkap(lmrthe)$para # 2.018883  1.986761  -0.202422  -0.570451 # seed dependent
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maxima_selection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Image maxima selection based on values and neighborhood of local maxima</h2>
+
+<h3>Description</h3>
+
+<p>In a maxima image (output of <code>maxima_detection</code>), sets values to 
+zero for pixels which:
+</p>
+
+<ol>
+<li>
+<p> values in the initial image (from which maxima were detected) are below 
+a threshold
+</p>
+</li>
+<li>
+<p> values in the maxima image (corresponding to the radius of the 
+neighborhood where they are global maxima) are below a threshold depending on 
+the initial image value.
+</p>
+</li>
+</ol>
+<p>Make sure that the <code>max.width</code> parameter in <code>maxima_detection</code>
+is consistent with the selection parameters (e.g. do not select with 
+<code>dmin = 7</code> if values were only tested up to <code>max.width</code> the default 
+value which is approx. 5.5 m).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">maxima_selection(maxi, dem_nl, hmin = 5, dmin = 0, dprop = 0.05)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>maxi</code></td>
+<td>
+<p>cimg object or SpatRaster object. image with local maxima 
+(typically output from <code>maxima_detection</code>, image values correspond 
+to neighborhood radius on which pixels are global maxima in the initial image)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dem_nl</code></td>
+<td>
+<p>cimg object or SpatRaster object. initial image from which maxima were detected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmin</code></td>
+<td>
+<p>numeric. minimum value in initial image for a maximum to be selected</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmin</code></td>
+<td>
+<p>numeric. intercept term for selection of maxima depending on 
+neighborhood radius: <code>maxi &gt;= dmin + dem_nl * dprop</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dprop</code></td>
+<td>
+<p>numeric. proportional term for selection of maxima depending on 
+neighborhood radius: <code>maxi &gt;= dmin + dem_nl * dprop</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A cimg object or SpatRaster object which values are the radius (n) 
+in meter of the square window (width 2n+1) where the center pixel is global 
+maximum and which fulfill the selection criteria
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>maxima_detection</code>, <code>tree_segmentation</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+
+# maxima detection
+maxi &lt;- maxima_detection(chm_chablais3)
+
+# several maxima selection settings
+selected_maxi_hmin &lt;- maxima_selection(maxi, chm_chablais3, hmin = 15)
+selected_maxi_dm &lt;- maxima_selection(maxi, chm_chablais3, dmin = 2.5)
+selected_maxi &lt;- maxima_selection(maxi, chm_chablais3, dmin = 1, dprop = 0.1)
+
+# corresponding count number of remaining maxima
+table(terra::values(maxi))
+table(terra::values(selected_maxi_hmin))
+table(terra::values(selected_maxi_dm))
+table(terra::values(selected_maxi))
+
+# plot original image
+terra::plot(chm_chablais3, main = "Initial image")
+
+# plot maxima images, original and first case
+terra::plot(maxi, main = "Local maxima")
+terra::plot(selected_maxi, main = "Selected maxima")
+</code></pre>
+
+
+</div>

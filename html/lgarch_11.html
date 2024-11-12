@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgarchSim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Simulate from a univariate log-GARCH model </h2>
+
+<h3>Description</h3>
+
+<p>Simulate the y series (typically a financial return or the error in a regression) from a log-GARCH model. Optionally, the conditional standard deviation, the standardised error (z) and their logarithmic transformations are also returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgarchSim(n, constant = 0, arch = 0.05, garch = 0.9, xreg = NULL,
+  backcast.values = list(lnsigma2 = NULL, lnz2 = NULL, xreg = NULL),
+  check.stability = TRUE, innovations = NULL, verbose = FALSE,
+  c.code=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>integer, length of y (i.e. number of observations)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constant</code></td>
+<td>
+<p>the value of the intercept in the log-volatility specification</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arch</code></td>
+<td>
+<p>numeric vector with the arch coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>garch</code></td>
+<td>
+<p>numeric vector with the garch coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>numeric vector (of length n) with the conditioning values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>backcast.values</code></td>
+<td>
+<p>backcast values for the recursion (chosen automatically if NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>check.stability</code></td>
+<td>
+<p>logical. If TRUE (default), then the roots of arch+garch are checked for stability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innovations</code></td>
+<td>
+<p>Etiher NULL (default) or a vector of length n with the standardised errors (i.e. z). If NULL, then the innovations are normal with mean zero and unit variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical. If FALSE (default), then only the vector y is returned. If TRUE, then a matrix with all the output is returned</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.code</code></td>
+<td>
+<p>logical. If TRUE (default), then compiled C-code is used for the recursion (faster)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Empty</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>zoo</code> vector of length n if verbose = FALSE (default), or a <code>zoo</code> matrix with n rows if verbose = TRUE.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Genaro Sucarrat, <a href="http://www.sucarrat.net/">http://www.sucarrat.net/</a></p>
+
+
+<h3>References</h3>
+
+<p>Sucarrat, Gronneberg and Escribano (2013), 'Estimation and Inference in Univariate and Multivariate Log-GARCH-X Models When the Conditional Density is Unknown', MPRA Paper 49344: <a href="http://mpra.ub.uni-muenchen.de/49344/">http://mpra.ub.uni-muenchen.de/49344/</a> <br></p>
+
+
+<h3>See Also</h3>
+
+ <p><code>mlgarchSim</code>, <code>lgarch</code>, <code>mlgarch</code> and <code>zoo</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##simulate 500 observations w/default parameter values:
+set.seed(123)
+y &lt;- lgarchSim(500)
+
+##simulate the same series, but with more output:
+set.seed(123)
+y &lt;- lgarchSim(500, verbose=TRUE)
+head(y)
+
+##plot the simulated values:
+plot(y)
+
+##simulate w/conditioning variable:
+x &lt;- rnorm(500)
+y &lt;- lgarchSim(500, xreg=0.05*x)
+
+##simulate from a log-GARCH with a simple form of leverage:
+z &lt;- rnorm(500)
+zneg &lt;- as.numeric(z &lt; 0)
+zneglagged &lt;- glag(zneg, pad=TRUE, pad.value=0)
+y &lt;- lgarchSim(500, xreg=0.05*zneglagged, innovations=z)
+
+##simulate from a log-GARCH w/standardised t-innovations:
+set.seed(123)
+n &lt;- 500
+df &lt;- 5
+z &lt;- rt(n, df=df)/sqrt(df/(df-2))
+y &lt;- lgarchSim(n, innovations=z)
+
+</code></pre>
+
+
+</div>

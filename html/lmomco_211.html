@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mle2par</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Use Maximum Likelihood to Estimate Parameters of a Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function uses the method of maximum likelihood (MLE) to estimate the parameters of a distribution. MLE is a straightforward optimization problem that is formed by maximizing the sum of the logarithms of probability densities. Let <code class="reqn">\Theta</code> represent a vector of parameters for a candidate fit to the specified probability density function <code class="reqn">g(x|\Theta)</code> and <code class="reqn">x_i</code> represent the observed data for a sample of size <code class="reqn">n</code>. The objective function is
+</p>
+<p style="text-align: center;"><code class="reqn">\mathcal{L}(\Theta) = -\sum_{i=1}^{n} \log\, g(x_i|\Theta)\mbox{,}</code>
+</p>
+
+<p>where the <code class="reqn">\Theta</code> for a maximized <code class="reqn">{-}\mathcal{L}</code> (note the 2nd negation for the adjective “maximized”, <code>optim()</code> defaults as a minimum optimizer) represents the parameters fit by MLE. The initial parameter estimate by default will be seeded by the method of L-moments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mle2par(x, type, init.para=NULL, silent=TRUE, null.on.not.converge=TRUE,
+                 ptransf=  function(t) return(t),
+                 pretransf=function(t) return(t), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Three character (minimum) distribution type (for example, <code>type="gev"</code>), see <code>dist.list</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.para</code></td>
+<td>
+<p>Initial parameters as a vector <code class="reqn">\Theta</code> or as an <span class="pkg">lmomco</span> parameter “object” from say <code>vec2par</code>. If a vector is given, then internally <code>vec2par</code> is called with distribution equal to <code>type</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>A logical to silence the <code>try()</code> function wrapping the <code>optim()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null.on.not.converge</code></td>
+<td>
+<p>A logical to trigging simple return of <code>NULL</code> if the <code>optim()</code> function returns a nonzero convergence status.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ptransf</code></td>
+<td>
+<p>An optional parameter transformation function (see <b>Examples</b>) that is useful to guide the optimization run. For example, suppose the first parameter of a three parameter distribution resides in the positive domain, then <br><code>ptransf(t) = </code>
+<code>function(t) c(log(t[1]), t[2], t[3])</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pretransf</code></td>
+<td>
+<p>An optional parameter retransformation function (see <b>Examples</b>) that is useful to guide the optimization run. For example, suppose the first parameter of a three parameter distribution resides in the positive domain, then <br><code>pretransf(t) = </code> <code>function(t) c(exp(t[1]), t[2], t[3])</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for the <code>optim()</code> function and other uses.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.  This list should contain at least the following items, but some distributions such as the <code>revgum</code> have extra.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution in three character (minimum) format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>Attribute specifying source of the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AIC</code></td>
+<td>
+<p>The Akaike information criterion (AIC).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim</code></td>
+<td>
+<p>The returned <code>list</code> of the <code>optim()</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>During the optimization process, the function requires evaluation at the initial parameters. The following error rarely will be seen:
+</p>
+<pre>
+  Error in optim(init.para$para, afunc) :
+    function cannot be evaluated at initial parameters
+</pre>
+<p>if <code>Inf</code> is returned on first call to the objective function. The <code>silent</code> by default though will silence this error.  Alternative starting parameters might help.  This function is not built around subordinate control functions to say keep the parameters within distribution-specific bounds.  However, in practice, the L-moment estimates should already be fairly close and the optimizer can take it from there.  More sophisticated MLE for many distributions is widely available in other <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> packages. The <span class="pkg">lmomco</span> package uses its own probability density functions.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmom2par</code>, <code>mps2par</code>, <code>tlmr2par</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# This example might fail on mle2par() or mps2par() depending on the values
+# that stem from the simulation. Trapping for a NULL return is not made here.
+father &lt;- vec2par(c(37,25,114), type="st3"); FF &lt;- nonexceeds(); qFF &lt;- qnorm(FF)
+X &lt;- rlmomco(78, father) # rerun if MLE and MPS fail to get a solution
+plot(qFF,  qlmomco(FF, father), type="l", xlim=c(-3,3),
+     xlab="STANDARD NORMAL VARIATE", ylab="QUANTILE") # parent (black)
+lines(qFF, qlmomco(FF, lmr2par(X, type="gev")), col="red"  ) # L-moments (red)
+lines(qFF, qlmomco(FF, mps2par(X, type="gev")), col="green") #     MPS (green)
+lines(qFF, qlmomco(FF, mle2par(X, type="gev")), col="blue" ) #     MLE  (blue)
+points(qnorm(pp(X)), sort(X)) # the simulated data
+## End(Not run)
+
+## Not run: 
+# REFLECTION SYMMETRY
+set.seed(451)
+X &lt;- rlmomco(78, vec2par(c(2.12, 0.5, 0.6), type="pe3"))
+# MLE and MPS are almost reflection symmetric, but L-moments always are.
+mle2par( X, type="pe3")$para #  2.1796827 0.4858027  0.7062808
+mle2par(-X, type="pe3")$para # -2.1796656 0.4857890 -0.7063917
+mps2par( X, type="pe3")$para #  2.1867551 0.5135882  0.6975195
+mps2par(-X, type="pe3")$para # -2.1868252 0.5137325 -0.6978034
+parpe3(lmoms( X))$para       #  2.1796630 0.4845216  0.7928016
+parpe3(lmoms(-X))$para       # -2.1796630 0.4845216 -0.7928016 
+## End(Not run)
+
+## Not run: 
+Ks &lt;- seq(-1,+1,by=0.02); n &lt;- 100; MLE &lt;- MPS &lt;- rep(NA, length(Ks))
+for(i in 1:length(Ks)) {
+  sdat   &lt;- rlmomco(n, vec2par(c(1,0.2,Ks[i]), type="pe3"))
+  mle    &lt;- mle2par(sdat, type="pe3")$para[3]
+  mps    &lt;- mps2par(sdat, type="pe3")$para[3]
+  MLE[i] &lt;- ifelse(is.null(mle), NA, mle) # A couple of failures expected as NA's.
+  MPS[i] &lt;- ifelse(is.null(mps), NA, mps) # Some amount fewer failures than MLE.
+}
+plot( MLE, MPS, xlab="SKEWNESS BY MLE", ylab="SKEWNESS BY MPS")#
+## End(Not run)
+
+## Not run: 
+# Demonstration of parameter transformation and retransformation
+set.seed(9209) # same seed used under mps2par() in parallel example
+x &lt;- rlmomco(500, vec2par(c(1,1,3), type="gam")) # 3-p Generalized Gamma
+guess &lt;- lmr2par(x, type="gam", p=3) # By providing a 3-p guess the 3-p
+# Generalized Gamma will be triggered internally. There are problems passing
+# "p" argument to optim() if that function is to pick up the ... argument.
+mle2par(x, type="gam", init.para=guess, silent=FALSE,
+           ptransf=  function(t) { c(log(t[1]), log(t[2]), t[3])},
+           pretransf=function(t) { c(exp(t[1]), exp(t[2]), t[3])})$para
+# Reports:       mu     sigma        nu   for some simulated data.
+#         1.0341269 0.9731455 3.2727218 
+## End(Not run)
+
+## Not run: 
+# Demonstration of parameter estimation with tails of density zero, which
+# are intercepted internally to maintain finiteness. We explore the height
+# distribution for male cats of the cats dataset from the MASS package and
+# fit the generalized lambda. The log-likelihood is shown by silent=FALSE
+# to see that the algorithm converges slowly. It is shown how to control
+# the relative tolerance of the optim() function as shown below and
+# investigate the convergence by reviewing the five fits to the data.
+FF &lt;- nonexceeds(sig6=TRUE); qFF &lt;- qnorm(FF)
+library(MASS); data(cats); x &lt;- cats$Hwt[cats$Sex == "M"]
+p2 &lt;- mle2par(x, type="gld", silent=FALSE, control=list(reltol=1E-2))
+p3 &lt;- mle2par(x, type="gld", silent=FALSE, control=list(reltol=1E-3))
+p4 &lt;- mle2par(x, type="gld", silent=FALSE, control=list(reltol=1E-4))
+p5 &lt;- mle2par(x, type="gld", silent=FALSE, control=list(reltol=1E-5))
+p6 &lt;- mle2par(x, type="gld", silent=FALSE, control=list(reltol=1E-6))
+plot( qFF,  quagld(FF, p2), type="l", col="black",  # see poorest fit
+      xlab="Standard normal variable", ylab="Quantile")
+points(qnorm(pp(x)), sort(x), lwd=0.6, col=grey(0.6))
+lines(qFF,  quagld(FF, p3), col="red"    )
+lines(qFF, par2qua(FF, p4), col="green"  )
+lines(qFF,  quagld(FF, p5), col="blue"   )
+lines(qFF, par2qua(FF, p6), col="magenta") #
+## End(Not run)
+</code></pre>
+
+
+</div>

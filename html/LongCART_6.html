@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot an SurvCART or LongCART Object</h2>
+
+<h3>Description</h3>
+
+<p>Plots an SurvCART or LongCART object on the current graphics device.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'SurvCART'
+plot(x, uniform = FALSE, branch = 1, compress = FALSE, 
+              nspace = branch, margin = 0, minbranch = 0.3, ...)
+## S3 method for class 'LongCART'
+plot(x, uniform = FALSE, branch = 1, compress = FALSE, 
+              nspace = branch, margin = 0, minbranch = 0.3, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a fitted object of class <code>"SurvCART"</code>, containing a survival tree or <code>"LongCART"</code>, containing a longitudinal tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uniform</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>; if TRUE, uniform vertical spacing
+of the nodes is used; this may be less cluttered when fitting a large plot
+onto a page. The default is to use a non-uniform spacing proportional to the
+error in the fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>branch</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>;
+controls the shape of the branches from parent to child node. Any number from
+0 to 1 is allowed. A value of 1 gives square shouldered branches, a value of
+0 give V shaped branches, with other values being intermediate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compress</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>;
+if <code>FALSE</code>, the leaf nodes will be at the horizontal plot coordinates of <code>1:nleaves</code>. If <code>TRUE</code>, the routine attempts a more compact arrangement of the tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nspace</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>; the amount of extra space between a node with children
+and a leaf, as compared to the minimal space between leaves. Applies to compressed trees only.
+The default is the value of <code>branch</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>; an extra fraction of white space to
+leave around the borders of the tree. (Long labels sometimes get cut off by the default computation). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minbranch</code></td>
+<td>
+<p>similar to <code>plot.rpart</code>; set the minimum length for a branch to <code>minbranch</code>
+times the average branch length. This parameter is ignored if <code>uniform=TRUE</code>. Sometimes a split will
+give very little improvement, or even (in the classification case) no improvement at all. A tree with
+branch lengths strictly proportional to improvement leaves no room to squeeze in node labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments to be passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is a method for the generic function plot, for objects of class
+<code>SurvCART</code>. The y-coordinate of the top node of the tree will always be 1.</p>
+
+
+<h3>Value</h3>
+
+<p>The coordinates of the nodes are returned as a list, with components <code>x</code>
+and <code>y</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Madan Gopal Kundu <a href="mailto:madan_g.kundu@yahoo.com">madan_g.kundu@yahoo.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Kundu, M. G., and Harezlak, J. (2019). Regression trees for longitudinal data with baseline covariates. Biostatistics &amp; Epidemiology, 3(1):1-22.
+</p>
+<p>Kundu, M. G., and Ghosh, S. (2021). Survival trees based on heterogeneity in time-to-event and censoring distributions using parameter instability test. Statistical Analysis and Data Mining: The ASA Data Science Journal, 14(5), 466-483.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>text</code>, <code>SurvCART</code>, <code>LongCART</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+#--- Get the data
+data(GBSG2)
+
+#numeric coding of character variables
+GBSG2$horTh1&lt;- as.numeric(GBSG2$horTh)
+GBSG2$tgrade1&lt;- as.numeric(GBSG2$tgrade)
+GBSG2$menostat1&lt;- as.numeric(GBSG2$menostat)
+
+#Add subject id
+GBSG2$subjid&lt;- 1:nrow(GBSG2)
+
+#--- Run SurvCART()
+out&lt;- SurvCART(data=GBSG2, patid="subjid", censorvar="cens", timevar="time", event.ind=1, 
+        gvars=c('horTh1', 'age', 'menostat1', 'tsize', 'tgrade1', 'pnodes', 'progrec', 'estrec'),  
+        tgvars=c(0,1,0,1,0,1, 1,1),          
+        alpha=0.05, minsplit=80,  
+        minbucket=40, print=TRUE)
+
+#--- Plot tree
+par(xpd = TRUE)
+plot(out, compress = TRUE)
+text(out, use.n = TRUE)
+
+</code></pre>
+
+
+</div>

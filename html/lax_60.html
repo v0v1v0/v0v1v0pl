@@ -1,0 +1,273 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>return_level</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Return Level Inferences for Stationary Extreme Value Models</h2>
+
+<h3>Description</h3>
+
+<p>Calculates point estimates and confidence intervals for <code>m</code>-year
+return levels for <strong>stationary</strong> extreme value fitted model objects
+returned from <code>alogLik</code>.  Two types of interval may be returned:
+(a) intervals based on approximate large-sample normality of the maximum
+likelihood estimator for return level, which are symmetric about the point
+estimate, and (b) profile likelihood-based intervals based on an (adjusted)
+loglikelihood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">return_level(
+  x,
+  m = 100,
+  level = 0.95,
+  npy = 1,
+  prof = TRUE,
+  inc = NULL,
+  type = c("vertical", "cholesky", "spectral", "none")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object inheriting from class <code>"lax"</code> returned from
+<code>alogLik</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>A numeric scalar.  The return period, in years.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>A numeric scalar in (0, 1).  The confidence level required for
+confidence interval for the <code>m</code>-year return level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npy</code></td>
+<td>
+<p>A numeric scalar.  The (mean) number of observations per year.
+<strong>Setting this appropriately is important</strong>. See <strong>Details</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prof</code></td>
+<td>
+<p>A logical scalar.  Should we calculate intervals based on
+profile loglikelihood?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inc</code></td>
+<td>
+<p>A numeric scalar. Only relevant if <code>prof = TRUE</code>. The
+increment in return level by which we move upwards and downwards from the
+MLE for the return level in the search for the lower and upper confidence
+limits.  If this is not supplied then <code>inc</code> is set to one hundredth
+of the length of the symmetric confidence interval for return level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character scalar.  The argument <code>type</code> to the function
+returned by <code>adjust_loglik</code>, that is, the type of
+adjustment made to the independence loglikelihood function in creating
+an adjusted loglikelihood function.  See <strong>Details</strong> and
+<strong>Value</strong> in <code>adjust_loglik</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>At present <code>return_level</code> only supports GEV models.
+</p>
+<p><strong>Care must be taken in specifying the input value of <code>npy</code>.</strong>
+</p>
+
+<ul>
+<li> <p><strong>GEV models</strong>: it is common to have one observation per year,
+either because the data are annual maxima or because for each year only
+the maximum value over a particular season is extracted from the raw
+data. In this case, <code>npy = 1</code>, which is the default.  If instead
+we extract the maximum values over the first and second halves of each
+year then <code>npy = 2</code>.
+</p>
+</li>
+<li> <p><strong>Binomial-GP models</strong>: <code>npy</code> provides information
+about the (intended) frequency of sampling in time, that is, the number
+of observations that would be observed in a year if there are no
+missing values.  If the number of observations may vary between years
+then <code>npy</code> should be set equal to the mean number of observations
+per year.
+</p>
+</li>
+</ul>
+<p><strong>Supplying <code>npy</code> for binomial-GP models.</strong>
+The value of <code>npy</code> (or an equivalent, perhaps differently named,
+quantity) may have been set in the call to fit a GP model.
+For example, the <code>gpd.fit()</code> function in the <code>ismev</code> package
+has a <code>npy</code> argument and the value of <code>npy</code> is stored in the
+fitted model object.  If <code>npy</code> is supplied by the user in the call to
+<code>return_level</code> then this will be used in preference to the value
+stored in the fitted model object.  If these two values differ then no
+warning will be given.
+</p>
+<p>For details of the definition and estimation of return levels see the
+Inference for return levels vignette.
+</p>
+<p>The profile likelihood-based intervals are calculated by
+reparameterising in terms of the <code>m</code>-year return level and estimating
+the values at which the (adjusted) profile loglikelihood reaches
+the critical value <code>logLik(x) - 0.5 * stats::qchisq(level, 1)</code>.
+This is achieved by calculating the profile loglikelihood for a sequence
+of values of this return level as governed by <code>inc</code>. Once the profile
+loglikelihood drops below the critical value the lower and upper limits are
+estimated by interpolating linearly between the cases lying either side of
+the critical value. The smaller <code>inc</code> the more accurate (but slower)
+the calculation will be.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A object (a list) of class <code>"retlev", "lax"</code> with the
+components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>rl_sym,rl_prof </code></td>
+<td>
+<p>Named numeric vectors containing the respective
+lower 100<code>level</code>% limit, the MLE and the upper
+100<code>level</code>% limit for the return level.
+If <code>prof = FALSE</code> then <code>rl_prof</code> will be missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rl_se </code></td>
+<td>
+<p>Estimated standard error of the return level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_loglik,crit,for_plot </code></td>
+<td>
+<p>If <code>prof = TRUE</code> then
+these components will be present, containing respectively: the maximised
+loglikelihood; the critical value and a matrix with return levels in
+the first column (<code>ret_levs</code>) and the corresponding values of the
+(adjusted) profile loglikelihood (<code>prof_loglik</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m,level </code></td>
+<td>
+<p>The input values of <code>m</code> and <code>level</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call </code></td>
+<td>
+<p>The call to <code>return_level</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Coles, S. G. (2001) <em>An Introduction to Statistical
+Modeling of Extreme Values</em>, Springer-Verlag, London.
+<a href="https://doi.org/10.1007/978-1-4471-3675-0_3">doi:10.1007/978-1-4471-3675-0_3</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.retlev</code> for plotting the profile loglikelihood
+for a return level.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># GEV model -----
+
+got_evd &lt;- requireNamespace("evd", quietly = TRUE)
+
+if (got_evd) {
+  library(evd)
+  # An example from the evd::fgev documentation
+  set.seed(4082019)
+  uvdata &lt;- evd::rgev(100, loc = 0.13, scale = 1.1, shape = 0.2)
+  M1 &lt;- fgev(uvdata)
+  adj_fgev &lt;- alogLik(M1)
+  # Large inc set here for speed, sacrificing accuracy
+  rl &lt;- return_level(adj_fgev, inc = 0.5)
+  summary(rl)
+  rl
+  plot(rl)
+}
+
+got_ismev &lt;- requireNamespace("ismev", quietly = TRUE)
+
+if (got_ismev) {
+  library(ismev)
+  # An example from the ismev::gev.fit documentation
+  gev_fit &lt;- gev.fit(revdbayes::portpirie, show = FALSE)
+  adj_gev_fit &lt;- alogLik(gev_fit)
+  # Large inc set here for speed, sacrificing accuracy
+  rl &lt;- return_level(adj_gev_fit, inc = 0.05)
+  summary(rl)
+  rl
+  plot(rl)
+}
+
+# Binomial-GP model -----
+
+if (got_ismev) {
+  library(ismev)
+  data(rain)
+  # An example from the ismev::gpd.fit documentation
+  rain_fit &lt;- gpd.fit(rain, 10, show = FALSE)
+  adj_rain_fit &lt;- alogLik(rain_fit, binom = TRUE)
+  # Large inc set here for speed, sacrificing accuracy
+  rl &lt;- return_level(adj_rain_fit, inc = 2.5)
+  summary(rl)
+  rl
+  plot(rl)
+}
+
+if (got_ismev) {
+  # Use Newlyn seas surges data from the exdex package
+  surges &lt;- exdex::newlyn
+  u &lt;- quantile(surges, probs = 0.9)
+  newlyn_fit &lt;- gpd.fit(surges, u, show = FALSE)
+  # Create 5 clusters each corresponding approximately to 1 year of data
+  cluster &lt;- rep(1:5, each = 579)[-1]
+  adj_newlyn_fit &lt;- alogLik(newlyn_fit, cluster = cluster, binom = TRUE,
+                            cadjust = FALSE)
+  rl &lt;- return_level(adj_newlyn_fit, inc = 0.02)
+  rl
+
+  # Add inference about the extremal index theta, using K = 1
+  adj_newlyn_theta &lt;- alogLik(newlyn_fit, cluster = cluster, binom = TRUE,
+                              k = 1, cadjust = FALSE)
+  rl &lt;- return_level(adj_newlyn_theta, inc = 0.02)
+  rl
+}
+</code></pre>
+
+
+</div>

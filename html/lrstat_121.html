@@ -1,0 +1,493 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nbstat</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Negative binomial rate ratio</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the number of subjects accrued, number of events,
+number of dropouts, number of subjects reaching the maximum
+follow-up, total exposure, and variance for log rate in each group,
+rate ratio, variance, and Wald test statistic of
+log rate ratio at given calendar times.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nbstat(
+  time = NA_real_,
+  rateRatioH0 = 1,
+  allocationRatioPlanned = 1,
+  accrualTime = 0L,
+  accrualIntensity = NA_real_,
+  piecewiseSurvivalTime = 0L,
+  stratumFraction = 1L,
+  kappa1 = NA_real_,
+  kappa2 = NA_real_,
+  lambda1 = NA_real_,
+  lambda2 = NA_real_,
+  gamma1 = 0L,
+  gamma2 = 0L,
+  accrualDuration = NA_real_,
+  followupTime = NA_real_,
+  fixedFollowup = 0L,
+  nullVariance = 0L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>A vector of calendar times for data cut.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rateRatioH0</code></td>
+<td>
+<p>Rate ratio under the null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocationRatioPlanned</code></td>
+<td>
+<p>Allocation ratio for the active treatment
+versus control. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise Poisson enrollment time intervals. Must start with 0, e.g.,
+<code>c(0, 3)</code> breaks the time axis into 2 accrual intervals:
+[0, 3) and [3, Inf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualIntensity</code></td>
+<td>
+<p>A vector of accrual intensities. One for
+each accrual time interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piecewiseSurvivalTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise exponential survival time intervals. Must start with 0, e.g.,
+<code>c(0, 6)</code> breaks the time axis into 2 event intervals:
+[0, 6) and [6, Inf).
+Defaults to 0 for exponential distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratumFraction</code></td>
+<td>
+<p>A vector of stratum fractions that sum to 1.
+Defaults to 1 for no stratification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa1</code></td>
+<td>
+<p>The dispersion parameter (reciprocal of the shape
+parameter of the gamma mixing distribution) for the active treatment
+group by stratum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa2</code></td>
+<td>
+<p>The dispersion parameter (reciprocal of the shape
+parameter of the gamma mixing distribution) for the control group by
+stratum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda1</code></td>
+<td>
+<p>The rate parameter of the negative binomial distribution
+for the active treatment group by stratum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda2</code></td>
+<td>
+<p>The rate parameter of the negative binomial distribution
+for the control group by stratum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of hazard
+rates for piecewise exponential dropout applicable for all strata, or a
+vector of hazard rates for dropout in each analysis time interval
+by stratum for the active treatment group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of hazard
+rates for piecewise exponential dropout applicable for all strata, or a
+vector of hazard rates for dropout in each analysis time interval
+by stratum for the control group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualDuration</code></td>
+<td>
+<p>Duration of the enrollment period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followupTime</code></td>
+<td>
+<p>Follow-up time for the last enrolled subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedFollowup</code></td>
+<td>
+<p>Whether a fixed follow-up design is used.
+Defaults to 0 for variable follow-up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nullVariance</code></td>
+<td>
+<p>Whether to calculate the variance for log rate ratio
+under the null hypothesis.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The probability mass function for a negative binomial distribution with
+dispersion parameter <code class="reqn">\kappa_i</code> and rate parameter <code class="reqn">\lambda_i</code>
+is given by
+</p>
+<p style="text-align: center;"><code class="reqn">P(Y_{ij} = y) = \frac{\Gamma(y+1/\kappa_i)}{\Gamma(1/\kappa_i) y!}
+\left(\frac{1}{1 + \kappa_i \lambda_i t_{ij}}\right)^{1/\kappa_i}
+\left(\frac{\kappa_i \lambda_i t_{ij}}
+{1 + \kappa_i \lambda_i t_{ij}}\right)^{y},</code>
+</p>
+
+<p>where <code class="reqn">Y_{ij}</code> is the event count for subject <code class="reqn">j</code> in
+treatment group <code class="reqn">i</code>, and <code class="reqn">t_{ij}</code> is the exposure time for
+the subject. If <code class="reqn">\kappa_i=0</code>, the negative binomial distribution
+reduces to the Poisson distribution.
+</p>
+<p>For treatment group <code class="reqn">i</code>, let <code class="reqn">\beta_i = \log(\lambda_i)</code>.
+The likelihood for <code class="reqn">\{(\kappa_i, \beta_i):i=1,2\}</code> can be written as
+</p>
+<p style="text-align: center;"><code class="reqn">l = \sum_{i=1}^{2}\sum_{j=1}^{n_{i}}
+\{\log \Gamma(y_{ij} + 1/\kappa_i) - \log \Gamma(1/\kappa_i) + y_{ij}
+(\log(\kappa_i) + \beta_i) - (y_{ij} + 1/\kappa_i)
+\log(1+ \kappa_i \exp(\beta_i) t_{ij})\}.</code>
+</p>
+
+<p>It follows that
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{\partial l}{\partial \beta_i} = \sum_{j=1}^{n_i}
+\left\{y_{ij} - (y_{ij} + 1/\kappa_i)
+\frac{\kappa_i \exp(\beta_i) t_{ij}}
+{1 + \kappa_i \exp(\beta_i)t_{ij}}\right\},</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">-\frac{\partial^2 l}{\partial \beta_i^2} =
+\sum_{j=1}^{n_i} (y_{ij} + 1/\kappa_i) \frac{\kappa_i \lambda_i t_{ij}}
+{(1 + \kappa_i \lambda_i t_{ij})^2}.</code>
+</p>
+
+<p>The Fisher information for <code class="reqn">\beta_i</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">E\left(-\frac{\partial^2 l}{\partial \beta_i^2}\right)
+= n_i E\left(\frac{\lambda_i t_{ij}}
+{1 + \kappa_i \lambda_i t_{ij}}\right).</code>
+</p>
+
+<p>In addition, we can show that
+</p>
+<p style="text-align: center;"><code class="reqn">E\left(-\frac{\partial^2 l}
+{\partial \beta_i \partial \kappa_i}\right) = 0.</code>
+</p>
+
+<p>Therefore, the variance of <code class="reqn">\hat{\beta}_i</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">Var(\hat{\beta}_i) = \frac{1}{n_i} \left\{
+E\left(\frac{\lambda_i t_{ij}}{1 + \kappa_i \lambda_i t_{ij}}\right)
+\right\}^{-1}.</code>
+</p>
+
+<p>To evaluate the integral, we need to obtain the distribution of the
+exposure time,
+</p>
+<p style="text-align: center;"><code class="reqn">t_{ij} = \min(\tau - W_{ij}, C_{ij}, T_{fmax}),</code>
+</p>
+
+<p>where <code class="reqn">\tau</code> denotes the calendar time since trial start,
+<code class="reqn">W_{ij}</code> denotes the enrollment time for subject <code class="reqn">j</code>
+in treatment group <code class="reqn">i</code>, <code class="reqn">C_{ij}</code> denotes the time to dropout
+after enrollment for subject <code class="reqn">j</code> in treatment group <code class="reqn">i</code>, and
+<code class="reqn">T_{fmax}</code> denotes the maximum follow-up time for
+all subjects. Therefore,
+</p>
+<p style="text-align: center;"><code class="reqn">P(t_{ij} \geq t) = P(W_{ij} \leq \tau - t)P(C_{ij} \geq t)
+I(t\leq T_{fmax}).</code>
+</p>
+
+<p>Let <code class="reqn">H</code> denote the distribution function of the enrollment time,
+and <code class="reqn">G_i</code> denote the survival function of the dropout time for
+treatment group <code class="reqn">i</code>. By the change of variables, we have
+</p>
+<p style="text-align: center;"><code class="reqn">E\left(\frac{\lambda_i t_{ij}}{1 + \kappa_i \lambda_i t_{ij}}
+\right) = \int_{0}^{\tau \wedge T_{fmax}}
+\frac{\lambda_i}{(1 + \kappa_i \lambda_i t)^2} H(\tau - t) G_i(t) dt.</code>
+</p>
+
+<p>A numerical integration algorithm for a univariate function can be
+used to evaluate the above integral.
+</p>
+<p>For the restricted maximum likelihood (reml) estimate of
+<code class="reqn">(\beta_1,\beta_2)</code> subject to the
+constraint that <code class="reqn">\beta_1 - \beta_2 = \Delta</code>, we express the
+log-likelihood in terms of <code class="reqn">(\beta_2,\Delta,\kappa_1,\kappa_2)</code>,
+and takes the derivative of the log-likelihood function with respect
+to <code class="reqn">\beta_2</code>. The resulting score equation has asymptotic limit
+</p>
+<p style="text-align: center;"><code class="reqn">E\left(\frac{\partial l}{\partial \beta_2}\right) = s_1 + s_2,</code>
+</p>
+
+<p>where
+</p>
+<p style="text-align: center;"><code class="reqn">s_1 = n r E\left\{\lambda1_1 t_{1j} - \left(\lambda_1t_{1j}
++ \frac{1}{\kappa_1}\right) \frac{\kappa_1 e^{\tilde{\beta}_2 +
+\Delta}t_{1j}}{1 + \kappa_1 e^{\tilde{\beta}_2 +\Delta}t_{1j}}\right\},</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">s_2 = n (1-r) E\left\{\lambda_2 t_{2j} -
+\left(\lambda_2 t_{2j} + \frac{1}{\kappa_2}\right)
+\frac{\kappa_2 e^{\tilde{\beta}_2} t_{2j}}
+{1 + \kappa_2 e^{\tilde{\beta}_2}t_{2j}}\right\}.</code>
+</p>
+
+<p>Here <code class="reqn">r</code> is the randomization probability for the active
+treatment group. The asymptotic limit of the reml of <code class="reqn">\beta_2</code>
+is the solution <code class="reqn">\tilde{\beta}_2</code> to
+<code class="reqn">E\left(\frac{\partial l}{\partial \beta_2}\right) = 0.</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with two components:
+</p>
+
+<ul>
+<li> <p><code>resultsUnderH1</code>: A data frame containing the following variables:
+</p>
+
+<ul>
+<li> <p><code>time</code>: The analysis time since trial start.
+</p>
+</li>
+<li> <p><code>subjects</code>: The number of enrolled subjects.
+</p>
+</li>
+<li> <p><code>nevents</code>: The total number of events.
+</p>
+</li>
+<li> <p><code>nevents1</code>: The number of events in the active treatment
+group.
+</p>
+</li>
+<li> <p><code>nevents2</code>: The number of events in the control group.
+</p>
+</li>
+<li> <p><code>ndropouts</code>: The total number of dropouts.
+</p>
+</li>
+<li> <p><code>ndropouts1</code>: The number of dropouts in the active treatment
+group.
+</p>
+</li>
+<li> <p><code>ndropouts2</code>: The number of dropouts in the control group.
+</p>
+</li>
+<li> <p><code>nfmax</code>: The total number of subjects reaching maximum
+follow-up.
+</p>
+</li>
+<li> <p><code>nfmax1</code>: The number of subjects reaching maximum follow-up
+in the active treatment group.
+</p>
+</li>
+<li> <p><code>nfmax2</code>: The number of subjects reaching maximum follow-up
+in the control group.
+</p>
+</li>
+<li> <p><code>exposure</code>: The total exposure time.
+</p>
+</li>
+<li> <p><code>exposure1</code>: The exposure time for the active treatment group.
+</p>
+</li>
+<li> <p><code>exposure2</code>: The exposure time for the control group.
+</p>
+</li>
+<li> <p><code>rateRatio</code>: The rate ratio of the active treatment group
+versus the control group.
+</p>
+</li>
+<li> <p><code>vlogRate1</code>: The variance for the log rate
+parameter for the active treatment group.
+</p>
+</li>
+<li> <p><code>vlogRate2</code>: The variance for the log rate
+parameter for the control group.
+</p>
+</li>
+<li> <p><code>vlogRR</code>: The variance of log rate ratio.
+</p>
+</li>
+<li> <p><code>information</code>: The information of log rate ratio.
+</p>
+</li>
+<li> <p><code>zlogRR</code>: The Z-statistic for log rate ratio.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>resultsUnderH0</code> when <code>nullVariance = TRUE</code>: A data frame
+with the following variables:
+</p>
+
+<ul>
+<li> <p><code>time</code>: The analysis time since trial start.
+</p>
+</li>
+<li> <p><code>lambda1H0</code>: The restricted maximum likelihood estimate
+of the event rate for the active treatment group.
+</p>
+</li>
+<li> <p><code>lambda2H0</code>: The restricted maximum likelihood estimate
+of the event rate for the control group.
+</p>
+</li>
+<li> <p><code>rateRatioH0</code>: The rate ratio under H0.
+</p>
+</li>
+<li> <p><code>vlogRate1H0</code>: The variance for the log rate
+parameter for the active treatment group under H0.
+</p>
+</li>
+<li> <p><code>vlogRate2H0</code>: The variance for the log rate
+parameter for the control group under H0.
+</p>
+</li>
+<li> <p><code>vlogRRH0</code>: The variance of log rate ratio under H0.
+</p>
+</li>
+<li> <p><code>informationH0</code>: The information of log rate ratio under H0.
+</p>
+</li>
+<li> <p><code>zlogRRH0</code>: The Z-statistic for log rate ratio with variance
+evaluated under H0.
+</p>
+</li>
+<li> <p><code>varianceRatio</code>: The ratio of the variance under H0 versus
+the variance under H1.
+</p>
+</li>
+<li> <p><code>lambda1</code>: The true event rate for the active treatment group.
+</p>
+</li>
+<li> <p><code>lambda2</code>: The true event rate for the control group.
+</p>
+</li>
+<li> <p><code>rateRatio</code>: The true rate ratio.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>resultsUnderH0</code> when <code>nullVariance = FALSE</code>: A data frame
+with the following variables:
+</p>
+
+<ul>
+<li> <p><code>time</code>: The analysis time since trial start.
+</p>
+</li>
+<li> <p><code>rateRatioH0</code>: The rate ratio under H0.
+</p>
+</li>
+<li> <p><code>varianceRatio</code>: Equal to 1.
+</p>
+</li>
+<li> <p><code>lambda1</code>: The true event rate for the active treatment group.
+</p>
+</li>
+<li> <p><code>lambda2</code>: The true event rate for the control group.
+</p>
+</li>
+<li> <p><code>rateRatio</code>: The true rate ratio.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1: Variable follow-up design
+
+nbstat(time = c(1, 1.25, 2, 3, 4),
+       accrualIntensity = 1956/1.25,
+       kappa1 = 5,
+       kappa2 = 5,
+       lambda1 = 0.7*0.125,
+       lambda2 = 0.125,
+       gamma1 = 0,
+       gamma2 = 0,
+       accrualDuration = 1.25,
+       followupTime = 2.75)
+
+# Example 2: Fixed follow-up design
+
+nbstat(time = c(0.5, 1, 1.5, 2),
+       accrualIntensity = 220/1.5,
+       stratumFraction = c(0.2, 0.8),
+       kappa1 = 3,
+       kappa2 = 3,
+       lambda1 = c(0.5*8.4, 0.6*10.5),
+       lambda2 = c(8.4, 10.5),
+       gamma1 = 0,
+       gamma2 = 0,
+       accrualDuration = 1.5,
+       followupTime = 0.5,
+       fixedFollowup = 1,
+       nullVariance = 1)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,353 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>VARselect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>VARselect</h2>
+
+<h3>Description</h3>
+
+<p>Estimation in the regression model : <code class="reqn">Y= X \beta + \sigma N(0,1)</code><br>
+Variable selection by choosing the best predictor among
+predictors emanating <br> from different methods as lasso,
+elastic-net, adaptive lasso, pls, randomForest.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">VARselect(Y, X, dmax = NULL, normalize = TRUE, method = c("lasso", 
+    "ridge", "pls", "en", "ALridge", "ALpls", "rF", "exhaustive"), 
+    pen.crit = NULL, lasso.dmax = NULL, ridge.dmax = NULL, pls.dmax = NULL, 
+    en.dmax = NULL, ALridge.dmax = NULL, ALpls.dmax = NULL, rF.dmax = NULL, 
+    exhaustive.maxdim = 5e+05, exhaustive.dmax = NULL, en.lambda = c(0.01, 
+        0.1, 0.5, 1, 2, 5), ridge.lambda = c(0.01, 0.1, 0.5, 
+        1, 2, 5), rF.lmtry = 2, pls.ncomp = 5, ALridge.lambda = c(0.01, 
+        0.1, 0.5, 1, 2, 5), ALpls.ncomp = 5, max.steps = NULL, 
+    K = 1.1, verbose = TRUE, long.output = FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>vector with n components : response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>matrix with n rows and p columns : covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dmax</code></td>
+<td>
+<p>integer : maximum number of variables in the lasso
+estimator. <code>dmax</code> <code class="reqn">\le</code> D where <br> 
+D = min (3*p/4 , n-5) if  p<code class="reqn"> \ge </code>n
+<br> D= min(p,n-5) if
+p &lt; n. <br> Default : <code>dmax</code> = D.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>logical : if TRUE the columns of X are scaled</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>vector of characters  whose components are subset of <br>
+“lasso”, “ridge”, “pls”, “en”,
+“ALridge”, “ALpls”, “rF”,
+“exhaustive”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen.crit</code></td>
+<td>
+<p>vector with <code>dmax</code>+1 components : for d=0,
+..., <code>dmax</code>, <code>penalty[d+1]</code> gives the value of the
+penalty for the dimension d. Default : <code>penalty</code> = NULL. In
+that case, the
+penalty will be calculated by the function penalty. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lasso.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ridge.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pls.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>en.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ALridge.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ALpls.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rF.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exhaustive.maxdim</code></td>
+<td>
+<p>integer : maximum number of subsets of
+covariates considered  in the exhaustive method. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exhaustive.dmax</code></td>
+<td>
+<p>integer lower than <code>dmax</code>, default = <code>dmax</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>en.lambda</code></td>
+<td>
+<p>vector : tuning parameter of the
+ridge. It is the input parameter <code>lambda</code> of function
+<code>enet</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ridge.lambda</code></td>
+<td>
+<p>vector : tuning parameter of the
+ridge. It is the input parameter lambda of function
+<code>lm.ridge</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rF.lmtry</code></td>
+<td>
+<p>vector : tuning paramer <code>mtry</code> of function
+<code>randomForest</code>, <code>mtry</code> =p/<code>rF.lmtry</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pls.ncomp</code></td>
+<td>
+<p>integer : tuning parameter of the pls. It is the
+input parameter <code>ncomp</code> of the function
+<code>plsr</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ALridge.lambda</code></td>
+<td>
+<p>similar to
+<code>ridge.lambda</code> in the adaptive lasso procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ALpls.ncomp</code></td>
+<td>
+<p>similar to <code>pls.ncomp</code> in the
+adaptive lasso procedure. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.steps</code></td>
+<td>
+<p>integer. Maximum number of steps in the lasso
+procedure. Corresponds to the input <code>max.steps</code> of the function
+<code>enet</code>. <br>
+Default :
+<code>max.steps</code> = 2*min(p,n)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>scalar : value of the parameter <code class="reqn">K</code> in the LINselect criteria.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical : if TRUE a trace of the current process is displayed in real time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long.output</code></td>
+<td>
+<p>logical : if FALSE only the component summary
+will be returned. See Value.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When method is <code>pls</code> or <code>ALpls</code>, the
+<code>LINselect</code> procedure is carried out considering the number
+of components in the <code>pls</code> method as the tuning
+parameter. <br> This tuning parameter varies from 1 to <code>pls.ncomp</code>.
+</p>
+<p>When method is <code>exhaustive</code>, the maximum
+number of variate d is calculated as
+follows.<br>
+Let q be the largest integer such that <code>choose(p,q)</code> &lt;
+<code>exhaustive.maxdim</code>. Then d = <code>min(q, exhaustive.dmax,dmax)</code>.</p>
+
+
+<h3>Value</h3>
+
+<p>A list with at least <code>length(method)</code>
+components. <br> 
+For each procedure in <code>method</code>  a list with components <br></p>
+
+<ul>
+<li>
+<p><code>support</code>: vector of integers. Estimated support of the
+parameters <code class="reqn">\beta</code> for the considered procedure.
+</p>
+</li>
+<li>
+<p><code>crit</code>: scalar equals to the LINselect criteria
+calculated in the estimated support.
+</p>
+</li>
+<li>
+<p><code>fitted</code>: vector  with length n. Fitted value of
+the response calculated when the support of <code class="reqn"> \beta</code>
+equals <code>support</code>.
+</p>
+</li>
+<li>
+<p><code>coef</code>: vector whose first component is the estimated
+intercept. <br> The other components are the estimated non zero
+coefficients when the support of <code class="reqn"> \beta</code>
+equals <code>support</code>.
+</p>
+</li>
+</ul>
+<p>If <code>length(method)</code> &gt; 1, the additional component <code>summary</code> is a list with three
+components:
+</p>
+ 
+<ul>
+<li>
+<p><code>support</code>: vector of integers. Estimated support of the
+parameters <code class="reqn">\beta</code> corresponding to the minimum
+of the criteria among all procedures.
+</p>
+</li>
+<li>
+<p><code>crit</code>:  scalar. Minimum value of the
+criteria among all procedures. 
+</p>
+</li>
+<li>
+<p><code>method</code>: vector of characters. Names of the
+procedures  for
+which the minimum is reached
+</p>
+</li>
+</ul>
+<p>If <code>pen.crit = NULL</code>, the component <code>pen.crit</code> gives the
+values of the penalty calculated by the function <code>penalty</code>.
+If <code>long.output</code> is TRUE the component named
+<code>chatty</code> is a list  with <code>length(method)</code>
+components. <br> 
+For each procedure in <code>method</code>, a list with components
+</p>
+
+<ul>
+<li>
+<p><code>support</code> where <code>support[[l]]</code> is a vector of
+integers containing an estimator of the support of the
+parameters <code class="reqn"> \beta</code>.
+</p>
+</li>
+<li>
+<p><code>crit</code> : vector where <code>crit[l]</code> contains the
+value of the LINselect criteria calculated in
+<code>support[[l]]</code>.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>When method is <code>lasso</code>, library <code>elasticnet</code> is loaded.
+</p>
+<p>When method is <code>en</code>, library <code>elasticnet</code> is loaded.
+</p>
+<p>When method is <code>ridge</code>, library <code>MASS</code> is loaded.
+</p>
+<p>When method is <code>rF</code>, library <code>randomForest</code> is loaded.
+</p>
+<p>When method is <code>pls</code>, library <code>pls</code> is loaded.
+</p>
+<p>When method is <code>ALridge</code>, libraries <code>MASS</code> and <code>elasticnet</code> are loaded.
+</p>
+<p>When method is <code>ALpls</code>, libraries <code>pls</code> and <code>elasticnet</code> are loaded.
+</p>
+<p>When method is <code>exhaustive</code>, library <code>gtools</code>
+is loaded.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Yannick Baraud, Christophe Giraud, Sylvie Huet</p>
+
+
+<h3>References</h3>
+
+<p>See Baraud  et al. 2010 
+<a href="http://hal.archives-ouvertes.fr/hal-00502156/fr/">http://hal.archives-ouvertes.fr/hal-00502156/fr/</a> <br>
+Giraud et al., 2013,
+<a href="https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.ss/1356098553">https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.ss/1356098553</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#source("charge.R")
+library("LINselect")
+
+# simulate data with
+# beta=c(rep(2.5,5),rep(1.5,5),rep(0.5,5),rep(0,p-15))
+ex &lt;- simulData(p=100,n=100,r=0.8,rSN=5)
+
+## Not run: ex1.VARselect &lt;- VARselect(ex$Y,ex$X,exhaustive.dmax=2)
+
+## Not run: data(diabetes)
+## Not run: attach(diabetes)
+## Not run: ex.diab &lt;- VARselect(y,x2,exhaustive.dmax=5)
+## Not run: detach(diabetes)
+
+
+</code></pre>
+
+
+</div>

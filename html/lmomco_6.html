@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Apwm2BpwmRC</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion between A- and B-Type Probability-Weighted Moments for Right-Tail Censoring of an Appropriate Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function converts “A”-type probability-weighted moments (PWMs, <code class="reqn">\beta^A_r</code>) to the “B”-type <code class="reqn">\beta^B_r</code>. The <code class="reqn">\beta^A_r</code> are the ordinary PWMs for the <code class="reqn">m</code> left noncensored or observed values. The <code class="reqn">\beta^B_r</code> are more complex and use the <code class="reqn">m</code> observed values and the <code class="reqn">m-n</code> right-tailed censored values for which the censoring threshold is known. The “A”- and “B”-type PWMs are described in the documentation for <code>pwmRC</code>.
+</p>
+<p>This function uses the defined relation between to two PWM types when the <code class="reqn">\beta^A_r</code> are known along with the parameters (<code>para</code>) of a right-tail censored distribution inclusive of the censoring fraction <code class="reqn">\zeta=m/n</code>. The value <code class="reqn">\zeta</code> is the right-tail censor fraction or the probability <code class="reqn">\mathrm{Pr}\lbrace \rbrace</code> that <code class="reqn">x</code> is less than the quantile at <code class="reqn">\zeta</code> nonexceedance probability (<code class="reqn">\mathrm{Pr}\lbrace x &lt; X(\zeta) \rbrace</code>). The relation is
+</p>
+<p style="text-align: center;"><code class="reqn">\beta^B_{r-1} = r^{-1}\lbrace\zeta^r r \beta^A_{r-1} + (1-\zeta^r)X(\zeta)\rbrace \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">1 \le r \le n</code> and <code class="reqn">n</code> is the number of moments, and <code class="reqn">X(\zeta)</code> is the value of the quantile function at nonexceedance probability <code class="reqn">\zeta</code>. Finally, the <code>RC</code> in the function name is to denote <code>R</code>ight-tail <code>C</code>ensoring.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Apwm2BpwmRC(Apwm,para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Apwm</code></td>
+<td>
+<p>A vector of A-type PWMs: <code class="reqn">\beta^A_r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution from a function such as <code>pargpaRC</code> in which the <code class="reqn">\beta^A_r</code> are contained in a <code>list</code> element titled <code>betas</code> and the right-tail censoring fraction <code class="reqn">\zeta</code> is contained in an element titled <code>zeta</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1995, The use of L-moments in the analysis of censored data,
+in Recent Advances in Life-Testing and Reliability, edited by N. Balakrishnan,
+chapter 29, CRC Press, Boca Raton, Fla., pp. 546–560.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Bpwm2ApwmRC</code>, <code>pwmRC</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Data listed in Hosking (1995, table 29.2, p. 551)
+H &lt;- c(3,4,5,6,6,7,8,8,9,9,9,10,10,11,11,11,13,13,13,13,13,
+             17,19,19,25,29,33,42,42,51.9999,52,52,52)
+      # 51.9999 was really 52, a real (noncensored) data point.
+z &lt;-  pwmRC(H,52)
+# The B-type PMWs are used for the parameter estimation of the
+# Reverse Gumbel distribution. The parameter estimator requires
+# conversion of the PWMs to L-moments by pwm2lmom().
+para &lt;- parrevgum(pwm2lmom(z$Bbetas),z$zeta) # parameter object
+Bbetas &lt;- Apwm2BpwmRC(z$Abetas,para)
+Abetas &lt;- Bpwm2ApwmRC(Bbetas$betas,para)
+# Assertion that both of the vectors of B-type PWMs should be the same.
+str(Abetas)   # A-type PWMs of the distribution
+str(z$Abetas) # A-type PWMs of the original data
+</code></pre>
+
+
+</div>

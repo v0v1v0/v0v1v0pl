@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logger</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate logging utility</h2>
+
+<h3>Description</h3>
+
+<p>A logger consists of a log level <code>threshold</code>, a log message <code>formatter</code> function, a log record <code>layout</code> formatting function and the <code>appender</code> function deciding on the destination of the log record. For more details, see the package <code>README.md</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logger(threshold, formatter, layout, appender)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>omit log messages below this <code>log_levels</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formatter</code></td>
+<td>
+<p>function pre-processing the message of the log record when it's not wrapped in a <code>skip_formatter</code> call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layout</code></td>
+<td>
+<p>function rendering the layout of the actual log record</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>appender</code></td>
+<td>
+<p>function writing the log record</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>By default, a general logger definition is created when loading the <code>logger</code> package, that uses
+</p>
+
+<ol>
+<li> <p><code>INFO</code> (or as per the <code>LOGGER_LOG_LEVEL</code> environment variable override) as the log level threshold
+</p>
+</li>
+<li> <p><code>layout_simple</code> as the layout function showing the log level, timestamp and log message
+</p>
+</li>
+<li> <p><code>formatter_glue</code> (or <code>formatter_sprintf</code> if <span class="pkg">glue</span> is not installed) as the default formatter function transforming the R objects to be logged to a character vector
+</p>
+</li>
+<li> <p><code>appender_console</code> as the default log record destination
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>A function taking the log <code>level</code> to compare with the set threshold, all the <code>...</code> arguments passed to the formatter function, besides the standard <code>namespace</code>, <code>.logcall</code>, <code>.topcall</code> and <code>.topenv</code> arguments (see <code>log_level</code> for more details). The function invisibly returns a list including the original <code>level</code>, <code>namespace</code>, all <code>...</code> transformed to a list as <code>params</code>, the log <code>message</code> (after calling the <code>formatter</code> function) and the log <code>record</code> (after calling the <code>layout</code> function), and a list of <code>handlers</code> with the <code>formatter</code>, <code>layout</code> and <code>appender</code> functions.
+</p>
+
+
+<h3>Note</h3>
+
+<p>It's quite unlikely that you need to call this function directly, but instead set the logger parameters and functions at <code>log_threshold</code>, <code>log_formatter</code>, <code>log_layout</code> and <code>log_appender</code> and then call <code>log_levels</code> and its derivatives, such as <code>log_info</code> directly.
+</p>
+
+
+<h3>References</h3>
+
+<p>For more details, see the Anatomy of a Log Request vignette at <a href="https://daroczig.github.io/logger/articles/anatomy.html">https://daroczig.github.io/logger/articles/anatomy.html</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+do.call(logger, logger:::namespaces$global[[1]])(INFO, 42)
+do.call(logger, logger:::namespaces$global[[1]])(INFO, '{pi}')
+x &lt;- 42
+do.call(logger, logger:::namespaces$global[[1]])(INFO, '{x}^2 = {x^2}')
+
+## End(Not run)
+</code></pre>
+
+
+</div>

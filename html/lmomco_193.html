@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmomsla</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Trimmed L-moments of the Slash Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the trimmed L-moments of the Slash distribution given the parameters (<code class="reqn">\xi</code> and <code class="reqn">\alpha</code>) from <code>parsla</code>. The relation between the TL-moments (<code>trim=1</code>) and the parameters have been numerically determined and are
+<code class="reqn">\lambda^{(1)}_1 = \xi</code>,
+<code class="reqn">\lambda^{(1)}_2 = 0.93686275\alpha</code>,
+<code class="reqn">\tau^{(1)}_3 = 0</code>,
+<code class="reqn">\tau^{(1)}_4 = 0.30420472</code>,
+<code class="reqn">\tau^{(1)}_5 = 0</code>, and
+<code class="reqn">\tau^{(1)}_6 = 0.18900723</code>.
+These TL-moments (trim=1) are symmetrical for the first L-moments defined because <code class="reqn">\mathrm{E}[X_{1:n}]</code> and <code class="reqn">\mathrm{E}[X_{n:n}]</code> are undefined expectations for the Slash.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmomsla(para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Vector of the trimmed L-moments. First element is <code class="reqn">\lambda^{(1)}_1</code>, second element is <code class="reqn">\lambda^{(1)}_2</code>, and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Vector of the L-moment ratios. Second element is <code class="reqn">\tau^{(1)}</code>, third element is <code class="reqn">\tau^{(1)}_3</code> and so on. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Level of symmetrical trimming used in the computation, which is <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftrim</code></td>
+<td>
+<p>Level of left-tail trimming used in the computation, which is <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rightrim</code></td>
+<td>
+<p>Level of right-tail trimming used in the computation, which is <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the L-moments: “lmomsla”</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Level of symmetrical trimming used.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Rogers, W.H., and Tukey, J.W., 1972, Understanding some long-tailed symmetrical distributions: Statistica Neerlandica, v. 26, no. 3, pp. 211–226.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>parsla</code>, <code>cdfsla</code>, <code>pdfsla</code>, <code>quasla</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# This example was used to numerically back into the TL-moments and the
+# relation between \alpha and \lambda_2.
+"lmomtrim1" &lt;- function(para) {
+    bigF &lt;- 0.9999
+    minX &lt;- para$para[1] - para$para[2]*qnorm(1 - bigF) / qunif(1 - bigF)
+    maxX &lt;- para$para[1] + para$para[2]*qnorm(    bigF) / qunif(1 - bigF)
+    minF &lt;- cdfsla(minX, para); maxF &lt;- cdfsla(maxX, para)
+    lmr &lt;- theoTLmoms(para, nmom = 6, leftrim = 1, rightrim = 1)
+}
+
+U &lt;- -10; i &lt;- 0
+As &lt;- seq(.1,abs(10),by=.2)
+L1s &lt;- L2s &lt;- T3s &lt;- T4s &lt;- T5s &lt;- T6s &lt;- vector(mode="numeric", length=length(As))
+for(A in As) {
+   i &lt;- i + 1
+   lmr &lt;- lmomtrim1(vec2par(c(U, A), type="sla"))
+   L1s[i] &lt;- lmr$lambdas[1]; L2s[i] &lt;- lmr$lambdas[2]
+   T3s[i] &lt;- lmr$ratios[3];  T4s[i] &lt;- lmr$ratios[4]
+   T5s[i] &lt;- lmr$ratios[5];  T6s[i] &lt;- lmr$ratios[6]
+}
+print(summary(lm(L2s~As-1))$coe)
+print(mean(T4s))
+print(mean(T6s)) # 
+## End(Not run)
+
+## Not run: 
+  alpha &lt;- 30
+  tlmr &lt;- theoTLmoms(vec2par(c(100, alpha), type="cau"), nmom=6, trim=1)
+  print( c(tlmr$lambdas[2] / alpha, tlmr$ratios[c(4,6)]), 8 ) # 
+## End(Not run)
+</code></pre>
+
+
+</div>

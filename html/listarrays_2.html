@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bind_as_dim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bind arrays along a specified dimension</h2>
+
+<h3>Description</h3>
+
+<p><code style="white-space: pre;">⁠bind_as_*⁠</code> introduces a new dimension, such that each element in
+<code>list_of_arrays</code> corresponds to one index position along the new dimension in
+the returned array. <code style="white-space: pre;">⁠bind_on_*⁠</code> binds all elements along an existing
+dimension, (meaning, the returned array has the same number of dimensions as
+each of the arrays in the list).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bind_as_dim(list_of_arrays, which_dim)
+
+bind_as_rows(...)
+
+bind_as_cols(...)
+
+bind_on_dim(list_of_arrays, which_dim)
+
+bind_on_rows(...)
+
+bind_on_cols(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>list_of_arrays</code></td>
+<td>
+<p>a list of arrays. All arrays must be of the same
+dimension. NULL's in place of arrays are automatically dropped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which_dim</code></td>
+<td>
+<p>Scalar integer specifying the index position of where to
+introduce the new dimension to introduce. Negative numbers count from the
+back. For example, given a 3 dimensional array, <code>-1</code>, is equivalent to <code>3</code>,
+<code>-2</code> to <code>2</code> and <code>-3</code> to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arrays to be bound, specified individually or supplied as a single
+list</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code style="white-space: pre;">⁠bind_*_rows()⁠</code> is a wrapper for the common case of <code style="white-space: pre;">⁠bind_*_dim(X, 1)⁠</code>.
+<code style="white-space: pre;">⁠bind_*_cols()⁠</code> is a wrapper for the common case of <code style="white-space: pre;">⁠bind_*_dim(X, -1)⁠</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An array, with one additional dimension.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">list_of_arrays &lt;- replicate(10, array(1:8, dim = c(2,3,4)), FALSE)
+
+dim(list_of_arrays[[1]])
+
+# bind on a new dimension
+combined_as &lt;- bind_as_rows(list_of_arrays)
+dim(combined_as)
+dim(combined_as)[1] == length(list_of_arrays)
+
+# each element in `list_of_arrays` corresponds to one "row"
+# (i.e., one entry in along the first dimension)
+for(i in seq_along(list_of_arrays))
+  stopifnot(identical(combined_as[i,,,], list_of_arrays[[i]]))
+
+# bind on an existing dimension
+combined_on &lt;- bind_on_rows(list_of_arrays)
+dim(combined_on)
+dim(combined_on)[1] == sum(sapply(list_of_arrays, function(x) dim(x)[1]))
+identical(list_of_arrays[[1]], combined_on[1:2,,])
+for (i in seq_along(list_of_arrays))
+  stopifnot(identical(
+    list_of_arrays[[i]], combined_on[ (1:2) + (i-1)*2,,]
+  ))
+
+# bind on any dimension
+combined &lt;- bind_as_dim(list_of_arrays, 3)
+dim(combined)
+for(i in seq_along(list_of_arrays))
+   stopifnot(identical(combined[,,i,], list_of_arrays[[i]]))
+</code></pre>
+
+
+</div>

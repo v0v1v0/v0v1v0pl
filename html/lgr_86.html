@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simple_logging</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simple Logging</h2>
+
+<h3>Description</h3>
+
+<p>lgr provides convenience functions managing the root Logger. These are
+designed chiefly for interactive use and are less verbose than their
+R6 method counterparts.
+</p>
+<p><code>threshold()</code> sets or retrieves the threshold for an Appender or Logger
+(the minimum level of log messages it processes). It's <code>target</code> defaults to
+the root logger. (equivalent to <code>lgr::lgr$threshold</code> and
+<code>lgr::lgr$set_threshold</code>)
+</p>
+<p><code>console_threshold()</code> is a shortcut to set the threshold of the root
+loggers AppenderConsole, which is usually the only Appender that manages
+console output for a given <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> session. (equivalent to
+<code>lgr::lgr$appenders$console$threshold</code> and
+<code>lgr::lgr$appenders$console$set_threshold</code>)
+</p>
+<p><code>add_appender()</code> and <code>remove_appender()</code> add Appenders to Loggers and other
+Appenders. (equivalent to <code>lgr::lgr$add_appender</code> and
+<code>lgr::lgr$remove_appender</code>)
+</p>
+<p><code>show_log()</code> displays the last <code>n</code> log entries of an Appender (or a Logger
+with such an Appender attached) with a <code style="white-space: pre;">⁠$show()⁠</code> method. Most, but not all
+Appenders support this function (try AppenderFile or AppenderBuffer).
+</p>
+<p><code>show_data()</code> and <code>show_dt()</code> work similar to <code>show_log()</code>, except that
+they return the log as <code>data.frame</code> or <code>data.table</code> respectively. Only
+Appenders that log to formats that can easily be converted to <code>data.frames</code>
+are supported (try AppenderJson or AppenderBuffer).
+</p>
+<p>The easiest way to try out this features is by adding an AppenderBuffer
+to the root logger with <code>basic_config(memory = TRUE)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">log_exception(code, logfun = lgr$fatal, caller = get_caller(-3))
+
+threshold(level, target = lgr::lgr)
+
+console_threshold(level, target = lgr::lgr$appenders$console)
+
+add_appender(appender, name = NULL, target = lgr::lgr)
+
+remove_appender(pos, target = lgr::lgr)
+
+show_log(threshold = NA_integer_, n = 20L, target = lgr::lgr)
+
+show_dt(target = lgr::lgr)
+
+show_data(target = lgr::lgr)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>Any <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> code</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logfun</code></td>
+<td>
+<p>a <code>function</code> for processing the log request, usually
+<code>lgr$info()</code>, <code>lgr$debug()</code>, etc... .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>caller</code></td>
+<td>
+<p>a <code>character</code> scalar. The name of the calling function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p><code>integer</code> or <code>character</code> scalar: the desired log level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>a Logger or Appender or the name of a Logger as <code>character</code>
+scalar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>appender</code></td>
+<td>
+<p>an <code>Appender</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p><code>character</code> scalar. An optional name for the new Appender.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pos</code></td>
+<td>
+<p><code>integer</code> index or <code>character</code> names of the appenders to remove</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p><code>character</code> or <code>integer</code> scalar. The minimum log level that should be processed by the root logger.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p><code>integer</code> scalar. Show only the last <code>n</code> log entries that match
+<code>threshold</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>threshold()</code> and <code>console_threshold()</code> return the log_level of <code>target</code>
+as <code>integer</code> (invisibly)
+</p>
+<p><code>add_appender()</code> and <code>remove_appender()</code> return <code>target</code>.
+</p>
+<p><code>show_log()</code> prints to the console and returns whatever the target
+Appender's <code style="white-space: pre;">⁠$show()⁠</code> method returns, usually a <code>character</code> vector,
+<code>data.frame</code> or <code>data.table</code> (invisibly).
+</p>
+<p><code>show_data()</code> always returns a <code>data.frame</code> and <code>show_dt()</code> always returns
+a <code>data.table</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Get and set the threshold of the root logger
+threshold("error")
+threshold()
+lgr$info("this will be supressed")
+lgr$error("an important error message")
+
+# you can also specify a target to modify other loggers
+lg &lt;- get_logger("test")
+threshold("fatal", target = lg)
+threshold(target = lg)
+
+# If a Logger's threshold is not set, the threshold is inherited from
+# its parent, in this case the root logger (that we set to error/200 before)
+threshold(NULL, target = lg)
+threshold(target = lg)
+
+# Alternative R6 API for getting/setting thresholds
+lg$set_threshold("info")
+lg$threshold
+lg$set_threshold(300)
+lg$threshold
+lg$set_threshold(NULL)
+lg$threshold
+
+# cleanup
+lgr$config(NULL)
+lg$config(NULL)
+
+
+# add Appenders to a Logger
+add_appender(AppenderConsole$new(), "second_console_appender")
+lgr$fatal("Multiple console appenders are a bad idea")
+remove_appender("second_console_appender")
+lgr$info("Good that we defined an appender name, so it's easy to remove")
+
+# Reconfigure the root logger
+basic_config(memory = TRUE)
+
+# log some messages
+lgr$info("a log message")
+lgr$info("another message with data", data = 1:3)
+
+show_log()
+show_data()
+
+# cleanup
+lgr$config(NULL)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,276 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_wording_effects</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Adds Wording Effects to <code>simulate_factors</code> Data</h2>
+
+<h3>Description</h3>
+
+<p>Adds wording effects to simulated data from <code>simulate_factors</code>.
+See examples to get started
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_wording_effects(
+  lf_object,
+  method = c("acquiescence", "difficulty", "random_careless", "straight_line", "mixed"),
+  proportion_negative = 0.5,
+  proportion_negative_range = NULL,
+  proportion_biased_cases = 0.1,
+  proportion_biased_variables = 1,
+  proportion_biased_variables_range = NULL,
+  proportion_biased_person = 1,
+  proportion_biased_person_range = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lf_object</code></td>
+<td>
+<p>Data object from <code>simulate_factors</code>.
+Data <strong>must</strong> be categorical. If data are not categorical, then
+there function with throw an error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Character (length = 1).
+Method to generate wording effect to add to the data.
+Description of methods:
+</p>
+
+<ul>
+<li> <p><code>"acquiescence"</code> —Generates new data with flipped dominant loadings
+(based on <code>proportion_negative</code>) and ensures a bias
+such that variables have a restricted range of responding
+(e.g., only 4s and 5s on a 5-point Likert scale)
+</p>
+</li>
+<li> <p><code>"difficulty"</code> — Generates new data with flipped dominant loadings
+(based on <code>proportion_negative</code>) and uses this data
+as the data without wording effects. Then, the signs of the
+dominant loadings are obtained and the dominant loadings are
+made to be absolute. Finally, the skews are multiplied by
+the signs of the original dominant loadings when generating
+the data with the wording effects
+</p>
+</li>
+<li> <p><code>"random_careless"</code> — Number of cases up to <code>proportion_biased_cases</code>
+are sampled and replaced by values from a random uniform distribution ranging
+between the lowest and highest response category for each variable.
+These values then replace the values in the original data
+</p>
+</li>
+<li> <p><code>"straight_line"</code> — Coming soon...
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_negative</code></td>
+<td>
+<p>Numeric (length = 1 or <code>factors</code>).
+Proportion of variables that should have negative (or flipped) dominant loadings across all
+or each factor. Accepts number of variables as well.
+The first variables on each factor, up to the corresponding proportion, will be
+flipped. Set to <code>0</code> to not have any loadings flipped.
+Defaults to <code>0.50</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_negative_range</code></td>
+<td>
+<p>Numeric (length = 2).
+Range of proportion of variables that are randomly selected from
+a uniform distribution. Accepts number of number of variables as well.
+Defaults to <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_biased_cases</code></td>
+<td>
+<p>Numeric (length = 1).
+Proportion of cases that should be biased with wording effects.
+Also accepts number of cases to be biased. The first <em>n</em> number of cases,
+up to the corresponding proportion, will be biased.
+Defaults to <code>0.10</code> or 10 percent of cases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_biased_variables</code></td>
+<td>
+<p>Numeric (length = 1 or <code>factors</code>).
+Proportion of variables that should be biased with wording effects.
+For <code>method = "difficulty"</code>, proportion of biased variables will only
+count for the negative variables.
+For <code>method = "acquiescence"</code>, proportion of biased variables will only
+count for variables below the mid-point of the <code>variable_categories</code>.
+Defaults to <code>1</code> or all possible variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_biased_variables_range</code></td>
+<td>
+<p>Numeric (length = 2).
+Range of proportion of variables that should be biased with wording effects.
+Values are drawn randomly from a uniform distribution.
+Defaults to <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_biased_person</code></td>
+<td>
+<p>Numeric (length = 1 or <code>proportion_biased_cases</code> x <code>sample_size</code>).
+Person-specific parameter of how many much bias the <code>proportion_biased_cases</code> will
+have over the possible biased variables. This parameter interacts with
+<code>proportion_biased_variables</code>. Parameter specifies the proportion of variables
+that should have bias per person.
+If one value is provided, then all biased cases will have the same proportion of variables biased.
+Individual values are possible by providing values for each biased case
+(<code>round(nrow(lf_object$data) * proportion_biased_cases)</code>). Setting individual
+values for each biased case is not recommended
+(use <code>proportion_biased_person_range</code> instead).
+Defaults to <code>1</code> or all possible biased variables for all biased cases</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion_biased_person_range</code></td>
+<td>
+<p>Numeric (length = 2).
+Range to randomly draw bias from a uniform distribution. Allows for random
+person-specific bias to be obtained.
+Defaults to <code>NULL</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Biased data simulated data from the specified factor model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unbiased_data</code></td>
+<td>
+<p>The corresponding unbiased data prior to replacing values
+to generate the (biased) <code>data</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biased_sample_size</code></td>
+<td>
+<p>The number of cases that have biased data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjusted_results</code></td>
+<td>
+<p>Bias-adjusted <code>lf_object</code> input into function</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>original_results</code></td>
+<td>
+<p>Original <code>lf_object</code> input into function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alexander P. Christensen &lt;alexpaulchristensen@gmail.com&gt;,
+Luis Eduardo Garrido &lt;luisgarrido@pucmm.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Garcia-Pardina, A., Abad, F. J., Christensen, A. P., Golino, H., &amp; Garrido, L. E. (2022).
+Dimensionality assessment in the presence of wording effects: A network psychometric and factorial approach.
+<em>PsyArXiv</em>.
+</p>
+<p>Garrido, L. E., Golino, H., Christensen, A. P., Martinez-Molina, A., Arias, V. B., Guerra-Pena, K., ... &amp; Abad, F. J. (2022).
+A systematic evaluation of wording effects modeling under the exploratory structural equation modeling framework.
+<em>PsyArXiv</em>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Generate factor data
+two_factor &lt;- simulate_factors(
+  factors = 2, # factors = 2
+  variables = 6, # variables per factor = 6
+  loadings = 0.55, # loadings between = 0.45 to 0.65
+  cross_loadings = 0.05, # cross-loadings N(0, 0.05)
+  correlations = 0.30, # correlation between factors = 0.30
+  sample_size = 1000, # number of cases = 1000
+  variable_categories = 5 # 5-point Likert scale
+)
+
+# Add wording effects using acquiescence method
+two_factor_acquiescence &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "acquiescence"
+)
+
+# Add wording effects using difficulty method
+two_factor_difficulty &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "difficulty"
+)
+
+# Add wording effects using random careless method
+two_factor_random_careless &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "random_careless"
+)
+
+# Add wording effects using straight line method
+two_factor_random_careless &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "straight_line"
+)
+
+# Add wording effects using mixed method
+two_factor_mixed &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = "mixed"
+)
+
+# Add wording effects using acquiescence and straight line method
+two_factor_multiple &lt;- add_wording_effects(
+  lf_object = two_factor,
+  proportion_negative = 0.50,
+  proportion_biased_cases = 0.10,
+  method = c("acquiescence", "straight_line")
+)
+
+</code></pre>
+
+
+</div>

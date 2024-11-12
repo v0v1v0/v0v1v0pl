@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>package_TS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarize the Time Series model</h2>
+
+<h3>Description</h3>
+
+<p>Calculate relevant summaries for the run of a Time Series
+model within <code>TS</code> and package the output as a
+<code>TS_fit</code>-class object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">package_TS(data, formula, timename, weights, control, rho_dist, eta_dist)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>data.frame</code> including [1] the time variable (indicated 
+in <code>timename</code>), [2] the predictor variables (required by
+<code>formula</code>) and [3], the multinomial response variable (indicated in
+<code>formula</code>) as verified by <code>check_timename</code> and 
+<code>check_formula</code>. Note that the response variables should be
+formatted as a <code>data.frame</code> object named as indicated by the 
+<code>response</code> entry in the <code>control</code> list, such as <code>gamma</code> 
+for a standard TS analysis on LDA output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p><code>formula</code> defining the regression between
+relationship the change points. Any 
+predictor variable included must also be a column in 
+<code>data</code> and any (multinomial) response variable must be a set of
+columns in <code>data</code>, as verified by <code>check_formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timename</code></td>
+<td>
+<p><code>character</code> element indicating the time variable
+used in the time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional class <code>numeric</code> vector of weights for each 
+document. Defaults to <code>NULL</code>, translating to an equal weight for
+each document. When using <code>multinom_TS</code> in a standard LDATS 
+analysis, it is advisable to weight the documents by their total size,
+as the result of <code>LDA</code> is a matrix of 
+proportions, which does not account for size differences among documents.
+For most models, a scaling of the weights (so that the average is 1) is
+most appropriate, and this is accomplished using <code>document_weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A <code>list</code> of parameters to control the fitting of the
+Time Series model including the parallel tempering Markov Chain 
+Monte Carlo (ptMCMC) controls. Values not input assume defaults set by 
+<code>TS_control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho_dist</code></td>
+<td>
+<p>List of saved data objects from the ptMCMC estimation of
+change point locations returned by <code>est_changepoints</code>
+(unless <code>nchangepoints</code> is 0, then <code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta_dist</code></td>
+<td>
+<p>Matrix of draws (rows) from the marginal posteriors of the 
+coefficients across the segments (columns), as estimated by
+<code>est_regressors</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>TS_fit</code>-class list containing the following elements, many of
+which are hidden for <code>print</code>ing, but are accessible:
+</p>
+
+<dl>
+<dt>data</dt>
+<dd>
+<p><code>data</code> input to the function.</p>
+</dd>
+<dt>formula</dt>
+<dd>
+<p><code>formula</code> input to the function.</p>
+</dd>
+<dt>nchangepoints</dt>
+<dd>
+<p><code>nchangepoints</code> input to the function.</p>
+</dd>
+<dt>weights</dt>
+<dd>
+<p><code>weights</code> input to the function.</p>
+</dd>
+<dt>timename</dt>
+<dd>
+<p><code>timename</code> input to the function.</p>
+</dd>
+<dt>control</dt>
+<dd>
+<p><code>control</code> input to the function.</p>
+</dd>
+<dt>lls</dt>
+<dd>
+<p>Iteration-by-iteration 
+logLik values for the
+full time series fit by <code>multinom_TS</code>.</p>
+</dd>
+<dt>rhos</dt>
+<dd>
+<p>Iteration-by-iteration change point estimates from
+<code>est_changepoints</code>.</p>
+</dd>
+<dt>etas</dt>
+<dd>
+<p>Iteration-by-iteration marginal regressor estimates from
+<code>est_regressors</code>, which have been 
+unconditioned with respect to the change point locations.</p>
+</dd>
+<dt>ptMCMC_diagnostics</dt>
+<dd>
+<p>ptMCMC diagnostics, 
+see <code>diagnose_ptMCMC</code></p>
+</dd>
+<dt>rho_summary</dt>
+<dd>
+<p>Summary table describing <code>rhos</code> (the change
+point locations), 
+see <code>summarize_rhos</code>.</p>
+</dd>
+<dt>rho_vcov</dt>
+<dd>
+<p>Variance-covariance matrix for the estimates of
+<code>rhos</code> (the change point locations), see 
+<code>measure_rho_vcov</code>.</p>
+</dd>
+<dt>eta_summary</dt>
+<dd>
+<p>Summary table describing <code>ets</code> (the 
+regressors), 
+see <code>summarize_etas</code>.</p>
+</dd>
+<dt>eta_vcov</dt>
+<dd>
+<p>Variance-covariance matrix for the estimates of
+<code>etas</code> (the regressors), see 
+<code>measure_eta_vcov</code>.</p>
+</dd>
+<dt>logLik</dt>
+<dd>
+<p>Across-iteration average of log-likelihoods 
+(<code>lls</code>).</p>
+</dd>
+<dt>nparams</dt>
+<dd>
+<p>Total number of parameters in the full model,
+including the change point locations and regressors.</p>
+</dd>
+<dt>AIC</dt>
+<dd>
+<p>Penalized negative log-likelihood, based on 
+<code>logLik</code> and <code>nparams</code>.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  formula &lt;- gamma ~ 1
+  nchangepoints &lt;- 1
+  control &lt;- TS_control()
+  data &lt;- data[order(data[,"newmoon"]), ]
+  rho_dist &lt;- est_changepoints(data, formula, nchangepoints, "newmoon", 
+                               weights, control)
+  eta_dist &lt;- est_regressors(rho_dist, data, formula, "newmoon", weights, 
+                             control)
+  package_TS(data, formula, "newmoon", weights, control, rho_dist, 
+             eta_dist)
+
+
+</code></pre>
+
+
+</div>

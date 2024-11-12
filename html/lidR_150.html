@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>itd_lmf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Individual Tree Detection Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function is made to be used in locate_trees. It implements an algorithm for tree
+detection based on a local maximum filter. The windows size can be fixed or variable and its
+shape can be square or circular. The internal algorithm works either with a raster or a point cloud.
+It is deeply inspired by Popescu &amp; Wynne (2004) (see references).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmf(ws, hmin = 2, shape = c("circular", "square"), ws_args = "Z")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ws</code></td>
+<td>
+<p>numeric or function. Length or diameter of the moving window used to detect the local
+maxima in the units of the input data (usually meters). If it is numeric a fixed window size is used.
+If it is a function, the function determines the size of the window at any given location on the canopy.
+By default function takes the height of a given pixel or point as its only argument and return the
+desired size of the search window when centered on that pixel/point. This can be controled with
+the 'ws_args' parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmin</code></td>
+<td>
+<p>numeric. Minimum height of a tree. Threshold below which a pixel or a point
+cannot be a local maxima. Default is 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape</code></td>
+<td>
+<p>character. Shape of the moving window used to find the local maxima. Can be "square"
+or "circular".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ws_args</code></td>
+<td>
+<p>list. Named list of argument for the function 'ws' if 'ws' is a function.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Popescu, Sorin &amp; Wynne, Randolph. (2004). Seeing the Trees in the Forest: Using Lidar and
+Multispectral Data Fusion with Local Filtering and Variable Window Size for Estimating Tree Height.
+Photogrammetric Engineering and Remote Sensing. 70. 589-604. 10.14358/PERS.70.5.589.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other individual tree detection algorithms: 
+<code>itd_manual</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+las &lt;- readLAS(LASfile, select = "xyzi", filter = "-inside 481250 3812980 481300 3813050")
+
+# =================
+# point-cloud-based
+# =================
+
+# 5x5 m fixed window size
+ttops &lt;- locate_trees(las, lmf(5))
+
+#plot(las) |&gt; add_treetops3d(ttops)
+
+# variable windows size
+f &lt;- function(x) { x * 0.07 + 3}
+ttops &lt;- locate_trees(las, lmf(f))
+
+#plot(las) |&gt; add_treetops3d(ttops)
+
+# Very custom variable windows size
+f &lt;- function(x, y, z) { x * 0.07 + y * 0.01 + z}
+ws_args &lt;- list(x = "Z", y = "Intensity", z = 3)
+ttops &lt;- locate_trees(las, lmf(f, ws_args = ws_args))
+
+# ============
+# raster-based
+# ============
+
+chm &lt;- rasterize_canopy(las, res = 1, p2r(0.15), pkg = "terra")
+ttops &lt;- locate_trees(chm, lmf(5))
+
+plot(chm, col = height.colors(30))
+plot(sf::st_geometry(ttops), add = TRUE, col = "black", cex = 0.5, pch = 3)
+
+# variable window size
+f &lt;- function(x) { x * 0.07 + 3 }
+ttops &lt;- locate_trees(chm, lmf(f))
+
+plot(chm, col = height.colors(30))
+plot(sf::st_geometry(ttops), add = TRUE, col = "black", cex = 0.5, pch = 3)
+</code></pre>
+
+
+</div>

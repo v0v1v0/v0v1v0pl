@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>function_return_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lint common mistakes/style issues cropping up from return statements</h2>
+
+<h3>Description</h3>
+
+<p><code>return(x &lt;- ...)</code> is either distracting (because <code>x</code> is ignored), or
+confusing (because assigning to <code>x</code> has some side effect that is muddled
+by the dual-purpose expression).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">function_return_linter()
+</code></pre>
+
+
+<h3>Tags</h3>
+
+<p>best_practices, readability
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = "foo &lt;- function(x) return(y &lt;- x + 1)",
+  linters = function_return_linter()
+)
+
+lint(
+  text = "foo &lt;- function(x) return(x &lt;&lt;- x + 1)",
+  linters = function_return_linter()
+)
+
+writeLines("e &lt;- new.env() \nfoo &lt;- function(x) return(e$val &lt;- x + 1)")
+lint(
+  text = "e &lt;- new.env() \nfoo &lt;- function(x) return(e$val &lt;- x + 1)",
+  linters = function_return_linter()
+)
+
+# okay
+lint(
+  text = "foo &lt;- function(x) return(x + 1)",
+  linters = function_return_linter()
+)
+
+code_lines &lt;- "
+foo &lt;- function(x) {
+  x &lt;&lt;- x + 1
+  return(x)
+}
+"
+lint(
+  text = code_lines,
+  linters = function_return_linter()
+)
+
+code_lines &lt;- "
+e &lt;- new.env()
+foo &lt;- function(x) {
+  e$val &lt;- x + 1
+  return(e$val)
+}
+"
+writeLines(code_lines)
+lint(
+  text = code_lines,
+  linters = function_return_linter()
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,278 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldest_comp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimates of composite pairwise LD based either on genotype estimates or
+genotype likelihoods.</h2>
+
+<h3>Description</h3>
+
+<p>This function will estimate the composite LD between two loci, either
+using genotype estimates or using genotype likelihoods. The resulting
+measures of LD are generalizations of Burrow's "composite" LD measure.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldest_comp(
+  ga,
+  gb,
+  K,
+  pen = 1,
+  useboot = TRUE,
+  nboot = 50,
+  se = TRUE,
+  model = c("norm", "flex")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ga</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the first locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the first locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>ga[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gb</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the second locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the second locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>gb[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The ploidy of the species. Assumed to be the same for all
+individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty to be applied to the likelihood. You can think about
+this as the prior sample size. Should be greater than 1. Does not
+apply if <code>model = "norm"</code>, <code>type = "comp"</code>, and using
+genotype likelihoods. Also does not apply when <code>type = "comp"</code>
+and using genotypes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useboot</code></td>
+<td>
+<p>Should we use bootstrap standard errors <code>TRUE</code> or not
+<code>FALSE</code>? Only applicable if using genotype likelihoods and
+<code>model = "flex"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>The number of bootstrap iterations to use is
+<code>boot = TRUE</code>. Only applicable if using genotype likelihoods and
+<code>model = "flex"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>A logical. Should we calculate standard errors (<code>TRUE</code>) or
+not (<code>FALSE</code>). Calculating standard errors can be really slow
+when <code>type = "comp"</code>, <code>model = "flex"</code>, and when using
+genotype likelihoods. Otherwise, standard error calculations
+should be pretty fast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Should we assume the class of joint genotype distributions
+is from the proportional bivariate normal (<code>model = "norm"</code>)
+or from the general categorical distribution (<code>model = "flex"</code>).
+Only applicable if using genotype likelihoods.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector with some or all of the following elements:
+</p>
+
+<dl>
+<dt><code>D</code></dt>
+<dd>
+<p>The estimate of the LD coefficient.</p>
+</dd>
+<dt><code>D_se</code></dt>
+<dd>
+<p>The standard error of the estimate of
+the LD coefficient.</p>
+</dd>
+<dt><code>r2</code></dt>
+<dd>
+<p>The estimate of the squared Pearson correlation.</p>
+</dd>
+<dt><code>r2_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+squared Pearson correlation.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The estimate of the Pearson correlation.</p>
+</dd>
+<dt><code>r_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+Pearson correlation.</p>
+</dd>
+<dt><code>Dprime</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. When <code>type</code> = "comp", this corresponds
+to the standardization where we fix allele frequencies.</p>
+</dd>
+<dt><code>Dprime_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprime</code>.</p>
+</dd>
+<dt><code>Dprimeg</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. This corresponds to the standardization where
+we fix genotype frequencies.</p>
+</dd>
+<dt><code>Dprimeg_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprimeg</code>.</p>
+</dd>
+<dt><code>z</code></dt>
+<dd>
+<p>The Fisher-z transformation of <code>r</code>.</p>
+</dd>
+<dt><code>z_se</code></dt>
+<dd>
+<p>The standard error of the Fisher-z
+transformation of <code>r</code>.</p>
+</dd>
+<dt><code>p_ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_Ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of Ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_aB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of aB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_AB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of AB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>q_ij</code></dt>
+<dd>
+<p>The estimated frequency of genotype i at locus 1
+and genotype j at locus 2. Only returned if estimating the
+composite LD.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p>The number of individuals used to estimate pairwise LD.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>David Gerard
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 100 # sample size
+K &lt;- 6 # ploidy
+
+## generate some fake genotypes when LD = 0.
+ga &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+gb &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+head(ga)
+head(gb)
+
+## generate some fake genotype likelihoods when LD = 0.
+gamat &lt;- t(sapply(ga, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+gbmat &lt;- t(sapply(gb, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+head(gamat)
+head(gbmat)
+
+## Composite LD with genotypes
+ldout1 &lt;- ldest_comp(ga = ga,
+                     gb = gb,
+                     K = K)
+head(ldout1)
+
+## Composite LD with genotype likelihoods
+ldout2 &lt;- ldest_comp(ga = gamat,
+                     gb = gbmat,
+                     K = K,
+                     se = FALSE,
+                     model = "flex")
+head(ldout2)
+
+## Composite LD with genotype likelihoods and proportional bivariate normal
+ldout3 &lt;- ldest_comp(ga = gamat,
+                     gb = gbmat,
+                     K = K,
+                     model = "norm")
+head(ldout3)
+
+</code></pre>
+
+
+</div>

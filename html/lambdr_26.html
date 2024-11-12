@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>html_response</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prepare a HTML response for a Lambda behind an API Gateway</h2>
+
+<h3>Description</h3>
+
+<p>Lambdas behind API Gateways need to send specially formatted responses that
+look like this:
+</p>
+<div class="sourceCode json"><pre>{
+  "statusCode": 200,
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "isBase64Encoded": false,
+  "body": "{\"best_animal\": \"corgi\"}"
+}
+</pre></div>
+<p>For basic applications where the handler function is returning a simple
+result, <code>lambdr</code> will do its best to automatically return a result compatible
+with API Gateways. It will do this whenever an event is detected as having
+come via an API Gateway. For most purposes this is sufficient, and allows
+users to focus on the handler function rather than the specifics of how
+<em>AWS Lambda</em> works.
+</p>
+<p>For more complicated applications, such as when the Lambda needs to return a
+specific content type or specific headers, may require a bespoke response.
+This function will take any R object and format it in style of the above
+example, allowing for customisation.
+</p>
+<p>When the handler function returns a <code>html_response</code> the formatted result will
+be returned to the API Gateway without further serialisation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">html_response(
+  body,
+  is_base64 = FALSE,
+  status_code = 200L,
+  content_type = NULL,
+  headers = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>body</code></td>
+<td>
+<p>the actual result to be delivered. This is not serialised in any
+way, so if this is a list to be interpreted JSON it should be
+stringified, that is, it should be a string of a JSON. Consider using the
+<code>as_stringified_json</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_base64</code></td>
+<td>
+<p>logical which indicates if <code>body</code> is Base64 encoded.
+Defaults to False.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status_code</code></td>
+<td>
+<p>integer status code of the response. Defaults to <code>200L</code>
+(OK).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>content_type</code></td>
+<td>
+<p>MIME type for the content. This will be appended to the
+headers (as "Content-Type"), unless such a value is already provided to
+<code>headers</code>, in which case this argument is ignored. If not provided then no
+information on headers will be sent in the response, leaving the beahviour
+up to the defaults of the API Gateway.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>headers</code></td>
+<td>
+<p>additional headers, as a named list, to be included in the
+response. If this contains a "Content-Type" value then <code>content_type</code> is
+ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A stringified JSON response for an API Gateway, with the
+"already_serialised" attribute marked as <code>TRUE</code>. This will stop
+<code>serialise_result</code> from attempting to serialise the result again.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">html_response("abc")
+html_response("YWJj", is_base64 = TRUE)
+html_response("abc", headers = list(x = "a"))
+html_response(
+  "&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;",
+  content_type = "text/html"
+)
+</code></pre>
+
+
+</div>

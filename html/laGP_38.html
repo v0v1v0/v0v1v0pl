@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>llikGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculate a GP log likelihood
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a Gaussian process (GP) log likelihood or posterior
+probability with reference to a C-side GP object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">llikGP(gpi, dab = c(0, 0), gab = c(0, 0))
+llikGPsep(gpsepi, dab = c(0, 0), gab = c(0, 0))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gpi</code></td>
+<td>
+
+<p>a C-side GP object identifier (positive integer);
+e.g., as returned by <code>newGP</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpsepi</code></td>
+<td>
+<p> similar to <code>gpi</code> but indicating a separable GP object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dab</code></td>
+<td>
+
+<p><code>ab</code> for the lengthscale parameter, see Details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gab</code></td>
+<td>
+
+<p><code>ab</code> for the nugget parameter, see Details
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>An “<code>ab</code>” parameter is a non-negative 2-vector describing 
+shape and rate parameters to a Gamma prior; a zero-setting for
+either value results in no-prior being used in which case a log likelihood
+is returned.  If both <code>ab</code> parameters are specified, then the value
+returned can be interpreted as a log posterior density.  See <code>darg</code>
+for more information about <code>ab</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A real-valued scalar is returned.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mleGP</code>, <code>darg</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## partly following the example in mleGP
+if(require("MASS")) {
+
+  ## motorcycle data and predictive locations
+  X &lt;- matrix(mcycle[,1], ncol=1)
+  Z &lt;- mcycle[,2]
+
+  ## get sensible ranges
+  d &lt;- darg(NULL, X)
+  g &lt;- garg(list(mle=TRUE), Z)
+  
+  ## initialize the model
+  gpi &lt;- newGP(X, Z, d=d$start, g=g$start)
+
+  ## calculate log likelihood
+  llikGP(gpi)
+  ## calculate posterior probability
+  llikGP(gpi, d$ab, g$ab)
+
+  ## clean up
+  deleteGP(gpi)
+}
+</code></pre>
+
+
+</div>

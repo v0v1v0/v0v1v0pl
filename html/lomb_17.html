@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>randlsp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Randomise Lomb-Scargle Periodogram
+</h2>
+
+<h3>Description</h3>
+
+<p>randlsp is used to obtain robust p-values for the significance of the largest peak in a Lomb-Scargle periodogram by randomisation.  The data sequence is scrambled repeatedly and the probability of random peaks reaching or exceeding the peak in the original (unscrambled) periodogram is computed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">randlsp(repeats=1000,x, times = NULL, from = NULL, to = NULL,
+    type = c("frequency", "period"), ofac = 1, alpha = 0.01,
+    plot = TRUE, trace = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>repeats</code></td>
+<td>
+
+<p>An integer determining the number of repeated randomisations.  Large numbers (&gt;=1000) are better but can make the procedure time-consuming.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>The data to be analysed.  x can be either a two-column numerical dataframe or matrix, with sampling times in columnn 1 and measurements in column 2, a single numerical vector containing measurements, or a single vector <code>ts</code> object (which will be converted to a numerical vector). </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>If x is a single vector, times can be provided as a numerical vector of equal length containing sampling times.  If x is a vector and times is NULL, the data are assumed to be equally sampled and times is set to 1:length(x).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+
+<p>The starting frequency (or period, depending on type) to begin scanning for periodic components.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+
+<p>The highest frequency (or period, depending on type) to scan.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Either “frequency” (the default) or “period”.  Determines the type of the periodogram x-axis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ofac</code></td>
+<td>
+
+<p>The oversampling factor.  Must be an integer &gt;=1.  Larger values of ofac lead to finer scanning of frequencies but may be time-consuming for large datasets and/or large frequency ranges (from...to).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>The significance level. The periodogram plot shows a horizontal dashed line.  Periodogram peaks exceeding this line can be considered significant at alpha.   Defaults to 0.01.  Only used if plot=TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>Logical.  If TRUE, two plots are displayed (i)  The periodogram of the original (unscrambled) data (ii)  A histogram of peaks occurring by chance during sequence randomisation.  A vertical line is drawn at the height of the peak in a periodogram of the original data. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+
+<p>Logical.  If TRUE, information about the progress of the randomisation procedure is printed during the running of randlsp. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional graphical parameters affecting the histogram plot.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function randlsp preserves the actual measurement intervals, which may affect the periodogram (see Nemec &amp; Nemec 1985, below).  Hence, this is a conservative randomisation procedure. 
+</p>
+<p>P-values from both randlsp and <code>lsp</code> increase with the number of frequencies inspected.  Therefore, if the frequency-range of interest can be narrowed down <em>a priori</em>, use arguments “from” and “to” to do so.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list with the following items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>scanned</code></td>
+<td>
+<p>A vector containing the frequencies/periods scanned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>A vector containing the normalised power corresponding to scanned frequencies/periods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Names of the data vectors analysed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The length of the data vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The periodogram type used, either “frequency” or “period”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ofac</code></td>
+<td>
+<p>The oversampling factor used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.out</code></td>
+<td>
+<p>The length of the output (powers). This can be &gt;n if ofac &gt;1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peak</code></td>
+<td>
+<p>The maximum power in the frequency/period interval inspected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peak.at</code></td>
+<td>
+<p>The frequency/period at which the maximum peak occurred.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random.peaks</code></td>
+<td>
+<p>A vector of peaks (with length=repeats) of maximum power values computed from randomised data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repeats</code></td>
+<td>
+<p>The number of randomisations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>The probability that the peak in the original data occurred by chance, computed from randomising the data sequence.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Thomas Ruf <a href="mailto:thomas.p.ruf@me.com">thomas.p.ruf@me.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Nemec A.F.L, Nemec J.M. (1985) A test of significance for periods derived using phase-dispersion-miminimization techniques. <em>The Astronomical Journal</em> <b>90</b>:2317–2320
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lsp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(lynx)
+set.seed(444)
+rand.times &lt;- sample(1:length(lynx),30) # select a random vector of sampling times
+randlsp(repeats=1000,lynx[rand.times],times=rand.times)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,270 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>factor.scores</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Factor Scores - Ability Estimates </h2>
+
+<h3>Description</h3>
+
+<p>Computation of factor scores for <code>grm</code>, <code>ltm</code>, <code>rasch</code> and <code>tpm</code> models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">factor.scores(object, ...)
+
+## S3 method for class 'gpcm'
+factor.scores(object, resp.patterns = NULL, 
+        method = c("EB", "EAP", "MI"), B = 5, robust.se = FALSE, 
+        prior = TRUE, return.MIvalues = FALSE, ...)
+
+## S3 method for class 'grm'
+factor.scores(object, resp.patterns = NULL, 
+        method = c("EB", "EAP", "MI"), B = 5, prior = TRUE, 
+        return.MIvalues = FALSE, ...)
+
+## S3 method for class 'ltm'
+factor.scores(object, resp.patterns = NULL, 
+        method = c("EB", "EAP", "MI", "Component"), B = 5, 
+        robust.se = FALSE, prior = TRUE, return.MIvalues = FALSE, 
+        ...)
+
+## S3 method for class 'rasch'
+factor.scores(object, resp.patterns = NULL, 
+        method = c("EB", "EAP", "MI"), B = 5, robust.se = FALSE,
+	    prior = TRUE, return.MIvalues = FALSE, ...)
+
+## S3 method for class 'tpm'
+factor.scores(object, resp.patterns = NULL, 
+        method = c("EB", "EAP", "MI"), B = 5, prior = TRUE, 
+        return.MIvalues = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object inheriting from either class <code>gpcm</code>, class <code>grm</code>, class <code>ltm</code>, class <code>rasch</code> or class 
+<code>tpm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resp.patterns</code></td>
+<td>
+<p>a matrix or a data.frame of response patterns with columns denoting the items; if <code>NULL</code> 
+the factor scores are computed for the observed response patterns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character supplying the scoring method; available methods are:
+Empirical Bayes, Expected a Posteriori, Multiple Imputation, and Component. See <b>Details</b> section for 
+more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>the number of multiple imputations to be used if <code>method = "MI"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust.se</code></td>
+<td>
+<p>logical; if <code>TRUE</code> the sandwich estimator is used for the estimation of the covariance
+matrix of the MLEs. See <b>Details</b> section for more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, then the prior normal distribution for the latent abilities is taken into
+account in the calculation of the posterior modes, when <code>method = "EB"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.MIvalues</code></td>
+<td>
+<p>logical. If <code>TRUE</code>, then the estimated z-values and their covariance matrix are contained
+as extra attributes <code>"zvalues.MI"</code> and <code>"var.zvalues.MI"</code>, respectively, in the returned 
+<code>score.dat</code> data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> additional arguments; currently none is used. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Factor scores or ability estimates are summary measures of the posterior distribution <code class="reqn">p(z|x)</code>, 
+where <code class="reqn">z</code> denotes the vector of latent variables and <code class="reqn">x</code> the vector of manifest variables.
+</p>
+<p>Usually as factor scores we assign the modes of the above posterior distribution evaluated at the MLEs. These
+Empirical Bayes estimates (use <code>method = "EB"</code>) and their associated variance are good measures of the 
+posterior distribution while <code class="reqn">p \rightarrow \infty</code>, where <code class="reqn">p</code> is the number of items. 
+This is based on the result </p>
+<p style="text-align: center;"><code class="reqn">p(z|x)=p(z|x; \hat{\theta})(1+O(1/p)),</code>
+</p>
+
+<p>where <code class="reqn">\hat{\theta}</code> are the MLEs. However, in cases where <code class="reqn">p</code> and/or <code class="reqn">n</code> (the sample size) is small 
+we ignore the variability of plugging-in estimates but not the <em>true</em> parameter values. A solution to this 
+problem can be given using Multiple Imputation (MI; use <code>method = "MI"</code>). In particular, MI is used the 
+other way around, i.e.,
+</p>
+
+<dl>
+<dt>Step 1:</dt>
+<dd>
+<p>Simulate new parameter values, say <code class="reqn">\theta^*</code>, from <code class="reqn">N(\hat{\theta}, C(\hat{\theta}))</code>,
+where <code class="reqn">C(\hat{\theta})</code> is the large sample covariance matrix of <code class="reqn">\hat{\theta}</code> (if <code>robust.se = TRUE</code>, 
+<code class="reqn">C(\hat{\theta})</code> is based on the sandwich estimator).</p>
+</dd>
+<dt>Step 2:</dt>
+<dd>
+<p>Maximize <code class="reqn">p(z|x; \theta^*)</code> <em>wrt</em> <code class="reqn">z</code> and also compute the associated 
+variance to this mode.</p>
+</dd>
+<dt>Step 3:</dt>
+<dd>
+<p>Repeat steps 1-2 <code>B</code> times and combine the estimates using the known formulas of MI.</p>
+</dd>
+</dl>
+<p>This scheme explicitly acknowledges the ignorance of the true parameter values by drawing from their large sample
+posterior distribution while taking into account the sampling error. The modes of the posterior distribution 
+<code class="reqn">p(z|x; \theta)</code> are numerically approximated using the BFGS algorithm in <code>optim()</code>. 
+</p>
+<p>The Expected a posteriori scores (use <code>method = "EAP"</code>) computed by <code>factor.scores()</code> are defined as 
+follows: </p>
+<p style="text-align: center;"><code class="reqn">\int z p(z | x; \hat{\theta}) dz.</code>
+</p>
+
+<p>The Component scores (use <code>method = "Component"</code>) proposed by Bartholomew (1984) is an alternative method
+to scale the sample units in the latent dimensions identified by the model that avoids the calculation of the 
+posterior mode. However, this method is not valid in the general case where nonlinear latent terms are assumed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>fscores</code> is a list with components,
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>score.dat</code></td>
+<td>
+<p>the <code>data.frame</code> of observed response patterns including, observed and expected 
+frequencies (only if the observed data response matrix contains no missing vales), the factor scores 
+and their standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>a character giving the scoring method used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>the number of multiple imputations used; relevant only if <code>method = "MI"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>a copy of the matched call of <code>object</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resp.pats</code></td>
+<td>
+<p>logical; is <code>TRUE</code> if <code>resp.patterns</code> argument has been specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coef</code></td>
+<td>
+<p>the parameter estimates returned by <code>coef(object)</code>; this is <code>NULL</code> when <code>object</code>
+inherits from class <code>grm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Dimitris Rizopoulos <a href="mailto:d.rizopoulos@erasmusmc.nl">d.rizopoulos@erasmusmc.nl</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Bartholomew, D. (1984) Scaling binary data using a factor model. <em>Journal of the Royal 
+Statistical Society, Series B</em>, <b>46</b>, 120–123.
+</p>
+<p>Bartholomew, D. and Knott, M. (1999) <em>Latent Variable Models
+and Factor Analysis</em>, 2nd ed. London: Arnold.
+</p>
+<p>Bartholomew, D., Steel, F., Moustaki, I. and Galbraith, J. (2002)
+<em>The Analysis and Interpretation of Multivariate Data for
+Social Scientists</em>. London: Chapman and Hall.
+</p>
+<p>Rizopoulos, D. (2006) <b>ltm</b>: An R package for latent variable modelling and item response theory analyses. 
+<em>Journal of Statistical Software</em>, <b>17(5)</b>, 1–25. URL doi: <a href="https://doi.org/10.18637/jss.v017.i05">10.18637/jss.v017.i05</a>
+</p>
+<p>Rizopoulos, D. and Moustaki, I. (2008) Generalized latent variable models
+with nonlinear effects. <em>British Journal of Mathematical and Statistical Psychology</em>, <b>61</b>, 415–438.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.fscores</code>,
+<code>gpcm</code>,
+<code>grm</code>,
+<code>ltm</code>,
+<code>rasch</code>,
+<code>tpm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Factor Scores for the Rasch model
+fit &lt;- rasch(LSAT)
+factor.scores(fit) # Empirical Bayes
+
+
+## Factor scores for all subjects in the
+## original dataset LSAT
+factor.scores(fit, resp.patterns = LSAT)
+
+
+## Factor scores for specific patterns,
+## including NA's, can be obtained by 
+factor.scores(fit, resp.patterns = rbind(c(1,0,1,0,1), c(NA,1,0,NA,1)))
+
+
+## Not run: 
+## Factor Scores for the two-parameter logistic model
+fit &lt;- ltm(Abortion ~ z1)
+factor.scores(fit, method = "MI", B = 20) # Multiple Imputation
+
+## Factor Scores for the graded response model
+fit &lt;- grm(Science[c(1,3,4,7)])
+factor.scores(fit, resp.patterns = rbind(1:4, c(NA,1,2,3)))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

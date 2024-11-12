@@ -1,0 +1,88 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_metric_binary_auroc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes the area under the ROC</h2>
+
+<h3>Description</h3>
+
+<p>To avoid storing all predictions and targets for an epoch we compute confusion
+matrices across a range of pre-established thresholds.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_metric_binary_auroc(
+  num_thresholds = 200,
+  thresholds = NULL,
+  from_logits = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>num_thresholds</code></td>
+<td>
+<p>Number of thresholds used to compute confusion matrices.
+In that case, thresholds are created by getting <code>num_thresholds</code> values linearly
+spaced in the unit interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholds</code></td>
+<td>
+<p>(optional) If threshold are passed, then those are used to compute the
+confusion matrices and <code>num_thresholds</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from_logits</code></td>
+<td>
+<p>Boolean indicating if predictions are logits, in that case
+we use sigmoid to put them in the unit interval.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>Other luz_metrics: 
+<code>luz_metric_accuracy()</code>,
+<code>luz_metric_binary_accuracy_with_logits()</code>,
+<code>luz_metric_binary_accuracy()</code>,
+<code>luz_metric_mae()</code>,
+<code>luz_metric_mse()</code>,
+<code>luz_metric_multiclass_auroc()</code>,
+<code>luz_metric_rmse()</code>,
+<code>luz_metric()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (torch::torch_is_installed()){
+library(torch)
+actual &lt;- c(1, 1, 1, 0, 0, 0)
+predicted &lt;- c(0.9, 0.8, 0.4, 0.5, 0.3, 0.2)
+
+y_true &lt;- torch_tensor(actual)
+y_pred &lt;- torch_tensor(predicted)
+
+m &lt;- luz_metric_binary_auroc(thresholds = predicted)
+m &lt;- m$new()
+
+m$update(y_pred[1:2], y_true[1:2])
+m$update(y_pred[3:4], y_true[3:4])
+m$update(y_pred[5:6], y_true[5:6])
+
+m$compute()
+}
+</code></pre>
+
+
+</div>

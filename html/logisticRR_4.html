@@ -1,0 +1,141 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nominalRR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate adjusted relative risks under nominal exposure variable</h2>
+
+<h3>Description</h3>
+
+<p>When response variable is binary and exposure variable is categorical
+this function derives adjusted relative risks conditional on fixed other confounders' value
+from logistic regression.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nominalRR(
+  formula,
+  basecov = NULL,
+  comparecov = NULL,
+  fixcov = NULL,
+  data,
+  boot = FALSE,
+  n.boot = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a formula term that is passed into <code>glm()</code> having a form of <code>response ~ terms</code> where <code>response</code> is binary response vector and <code>terms</code> is a collection of terms connected by <code>'+'</code>. The first term of predictors will be used as a predictor of interest to calculate relative risks with respect to response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>basecov</code></td>
+<td>
+<p>a baseline value of exposure variable. Defaults to the first level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparecov</code></td>
+<td>
+<p>a value of exposure variable for comparison. Defaults to the first level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixcov</code></td>
+<td>
+<p>a data frame of fixed value for each of adjusted confounders. If there is no confounder other than an exposure variable of interest, <code>fixcov</code> = <code>NULL</code>; if <code>fixcov</code> is missing for covariates, they are all set to <code>0</code> (for numerical covariates) or first levels (for factor covariates).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing response variable and all the terms used in <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot</code></td>
+<td>
+<p>a logical value whether bootstrap samples are generated or not. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.boot</code></td>
+<td>
+<p>if <code>boot =  TRUE</code>, the number of bootstrap samples. Defaults to <code>100</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>an object of class <code>glm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RR</code></td>
+<td>
+<p>(conditional) relative risk in response under exposure at baseline (<code>basecov</code>) and <code>comparecov</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.var</code></td>
+<td>
+<p>estimated variance of relative risk (<code>RR</code>) using Delta method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.rr</code></td>
+<td>
+<p>if <code>boot = TRUE</code>, a vector of <code>RR</code>'s using bootstrap samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot.var</code></td>
+<td>
+<p>estimated sampled variance using bootstraps if <code>boot = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix.cov</code></td>
+<td>
+<p>a data frame of fixed value for each of adjsuted confounders.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Youjin Lee
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n &lt;- 500
+set.seed(1234)
+W &lt;- rbinom(n, 1, 0.3); W[sample(1:n, n/3)] = 2
+dat &lt;- as.data.frame(W)
+dat$X &lt;- sample( c("low", "medium", "high"), size = n, replace = TRUE)
+dat$Y &lt;- ifelse(dat$X == "low", rbinom(n, 1, plogis(W + 0.5)),
+               ifelse(dat$X == "medium", rbinom(n, 1, plogis(W + 0.2)),
+               rbinom(n, 1, plogis(W - 0.4)) ))
+dat$X &lt;- as.factor(dat$X)
+result &lt;- nominalRR(Y ~ X + W, basecov = "low", comparecov = "high", data = dat,
+boot = TRUE, n.boot = 200)
+
+
+</code></pre>
+
+
+</div>

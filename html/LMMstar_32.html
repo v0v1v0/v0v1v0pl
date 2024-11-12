@@ -1,0 +1,225 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitted.lmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predicted Mean Value For Linear Mixed Model.</h2>
+
+<h3>Description</h3>
+
+<p>Evaluate the expected mean conditional to covariates or the expected outcome values when missing conditional to observed outcome and covariates.
+Similar to <code>predict.lmm</code> where the values to condition on are, by default, taking from the dataset used to fit the Linear Mixed Model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmm'
+fitted(
+  object,
+  newdata = NULL,
+  type = "mean",
+  se = NULL,
+  df = NULL,
+  keep.data = NULL,
+  format = "long",
+  seed = NULL,
+  simplify = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>[data.frame] the covariate values for each cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>[character] By default fitted values are output (<code>NULL</code>).
+Can also output the expected outcome (for missing outcomes) based on covariates and other outcome values from the same cluster (<code>"impute"</code>),
+the change or expected change between baseline and each follow-up (<code>"change"</code>),
+or the area under the curve of the outcome (<code>"auc"</code>, require a numeric repetition variable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>[character] passed to <code>predict.lmm</code> to evaluate the standard error of the fitted value, expected outcome, change in expected outcome, or area under the curve.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>[logical] should a Student's t-distribution be used to model the distribution of the predicted mean. Otherwise a normal distribution is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.data</code></td>
+<td>
+<p>[logical] Should the dataset relative to which the predictions are evaluated be output along side the predicted values?
+Only possible in the long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>[character] Should the prediction be output
+in a matrix format with clusters in row and timepoints in columns (<code>"wide"</code>),
+or in a data.frame/vector with as many rows as observations (<code>"long"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>[integer, &gt;0] Random number generator (RNG) state used when starting imputation. If NULL no state is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>[logical] Simplify the data format (vector instead of data.frame) and column names (no mention of the time variable) when possible.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional argument passed the <code>predict.lmm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>When <code>format="wide"</code>, a data.frame with as many rows as clusters.
+When <code>format="long"</code>, a data.frame with as many rows as observations (<code>keep.data==TRUE</code>)
+or a vector of length the number of observations (<code>keep.data==TRUE</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### single arm trial ####
+data(gastricbypassL, package = "LMMstar")
+gastricbypassL &lt;- gastricbypassL[order(gastricbypassL$id,gastricbypassL$visit),]
+gastricbypassL$weight0 &lt;- unlist(tapply(gastricbypassL$weight,gastricbypassL$id,
+function(x){rep(x[1],length(x))}))
+
+eUN.lmm &lt;- lmm(glucagonAUC ~ visit + weight0, repetition = ~visit|id,
+               data = gastricbypassL, df = FALSE)
+
+## fitted mean (conditional on covariates only)
+fitted(eUN.lmm)
+fitted(eUN.lmm, newdata = data.frame(visit = "3", weight0 = 0))
+fitted(eUN.lmm, newdata = data.frame(visit = "3", weight0 = 0),
+       keep.data = TRUE)
+
+## fitted outcome value (conditional on covariates and covariates)
+fitted(eUN.lmm, type = "outcome")
+gastricbypassL.O &lt;- fitted(eUN.lmm, type = "outcome", keep.data = TRUE)
+
+if(require(ggplot2)){
+gg.outcome &lt;- ggplot(gastricbypassL.O,
+                     aes(x=time, y = glucagonAUC, color = impute, group = id))
+gg.outcome &lt;- gg.outcome + geom_point() + geom_line()## + facet_wrap(~id)
+gg.outcome
+}
+
+tapply(gastricbypassL.O$glucagonAUC, gastricbypassL.O$time, mean)
+effects(eUN.lmm, variable = NULL)
+
+## fitted change value (conditional on covariates and covariates)
+gastricbypassL.C &lt;- fitted(eUN.lmm, type = "change", keep.data = TRUE)
+
+if(require(ggplot2)){
+gg.change &lt;- ggplot(gastricbypassL.C,
+                    aes(x=time, y = glucagonAUC, color = impute, group = id))
+gg.change &lt;- gg.change + geom_point() + geom_line()
+gg.change
+}
+
+tapply(gastricbypassL.C$glucagonAUC, gastricbypassL.O$time, mean)
+effects(eUN.lmm, type = "change", variable = NULL)
+
+## fitted auc (conditional on covariates and covariates)
+gastricbypassL.AUC &lt;- fitted(eUN.lmm, type = "auc", keep.data = TRUE)
+
+if(require(ggplot2)){
+gg.auc &lt;- ggplot(gastricbypassL.AUC,
+                    aes(x = "auc", y = glucagonAUC, color = impute))
+gg.auc &lt;- gg.auc + geom_point()
+gg.auc
+}
+
+mean(gastricbypassL.AUC$glucagonAUC)
+effects(eUN.lmm, type = "auc", variable = NULL)
+
+#### two arm trial ####
+## Not run: 
+if(require(nlmeU) &amp; require(reshape2)){
+data(armd.wide, package = "nlmeU")
+armd.long &lt;- melt(armd.wide,
+                  measure.vars = paste0("visual",c(0,4,12,24,52)),
+                  id.var = c("subject","lesion","treat.f","miss.pat"),
+                  variable.name = "week",
+                  value.name = "visual")
+
+armd.long$week &lt;- factor(armd.long$week, 
+                         level = paste0("visual",c(0,4,12,24,52)),
+                         labels = c(0,4,12,24,52))
+
+eUN2.lmm &lt;- lmm(visual ~ treat.f*week + lesion,
+               repetition = ~week|subject, structure = "UN",
+               data = armd.long)
+
+## fitted outcome value (conditional on covariates and covariates)
+armd.O &lt;- fitted(eUN2.lmm, type = "outcome", keep.data = TRUE)
+
+gg2.outcome &lt;- ggplot(armd.O,
+                     aes(x=week, y = visual, color = impute, group = subject))
+gg2.outcome &lt;- gg2.outcome + geom_point() + geom_line() + facet_wrap(~treat.f)
+gg2.outcome
+
+aggregate(visual ~ week + treat.f, FUN = mean, data = armd.O)
+effects(eUN2.lmm, variable = "treat.f") ## mismatch due to adjustment on lesion
+
+## fitted change value (conditional on covariates and covariates)
+armd.C &lt;- fitted(eUN2.lmm, type = "change", keep.data = TRUE)
+
+gg.change &lt;- ggplot(armd.C,
+                    aes(x=week, y = visual, color = impute, group = subject))
+gg.change &lt;- gg.change + geom_point() + geom_line() + facet_wrap(~treat.f)
+gg.change
+
+coef(eUN2.lmm)
+effects(eUN2.lmm, type = "change", variable = "treat.f")
+effects(eUN2.lmm, type = c("change","difference"), variable = "treat.f")
+
+## fitted auc (conditional on covariates and covariates)
+armd.AUC &lt;- fitted(eUN2.lmm, type = "auc", keep.data = TRUE)
+
+gg.auc &lt;- ggplot(armd.AUC, aes(x = treat.f, y = visual, color = impute))
+gg.auc &lt;- gg.auc + geom_point()
+gg.auc
+
+aggregate(visual ~ treat.f, data = armd.AUC, FUN = "mean")
+effects(eUN2.lmm, type = "auc", variable = "treat.f") ## adjusted for lesion
+effects(eUN2.lmm, type = c("auc","difference"), variable = "treat.f")
+}
+## End(Not run)
+</code></pre>
+
+
+</div>

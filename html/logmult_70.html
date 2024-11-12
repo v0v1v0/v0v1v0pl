@@ -1,0 +1,260 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>unidiff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Fitting Log-Multiplicative Uniform Difference/Layer Effect Model
+</h2>
+
+<h3>Description</h3>
+
+<p>Fit the log-multiplicative uniform difference model (UNIDIFF, see Erikson &amp; Goldthorpe, 1992),
+also called the log-multiplicative layer effect model (Xie, 1992). For square tables, diagonal
+cells can be handled separately.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">unidiff(tab, diagonal = c("included", "excluded", "only"),
+        constrain = "auto",
+        weighting = c("marginal", "uniform", "none"), norm = 2,
+        family = poisson,
+        tolerance = 1e-8, iterMax = 5000, eliminate=NULL,
+        trace = FALSE, verbose = TRUE,
+        checkEstimability = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p>a three-way table, or an object (such as a matrix) that can be coerced into a table;
+if present, dimensions above three will be collapsed as appropriate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p><code>included</code> fits the standard model with full two-way interaction;
+<code>excluded</code> adds to this model diagonal-specific parameters for each years, effectively
+removing the influence of diagonal cells on the layer coefficients; <code>only</code> fits a model
+without the full two-way interaction, where only diagonal parameters are affected by the layer
+effect (see “Details” below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrain</code></td>
+<td>
+<p>(non-eliminated) coefficients to constrain, specified by a regular expression,
+a numeric vector of indices, a logical vector, a character vector of names, or "[?]" to
+select from a Tk dialog. The default constrains to 0 the first layer parameter and
+interaction coefficients for the first row and column of the table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p>what weights should be used when normalizing coefficients. This does not affect
+layer coefficients, which are set to 1 for the first layer, but only two-way interaction
+coefficients and layer association levels, which are layer coefficients times the intrinsic
+association coefficient (see <code>maor</code>) for the first layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>the norm to use to compute the mean absolute odds ratio (see <code>maor</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>a specification of the error distribution and link function to be used in the model.
+This can be a character string naming a family function; a family function, or the result of
+a call to a family function. See <code>family</code> details of family functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p> a positive numeric value specifying the tolerance level for
+convergence; higher values will speed up the fitting process, but beware of numerical
+instability of estimated scores!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterMax</code></td>
+<td>
+<p> a positive integer specifying the maximum number of main iterations to perform;
+consider raising this value if your model does not converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eliminate</code></td>
+<td>
+<p> either <code>NULL</code> (the default) to estimate all parameters, <code>NA</code>
+to skip the estimation of some parameters for increased efficiency, or the name of a
+factor to be passed as <code>gnm</code>'s corresponding argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> a logical value indicating whether the deviance
+should be printed after each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> a logical value indicating whether progress indicators should be printed,
+including a diagnostic error message if the algorithm restarts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkEstimability</code></td>
+<td>
+<p> a logical value indicating whether the estimability of the contrasts should
+be checked via <code>checkEstimable</code>. Disabling this check can improve performance for large models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> more arguments to be passed to <code>gnm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The equation of the fitted model is:
+</p>
+<p style="text-align: center;"><code class="reqn"> log F_{ijk} = \lambda + \lambda^I_i + \lambda^J_j + \lambda^K_k
+                      + \lambda^{IK}_{ik} + \lambda^{JK}_{jk}
+                      + \phi_k \psi^{IJ}_{ij} </code>
+</p>
+
+<p>where <code class="reqn">F_{ijk}</code> is the expected frequency for the cell at the intersection of row i, column j and
+layer k of <code>tab</code>. When <code>diagonal = "excluded"</code>, <code class="reqn">\lambda^{IJK}_{ijk}</code> parameters are added
+but set to 0 when <code class="reqn">i \neq j</code> (off-diagonal). When <code>diagonal = "only"</code>, <code class="reqn">\psi^{IJ}_{ij}</code> is set
+to 0 when <code class="reqn">i \neq j</code>.
+</p>
+<p>Note that by default <code>weighting="marginal"</code>, meaning that reported
+interaction coefficients do <em>not</em> correspond to what is usually expected
+in log-linear modeling. Use <code>weighting="none"</code> or <code>weighting="uniform"</code> 
+to use more classic identification constraints (effects coding).
+</p>
+<p>Layer coefficients <code class="reqn">\phi_k</code> are internally exponentiated in the gnm formula, which means the reported
+values are in log scale, with reference 0 for the first year. Interaction coefficients use the
+“sum” contrast, also known as “effect” coding, except when <code>diagonal</code> is different from
+<code>included</code>, in which case “treatment” constrast (a.k.a “reference” or “dummy”
+coding) is used.
+</p>
+<p>Actual model fitting is performed using <code>gnm</code>, which implements the Newton-Raphson algorithm.
+This function simply allows for direct identification of the log-multiplicative parameters by setting the
+appropriate constraints, and improves performance by eliminating less interesting coefficients.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>unidiff</code> object, with all the components of a <code>gnm</code> object, plus an
+<code>unidiff</code> component holding the most relevant information:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>layer</code></td>
+<td>
+<p>a <code>qvcalc</code> object holding the (log) layer coefficients, their standard
+errors and quasi-standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>the value of the intrinsic association coefficient (see <code>maor</code>) for
+each layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maor</code></td>
+<td>
+<p>the value of the Mean absolute odds ratio (see <code>maor</code>) for
+each layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interaction</code></td>
+<td>
+<p>a data frame object holding the two-way interaction coefficients, and their
+standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p>the value of the <code>diagonal</code> argument above.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p>the value of the <code>weighting</code> argument above.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>Erikson, R., and Goldthorpe, J.H. (1992). The Constant Flux: A Study of Class Mobility in Industrial Societies.
+Oxford: Clarendon Press. Ch. 3.
+</p>
+<p>Xie, Yu (1992). The Log-Multiplicative Layer Effect Model for Comparing Mobility Tables. <em>Am. Sociol. Rev.</em>
+57(3):380-395.
+</p>
+<p>Yaish, M. (1998). Opportunities, Little Change. Class Mobility in Israeli Society, 1974-1991. Ph.D. thesis,
+Nuffield College, University of Oxford.
+</p>
+<p>Yaish, M. (2004). Class Mobility Trends in Israeli Society, 1974-1991. Lewiston: Edwin Mellen Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.unidiff</code>, <code>summary.unidiff</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Yaish (1998, 2004)
+  data(yaish)
+
+  # Last layer omitted because of low frequencies
+  yaish &lt;- yaish[,,-7]
+
+  # Layer (education) must be the third dimension
+  yaish &lt;- aperm(yaish, 3:1)
+
+  model &lt;- unidiff(yaish)
+
+  model
+  summary(model)
+  plot(model)
+
+  
+</code></pre>
+
+
+</div>

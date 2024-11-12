@@ -1,0 +1,328 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>theta-utils</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Utilities for the parameter vector of Lambert W<code class="reqn">\times</code> F distributions</h2>
+
+<h3>Description</h3>
+
+<p>These functions work with <code class="reqn">\boldsymbol \theta = (\boldsymbol \beta, \gamma, \delta, \alpha)</code>,
+which fully parametrizes Lambert W<code class="reqn">\times</code> F distributions.
+</p>
+<p>See Details for more background information on some functions.
+</p>
+<p><code>check_theta</code> checks if <code class="reqn">\theta = (\alpha, \boldsymbol \beta, \gamma, \delta)</code>
+describes a well-defined Lambert W distribution.
+</p>
+<p><code>complete_theta</code> completes missing values in a parameters list so users
+don't have to specify everything in detail. If not supplied, then
+<code>alpha = 1</code>, <code>gamma = 0</code>, and <code>delta = 0</code> will be set by default.
+</p>
+<p><code>flatten_theta</code> and <code>unflatten_theta</code> convert between the list 
+<code>theta</code> and its vector-style flattened type.  The flattened version is required
+for several optimization routines, since they optimize over multivariate vectors – not lists.
+</p>
+<p><code>get_initial_theta</code> provides initial estimates for <code class="reqn">\alpha</code>,
+<code class="reqn">\boldsymbol \beta</code>, <code class="reqn">\gamma</code>, and <code class="reqn">\delta</code>, which are then
+used in maximum likelihood (ML) estimation (<code>MLE_LambertW</code>).
+</p>
+<p><code>get_theta_bounds</code> returns lower and upper bounds for <code class="reqn">\theta</code> 
+(necessary for optimization such as <code>MLE_LambertW</code>).
+</p>
+<p><code>theta2tau</code> converts <code class="reqn">\theta</code> to the transformation vector 
+<code class="reqn">\tau = (\mu_x, \sigma_x, \gamma, \delta, \alpha)</code>.
+</p>
+<p><code>theta2unbounded</code> transforms <code class="reqn">\theta</code> from the bounded space to an 
+unrestricted space (by <code class="reqn">\log</code>-transformation on 
+<code class="reqn">\sigma_x</code>, <code class="reqn">\delta</code>, and <code class="reqn">\alpha</code>; note that this restricts
+<code class="reqn">\gamma \geq 0</code>, <code class="reqn">\delta \geq 0</code>, and <code class="reqn">\alpha \geq 0</code>.).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">check_theta(theta, distname)
+
+complete_theta(theta = list(), LambertW.input = NULL)
+
+flatten_theta(theta)
+
+get_initial_theta(
+  y,
+  distname,
+  type = c("h", "hh", "s"),
+  theta.fixed = list(alpha = 1),
+  method = c("Taylor", "IGMM"),
+  use.mean.variance = TRUE
+)
+
+get_theta_bounds(
+  distname,
+  beta,
+  type = c("s", "h", "hh"),
+  not.negative = FALSE
+)
+
+theta2tau(theta = list(beta = c(0, 1)), distname, use.mean.variance = TRUE)
+
+theta2unbounded(theta, distname, type = c("h", "hh", "s"), inverse = FALSE)
+
+unflatten_theta(theta.flattened, distname, type)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>list; a (possibly incomplete) list of parameters <code>alpha</code>,
+<code>beta</code>, <code>gamma</code>, <code>delta</code>. <code>complete_theta</code>
+fills in default values for missing entries.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>character; name of input distribution; see
+<code>get_distnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LambertW.input</code></td>
+<td>
+<p>optional; if <code>beta</code> is missing in <code>theta</code>,
+<code>LambertW.input</code> (which has a <code>beta</code> element) must be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of real values (the observed data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of Lambert W <code class="reqn">\times</code> F distribution: skewed <code>"s"</code>;
+heavy-tail <code>"h"</code>; or skewed heavy-tail <code>"hh"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.fixed</code></td>
+<td>
+<p>list; fixed parameters for the optimization; default:
+<code>alpha = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character; should a fast <code>"Taylor"</code> (default)
+approximation be used (<code>delta_Taylor</code> or
+<code>gamma_Taylor</code>) to estimate <code class="reqn">\delta</code> or <code class="reqn">\gamma</code>, or
+should <code>"IGMM"</code> (<code>IGMM</code>) estimates be used.  Use
+<code>"Taylor"</code> as initial values for <code>IGMM</code>;
+<code>IGMM</code> improves upon it and should be used for
+<code>MLE_LambertW</code>.  Do <strong>not</strong> use <code>"IGMM"</code> as initial
+values for <code>IGMM</code> – this will run <code>IGMM</code> twice.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.mean.variance</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it uses mean and variance
+implied by <code class="reqn">\boldsymbol \beta</code> to do the transformation (Goerg 2011).
+If <code>FALSE</code>, it uses the alternative definition from Goerg (2016)
+with location and scale parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric vector (deprecated); parameter <code class="reqn">\boldsymbol \beta</code> of
+the input distribution.  See <code>check_beta</code> on how to specify
+<code>beta</code> for each distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.negative</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it sets the lower bounds for <code>alpha</code>
+and <code>delta</code> to <code>0</code>.  Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, it transforms the unbounded
+<code>theta</code> back to the original, bounded space. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.flattened</code></td>
+<td>
+<p>named vector; flattened version of list <code>theta</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>get_initial_theta</code> obtains a quick initial estimate of <code class="reqn">\theta</code> by
+first finding the (approximate) input <code class="reqn">\widehat{\boldsymbol
+    x}_{\widehat{\theta}}</code> by <code>IGMM</code>, and then estimating
+<code class="reqn">\boldsymbol \beta</code> for this input data <code class="reqn">\widehat{\boldsymbol
+    x}_{\widehat{\theta}} \sim F_X(x \mid \boldsymbol \beta)</code> (see
+<code>estimate_beta</code>).
+</p>
+<p>Converting <code>theta</code> to an unbounded space is especially useful
+for optimization routines (like <code>nlm</code>), which can be
+performed over an unconstrained space. The obtained optimum can be
+converted back to the original space using the inverse transformation
+(set <code>inverse = TRUE</code> transforms it via <code class="reqn">\exp</code>) – this
+guarantees that the estimate satisfies non-negativity constraints (if
+required). The main advantage is that this avoids using optimization
+routines with boundary constraints – since they are much slower compared
+to unconstrained optimization.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>check_theta</code> throws an error if list <code>theta</code> does not
+define a proper Lambert W <code class="reqn">\times</code> F distribution; 
+does nothing otherwise.
+</p>
+<p><code>complete_theta</code> returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p> heavy tail exponent(s),</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p> named vector <code class="reqn">\boldsymbol \beta</code> of the input distribution, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p> skewness parameter,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p> heavy-tail parameter(s).</p>
+</td>
+</tr>
+</table>
+<p><code>get_initial_theta</code> returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p> heavy tail exponent; default: <code>1</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p> named vector <code class="reqn">\boldsymbol \beta</code> of the input distribution; 
+estimated from the recovered input data <code class="reqn">\widehat{\mathbf{x}}_{\widehat{\tau}}</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p> skewness parameter; if <code>type</code> is <code>"h"</code> or <code>"hh"</code> <code>gamma = 0</code>;
+estimated from <code>IGMM</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p> heavy-tail parameter;
+estimated from <code>IGMM</code>. If <code>type = "s"</code>, then <code>delta = 0</code>. </p>
+</td>
+</tr>
+</table>
+<p><code>get_theta_bounds</code> returns a list containing two vectors:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p> flattened vector of lower bounds for valid <code class="reqn">\theta</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p> flattened vector of upper bounds for valid <code class="reqn">\theta</code>. </p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>check_beta</code>
+</p>
+<p><code>estimate_beta</code>, <code>get_initial_tau</code>
+</p>
+<p><code>beta2tau</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+check_theta(theta = list(beta =  c(1, 1, -1)), distname = "t")
+
+## End(Not run)
+
+check_theta(theta = list(beta =  c(1, 1)), distname = "normal") # ok
+
+params &lt;- list(beta = c(2, 1), delta = 0.3) # alpha and gamma are missing
+complete_theta(params) # added default values
+
+params &lt;- list(beta = c(2, 1), delta = 0.3, alpha = c(1, 2))
+params &lt;- complete_theta(params)
+check_theta(params, distname = 'normal')
+
+###
+x &lt;- rnorm(1000)
+get_initial_theta(x, distname = "normal", type = "h")
+get_initial_theta(x, distname = "normal", type = "s")
+
+# starting values for the skewed version of an exponential
+y &lt;- rLambertW(n = 1000, distname = "exp", theta=list(beta = 2, gamma = 0.1))
+get_initial_theta(y, distname = "exp", type = "s")
+
+# starting values for the heavy-tailed version of a Normal = Tukey's h
+y &lt;- rLambertW(n = 1000, distname="normal", theta=list(beta = c(2, 1), delta = 0.2))
+get_initial_theta(y, distname = "normal", type = "h")#' 
+
+###
+get_theta_bounds(type = "hh", distname = "normal", beta = c(0, 1))
+
+### 
+theta.restr &lt;- theta2unbounded(list(beta = c(-1, 0.1), 
+                                    delta = c(0.2, 0.2)), 
+                                    distname = "normal")
+theta.restr
+# returns again the beta and delta from above
+theta2unbounded(theta.restr, inverse = TRUE, distname = "normal") 
+
+</code></pre>
+
+
+</div>

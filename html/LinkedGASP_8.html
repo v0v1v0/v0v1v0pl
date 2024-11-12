@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>NGASPmetrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+GASP performance assessment measures
+</h2>
+
+<h3>Description</h3>
+
+<p>Evaluates frequentist performance of the GASP.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">NGASPmetrics(GASP, true_output, ref_output)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>GASP</code></td>
+<td>
+
+<p>GASP emulator.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true_output</code></td>
+<td>
+
+<p>Output from the simulator.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref_output</code></td>
+<td>
+
+<p>Heuristic emulator output.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>List of performance measures.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>RMSPE_base </code></td>
+<td>
+<p>Root mean square predictive error with respect to the heuristic emulator output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>RMSPE </code></td>
+<td>
+<p>Root mean square predictive error for the emulator output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio </code></td>
+<td>
+<p>ratio of RMSPE_base to RMSPE. Ratio = RMSPE_base/RMSPE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIs </code></td>
+<td>
+<p>95% central credible intervals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emp_cov </code></td>
+<td>
+<p>95% empirical coverage within the CIs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length_CIs </code></td>
+<td>
+<p>Average lenght of 95% central credible intervals</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ksenia N. Kyzyurova, ksenia.ucoz.net
+</p>
+
+
+<h3>References</h3>
+
+<p>Ksenia N. Kyzyurova, James O. Berger, and Robert L. Wolpert. Coupling computer models through linking their statistical emulators. SIAM/ASA Journal on Uncertainty Quantification, 6(3): 1151-1171, 2018</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Function f1 is a simulator
+f1&lt;-function(x){sin(pi*x)}
+
+## One-dimensional inputs are x1
+x1 &lt;- seq(-1,1,.37)
+
+## The following contains the list of data inputs (training) and outputs (fD) together with 
+## the assumed fixed smoothness of a computer model output.
+data.f1 &lt;- list(training = x1,fD = f1(x1), smooth = 1.99)
+
+## Evaluation of GASP parameters
+f1_MLEs = eval_GASP_RFP(data.f1,list(function(x){x^0},function(x){x^1}),1,FALSE)
+
+## Evaluate the emulator
+xn = seq(-1,1,.01)
+GASP_type2_f1 &lt;- eval_type2_GASP(as.matrix(xn),f1_MLEs)
+
+## Plot the emulator
+par(mar = c(6.1, 6.1, 5.1, 2.1))
+GASP_plot(GASP_type2_f1,data = data.f1,emul_type = "",ylim = ylim, plot_training = TRUE)
+
+## Measure performance of an emulator
+NGASPmetrics(GASP_type2_f1,f1(xn),mean(f1(xn)))
+</code></pre>
+
+
+</div>

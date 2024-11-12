@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_stage</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a New Stage to an Existing LefkoMat Object</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>add_stage()</code> adds a new stage to an existing <code>lefkoMat</code>
+object. In addition to altering the <code>ahstages</code> object within the MPM,
+it alters the <code>hstages</code> and <code>agestages</code> objects and adds the
+appropriate number of new rows and columns depending on the kind of MPM
+input.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_stage(mpm, add_before = 0L, add_after = 0L, stage_name = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mpm</code></td>
+<td>
+<p>The <code>lefkoMat</code> object to add a stage to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_before</code></td>
+<td>
+<p>The index of the stage to insert a new stage before. This
+index should be derived from the <code>ahstages</code> of the input <code>mpm</code>.
+Cannot be set if <code>add_after</code> is to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_after</code></td>
+<td>
+<p>The index of the stage to insert a new stage after. This
+index should be derived from the <code>ahstages</code> of the input <code>mpm</code>.
+Cannot be set if <code>add_before</code> is to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stage_name</code></td>
+<td>
+<p>The name of the new stage to add. Defaults to
+<code>new_stage</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A new copy of the original MPM edited to include new rows and
+columns in the associated matrices, and with <code>ahstages</code>,
+<code>agestages</code>, and <code>hstages</code> objects edited to include the new
+stage.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>edit_lM()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(cypdata)
+
+cyp_lesl_data &lt;- verticalize3(data = cypdata, noyears = 6, firstyear = 2004, 
+  patchidcol = "patch", individcol = "plantid", blocksize = 4, 
+  sizeacol = "Inf2.04", sizebcol = "Inf.04", sizeccol = "Veg.04", 
+  repstracol = "Inf.04", repstrbcol = "Inf2.04", fecacol = "Pod.04", 
+  stagesize = "sizeadded", NAas0 = TRUE, age_offset = 2)
+
+cyp_survival &lt;- glm(alive3 ~ obsage + as.factor(year2), data = cyp_lesl_data,
+  family = "binomial")
+cyp_fecundity &lt;- glm(feca2 ~ 1 + obsage + as.factor(year2),
+  data = cyp_lesl_data, family = "poisson")
+
+mod_params &lt;- create_pm(name_terms = TRUE)
+mod_params$modelparams[22] &lt;- "obsage"
+
+germination &lt;- 0.08
+protocorm_to_seedling &lt;- 0.10
+seeding_to_adult &lt;- 0.20
+seeds_per_fruit &lt;- 8000
+
+cyp_lesl_supp &lt;- supplemental(historical = FALSE, stagebased = FALSE,
+  agebased = TRUE, age2 = c(1, 2), type = c(1, 1),
+  givenrate = c(protocorm_to_seedling, seeding_to_adult))
+
+cyp_lesl_fb_mpm &lt;- fleslie(data = cyp_lesl_data, surv_model = cyp_survival,
+  fec_model = cyp_fecundity, paramnames = mod_params, last_age = 7,
+  fecage_min = 3, fecmod = (germination * seeds_per_fruit),
+  supplement = cyp_lesl_supp)
+
+altered1 &lt;- add_stage(cyp_lesl_fb_mpm, add_before = 1, stage_name = "DS")
+
+</code></pre>
+
+
+</div>

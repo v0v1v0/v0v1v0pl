@@ -1,0 +1,317 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loo_model_weights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model averaging/weighting via stacking or pseudo-BMA weighting</h2>
+
+<h3>Description</h3>
+
+<p>Model averaging via stacking of predictive distributions, pseudo-BMA
+weighting or pseudo-BMA+ weighting with the Bayesian bootstrap. See Yao et
+al. (2018), Vehtari, Gelman, and Gabry (2017), and Vehtari, Simpson,
+Gelman, Yao, and Gabry (2024) for background.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loo_model_weights(x, ...)
+
+## Default S3 method:
+loo_model_weights(
+  x,
+  ...,
+  method = c("stacking", "pseudobma"),
+  optim_method = "BFGS",
+  optim_control = list(),
+  BB = TRUE,
+  BB_n = 1000,
+  alpha = 1,
+  r_eff_list = NULL,
+  cores = getOption("mc.cores", 1)
+)
+
+stacking_weights(lpd_point, optim_method = "BFGS", optim_control = list())
+
+pseudobma_weights(lpd_point, BB = TRUE, BB_n = 1000, alpha = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A list of <code>"psis_loo"</code> objects (objects returned by <code>loo()</code>) or
+pointwise log-likelihood matrices or , one for each model. If the list
+elements are named the names will be used to label the models in the
+results. Each matrix/object should have dimensions <code class="reqn">S</code> by <code class="reqn">N</code>,
+where <code class="reqn">S</code> is the size of the posterior sample (with all chains merged)
+and <code class="reqn">N</code> is the number of data points. If <code>x</code> is a list of
+log-likelihood matrices then <code>loo()</code> is called internally on each matrix.
+Currently the <code>loo_model_weights()</code> function is not implemented to be used
+with results from K-fold CV, but you can still obtain weights using K-fold
+CV results by calling the <code>stacking_weights()</code> function directly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Unused, except for the generic to pass arguments to individual
+methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either <code>"stacking"</code> (the default) or <code>"pseudobma"</code>, indicating which method
+to use for obtaining the weights. <code>"stacking"</code> refers to stacking of
+predictive distributions and  <code>"pseudobma"</code> refers to pseudo-BMA+ weighting
+(or plain pseudo-BMA weighting if argument <code>BB</code> is <code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim_method</code></td>
+<td>
+<p>If <code>method="stacking"</code>, a string passed to the <code>method</code>
+argument of <code>stats::constrOptim()</code> to specify the optimization algorithm.
+The default is <code>optim_method="BFGS"</code>, but other options are available (see
+<code>stats::optim()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim_control</code></td>
+<td>
+<p>If <code>method="stacking"</code>, a list of control parameters for
+optimization passed to the <code>control</code> argument of <code>stats::constrOptim()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BB</code></td>
+<td>
+<p>Logical used when <code>"method"</code>=<code>"pseudobma"</code>. If
+<code>TRUE</code> (the default), the Bayesian bootstrap will be used to adjust
+the pseudo-BMA weighting, which is called pseudo-BMA+ weighting. It helps
+regularize the weight away from 0 and 1, so as to reduce the variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>BB_n</code></td>
+<td>
+<p>For pseudo-BMA+ weighting only, the number of samples to use for
+the Bayesian bootstrap. The default is <code>BB_n=1000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Positive scalar shape parameter in the Dirichlet distribution
+used for the Bayesian bootstrap. The default is <code>alpha=1</code>, which
+corresponds to a uniform distribution on the simplex space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff_list</code></td>
+<td>
+<p>Optionally, a list of relative effective sample size
+estimates for the likelihood <code>(exp(log_lik))</code> of each observation in
+each model. See <code>psis()</code> and  <code>relative_eff()</code> helper
+function for computing <code>r_eff</code>. If <code>x</code> is a list of <code>"psis_loo"</code>
+objects then <code>r_eff_list</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization. This defaults to
+the option <code>mc.cores</code> which can be set for an entire R session by
+<code>options(mc.cores = NUMBER)</code>. The old option <code>loo.cores</code> is now
+deprecated but will be given precedence over <code>mc.cores</code> until
+<code>loo.cores</code> is removed in a future release. <strong>As of version
+2.0.0 the default is now 1 core if <code>mc.cores</code> is not set</strong>, but we
+recommend using as many (or close to as many) cores as possible.
+</p>
+
+<ul><li>
+<p> Note for Windows 10 users: it is <strong>strongly</strong>
+<a href="https://github.com/stan-dev/loo/issues/94">recommended</a> to avoid using
+the <code>.Rprofile</code> file to set <code>mc.cores</code> (using the <code>cores</code> argument or
+setting <code>mc.cores</code> interactively or in a script is fine).
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lpd_point</code></td>
+<td>
+<p>If calling <code>stacking_weights()</code> or <code>pseudobma_weights()</code>
+directly, a matrix of pointwise leave-one-out (or K-fold) log likelihoods
+evaluated for different models. It should be a <code class="reqn">N</code> by <code class="reqn">K</code>  matrix
+where <code class="reqn">N</code> is sample size and <code class="reqn">K</code> is the number of models. Each
+column corresponds to one model. These values can be calculated
+approximately using <code>loo()</code> or by running exact leave-one-out or K-fold
+cross-validation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>loo_model_weights()</code> is a wrapper around the <code>stacking_weights()</code> and
+<code>pseudobma_weights()</code> functions that implements stacking, pseudo-BMA, and
+pseudo-BMA+ weighting for combining multiple predictive distributions. We can
+use approximate or exact leave-one-out cross-validation (LOO-CV) or K-fold CV
+to estimate the expected log predictive density (ELPD).
+</p>
+<p>The stacking method (<code>method="stacking"</code>), which is the default for
+<code>loo_model_weights()</code>, combines all models by maximizing the leave-one-out
+predictive density of the combination distribution. That is, it finds the
+optimal linear combining weights for maximizing the leave-one-out log score.
+</p>
+<p>The pseudo-BMA method (<code>method="pseudobma"</code>) finds the relative weights
+proportional to the ELPD of each model. However, when
+<code>method="pseudobma"</code>, the default is to also use the Bayesian bootstrap
+(<code>BB=TRUE</code>), which corresponds to the pseudo-BMA+ method. The Bayesian
+bootstrap  takes into account the uncertainty of finite data points and
+regularizes the weights away from the extremes of 0 and 1.
+</p>
+<p>In general, we recommend stacking for averaging predictive distributions,
+while pseudo-BMA+ can serve as a computationally easier alternative.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric vector containing one weight for each model.
+</p>
+
+
+<h3>References</h3>
+
+<p>Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC.
+<em>Statistics and Computing</em>. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4
+(<a href="https://link.springer.com/article/10.1007/s11222-016-9696-4">journal version</a>,
+<a href="https://arxiv.org/abs/1507.04544">preprint arXiv:1507.04544</a>).
+</p>
+<p>Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2024).
+Pareto smoothed importance sampling. <em>Journal of Machine Learning Research</em>,
+25(72):1-58.
+<a href="https://jmlr.org/papers/v25/19-556.html">PDF</a>
+</p>
+<p>Yao, Y., Vehtari, A., Simpson, D., and Gelman, A. (2018) Using
+stacking to average Bayesian predictive distributions.
+<em>Bayesian Analysis</em>, advance publication,  doi:10.1214/17-BA1091.
+(<a href="https://projecteuclid.org/euclid.ba/1516093227">online</a>).
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p> The <strong>loo</strong> package <a href="https://mc-stan.org/loo/articles/">vignettes</a>, particularly
+<a href="https://mc-stan.org/loo/articles/loo2-weights.html">Bayesian Stacking and Pseudo-BMA weights using the <strong>loo</strong> package</a>.
+</p>
+</li>
+<li> <p><code>loo()</code> for details on leave-one-out ELPD estimation.
+</p>
+</li>
+<li> <p><code>constrOptim()</code> for the choice of optimization methods and control-parameters.
+</p>
+</li>
+<li> <p><code>relative_eff()</code> for computing <code>r_eff</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+### Demonstrating usage after fitting models with RStan
+library(rstan)
+
+# generate fake data from N(0,1).
+N &lt;- 100
+y &lt;- rnorm(N, 0, 1)
+
+# Suppose we have three models: N(-1, sigma), N(0.5, sigma) and N(0.6,sigma).
+stan_code &lt;- "
+  data {
+    int N;
+    vector[N] y;
+    real mu_fixed;
+  }
+  parameters {
+    real&lt;lower=0&gt; sigma;
+  }
+  model {
+    sigma ~ exponential(1);
+    y ~ normal(mu_fixed, sigma);
+  }
+  generated quantities {
+    vector[N] log_lik;
+    for (n in 1:N) log_lik[n] = normal_lpdf(y[n]| mu_fixed, sigma);
+  }"
+
+mod &lt;- stan_model(model_code = stan_code)
+fit1 &lt;- sampling(mod, data=list(N=N, y=y, mu_fixed=-1))
+fit2 &lt;- sampling(mod, data=list(N=N, y=y, mu_fixed=0.5))
+fit3 &lt;- sampling(mod, data=list(N=N, y=y, mu_fixed=0.6))
+model_list &lt;- list(fit1, fit2, fit3)
+log_lik_list &lt;- lapply(model_list, extract_log_lik)
+
+# optional but recommended
+r_eff_list &lt;- lapply(model_list, function(x) {
+  ll_array &lt;- extract_log_lik(x, merge_chains = FALSE)
+  relative_eff(exp(ll_array))
+})
+
+# stacking method:
+wts1 &lt;- loo_model_weights(
+  log_lik_list,
+  method = "stacking",
+  r_eff_list = r_eff_list,
+  optim_control = list(reltol=1e-10)
+)
+print(wts1)
+
+# can also pass a list of psis_loo objects to avoid recomputing loo
+loo_list &lt;- lapply(1:length(log_lik_list), function(j) {
+  loo(log_lik_list[[j]], r_eff = r_eff_list[[j]])
+})
+
+wts2 &lt;- loo_model_weights(
+  loo_list,
+  method = "stacking",
+  optim_control = list(reltol=1e-10)
+)
+all.equal(wts1, wts2)
+
+# can provide names to be used in the results
+loo_model_weights(setNames(loo_list, c("A", "B", "C")))
+
+
+# pseudo-BMA+ method:
+set.seed(1414)
+loo_model_weights(loo_list, method = "pseudobma")
+
+# pseudo-BMA method (set BB = FALSE):
+loo_model_weights(loo_list, method = "pseudobma", BB = FALSE)
+
+# calling stacking_weights or pseudobma_weights directly
+lpd1 &lt;- loo(log_lik_list[[1]], r_eff = r_eff_list[[1]])$pointwise[,1]
+lpd2 &lt;- loo(log_lik_list[[2]], r_eff = r_eff_list[[2]])$pointwise[,1]
+lpd3 &lt;- loo(log_lik_list[[3]], r_eff = r_eff_list[[3]])$pointwise[,1]
+stacking_weights(cbind(lpd1, lpd2, lpd3))
+pseudobma_weights(cbind(lpd1, lpd2, lpd3))
+pseudobma_weights(cbind(lpd1, lpd2, lpd3), BB = FALSE)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

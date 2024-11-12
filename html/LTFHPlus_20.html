@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>graph_based_covariance_construction_multi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Constructing covariance matrix from local family graph for multi trait analysis</h2>
+
+<h3>Description</h3>
+
+<p>Function that constructs the genetic covariance matrix given a graph around a proband
+and extracts the threshold information from the graph.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">graph_based_covariance_construction_multi(
+  fam_id,
+  pid,
+  cur_proband_id,
+  cur_family_graph,
+  h2_vec,
+  genetic_corrmat,
+  phen_names,
+  add_ind = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fam_id</code></td>
+<td>
+<p>Name of column with the family ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pid</code></td>
+<td>
+<p>Name of column of personal ID</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cur_proband_id</code></td>
+<td>
+<p>id of proband</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cur_family_graph</code></td>
+<td>
+<p>local graph of current proband</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h2_vec</code></td>
+<td>
+<p>vector of liability scale heritabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genetic_corrmat</code></td>
+<td>
+<p>matrix with genetic correlations between considered phenotypes. Must have same order as h2_vec.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phen_names</code></td>
+<td>
+<p>Names of the phenotypes, as given in cur_family_graph.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add_ind</code></td>
+<td>
+<p>whether to add genetic liability of the proband or not. Defaults to true.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>list with three elements. The first element is temp_tbl, which contains the id of
+the current proband, the family ID and the lower and upper thresholds for all phenotypes. The second element,
+cov, is the covariance matrix of the local graph centred on the current proband. The third element is newOrder,
+which is the order of ids from pid and phen_names pasted together, such that order can be enforced elsewhere too.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">fam &lt;- data.frame(
+fam = c(1, 1, 1,1),
+id = c("pid", "mom", "dad", "pgf"),
+dadcol = c("dad", 0, "pgf", 0),
+momcol = c("mom", 0, 0, 0))
+
+thresholds &lt;- data.frame(
+  id = c("pid", "mom", "dad", "pgf"),
+  lower_1 = c(-Inf, -Inf, 0.8, 0.7),
+  upper_1 = c(0.8, 0.8, 0.8, 0.7),
+  lower_2 = c(-Inf, 0.3, -Inf, 0.2),
+  upper_2 = c(0.3, 0.3, 0.3, 0.2))
+
+graph &lt;- prepare_graph(fam, icol = "id", fcol = "dadcol", mcol = "momcol", thresholds = thresholds)
+
+ntrait &lt;- 2
+genetic_corrmat &lt;- matrix(0.2, ncol = ntrait, nrow = ntrait)
+diag(genetic_corrmat) &lt;- 1
+full_corrmat &lt;- matrix(0.3, ncol = ntrait, nrow = ntrait)
+diag(full_corrmat) &lt;- 1
+h2_vec &lt;- rep(0.6, ntrait)
+
+graph_based_covariance_construction_multi(fam_id = "fam",
+                                          pid = "id",
+                                          cur_proband_id = "pid",
+                                          cur_family_graph = graph,
+                                          h2_vec = h2_vec,
+                                          genetic_corrmat = genetic_corrmat,
+                                          phen_names = c("1", "2"))
+
+</code></pre>
+
+
+</div>

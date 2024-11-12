@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LinkedElements</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determines elements linked by loop anchors</h2>
+
+<h3>Description</h3>
+
+<p>Using a finalized <em>LoopRanges</em> loops object and two sets of elements, determines which elements are linked by loops through overlap of anchor regions
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LinkedElements(loop_ranges, element_ranges_x, element_ranges_y,
+  range_out_x = FALSE, range_out_y = FALSE, overlap_threshold = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>loop_ranges</code></td>
+<td>
+<p>A single <em>LoopRanges</em> object that has been subset to one range through ConsensusLoops().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>element_ranges_x</code></td>
+<td>
+<p>A subset <em>ElementRanges</em> class object. Subset appropriate ranges by using list indexing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>element_ranges_y</code></td>
+<td>
+<p>A subset <em>ElementRanges</em> class object. Subset appropriate ranges by using list indexing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range_out_x</code></td>
+<td>
+<p>A boolean indicating if the output should be a subset element ranges object for element_ranges_x instead of the default dataframe. (default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range_out_y</code></td>
+<td>
+<p>A boolean indicating if the output should be a subset element ranges object for element_ranges_y instead of the default dataframe. (default = FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overlap_threshold</code></td>
+<td>
+<p>Single numerical input for significant base-pair overlap to be considered 'overlapping'. Default is 1 bp.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a dataframe indicating the unique element links present in the form of their first metadata columns. The element_ranges_x are always under column 1, and element_ranges_y are always under column 2.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load enhancer and promoter elements into an ElementRanges object
+enhancers &lt;- system.file("extdata/elements", "enhancers.bed", package = "LoopRig", mustWork = TRUE)
+promoters &lt;- system.file("extdata/elements", "promoters.bed", package = "LoopRig", mustWork = TRUE)
+element_ranges &lt;- ElementsToRanges(enhancers, promoters, 
+element_names = c("enhancers", "promoters"), 
+custom_cols = 1, custom_mcols = 4)
+
+# Load loops into LoopRanges object and determine consensus loops (keep all)
+ovary_loops &lt;- system.file("extdata/loops", "ovary_hg19.bedpe", 
+package = "LoopRig", mustWork = TRUE)
+pancreas_loops &lt;- system.file("extdata/loops", "pancreas_hg19.bedpe", 
+package = "LoopRig", mustWork = TRUE)
+loops &lt;- LoopsToRanges(ovary_loops, pancreas_loops, custom_cols = 0)
+consensus_loops &lt;- ConsensusLoops(loops, keep_all = TRUE)
+
+# Based on consensus loops, determine which enhancers and promoters 
+# are connected based on loop anchors 
+LinkedElements(consensus_loops, element_ranges[[1]], element_ranges[[2]])  
+</code></pre>
+
+
+</div>

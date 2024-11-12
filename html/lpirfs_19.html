@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lp_lin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute linear impulse responses</h2>
+
+<h3>Description</h3>
+
+<p>Compute linear impulse responses with local projections by Jordà (2005).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lp_lin(
+  endog_data,
+  lags_endog_lin = NULL,
+  lags_criterion = NaN,
+  max_lags = NaN,
+  trend = NULL,
+  shock_type = NULL,
+  confint = NULL,
+  use_nw = TRUE,
+  nw_lag = NULL,
+  nw_prewhite = FALSE,
+  adjust_se = FALSE,
+  hor = NULL,
+  exog_data = NULL,
+  lags_exog = NULL,
+  contemp_data = NULL,
+  num_cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>endog_data</code></td>
+<td>
+<p>A data.frame, containing the endogenous variables for the VAR. The Cholesky decomposition is based on the
+column order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lags_endog_lin</code></td>
+<td>
+<p>NaN or integer. NaN if lag length criterion is used. Integer for number of lags for <em>endog_data</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lags_criterion</code></td>
+<td>
+<p>NaN or character. NaN (default) means that the number of lags
+has to be given at <em>lags_endog_lin</em>. The character specifies the lag length criterion ('AICc', 'AIC' or 'BIC').</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_lags</code></td>
+<td>
+<p>NaN or integer. Maximum number of lags if <em>lags_criterion</em> is given. NaN (default) otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trend</code></td>
+<td>
+<p>Integer. No trend =  0 , include trend = 1, include trend and quadratic trend = 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shock_type</code></td>
+<td>
+<p>Integer. Standard deviation shock = 0, unit shock = 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confint</code></td>
+<td>
+<p>Double. Width of confidence bands. 68% = 1; 90% = 1.65; 95% = 1.96.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_nw</code></td>
+<td>
+<p>Boolean. Use Newey-West (1987) standard errors for impulse responses? TRUE (default) or FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nw_lag</code></td>
+<td>
+<p>Integer. Specifies the maximum lag with positive weight for the Newey-West estimator. If set to NULL (default), the lag increases with
+with the number of horizon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nw_prewhite</code></td>
+<td>
+<p>Boolean. Should the estimators be pre-whitened? TRUE or FALSE (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust_se</code></td>
+<td>
+<p>Boolen. Should a finite sample adjsutment be made to the covariance matrix estimators? TRUE or FALSE (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hor</code></td>
+<td>
+<p>Integer. Number of horizons for impulse responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exog_data</code></td>
+<td>
+<p>A data.frame, containing exogenous variables for the VAR. The row length has to be the same as <em>endog_data</em>.
+Lag lengths for exogenous variables have to be given and will not be determined via a lag length criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lags_exog</code></td>
+<td>
+<p>NULL or Integer. Integer for the number of lags for the exogenous data. The value cannot be 0. If you want to
+to include exogenous data with contemporaneous impact use <em>contemp_data</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contemp_data</code></td>
+<td>
+<p>A data.frame, containing exogenous data with contemporaneous impact. This data will not be lagged.
+The row length has to be the same as <em>endog_data</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_cores</code></td>
+<td>
+<p>NULL or Integer. The number of cores to use for the estimation. If NULL, the function will
+use the maximum number of cores minus one.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>irf_lin_mean</code></td>
+<td>
+<p>A three 3D array, containing all impulse responses for all endogenous variables.
+The last dimension denotes the shock variable. The row in each matrix
+gives the responses of the <em>ith</em> variable, ordered as in endog_data. The columns denote the horizons.
+For example, if <em>results_lin</em> contains the list with results, results_lin$irf_lin_mean[, , 1] returns a KXH matrix,
+where K is the number of variables and H the number of horizons. '1' is the shock variable, corresponding to the
+first variable in <em>endog_data</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>irf_lin_low</code></td>
+<td>
+<p>A three 3D array containing all lower confidence bands of the responses,
+based on robust standard errors by Newey and West (1987). Properties are equal to irf_lin_mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>irf_lin_up</code></td>
+<td>
+<p>A three 3D array containing all upper confidence bands of the responses,
+based on robust standard errors by Newey and West (1987). Properties are equal to <em>irf_lin_mean</em>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagnostic_list</code></td>
+<td>
+<p>A list OLS diagnostics. To see everything you can simply use summary() or results$diagnostic_list. The first entry
+the shock variable. The rows of each shown matrix then denotes the endogenous variable that reacts to the shock.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specs</code></td>
+<td>
+<p>A list with properties of <em>endog_data</em> for the plot function. It also contains
+lagged data (y_lin and x_lin) used for the irf estimations, and the selected lag lengths when an information criterion has been used.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Philipp Adämmer
+</p>
+
+
+<h3>References</h3>
+
+<p>Akaike, H. (1974). "A new look at the statistical model identification", <em>IEEE Transactions on Automatic Control</em>, 19 (6): 716–723.
+</p>
+<p>Hurvich, C. M., and Tsai, C.-L. (1989), "Regression and time series model selection in small samples",
+<em>Biometrika</em>, 76(2): 297–307
+</p>
+<p>Jordà, Ò. (2005). "Estimation and Inference of Impulse Responses by Local Projections."
+<em>American Economic Review</em>, 95 (1): 161-182.
+</p>
+<p>Newey, W.K., and West, K.D. (1987). “A Simple, Positive-Definite, Heteroskedasticity and
+Autocorrelation Consistent Covariance Matrix.” <em>Econometrica</em>, 55: 703–708.
+</p>
+<p>Schwarz, Gideon E. (1978). "Estimating the dimension of a model", <em>Annals of Statistics</em>, 6 (2): 461–464.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="https://adaemmerp.github.io/lpirfs/README_docs.html">https://adaemmerp.github.io/lpirfs/README_docs.html</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+          ## Example without exogenous variables
+
+# Load package
+  library(lpirfs)
+
+# Load (endogenous) data
+  endog_data &lt;- interest_rules_var_data
+
+# Estimate linear model
+  results_lin &lt;- lp_lin(endog_data,
+                             lags_endog_lin = 4,
+                             trend          = 0,
+                             shock_type     = 1,
+                             confint        = 1.96,
+                             hor            = 12)
+
+# Show all impule responses
+# Compare with Figure 5 in Jordà (2005)
+ plot(results_lin)
+
+# Make individual plots
+ linear_plots &lt;- plot_lin(results_lin)
+
+# Show single plots
+ # * The first element of 'linear_plots' shows the response of the first
+ #   variable (GDP_gap) to a shock in the first variable (GDP_gap).
+ # * The second element of 'linear_plots' shows the response of the first
+ #   variable (GDP_gap) to a shock in the second variable (inflation).
+ # * ...
+
+  linear_plots[[1]]
+  linear_plots[[2]]
+
+
+# Show diagnostics. The first element correponds to the first shock variable.
+ summary(results_lin)
+
+
+                      ## Example with exogenous variables ##
+
+# Load (endogenous) data
+ endog_data &lt;- interest_rules_var_data
+
+# Create exogenous data and data with contemporaneous impact (for illustration purposes only)
+ exog_data    &lt;- endog_data$GDP_gap*endog_data$Infl*endog_data$FF + rnorm(dim(endog_data)[1])
+ contemp_data &lt;- endog_data$GDP_gap*endog_data$Infl*endog_data$FF + rnorm(dim(endog_data)[1])
+
+# Exogenous data has to be a data.frame
+ exog_data    &lt;- data.frame(xx = exog_data )
+ contemp_data &lt;- data.frame(cc =  contemp_data)
+
+# Estimate linear model
+  results_lin &lt;- lp_lin(endog_data,
+                               lags_endog_lin = 4,
+                               trend          = 0,
+                               shock_type     = 1,
+                               confint        = 1.96,
+                               hor            = 12,
+                               exog_data      = exog_data,
+                               lags_exog      = 4,
+                               contemp_data   = contemp_data)
+
+# Show all impulse responses
+ plot(results_lin)
+
+# Show diagnostics. The first element correponds to the first shock variable.
+ summary(results_lin)
+
+ 
+</code></pre>
+
+
+</div>

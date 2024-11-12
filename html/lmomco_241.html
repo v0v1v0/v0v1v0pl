@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parln3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the 3-Parameter Log-Normal Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters (<code class="reqn">\zeta</code>, lower bounds; <code class="reqn">\mu_{\mathrm{log}}</code>, location; and <code class="reqn">\sigma_{\mathrm{log}}</code>, scale) of the Log-Normal3 distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The relations between distribution parameters and L-moments are seen under <code>lmomln3</code>. The function uses algorithms of the Generalized Normal for core computations. Also, if <code class="reqn">\tau_3 \le 0</code>, then the Log-Normal3 distribution can not be fit, however reversing the data alleviates this problem.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parln3(lmom, zeta=NULL, checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>Lower bounds, if <code>NULL</code> then solved for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let the L-moments by in variable <code>lmr</code>, if the <code class="reqn">\zeta</code> (lower bounds) is unknown, then the algorithms return the same fit as the Generalized Normal will attain. However, <code>pargno</code> does not have intrinsic control on the lower bounds and <code>parln3</code> does. The <code class="reqn">\lambda_1</code>, <code class="reqn">\lambda_2</code>, and <code class="reqn">\tau_3</code> are used in the fitting for <code>pargno</code> and <code>parln3</code> but only <code class="reqn">\lambda_1</code> and <code class="reqn">\lambda_2</code> are used when the <code class="reqn">\zeta</code> is provided as in <code>parln3(lmr, zeta=0)</code>. In otherwords, if <code class="reqn">\zeta</code> is known, then <code class="reqn">\tau_3</code> is not used and shaping comes from the choice of <code class="reqn">\zeta</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>ln3</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “parln3”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomln3</code>,
+<code>cdfln3</code>, <code>pdfln3</code>, <code>qualn3</code>, <code>pargno</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(rnorm(20))
+parln3(lmr)
+
+## Not run: 
+# Handling condition of negative L-skew
+# Data reversal looks like: Y &lt;- -X, but let us use an example
+# on the L-moments themselves.
+lmr.pos &lt;- vec2lmom(c(100, 45, -0.1)) # parln3(lmr.pos) fails
+lmr.neg &lt;- lmr.pos
+lmr.neg$lambdas[1] &lt;- -lmr.neg$lambdas[1]
+lmr.neg$ratios[3]  &lt;- -lmr.neg$ratios[3]
+F &lt;- nonexceeds()
+plot(F, -qualn3(1-F, parln3(lmr.neg)), type="l", lwd=3, col=2) # red line
+lines(F, quagno(F, pargno(lmr.pos))) # black line 
+## End(Not run)
+</code></pre>
+
+
+</div>

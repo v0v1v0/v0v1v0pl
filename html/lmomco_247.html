@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parrevgum</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Reverse Gumbel Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Reverse Gumbel distribution given the type-B L-moments of the data in an L-moment object such as that returned by
+<code>pwmRC</code> using <code>pwm2lmom</code>. This distribution is important in the analysis of censored data. It is the distribution of a logarithmically transformed 2-parameter Weibull distribution. The relations between distribution parameters and L-moments are
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha = \lambda^B_2/\lbrace\log(2) + \mathrm{Ei}(-2\log(1-\zeta)) - \mathrm{Ei}(-\log(1-\zeta))\rbrace</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">\xi = \lambda^B_1 + \alpha\lbrace\mathrm{Ei}(-\log(1-\zeta))\rbrace\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\zeta</code> is the compliment of the right-tail censoring fraction of the sample or the nonexceedance probability of the right-tail censoring threshold, and <code class="reqn">\mathrm{Ei}(x)</code> is the exponential integral defined as
+</p>
+<p style="text-align: center;"><code class="reqn"> \mathrm{Ei}(X) = \int_X^{\infty} x^{-1}e^{-x}\mathrm{d}x \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\mathrm{Ei}(-\log(1-\zeta)) \rightarrow 0</code> as <code class="reqn">\zeta \rightarrow 1</code> and <code class="reqn">\mathrm{Ei}(-\log(1-\zeta))</code> can not be evaluated as <code class="reqn">\zeta \rightarrow 0</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parrevgum(lmom, zeta=1, checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> through <code>pwmRC</code> or other L-moment type object. The user intervention of the <code>zeta</code> differentiates this distribution (and this function) from similar parameter estimation functions in the <span class="pkg">lmomco</span> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>The compliment of the right censoring fraction. Number of samples observed (noncensored) divided by the total number of samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>revgum</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta</code></td>
+<td>
+<p>The compliment of the right censoring fraction. Number of samples observed (noncensored) divided by the total number of samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “parrevgum”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1995, The use of L-moments in the analysis of censored data, in Recent Advances in Life-Testing and Reliability, edited by N. Balakrishnan, chapter 29, CRC Press, Boca Raton, Fla., pp. 546–560.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomrevgum</code>,
+<code>cdfrevgum</code>, <code>pdfrevgum</code>, <code>quarevgum</code>, <code>pwm2lmom</code>, <code>pwmRC</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># See p. 553 of Hosking (1995)
+# Data listed in Hosking (1995, table 29.3, p. 553)
+D &lt;- c(-2.982, -2.849, -2.546, -2.350, -1.983, -1.492, -1.443,
+       -1.394, -1.386, -1.269, -1.195, -1.174, -0.854, -0.620,
+       -0.576, -0.548, -0.247, -0.195, -0.056, -0.013,  0.006,
+        0.033,  0.037,  0.046,  0.084,  0.221,  0.245,  0.296)
+D &lt;- c(D,rep(.2960001,40-28)) # 28 values, but Hosking mentions
+                              # 40 values in total
+z &lt;-  pwmRC(D,threshold=.2960001)
+str(z)
+# Hosking reports B-type L-moments for this sample are
+# lamB1 = -.516 and lamB2 = 0.523
+btypelmoms &lt;- pwm2lmom(z$Bbetas)
+# My version of R reports lamB1 = -0.5162 and lamB2 = 0.5218
+str(btypelmoms)
+rg.pars &lt;- parrevgum(btypelmoms,z$zeta)
+str(rg.pars)
+# Hosking reports xi = 0.1636 and alpha = 0.9252 for the sample
+# My version of R reports xi = 0.1635 and alpha = 0.9254
+</code></pre>
+
+
+</div>

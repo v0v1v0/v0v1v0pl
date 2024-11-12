@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>psis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pareto smoothed importance sampling (PSIS)</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of Pareto smoothed importance sampling (PSIS), a method for
+stabilizing importance ratios. The version of PSIS implemented here
+corresponds to the algorithm presented in Vehtari, Simpson, Gelman, Yao,
+and Gabry (2024).
+For PSIS diagnostics see the pareto-k-diagnostic page.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">psis(log_ratios, ...)
+
+## S3 method for class 'array'
+psis(log_ratios, ..., r_eff = 1, cores = getOption("mc.cores", 1))
+
+## S3 method for class 'matrix'
+psis(log_ratios, ..., r_eff = 1, cores = getOption("mc.cores", 1))
+
+## Default S3 method:
+psis(log_ratios, ..., r_eff = 1)
+
+is.psis(x)
+
+is.sis(x)
+
+is.tis(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>log_ratios</code></td>
+<td>
+<p>An array, matrix, or vector of importance ratios on the log
+scale (for PSIS-LOO these are <em>negative</em> log-likelihood values). See the
+<strong>Methods (by class)</strong> section below for a detailed description of how
+to specify the inputs for each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to the various methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff</code></td>
+<td>
+<p>Vector of relative effective sample size estimates containing
+one element per observation. The values provided should be the relative
+effective sample sizes of <code>1/exp(log_ratios)</code> (i.e., <code>1/ratios</code>).
+This is related to the relative efficiency of estimating the normalizing
+term in self-normalizing importance sampling. If <code>r_eff</code> is not
+provided then the reported PSIS effective sample sizes and Monte Carlo
+error estimates can be over-optimistic. If the posterior draws are (near)
+independent then <code>r_eff=1</code> can be used. <code>r_eff</code> has to be a scalar (same
+value is used for all observations) or a vector with length equal to the
+number of observations. The default value is 1. See the <code>relative_eff()</code>
+helper function for computing <code>r_eff</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization. This defaults to
+the option <code>mc.cores</code> which can be set for an entire R session by
+<code>options(mc.cores = NUMBER)</code>. The old option <code>loo.cores</code> is now
+deprecated but will be given precedence over <code>mc.cores</code> until
+<code>loo.cores</code> is removed in a future release. <strong>As of version
+2.0.0 the default is now 1 core if <code>mc.cores</code> is not set</strong>, but we
+recommend using as many (or close to as many) cores as possible.
+</p>
+
+<ul><li>
+<p> Note for Windows 10 users: it is <strong>strongly</strong>
+<a href="https://github.com/stan-dev/loo/issues/94">recommended</a> to avoid using
+the <code>.Rprofile</code> file to set <code>mc.cores</code> (using the <code>cores</code> argument or
+setting <code>mc.cores</code> interactively or in a script is fine).
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>For <code>is.psis()</code>, an object to check.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>psis()</code> methods return an object of class <code>"psis"</code>,
+which is a named list with the following components:
+</p>
+
+<dl>
+<dt><code>log_weights</code></dt>
+<dd>
+<p>Vector or matrix of smoothed (and truncated) but <em>unnormalized</em> log
+weights. To get normalized weights use the
+<code>weights()</code> method provided for objects of
+class <code>"psis"</code>.
+</p>
+</dd>
+<dt><code>diagnostics</code></dt>
+<dd>
+<p>A named list containing two vectors:
+</p>
+
+<ul>
+<li> <p><code>pareto_k</code>: Estimates of the shape parameter <code class="reqn">k</code> of the
+generalized Pareto distribution. See the pareto-k-diagnostic
+page for details.
+</p>
+</li>
+<li> <p><code>n_eff</code>: PSIS effective sample size estimates.
+</p>
+</li>
+</ul>
+</dd>
+</dl>
+<p>Objects of class <code>"psis"</code> also have the following attributes:
+</p>
+
+<dl>
+<dt><code>norm_const_log</code></dt>
+<dd>
+<p>Vector of precomputed values of <code>colLogSumExps(log_weights)</code> that are
+used internally by the <code>weights</code> method to normalize the log weights.
+</p>
+</dd>
+<dt><code>tail_len</code></dt>
+<dd>
+<p>Vector of tail lengths used for fitting the generalized Pareto distribution.
+</p>
+</dd>
+<dt><code>r_eff</code></dt>
+<dd>
+<p>If specified, the user's <code>r_eff</code> argument.
+</p>
+</dd>
+<dt><code>dims</code></dt>
+<dd>
+<p>Integer vector of length 2 containing <code>S</code> (posterior sample size)
+and <code>N</code> (number of observations).
+</p>
+</dd>
+<dt><code>method</code></dt>
+<dd>
+<p>Method used for importance sampling, here <code>psis</code>.
+</p>
+</dd>
+</dl>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>psis(array)</code>: An <code class="reqn">I</code> by <code class="reqn">C</code> by <code class="reqn">N</code> array, where <code class="reqn">I</code>
+is the number of MCMC iterations per chain, <code class="reqn">C</code> is the number of
+chains, and <code class="reqn">N</code> is the number of data points.
+</p>
+</li>
+<li> <p><code>psis(matrix)</code>: An <code class="reqn">S</code> by <code class="reqn">N</code> matrix, where <code class="reqn">S</code> is the size
+of the posterior sample (with all chains merged) and <code class="reqn">N</code> is the number
+of data points.
+</p>
+</li>
+<li> <p><code>psis(default)</code>: A vector of length <code class="reqn">S</code> (posterior sample size).
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC.
+<em>Statistics and Computing</em>. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4
+(<a href="https://link.springer.com/article/10.1007/s11222-016-9696-4">journal version</a>,
+<a href="https://arxiv.org/abs/1507.04544">preprint arXiv:1507.04544</a>).
+</p>
+<p>Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2024).
+Pareto smoothed importance sampling. <em>Journal of Machine Learning Research</em>,
+25(72):1-58.
+<a href="https://jmlr.org/papers/v25/19-556.html">PDF</a>
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li> <p><code>loo()</code> for approximate LOO-CV using PSIS.
+</p>
+</li>
+<li> <p>pareto-k-diagnostic for PSIS diagnostics.
+</p>
+</li>
+<li>
+<p> The <strong>loo</strong> package <a href="https://mc-stan.org/loo/articles/index.html">vignettes</a>
+for demonstrations.
+</p>
+</li>
+<li>
+<p> The <a href="https://mc-stan.org/loo/articles/online-only/faq.html">FAQ page</a> on
+the <strong>loo</strong> website for answers to frequently asked questions.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">log_ratios &lt;- -1 * example_loglik_array()
+r_eff &lt;- relative_eff(exp(-log_ratios))
+psis_result &lt;- psis(log_ratios, r_eff = r_eff)
+str(psis_result)
+plot(psis_result)
+
+# extract smoothed weights
+lw &lt;- weights(psis_result) # default args are log=TRUE, normalize=TRUE
+ulw &lt;- weights(psis_result, normalize=FALSE) # unnormalized log-weights
+
+w &lt;- weights(psis_result, log=FALSE) # normalized weights (not log-weights)
+uw &lt;- weights(psis_result, log=FALSE, normalize = FALSE) # unnormalized weights
+
+
+
+</code></pre>
+
+
+</div>

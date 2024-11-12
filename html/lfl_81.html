@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>is.specific</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Determine whether the first set <code>x</code> of predicates is more specific (or equal)
+than <code>y</code> with respect to <code>vars</code> and <code>specs</code>.</h2>
+
+<h3>Description</h3>
+
+<p>The function takes two character vectors of predicates and determines whether
+<code>x</code> is more specific (or equal w.r.t. the specificity) than <code>y</code>. The
+specificity relation is fully determined with the values of the <code>vars()</code> vector
+and the <code>specs()</code> incidence matrix that is encapsulated in the given <code>fsets</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">is.specific(x, y, fsets, vars = NULL, specs = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The first character vector of predicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>The second character vector of predicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fsets</code></td>
+<td>
+<p>A valid instance of the <code>fsets()</code> class such that all values in <code>x</code> and <code>y</code>
+can be found in <code>colnames(fsets)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>Deprecated parameter must be <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specs</code></td>
+<td>
+<p>Deprecated parameter must be <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let <code class="reqn">x_i</code> and <code class="reqn">y_j</code> represent some predicates of vectors <code>x</code> and <code>y</code>,
+respectively. Function assumes that each vector <code>x</code> and <code>y</code> does not
+contain two or more predicates with the same value of <code>vars()</code>.
+</p>
+<p>This function returns TRUE iff all of the following conditions hold:
+</p>
+
+<ul>
+<li>
+<p> for any <code class="reqn">y_j</code> there exists <code class="reqn">x_i</code> such that <code class="reqn">vars[y_j] = vars[x_i]</code>;
+</p>
+</li>
+<li>
+<p> for any <code class="reqn">x_i</code> there either does not exist <code class="reqn">y_j</code> such that
+<code class="reqn">vars[x_i] = vars[y_j]</code>, or <code class="reqn">x_i = y_j</code>, or <code class="reqn">specs[x_i, y_j] = 1</code>.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>TRUE or FALSE (see description).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>perceive()</code>, <code>pbld()</code>, <code>fsets()</code>, <code>vars()</code>, <code>specs()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    # prepare fsets object
+    v &lt;- c(rep('a', 3), rep('b', 3), rep('c', 3), rep('d', 3))
+    s &lt;- matrix(c(0,1,0, 0,0,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+
+                  0,0,0, 0,1,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+
+                  0,0,0, 0,0,0, 0,1,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+
+                  0,0,0, 0,0,0, 0,0,0, 0,1,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0,
+                  0,0,0, 0,0,0, 0,0,0, 0,0,0),
+                byrow=TRUE,
+                ncol=12)
+    m &lt;- matrix(0, nrow=1, ncol=12)
+    colnames(m) &lt;- paste(rep(c('VeSm', 'Sm', 'Bi'), times=4),
+                         rep(c('a', 'b', 'c', 'd'), each=3),
+                         sep='.')
+    f &lt;- fsets(m, v, s)
+
+
+    # returns TRUE
+    is.specific(c('VeSm.a', 'Bi.c'),
+                c('VeSm.a', 'Bi.c'),
+                f)
+
+    # returns TRUE (x and y swapped return FALSE)
+    is.specific(c('VeSm.a', 'Bi.c', 'Sm.d'),
+                c('Sm.a', 'Bi.c', 'Sm.d'),
+                f)
+
+    # returns TRUE (x and y swapped return FALSE)
+    is.specific(c('VeSm.a', 'Bi.c', 'Sm.d'),
+                c('VeSm.a', 'Bi.c'),
+                f)
+
+    # returns TRUE (x and y swapped return FALSE)
+    is.specific(c('VeSm.a', 'Bi.c', 'Sm.d'),
+                character(),
+                f)
+
+    # returns FALSE
+    is.specific(c('Sm.a'), c('Bi.c'), f)
+
+    # returns FALSE
+    is.specific(c('VeSm.a', 'Sm.c'),
+                c('Sm.a', 'Bi.c'),
+                f)
+</code></pre>
+
+
+</div>

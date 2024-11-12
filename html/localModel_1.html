@@ -1,0 +1,68 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gaussian_kernel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LIME kernel from the original article with sigma = 1.</h2>
+
+<h3>Description</h3>
+
+<p>Since only binary features are used, the weight associated with an observation
+is simply exp(-{number of features that were changed compared to the original observation}).
+Kernels are meant to be used as an argument to individual_surrogate_model function.
+Other custom functions can be used. Such functions take two vectors and
+return a single number.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gaussian_kernel(explained_instance, simulated_instance)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>explained_instance</code></td>
+<td>
+<p>explained instance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulated_instance</code></td>
+<td>
+<p>new observation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>numeric
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(DALEX)
+library(randomForest)
+library(localModel)
+data('apartments')
+mrf &lt;- randomForest(m2.price ~., data = apartments, ntree = 50)
+explainer &lt;- explain(model = mrf,
+                     data = apartments[, -1])
+model_lok &lt;- individual_surrogate_model(explainer, apartments[5, -1],
+                                        size = 500, seed = 17,
+                                        kernel = gaussian_kernel)
+# In this case each simulated observation has weight
+# that is small when the distance from original observation is large,
+# so closer observation have more weight.
+model_lok
+plot(model_lok)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,410 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>questionnaire_gen</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generation of ordinal and continuous variables</h2>
+
+<h3>Description</h3>
+
+<p>Creates a data frame of discrete and continuous variables based on several
+arguments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">questionnaire_gen(
+  n_obs,
+  cat_prop = NULL,
+  n_vars = NULL,
+  n_X = NULL,
+  n_W = NULL,
+  cor_matrix = NULL,
+  cov_matrix = NULL,
+  c_mean = NULL,
+  c_sd = NULL,
+  theta = FALSE,
+  family = NULL,
+  full_output = FALSE,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n_obs</code></td>
+<td>
+<p>number of observations to generate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cat_prop</code></td>
+<td>
+<p>list of cumulative proportions for each item. If <code>theta
+= TRUE</code>, the first element of <code>cat_prop</code> must be a scalar 1, which
+corresponds to the <code>theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_vars</code></td>
+<td>
+<p>total number of variables in the questionnaire, including the
+continuous and the discrete covariates (<code class="reqn">X</code> and <code class="reqn">W</code>, respectively),
+as well as the latent trait (<code class="reqn">Y</code>, which is equivalent to <code class="reqn">\theta</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_X</code></td>
+<td>
+<p>number of continuous background variables. If not provided, a
+random number of continuous variables will be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_W</code></td>
+<td>
+<p>either a scalar corresponding to the number of categorical
+background variables or a list of scalars representing the number of
+categories for each categorical variable. If not provided, a random number
+of categorical variables will be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor_matrix</code></td>
+<td>
+<p>latent correlation matrix. The first row/column corresponds
+to the latent trait (<code class="reqn">Y</code>). The other rows/columns correspond to the
+continuous (<code class="reqn">X</code> or <code class="reqn">Z</code>) or the discrete (<code class="reqn">W</code>) background
+variables, in the same order as <code>cat_prop</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov_matrix</code></td>
+<td>
+<p>latent covariance matrix, formatted as <code>cor_matrix</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c_mean</code></td>
+<td>
+<p>is a vector of population means for each continuous variable
+(<code class="reqn">Y</code> and <code class="reqn">X</code>). Defaults to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c_sd</code></td>
+<td>
+<p>is a vector of population standard deviations for each continuous
+variable  (<code class="reqn">Y</code> and <code class="reqn">X</code>). Defaults to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>if <code>TRUE</code>, the first continuous variable will be labeled
+'theta'. Otherwise, it will be labeled 'q1'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>distribution of the background variables. Can be NULL (default)
+or 'gaussian'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_output</code></td>
+<td>
+<p>if <code>TRUE</code>, output will be a list containing the
+questionnaire data as well as several objects that might be of interest for
+further analysis of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if 'FALSE', output messages will be suppressed (useful for
+simulations). Defaults to 'TRUE'</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In essence, this function begins by checking the validity of the
+arguments provided and randomly generating those that are not. Then, it
+will call one of two internal functions,
+<code>questionnaire_gen_polychoric</code> or <code>questionnaire_gen_family</code>. The
+former corresponds to the exact functionality of questionnaire_gen on
+lsasim 1.0.1, where the polychoric correlations are used to generate the
+background questionnaire data. If <code>family != NULL</code>, however,
+<code>questionnaire_gen_family</code> is called to generate data based on a joint
+probability distribution. Additionally, if <code>full_output == TRUE</code>, the
+external function <code>beta_gen</code> is called to generate the correlation
+coefficients based on the true covariance matrix. The latter argument also
+changes the class of the output of this function.
+</p>
+<p>What follows are some notes on the input parameters.
+</p>
+<p><code>cat_prop</code> is a list where <code>length(cat_prop)</code> is the number of
+items to be generated.  Each element of the list is a vector containing the
+marginal cumulative proportions for each category, summing to 1.  For
+continuous items, the associated element in the list should be 1.
+</p>
+<p><code>cor_matrix</code> and <code>cov_matrix</code> are the correlation and covariance
+matrices that are the same size as <code>length(cat_prop)</code>.  The
+correlations related to the correlation between variables on the latent
+scale.
+</p>
+<p><code>c_mean and c_sd</code> are each vectors whose length is equal to the number
+of continuous variables as specified by <code>cat_prop</code>.  The default is to
+keep the continuous variables with mean zero and standard deviation of one.
+</p>
+<p><code>theta</code> is a logical indicator that determines if the first continuous
+item should be labeled <em>theta</em>. If <code>theta == TRUE</code> but there are
+no continuous variables generated, a random number of background variables
+will be generated.
+</p>
+<p>If <code>cat_prop</code> is a named list, those names will be used as variable
+names for the returned <code>data.frame</code>.  Generic names will be provided
+to the variables if <code>cat_prop</code> is not named.
+</p>
+<p>As an alternative to providing <code>cat_prop</code>, the user can call this
+function by specifying the total number of variables using <code>n_vars</code> or
+the specific number of continuous and categorical variables through
+<code>n_X</code> and <code>n_W</code>. All three arguments should be provided as
+scalars; <code>n_W</code> may also be provided as a list, where each element
+contains the number of categories for one background variable.
+Alternatively, <code>n_W</code> may be provided as a one-element list, in which
+case it will be interpreted as all the categorical variables having the
+same number of categories.
+</p>
+<p>If <code>family == "gaussian"</code>, the questionnaire will be generated
+assuming that all the variables are jointly-distributed as a multivariate
+normal. The default behavior is <code>family == NULL</code>, where the data is
+generated using the polychoric correlation matrix, with no distributional
+assumptions.
+</p>
+<p>When data is generated using the Gaussian distribution, the matrices
+provided correspond to the relations between the latent variable
+<code class="reqn">\theta</code>, the continuous covariates <code class="reqn">X</code> and the continuous
+covariates—<code class="reqn">Z ~ N(0, 1)</code>—that will later be discretized into
+categorical covariates <code class="reqn">W</code>. That is why there will be a difference
+between labels and lengths between <code>cov_matrix</code> and <code>vcov_YXW</code>.
+For more information, check the references cited later in this document.
+</p>
+
+
+<h3>Value</h3>
+
+<p>By default, the function returns a <code>data.frame</code> object where the
+first column ("subject") is a <code class="reqn">1,\ldots,n</code> ordered list of the <code class="reqn">n</code>
+observations and the other columns correspond to the questionnaire answers.
+If <code>theta = TRUE</code>, the first column after "subject" will be the latent
+variable <code class="reqn">\theta</code>; in any case, the continuous variables always come
+before the categorical ones.
+</p>
+<p>If <code>full_output = TRUE</code>, the output will be a list containing the
+following objects:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>bg</code></td>
+<td>
+<p>a data frame containing the background questionnaire answers
+(i.e., the same object as described above).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c_mean</code></td>
+<td>
+<p>identical to the input argument of the same name. Read the
+Details section for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c_sd</code></td>
+<td>
+<p>identical to the input argument of the same name. Read the
+Details section for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cat_prop</code></td>
+<td>
+<p>identical to the input argument of the same name. Read the
+Details section for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cat_prop_W_p</code></td>
+<td>
+<p>a list containing the probabilities for each category
+of the categorical variables (<code>cat_prop_W</code> contains the cumulative
+probabilities).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor_matrix</code></td>
+<td>
+<p>identical to the input argument of the same name. Read
+the Details section for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov_matrix</code></td>
+<td>
+<p>identical to the input argument of the same name. Read
+the Details section for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>identical to the input argument of the same name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_obs</code></td>
+<td>
+<p>identical to the input argument of the same name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_tot</code></td>
+<td>
+<p>named vector containing the number of total variables, the
+number of continuous background variables (i.e., the total number of
+background variables except <code class="reqn">\theta</code>) and the number of categorical
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_W</code></td>
+<td>
+<p>vector containing the number of categorical variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_X</code></td>
+<td>
+<p>vector containing the number of continuous variables (except
+<code class="reqn">\theta</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_YXW</code></td>
+<td>
+<p>vector with the standard deviations of all the variables</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_YXZ</code></td>
+<td>
+<p>vector containing the standard deviations of <code class="reqn">\theta</code>,
+the background continuous variables (<code class="reqn">X</code>) and the Normally-distributed
+variables <code class="reqn">Z</code> which will generate the background categorical variables
+(<code class="reqn">W</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>identical to the input argument of the same name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_W</code></td>
+<td>
+<p>list containing the variances of the categorical variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var_YX</code></td>
+<td>
+<p>list containing the variances of the continuous variables
+(including <code class="reqn">\theta</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linear_regression</code></td>
+<td>
+<p>This list is printed only if 'theta = TRUE',
+'family = "gaussian"' and 'full_output = TRUE'. It contains one vector
+named 'betas' and one tabled named 'cov_YXW'. The former displays the true
+linear regression coefficients of <code class="reqn">theta</code> on the background
+questionnaire answers; the latter contains the covariance matrix between
+all these variables.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>If <code>family == NULL</code>, the number of levels for each categorical
+variables will be determined by the number of categories observed in the
+generated data. This means it might be smaller than the number of
+categories determined by <code>cat_prop</code>, which is more likely to happen
+with small values of <code>n_obs</code>. If <code>family == "gaussian"</code>, however,
+the number of levels for the categorical variables will always be
+equivalent to the number of possible categories, even if they are not
+observed in the data.
+</p>
+<p>It is important to note that all arguments directly related to variable
+parameters (e.g. 'cat_prop', 'cov_matrix', 'cor_matrix', 'c_mean', 'c_sd')
+have the following order: Y, X, W (missing variables are skipped). This
+must be kept in mind when using real-life data as input to
+'questionnaire_gen', as the input might need to be reordered to fit the
+expectations of the function.
+</p>
+<p>By definition, the expected order of the variables is <code class="reqn">theta</code>,
+followed by <code class="reqn">X</code> and then <code class="reqn">W</code>. The reference category of the
+categorical variables <code class="reqn">W</code> is always the first one.
+</p>
+<p>For very small means/sigmas (e.g. 0.005) and multiple levels, estimates
+may have differing levels of accuracy (e.g. school level estimates will not
+be as accurate as the student levels ones). In general, one should expect
+naturally worse estimation on higher hierarchical setups.
+</p>
+
+
+<h3>References</h3>
+
+<p>Matta, T. H., Rutkowski, L., Rutkowski, D., &amp; Liaw, Y. L. (2018).
+lsasim: an R package for simulating large-scale assessment data.
+Large-scale Assessments in Education, 6(1), 15.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>beta_gen
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Using polychoric correlations
+props &lt;- list(c(1), c(.25, .6, 1))  # one continuous, one with 3 categories
+questionnaire_gen(n_obs = 10, cat_prop = props,
+                  cor_matrix = matrix(c(1, .6, .6, 1), nrow = 2),
+                  c_mean = 2, c_sd = 1.5, theta = TRUE)
+
+# Using the multinomial distribution
+# two categorical variables W: one has 2 categories, the other has 3
+props &lt;- list(1, c(.25, 1), c(.2, .8, 1))
+yw_cov &lt;- matrix(c(1, .5, .5, .5, 1, .8, .5, .8, 1), nrow = 3)
+questionnaire_gen(n_obs = 10, cat_prop = props, cov_matrix = yw_cov,
+                  family = "gaussian")
+
+# Not providing covariance matrix
+questionnaire_gen(n_obs = 10,
+                  cat_prop = list(c(.25, 1), c(.6, 1), c(.2, 1)),
+                  family = "gaussian")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clpm_to_ctm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Transformation of Path Coefficients of Cross-Lagged Panel Model
+</h2>
+
+<h3>Description</h3>
+
+<p>Transforms path coefficients <code class="reqn">\bold{\Phi}(\Delta t_1)</code> of a cross-lagged panel model
+(CLPM) based on time interval <code class="reqn">\Delta t_1</code> into a time interval <code class="reqn">\Delta t_2</code>.
+The transformation is based on the assumption of a continuous time model (CTM;
+Voelkle, Oud, Davidov, &amp; Schmidt, 2012) including a drift matrix <code class="reqn">\bold{A}</code>.
+The transformation relies on the matrix exponential function
+(see Kuiper &amp; Ryan, 2018),
+i.e. <code class="reqn">\bold{\Phi}(\Delta t_1)=\exp( \bold{A} \Delta t_1 ) </code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clpm_to_ctm(Phi1, delta1=1, delta2=2, Phi1_vcov=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Phi1</code></td>
+<td>
+<p>Matrix of path coefficients <code class="reqn">\bold{\Phi}(\Delta t_1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta1</code></td>
+<td>
+<p>Numeric <code class="reqn">\Delta t_1</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta2</code></td>
+<td>
+<p>Numeric <code class="reqn">\Delta t_2</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi1_vcov</code></td>
+<td>
+<p>Optional covariance matrix for parameter estimates of
+<code class="reqn">\bold{\Phi}(\Delta t_1)</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with following entries
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>Drift matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A_se</code></td>
+<td>
+<p>Standard errors of drift matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>A_vcov</code></td>
+<td>
+<p>Covariance matrix of drift matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi2</code></td>
+<td>
+<p>Path coefficients <code class="reqn">\bold{\Phi}(\Delta t_2)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi2_se</code></td>
+<td>
+<p>Standard errors for <code class="reqn">\bold{\Phi}(\Delta t_2)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi2_vcov</code></td>
+<td>
+<p>Covariance matrix for <code class="reqn">\bold{\Phi}(\Delta t_2)</code></p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Kuiper, R. M., &amp; Ryan, O. (2018). Drawing conclusions from cross-lagged relationships:
+Re-considering the role of the time-interval.
+<em>Structural Equation Modeling, 25</em>(5), 809-823.
+<a href="https://doi.org/10.1080/10705511.2018.1431046">doi:10.1080/10705511.2018.1431046</a>
+</p>
+<p>Voelkle, M. C., Oud, J. H., Davidov, E., &amp; Schmidt, P. (2012). An SEM approach to
+continuous time modeling of panel data: Relating authoritarianism and anomia.
+<em>Psychological Methods, 17</em>(2), 176-192.
+<a href="https://doi.org/10.1037/a0027543">doi:10.1037/a0027543</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#############################################################################
+# EXAMPLE 1: Example of Voelkle et al. (2012)
+#############################################################################
+
+library(expm)
+
+# path coefficient matrix of Voelkle et al. (2012), but see
+# also Kuiper and Ryan (2018)
+Phi1 &lt;- matrix( c( .64, .18,
+                  .03, .89 ), nrow=2, ncol=2, byrow=TRUE )
+# transformation to time interval 2
+mod &lt;- LAM::clpm_to_ctm(Phi1, delta1=1, delta2=2)
+print(mod)
+
+## Not run: 
+#############################################################################
+# EXAMPLE 2: Example with two dimensions
+#############################################################################
+
+library(STARTS)
+library(lavaan)
+
+data(data.starts02, package="STARTS")
+dat &lt;- data.starts02$younger_cohort
+cormat &lt;- cov2cor(as.matrix(dat$covmat))
+
+#-- estimate CLPM
+lavmodel &lt;- "
+       a2 ~ a1 + b1
+       b2 ~ a1 + b1
+       "
+mod &lt;- lavaan::sem(lavmodel, sample.cov=cormat, sample.nobs=500)
+summary(mod)
+
+#- select parameters
+pars &lt;- c("a2~a1", "a2~b1", "b2~a1", "b2~b1")
+Phi1 &lt;- matrix( coef(mod)[pars], 2, 2, byrow=TRUE)
+Phi1_vcov &lt;- vcov(mod)[ pars, pars ]
+
+# conversion to time interval 1.75
+LAM::clpm_to_ctm(Phi1=Phi1, delta1=1, delta2=1.75, Phi1_vcov=Phi1_vcov)
+
+#############################################################################
+# EXAMPLE 3: Example with three dimensions
+#############################################################################
+
+library(STARTS)
+library(lavaan)
+
+data(data.starts02, package="STARTS")
+dat &lt;- data.starts02$younger_cohort
+cormat &lt;- cov2cor(as.matrix(dat$covmat))
+
+#-- estimate CLPM
+lavmodel &lt;- "
+       a4 ~ a1 + b1 + c1
+       b4 ~ a1 + b1 + c1
+       c4 ~ a1 + b1 + c1
+       "
+mod &lt;- lavaan::sem(lavmodel, sample.cov=cormat, sample.nobs=500)
+summary(mod)
+
+#- select parameters
+pars &lt;- 1:9
+Phi1 &lt;- matrix( coef(mod)[pars], 3, 3, byrow=TRUE)
+Phi1_vcov &lt;- vcov(mod)[ pars, pars ]
+
+# conversion frpm time interval 3 to time interval 1
+LAM::clpm_to_ctm(Phi1=Phi1, delta1=3, delta2=1, Phi1_vcov=Phi1_vcov)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addFlows</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add or modify flows on a leaflet map</h2>
+
+<h3>Description</h3>
+
+<p>These functions can be used to represent flows and their evolution on a map
+created with <code>leaflet()</code>. Flows are simply represented
+by a segment between two points with an arrow at its center that indicates the
+direction of the flow.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addFlows(
+  map,
+  lng0,
+  lat0,
+  lng1,
+  lat1,
+  color = "blue",
+  flow = 1,
+  opacity = 1,
+  dir = NULL,
+  time = NULL,
+  popup = popupArgs(labels = "Flow"),
+  layerId = NULL,
+  timeFormat = NULL,
+  initialTime = NULL,
+  maxFlow = max(abs(flow)),
+  minThickness = 1,
+  maxThickness = 20,
+  popupOptions = NULL
+)
+
+updateFlows(
+  map,
+  layerId,
+  color = NULL,
+  flow = NULL,
+  opacity = NULL,
+  dir = NULL,
+  time = NULL,
+  popup = NULL,
+  timeFormat = NULL,
+  initialTime = NULL,
+  maxFlow = NULL,
+  minThickness = 1,
+  maxThickness = 20,
+  popupOptions = NULL
+)
+
+removeFlows(map, layerId)
+
+clearFlows(map)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>A leaflet map object created with <code>leaflet</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lng0</code></td>
+<td>
+<p>Longitude of the origin of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat0</code></td>
+<td>
+<p>Latitude of the origin of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lng1</code></td>
+<td>
+<p>Longitude of the destination of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat1</code></td>
+<td>
+<p>Latitude of the destination of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>Color of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flow</code></td>
+<td>
+<p>Value of the flow between the origin and the destination. If
+argument <code>dir</code> is not set, negative values are interpreted as flows
+from destination to origin.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opacity</code></td>
+<td>
+<p>Opacity of the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>Direction of the flow. 1 indicates that the flow goes from origin
+to destination and -1 indicates that it goes from destination to origin. If
+0, the arrow is not drawn. If <code>NULL</code>, then it is equal to the sign of
+<code>weight</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>A vector with length equal to the number of rows in <code>chartdata</code>
+and containing either numbers representing time indices or dates or
+datetimes. Each unique value must appear as many times as the others. This
+parameter can be used when one wants to represent the evolution of some
+variables on a map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popup</code></td>
+<td>
+<p>Options that control popup generation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layerId</code></td>
+<td>
+<p>An ID variable. It is mandatory when one wants to update some
+chart with <code>updateMinicharts</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeFormat</code></td>
+<td>
+<p>Character string used to format dates and times when
+argument <code>time</code> is a <code>Date</code>, <code>POSIXct</code> or <code>POSIXlt</code>
+object. See <code>strptime</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialTime</code></td>
+<td>
+<p>This argument can be used to set the initial time step
+shown when the map is created. It is used only when argument <code>time</code> is
+set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxFlow</code></td>
+<td>
+<p>Maximal value a flow could take.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minThickness</code></td>
+<td>
+<p>minimal thickness of the line that represents the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxThickness</code></td>
+<td>
+<p>maximal thickness of the line that represents the flow.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popupOptions</code></td>
+<td>
+<p>Change default popupOptions (ex : autoClose, maxHeight, closeButton ...)
+See <code>popupOptions</code> for more informations.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The modified leaflet map object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+require(leaflet)
+
+# Toy example
+leaflet() %&gt;% addTiles() %&gt;%
+  addFlows(0, 0, 1, 1, flow = 10)
+
+# Electric exchanges between France and neighboring countries
+data("eco2mixBalance")
+bal &lt;- eco2mixBalance
+leaflet() %&gt;% addTiles() %&gt;%
+  addFlows(
+    bal$lng0, bal$lat0, bal$lng1, bal$lat1,
+    flow = bal$balance,
+    time = bal$month
+  )
+
+# popupOptions
+data("eco2mixBalance")
+bal &lt;- eco2mixBalance
+leaflet() %&gt;% addTiles() %&gt;%
+  addFlows(
+    bal$lng0, bal$lat0, bal$lng1, bal$lat1,
+    flow = bal$balance,
+    time = bal$month,
+    popupOptions = list(closeOnClick = FALSE, autoClose = FALSE)
+  )
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,682 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>context</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Context object</h2>
+
+<h3>Description</h3>
+
+<p>Context object storing information about the model training context.
+See also ctx.
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>buffers</code></dt>
+<dd>
+<p>This is a list of buffers that callbacks can use to write temporary
+information into <code>ctx</code>.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>records</code></dt>
+<dd>
+<p>stores information about values logged with <code>self$log</code>.</p>
+</dd>
+<dt><code>device</code></dt>
+<dd>
+<p>allows querying the current accelerator device</p>
+</dd>
+<dt><code>callbacks</code></dt>
+<dd>
+<p>list of callbacks that will be called.</p>
+</dd>
+<dt><code>iter</code></dt>
+<dd>
+<p>current iteration</p>
+</dd>
+<dt><code>batch</code></dt>
+<dd>
+<p>the current batch data. a list with input data and targets.</p>
+</dd>
+<dt><code>input</code></dt>
+<dd>
+<p>a shortcut for <code>ctx$batch[[1]]</code></p>
+</dd>
+<dt><code>target</code></dt>
+<dd>
+<p>a shortcut for <code>ctx$batch[[2]]</code></p>
+</dd>
+<dt><code>min_epochs</code></dt>
+<dd>
+<p>the minimum number of epochs that the model will run on.</p>
+</dd>
+<dt><code>max_epochs</code></dt>
+<dd>
+<p>the maximum number of epochs that the model will run.</p>
+</dd>
+<dt><code>hparams</code></dt>
+<dd>
+<p>a list of hyperparameters that were used to initialize <code>ctx$model</code>.</p>
+</dd>
+<dt><code>opt_hparams</code></dt>
+<dd>
+<p>a list of hyperparameters used to initialize the <code>ctx$optimizers</code>.</p>
+</dd>
+<dt><code>train_data</code></dt>
+<dd>
+<p>a dataloader that is used for training the model</p>
+</dd>
+<dt><code>valid_data</code></dt>
+<dd>
+<p>a dataloader using during model validation</p>
+</dd>
+<dt><code>accelerator</code></dt>
+<dd>
+<p>an <code>accelerator()</code> used to move data, model and etc the the correct
+device.</p>
+</dd>
+<dt><code>optimizers</code></dt>
+<dd>
+<p>a named list of optimizers that will be used during model training.</p>
+</dd>
+<dt><code>verbose</code></dt>
+<dd>
+<p>bool wether the process is in verbose mode or not.</p>
+</dd>
+<dt><code>handlers</code></dt>
+<dd>
+<p>List of error handlers that can be used. See <code>rlang::try_fetch()</code>
+for more info.</p>
+</dd>
+<dt><code>epoch_handlers</code></dt>
+<dd>
+<p>List of error handlers that can be used. See <code>rlang::try_fetch()</code>
+for more info.</p>
+</dd>
+<dt><code>training</code></dt>
+<dd>
+<p>A bool indicating if the model is in training or validation mode.</p>
+</dd>
+<dt><code>model</code></dt>
+<dd>
+<p>The model being trained.</p>
+</dd>
+<dt><code>pred</code></dt>
+<dd>
+<p>Last predicted values.</p>
+</dd>
+<dt><code>opt</code></dt>
+<dd>
+<p>Current optimizer.</p>
+</dd>
+<dt><code>opt_name</code></dt>
+<dd>
+<p>Current optimizer name.</p>
+</dd>
+<dt><code>data</code></dt>
+<dd>
+<p>Current dataloader in use.</p>
+</dd>
+<dt><code>loss_fn</code></dt>
+<dd>
+<p>Loss function used to train the model</p>
+</dd>
+<dt><code>loss</code></dt>
+<dd>
+<p>Last computed loss values. Detached from the graph.</p>
+</dd>
+<dt><code>loss_grad</code></dt>
+<dd>
+<p>Last computed loss value, not detached, so you can do additional
+tranformation.</p>
+</dd>
+<dt><code>epoch</code></dt>
+<dd>
+<p>Current epoch.</p>
+</dd>
+<dt><code>metrics</code></dt>
+<dd>
+<p>List of metrics that are tracked by the process.</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-luz_context-new"><code>context$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-log"><code>context$log()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-log_metric"><code>context$log_metric()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-get_log"><code>context$get_log()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-get_metrics"><code>context$get_metrics()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-get_metric"><code>context$get_metric()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-get_formatted_metrics"><code>context$get_formatted_metrics()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-get_metrics_df"><code>context$get_metrics_df()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-set_verbose"><code>context$set_verbose()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-clean"><code>context$clean()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-call_callbacks"><code>context$call_callbacks()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-state_dict"><code>context$state_dict()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-unsafe_set_records"><code>context$unsafe_set_records()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-luz_context-clone"><code>context$clone()</code></a>
+</p>
+</li>
+</ul>
+<hr>
+<a id="method-luz_context-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Initializes the context object with minimal necessary information.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$new(verbose, accelerator, callbacks, training)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>verbose</code></dt>
+<dd>
+<p>Whether the context should be in verbose mode or not.</p>
+</dd>
+<dt><code>accelerator</code></dt>
+<dd>
+<p>A luz <code>accelerator()</code> that configures device placement and
+others.</p>
+</dd>
+<dt><code>callbacks</code></dt>
+<dd>
+<p>A list of callbacks used by the model. See <code>luz_callback()</code>.</p>
+</dd>
+<dt><code>training</code></dt>
+<dd>
+<p>A boolean that indicates if the context is in training mode or not.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-log"></a>
+
+
+
+<h4>Method <code>log()</code>
+</h4>
+
+<p>Allows logging arbitrary information in the <code>ctx</code>.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$log(what, set, value, index = NULL, append = TRUE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>what</code></dt>
+<dd>
+<p>(string) What you are logging.</p>
+</dd>
+<dt><code>set</code></dt>
+<dd>
+<p>(string) Usually 'train' or 'valid' indicating the set you want
+to lot to. But can be arbitrary info.</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>value to log</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>Arbitrary value to log.</p>
+</dd>
+<dt><code>index</code></dt>
+<dd>
+<p>Index that this value should be logged. If <code>NULL</code> the value
+is added to the end of list, otherwise the index is used.</p>
+</dd>
+<dt><code>append</code></dt>
+<dd>
+<p>If <code>TRUE</code> and a value in the corresponding index already
+exists, then value is appended to the current value. If <code>FALSE</code> value
+is overwritten in favor of the new value.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-log_metric"></a>
+
+
+
+<h4>Method <code>log_metric()</code>
+</h4>
+
+<p>Log a metric gen its name and value.
+Metric values are indexed by epoch.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$log_metric(name, value)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>name of the metric</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>value to log</p>
+</dd>
+<dt><code>value</code></dt>
+<dd>
+<p>Arbitrary value to log.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-get_log"></a>
+
+
+
+<h4>Method <code>get_log()</code>
+</h4>
+
+<p>Get a specific value from the log.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$get_log(what, set, index = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>what</code></dt>
+<dd>
+<p>(string) What you are logging.</p>
+</dd>
+<dt><code>set</code></dt>
+<dd>
+<p>(string) Usually 'train' or 'valid' indicating the set you want
+to lot to. But can be arbitrary info.</p>
+</dd>
+<dt><code>index</code></dt>
+<dd>
+<p>Index that this value should be logged. If <code>NULL</code> the value
+is added to the end of list, otherwise the index is used.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-get_metrics"></a>
+
+
+
+<h4>Method <code>get_metrics()</code>
+</h4>
+
+<p>Get all metric given an epoch and set.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$get_metrics(set, epoch = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>set</code></dt>
+<dd>
+<p>(string) Usually 'train' or 'valid' indicating the set you want
+to lot to. But can be arbitrary info.</p>
+</dd>
+<dt><code>epoch</code></dt>
+<dd>
+<p>The epoch you want to extract metrics from.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-get_metric"></a>
+
+
+
+<h4>Method <code>get_metric()</code>
+</h4>
+
+<p>Get the value of a metric given its name, epoch and set.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$get_metric(name, set, epoch = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>name of the metric</p>
+</dd>
+<dt><code>set</code></dt>
+<dd>
+<p>(string) Usually 'train' or 'valid' indicating the set you want
+to lot to. But can be arbitrary info.</p>
+</dd>
+<dt><code>epoch</code></dt>
+<dd>
+<p>The epoch you want to extract metrics from.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-get_formatted_metrics"></a>
+
+
+
+<h4>Method <code>get_formatted_metrics()</code>
+</h4>
+
+<p>Get formatted metrics values
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$get_formatted_metrics(set, epoch = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>set</code></dt>
+<dd>
+<p>(string) Usually 'train' or 'valid' indicating the set you want
+to lot to. But can be arbitrary info.</p>
+</dd>
+<dt><code>epoch</code></dt>
+<dd>
+<p>The epoch you want to extract metrics from.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-get_metrics_df"></a>
+
+
+
+<h4>Method <code>get_metrics_df()</code>
+</h4>
+
+<p>Get a data.frame containing all metrics.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$get_metrics_df()</pre></div>
+
+
+<hr>
+<a id="method-luz_context-set_verbose"></a>
+
+
+
+<h4>Method <code>set_verbose()</code>
+</h4>
+
+<p>Allows setting the <code>verbose</code> attribute.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$set_verbose(verbose = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>verbose</code></dt>
+<dd>
+<p>boolean. If <code>TRUE</code> verbose mode is used. If <code>FALSE</code> non verbose.
+if <code>NULL</code> we use the result of <code>interactive()</code>.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-clean"></a>
+
+
+
+<h4>Method <code>clean()</code>
+</h4>
+
+<p>Removes unnecessary information from the context object.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$clean()</pre></div>
+
+
+<hr>
+<a id="method-luz_context-call_callbacks"></a>
+
+
+
+<h4>Method <code>call_callbacks()</code>
+</h4>
+
+<p>Call the selected callbacks. Where <code>name</code> is the callback types to call, eg
+'on_epoch_begin'.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$call_callbacks(name)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>name of the metric</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-state_dict"></a>
+
+
+
+<h4>Method <code>state_dict()</code>
+</h4>
+
+<p>Returns a list containing minimal information from the context. Used to
+create the returned values.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$state_dict()</pre></div>
+
+
+<hr>
+<a id="method-luz_context-unsafe_set_records"></a>
+
+
+
+<h4>Method <code>unsafe_set_records()</code>
+</h4>
+
+<p>Are you sure you know what you are doing?
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$unsafe_set_records(records)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>records</code></dt>
+<dd>
+<p>New set of records to be set.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-luz_context-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>context$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+</div>

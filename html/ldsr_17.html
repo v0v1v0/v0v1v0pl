@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LDS_reconstruction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Learn LDS model.</h2>
+
+<h3>Description</h3>
+
+<p>The initial conditions can either be randomized (specifiled by num.restarts) or provided beforehand.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LDS_reconstruction(
+  Qa,
+  u,
+  v,
+  start.year,
+  method = "EM",
+  transform = "log",
+  init = NULL,
+  num.restarts = 50,
+  return.init = FALSE,
+  ub = NULL,
+  lb = NULL,
+  num.islands = 4,
+  pop.per.island = 250,
+  niter = 1000,
+  tol = 1e-05,
+  return.raw = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Qa</code></td>
+<td>
+<p>Observations: a data.frame of annual streamflow with at least two columns: year and Qa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>Input matrix for a single-model reconstruction, or a list of input matrices for an ensemble reconstruction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Same as u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.year</code></td>
+<td>
+<p>Starting year of the climate proxies, i.e, the first year of the paleo period. <code>start.year + nrow(pc) - 1</code> will determine the last year of the study horizon, which must be greater than or equal to the last year in <code>Qa</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>By default this is "EM". There are experimental methods but you should not try.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>Flow transformation, either "log", "boxcox" or "none". Note that if the Box-Cox transform is used, the confidence interval after back-transformation is simply the back-transform of the trained onfidence interval; this is hackish and not entirely accurate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init</code></td>
+<td>
+<p>A list, each element is a vector of initial values for the parameters. If <code>NULL</code>, will be created by <code>make_init()</code>. See make_init for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.restarts</code></td>
+<td>
+<p>The number of initial conditions to start the EM search; ignored if <code>init</code> is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.init</code></td>
+<td>
+<p>If <code>TRUE</code>, the list of initial values (<code>init</code>) will be returned. This can be useful if you want to reproduce the model from this one set of initial values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ub</code></td>
+<td>
+<p>Upper bounds, a vector whose length is the number of parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb</code></td>
+<td>
+<p>Lower bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.islands</code></td>
+<td>
+<p>Number of islands (if method is GA; experimental)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop.per.island</code></td>
+<td>
+<p>Initial population per island (if method is GA; experimental)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>Maximum number of iterations, default 1000</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance for likelihood convergence, default 1e-5. Note that the log-likelihood is normalized by dividing by the number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.raw</code></td>
+<td>
+<p>If TRUE, state and streamflow estimates without measurement updates will be returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of the following elements
+</p>
+
+<ul>
+<li>
+<p> rec: reconstruction results, a data.table with the following columns
+</p>
+
+<ul>
+<li>
+<p> year: calculated from Qa and the length of u
+</p>
+</li>
+<li>
+<p> X: the estimated hidden state
+</p>
+</li>
+<li>
+<p> Xl, Xu: lower and upper range for the 95\
+</p>
+</li>
+<li>
+<p> Q: the reconstructed streamflow
+</p>
+</li>
+<li>
+<p> Ql, Qu: lower and upper range for the 95\
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> theta: model parameters
+</p>
+</li>
+<li>
+<p> lik: maximum likelihood
+</p>
+</li>
+<li>
+<p> init: the initial condition that resulted in the maximum likelihood (if <code>return.init = TRUE</code>).
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Make a shorter time horizon so that this example runs fast
+u &lt;- v &lt;- t(NPpc[601:813])
+# We run this example without parallelism
+foreach::registerDoSEQ()
+LDS_reconstruction(NPannual, u, v, start.year = 1800, num.restarts = 1)
+# Please refer to the vignette for the full run with parallel options. It takes a second or two.
+</code></pre>
+
+
+</div>

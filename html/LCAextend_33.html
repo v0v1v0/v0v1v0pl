@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>weight.nuc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> performs the computation of unnormalized triplet and individuals weights for a nuclear family in the pedigree </h2>
+
+<h3>Description</h3>
+
+<p>the weighting algorithm proceeds by nuclear family, the function <code>weight.nuc</code> computes the unnormalized triplet and individuals weights for a 
+nuclear family in the pedigree. This is an internal
+function not meant to be called by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">weight.nuc(connect, spouse.connect, children.connect, status, 
+probs, fyc, p.ybarF.c, ww, w, res.upward)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code> connect </code></td>
+<td>
+<p> a connector in the pedigree, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> spouse.connect </code></td>
+<td>
+<p> spouse of the connector, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> children.connect </code></td>
+<td>
+<p> children of the connector, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> status </code></td>
+<td>
+<p> vector of symptom status of the whole pedigree, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> probs </code></td>
+<td>
+<p> all probability parameters of the model, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> fyc </code></td>
+<td>
+<p> a matrix of <code>n</code> times <code>K+1</code> given the density of observations of each individual if allocated to class <code>k</code>, where <code>n</code> is the 
+number of individuals and <code>K</code> is the total number of latent classes in the model, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> p.ybarF.c </code></td>
+<td>
+<p> a array of dimension <code>n</code> times 2 times <code>K+1</code> giving the probability of observations above the individual, 
+depending on his status and his class and conditionally on his class, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> ww </code></td>
+<td>
+<p> unnormalized triplet weights, an array of <code>n</code> times 2 times <code>K+1</code> times <code>K+1</code> times <code>K+1</code>, where <code>n</code> is the 
+number of individuals and <code>K</code> is the total number of latent classes in the model, see <code>e.step</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> w </code></td>
+<td>
+<p> unnormalized individual weights, an array of <code>n</code> times 2 times <code>K+1</code>, see <code>e.step</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> res.upward </code></td>
+<td>
+<p> result of the upward step of the weighting algorithm, see <code>upward</code>, </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>updated <code>ww</code> and <code>w</code> are computed for the current nuclear family.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the function returns a list of 2 elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code> ww </code></td>
+<td>
+<p> unnormalized triplet weights, an array of <code>n</code> times 2 times <code>K+1</code> times <code>K+1</code> times <code>K+1</code>, see <code>e.step</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> w </code></td>
+<td>
+<p> unnormalized individual weights, an array of <code>n</code> times 2 times <code>K+1</code>, see <code>e.step</code>. </p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p> TAYEB et al.: Solving Genetic Heterogeneity in Extended Families by Identifying Sub-types of Complex Diseases. Computational Statistics, 2011, DOI: 10.1007/s00180-010-0224-2. </p>
+
+
+<h3>See Also</h3>
+
+<p> See also <code>downward</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#data
+data(ped.cont)
+data(peel)
+fam &lt;- ped.cont[,1]
+id &lt;- ped.cont[fam==1,2]
+dad &lt;- ped.cont[fam==1,3]
+mom &lt;- ped.cont[fam==1,4]
+status &lt;- ped.cont[fam==1,6]
+y &lt;- ped.cont[fam==1,7:ncol(ped.cont)]
+peel &lt;- peel[[1]]
+#standardize id to be 1, 2, 3, ...
+id.origin &lt;- id
+standard &lt;- function(vec) ifelse(vec%in%id.origin,which(id.origin==vec),0)
+id &lt;- apply(t(id),2,standard)
+dad &lt;- apply(t(dad),2,standard)
+mom &lt;- apply(t(mom),2,standard)
+peel$couple &lt;- cbind(apply(t(peel$couple[,1]),2,standard),
+                     apply(t(peel$couple[,2]),2,standard))
+for(generat in 1:peel$generation)
+peel$peel.connect[generat,] &lt;- apply(t(peel$peel.connect[generat,]),2,standard)
+#the first nuclear family
+generat &lt;- peel$generation
+connect &lt;- peel$peel.connect[generat,]
+connect &lt;- connect[connect&gt;0]
+spouse.connect &lt;- peel$couple[peel$couple[,1]==connect,2]
+children.connect &lt;- union(id[dad==connect],id[mom==connect])
+#probs and param
+data(probs)
+data(param.cont)
+#densities of the observations
+fyc &lt;- matrix(1,nrow=length(id),ncol=length(probs$p)+1)
+fyc[status==2,1:length(probs$p)] &lt;- t(apply(y[status==2,],1,dens.norm,
+                                            param.cont,NULL))
+#triplet and individual weights
+ww &lt;- array(0,dim=c(length(id),rep(2,3),rep(length(probs$p)+1,3)))
+w &lt;- array(0,dim=c(length(id),2,length(probs$p)+1))
+#probability of the observations below
+p.ybarF.c &lt;- array(1,dim=c(length(id),2,length(probs$p)+1))
+p.ybarF.c[connect,,] &lt;- p.post.found(connect,status,probs,fyc)
+#the upward step
+res.upward &lt;- upward(id,dad,mom,status,probs,fyc,peel)
+#the function
+weight.nuc(connect,spouse.connect,children.connect,status,probs,fyc,
+           p.ybarF.c,ww,w,res.upward)
+</code></pre>
+
+
+</div>

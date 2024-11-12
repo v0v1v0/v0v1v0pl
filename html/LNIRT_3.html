@@ -1,0 +1,363 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>CredentialForm1</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Credential Form data</h2>
+
+<h3>Description</h3>
+
+<p>Responses and response time data from the credential data set of Cizek and Wollack (2016).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(CredentialForm1)
+</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A dataframe with 1636 rows and 610 variables.
+</p>
+
+
+<h3>Details</h3>
+
+<p>Variables:
+</p>
+
+<ul>
+<li>
+<p> EID: Examinee ID (character)
+</p>
+</li>
+<li>
+<p> FormID: Test form name (character)
+</p>
+</li>
+<li>
+<p> Flagged: 1/0 variable to indicate whether the test vendor suspects the examinee may have engaged in inappropriate behavior (numeric)
+</p>
+</li>
+<li>
+<p> Pretest: Pretest item set assigned to candidate (numeric) 
+</p>
+</li>
+<li>
+<p> Attempt: Count of the attempt number for the candidate. A score of 1 indicates that candidate is a new, first-time examinee. Any examinee sitting for the exam for the fourth time or more is marked as 4+ (character)
+</p>
+</li>
+<li>
+<p> Country: Country where candidate was educated (character)
+</p>
+</li>
+<li>
+<p> StateCode: 2-digit code corresponding to the state in which the Candidate applied for licensure (numeric)
+</p>
+</li>
+<li>
+<p> School_ID: 4-digit code corresponding to the particular institution in which the Candidate received his/her educational training (numeric)
+</p>
+</li>
+<li>
+<p> Cent_id:  4-digit code corresponding to the particular testing center in which the Candidate sat for the exam (numeric)
+</p>
+</li>
+<li>
+<p> Tot_time: The number of seconds testing (numeric)
+</p>
+</li>
+<li>
+<p> iresp.1-170: item responses (1 to 4 or NA) for scored items 1 – 170 (numeric)
+</p>
+</li>
+<li>
+<p> iresp.171-180: item responses (1 to 4 or NA) for 10 pilot items for pilot set 6 or 9 (numeric)
+</p>
+</li>
+<li>
+<p> iresp.181-190: item responses (1 to 4 or NA) for 10 pilot items for pilot set 7 or 10 (numeric)
+</p>
+</li>
+<li>
+<p> iresp.191-200: item responses (1 to 4 or NA) for 10 pilot items for pilot set 8 or 11 (numeric)
+</p>
+</li>
+<li>
+<p> iraw.1-170: item correct score (1 or 0) for scored items 1 – 170 (numeric)
+</p>
+</li>
+<li>
+<p> iraw.171-180: item correct score (1 or 0) for 10 pilot items for pilot set 6 or 9 (numeric)
+</p>
+</li>
+<li>
+<p> iraw.181-190: item correct score (1 or 0) for 10 pilot items for pilot set 7 or 10 (numeric)
+</p>
+</li>
+<li>
+<p> iraw.191-200: item correct score (1 or 0) for 10 pilot items for pilot set 8 or 11 (numeric)
+</p>
+</li>
+<li>
+<p> idur.1-170: response time (in seconds) for scored items 1 – 170 (numeric)
+</p>
+</li>
+<li>
+<p> idur.171-180: response time (in seconds) for 10 pilot items for pilot set 6 or 9 (numeric)
+</p>
+</li>
+<li>
+<p> idur.181-190: response time (in seconds) for 10 pilot items for pilot set 7 or 10 (numeric)
+</p>
+</li>
+<li>
+<p> idur.191-200: response time (in seconds) for 10 pilot items for pilot set 8 or 11 (numeric)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Cizek GJ, Wollack JA (eds.) (2016). Handbook of Quantitative Methods for Detecting Cheating on Tests. Routledge.
+(<a href="https://www.taylorfrancis.com/books/handbook-quantitative-methods-detecting-cheating-tests-gregory-cizek-james-wollack/e/10.4324/9781315743097">Taylor&amp;Francis</a>)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  
+  ###
+  ### EXAMPLE APPLICATION CREDENTIAL FORM1 DATA CIZEK and WOLLACK (2016).
+  ###
+  
+  library(LNIRT)
+  data(CredentialForm1)
+  
+  ### DATA OBJECTS FOR LNIRT 
+  ### RA Data
+  Y &lt;- as.matrix(CredentialForm1[c(which(colnames(CredentialForm1)=="iraw.1")
+                                  :which(colnames(CredentialForm1)=="iraw.170"))])
+  N &lt;- nrow(Y) 
+  
+  ### RT Data 
+  RT&lt;-as.matrix(CredentialForm1[c(which(colnames(CredentialForm1)=="idur.1")
+                                  :which(colnames(CredentialForm1)=="idur.170"))])
+  RT[RT==0]&lt;-NA ## zero RTs are coded as missing values
+  RT&lt;-log(RT) ## logarithmic transformation of RT
+  
+  ## RUN LNIRT MODEL 0
+  set.seed(12345) ## used to obtain the results reported in the paper ##
+  out0 &lt;- LNIRT(RT=RT,Y=Y,XG=5000,burnin=10,ident=2)
+  summary(out0)
+  
+  ## Check MCMC convergence
+  
+  library(mcmcse)
+  ##
+  ## check several MCMC chains 
+  ## 
+  ## effective sample size and effective sample size
+  ess(out0$MCMC.Samples$Cov.Person.Ability.Speed[1001:5000]) ## effective sample size
+  mcse(out0$MCMC.Samples$Cov.Person.Ability.Speed[1001:5000]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Var.Person.Ability[1001:5000]) ## effective sample size
+  mcse(out0$MCMC.Samples$Var.Person.Ability[1001:5000]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Var.Person.Speed[1001:5000]) ## effective sample size
+  mcse(out0$MCMC.Samples$Var.Person.Speed[1001:5000]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Item.Discrimination[1001:5000,155]) ## effective sample size
+  mcse(out0$MCMC.Samples$Item.Discrimination[1001:5000,155]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Time.Discrimination[1001:5000,1]) ## effective sample size
+  mcse(out0$MCMC.Samples$Time.Discrimination[1001:5000,1]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Person.Ability[1001:5000,1]) ## effective sample size
+  mcse(out0$MCMC.Samples$Person.Ability[1001:5000,1]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ess(out0$MCMC.Samples$Person.Speed[1001:5000,1]) ## effective sample size
+  mcse(out0$MCMC.Samples$Person.Speed[1001:5000,1]
+       , size = 100, g = NULL,method = "bm", warn = FALSE) #standard error
+  
+  ## Convergence Checks
+  library(coda) 
+  summary(as.mcmc(out0$MCMC.Samples$Cov.Person.Ability.Speed[1001:5000]))
+  summary(as.mcmc(out0$MCMC.Samples$Var.Person.Ability[1001:5000]))
+  summary(as.mcmc(out0$MCMC.Samples$Var.Person.Speed[1001:5000]))
+  summary(as.mcmc(out0$MCMC.Samples$Item.Discrimination[1001:5000,155]))
+  summary(as.mcmc(out0$MCMC.Samples$Time.Discrimination[1001:5000,1]))
+  summary(as.mcmc(out0$MCMC.Samples$Person.Ability[1001:5000,1]))
+  summary(as.mcmc(out0$MCMC.Samples$Person.Speed[1001:5000,1]))
+  
+  ## check some chains on convergence
+  geweke.diag(as.mcmc(out0$MCMC.Samples$Cov.Person.Ability.Speed[500:5000]), frac1=0.1, frac2=0.5)
+  geweke.plot(as.mcmc(out0$MCMC.Samples$Cov.Person.Ability.Speed[500:5000]), frac1=0.1, frac2=0.5)
+  heidel.diag(as.mcmc(out0$MCMC.Samples$Cov.Person.Ability.Speed[500:5000], eps=0.1, pvalue=0.05))
+  
+  geweke.diag(as.mcmc(out0$MCMC.Samples$Item.Discrimination[500:5000,155]), frac1=0.1, frac2=0.5)
+  geweke.plot(as.mcmc(out0$MCMC.Samples$Item.Discrimination[500:5000,155]), frac1=0.1, frac2=0.5)
+  heidel.diag(as.mcmc(out0$MCMC.Samples$Item.Discrimination[500:5000,155]), eps=0.1, pvalue=0.05)
+  
+  geweke.diag(as.mcmc(out0$MCMC.Samples$Person.Ability[500:5000,1]), frac1=0.1, frac2=0.5)
+  geweke.plot(as.mcmc(out0$MCMC.Samples$Person.Ability[500:5000,1]), frac1=0.1, frac2=0.5)
+  heidel.diag(as.mcmc(out0$MCMC.Samples$Person.Ability[500:5000,1]), eps=0.1, pvalue=0.05)
+  
+  ## Item parameter estimates
+  
+  min(apply(out0$MAB[500:5000,,1],2,mean))
+  max(apply(out0$MAB[500:5000,,1],2,mean))
+  
+  min(apply(out0$MAB[500:5000,,2],2,mean))
+  max(apply(out0$MAB[500:5000,,2],2,mean))
+  
+  min(apply(out0$MAB[500:5000,,3],2,mean))
+  max(apply(out0$MAB[500:5000,,3],2,mean))
+  
+  min(apply(out0$MAB[500:5000,,4],2,mean))
+  max(apply(out0$MAB[500:5000,,4],2,mean))
+  
+  plot(apply(out0$MAB[500:5000,,4],2,mean),(apply(RT,2,mean,na.rm=TRUE)))
+  
+  ### Explanatory Variables Test-takers
+  XFT &lt;- data.frame(CredentialForm1[1:10],stringsAsFactors=TRUE) #Background Variables 
+  XFT$Tot_time &lt;- (XFT$Tot_time-mean(XFT$Tot_time))/sqrt(var(XFT$Tot_time))
+  
+  ## DUMMY CODING FOR CATEGORICAL PREDICTORS
+  ## Pretest Groups
+  XFT$Pgroup &lt;- matrix(0,ncol=2,nrow=N)
+  XFT$Pgroup[XFT$Pretest==6,1] &lt;- -1  
+  XFT$Pgroup[XFT$Pretest==6,2] &lt;- -1
+  XFT$Pgroup[XFT$Pretest==7,1] &lt;- 1
+  XFT$Pgroup[XFT$Pretest==8,2] &lt;- 1
+  
+  ## Countries 
+  XFT$Cgroup &lt;- matrix(0,ncol=3,nrow=N)
+  XFT$Cgroup[XFT$Country=="USA",1] &lt;- 1 
+  XFT$Cgroup[XFT$Country=="Philippines",2] &lt;- 1
+  XFT$Cgroup[XFT$Country=="India",3] &lt;- 1
+  XFT$Cgroup[c(XFT$Country!="USA" &amp; XFT$Country!="India" &amp; XFT$Country!="Philippines"),1:3] &lt;- -1
+  
+  XA &lt;- matrix(unlist(XFT[,c("Pgroup","Tot_time")]),ncol=3,nrow=N)
+  XT &lt;- matrix(unlist(XFT[,c("Pgroup")]),ncol=2,nrow=N)
+  
+  ## RUN LNIRT MODEL 1 (Pretest and total test time)
+  ## Include residual analysis 
+  set.seed(12345) ## used to obtain the results reported in the paper ##
+  out1 &lt;- LNIRT(RT=RT,Y=Y,XG=5000,XPA=XA,XPT=XT,residual=TRUE)
+  summary(out1)
+  
+  
+  ######################################################################
+  ### THIS PART IS NOT DISCUSSED IN THE PAPER                        ###
+  ######################################################################
+  
+  ## RUN LNIRT MODEL 2 (Pretest and Country)
+  XA &lt;- matrix(unlist(XFT[,c("Pgroup","Cgroup")]),ncol=5,nrow=N)
+  XT &lt;- matrix(unlist(XFT[,c("Pgroup","Cgroup")]),ncol=5,nrow=N)
+  
+  set.seed(12345) ## 
+  out2 &lt;- LNIRT(RT=RT,Y=Y,XG=5000,XPA=XA,XPT=XT)
+  summary(out2)
+  
+  XA &lt;- matrix(unlist(XFT[,c("Pgroup","Cgroup","Tot_time")]),ncol=6,nrow=N)
+  XT &lt;- matrix(unlist(XFT[,c("Pgroup","Cgroup")]),ncol=5,nrow=N)
+  
+  ## RUN LNIRT MODEL 3 
+  set.seed(12345) ## 
+  out3 &lt;- LNIRT(RT=RT,Y=Y,XG=5000,XPA=XA,XPT=XT)
+  summary(out3)
+  
+  #########################################################################
+  #########################################################################
+  #########################################################################
+  
+  
+  ######################################################################
+  ### THIS PART IS DISCUSSED IN THE PAPER                            ###
+  ######################################################################
+  
+  ## Subsection "Planned Missing By Design"
+  ## Include pretest item data
+  MBDM&lt;-matrix(rep(0,1636*200),nrow=1636,ncol=200)
+  MBDM[XFT$Pretest==6,171:180]&lt;-1
+  MBDM[XFT$Pretest==7,181:190]&lt;-1
+  MBDM[XFT$Pretest==8,191:200]&lt;-1
+  MBDM[,1:170]&lt;-1
+  
+  Yt &lt;- CredentialForm1[c(which(colnames(CredentialForm1)=="iraw.1")
+                          :which(colnames(CredentialForm1)=="iraw.200"))]
+  ## transform pretest data to numeric
+  Yt[,171:200] &lt;- unlist(lapply(Yt[,171:200]
+                                ,function(x) as.numeric(x))) #warnings about NA can be ignored
+  Yt &lt;- as.matrix(Yt,ncol=200,nrow=1636)
+  
+  RTt &lt;- (CredentialForm1[as.numeric(c(which(colnames(CredentialForm1)=="idur.1")
+                                       :which(colnames(CredentialForm1)=="idur.200")))])
+  RTt[,171:200] &lt;- unlist(lapply(RTt[,171:200]
+                   , function(x) as.numeric(as.character(x)))) #warnings about NA can be ignored
+  RTt[RTt==0] &lt;- NA ## zero RTs are coded as missing values
+  RTt &lt;- log(RTt) ## logarithmic transformation of RT
+  RTt &lt;- as.matrix(RTt,ncol=200,nrow=1636)
+  
+  # To fit the model, item discrimination parameters are restricted to one.  
+  alpha1&lt;-rep(1,200) ### Pre-defined item discrimination parameters
+  ## RUN LNIRT MODEL 4
+  set.seed(12345) ## used to obtain the results reported in the paper ##
+  out4 &lt;- LNIRT(RT=RTt,Y=Yt,XG=5000,alpha=alpha1,MBDY=MBDM,MBDT=MBDM)
+  summary(out4)
+  
+  ### Subsection "Model-Fit Analysis"
+  ### Return to output of out1
+  
+  #report fit results
+  summary(out1)
+  
+  ## estimated average residual variance
+  mean(out1$Msigma2[500:5000,])
+  
+  #recoding of number of zero attempts 
+  XFT$Attempt[XFT$Attempt==0] &lt;- 1
+  
+  ## explain heterogeneity in person-fit statistics RA and RT
+  summary(lm(out1$PFl ~ as.factor(XFT$Attempt)+(XFT$Cgroup)+(XFT$Pgroup)))
+  summary(lm(out1$lZPT ~ as.factor(XFT$Attempt)+(XFT$Cgroup)+(XFT$Pgroup)))
+  
+  ### overview plot of person fit RA versus person-fit RT per country 
+  dev.new()
+  plot(out1$PFl,out1$lZPT,xlab="Person-fit Statistic RA",ylab="Person-fit Statistic RT",
+       col="black",cex=.5,bty="l",xlim=c(-3,3)
+       , ylim=c(0,500),cex.main=.8,cex.axis=.7,cex.lab=.8,pch=15)
+  ## US
+  set1 &lt;- which(XFT$Country=="USA")
+  points(out1$PFl[set1],out1$lZPT[set1],col="blue",pch=10,cex=.5)
+  ## India
+  set2 &lt;- which(XFT$Country=="India")
+  points(out1$PFl[set2],out1$lZPT[set2],col="red",pch=13,cex=.5)
+  ## Philippines
+  set3 &lt;- which(XFT$Country=="Philippines")
+  points(out1$PFl[set3],out1$lZPT[set3],col="green",pch=16,cex=.5)
+  abline(h = qchisq(.95, df= 170),lty = 2,col="red")
+  abline(v = qnorm(.95),lty = 2,col="red")
+  legend(-3,500,c("India","US","Philippines","Other"), 
+         col=c("red","blue","green","black"),pch = c(13,10,16,15), bg = "gray95",cex=.7)
+  
+  ###################################################################################
+  ###################################################################################
+  ###################################################################################
+  
+
+## End(Not run)
+</code></pre>
+
+
+</div>

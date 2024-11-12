@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>genci.simple</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate (Estimate) Confidence Intervals for Quantiles of a Parent Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the lower and upper limits of a specified confidence interval for a vector of nonexceedance probabilities <code class="reqn">F</code> of a specified parent distribution [quantile function <code class="reqn">Q(F,\theta)</code> with parameters <code class="reqn">\theta</code>] using Monte Carlo simulation. The <code class="reqn">F</code> are specified by the user. The user also provides <code class="reqn">\Theta</code> of the parent distribution (see <code>lmom2par</code>). This function is a wrapper on <code>qua2ci.simple</code>; please consult the documentation for that function for further details of the simulations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">genci.simple(para, n, f=NULL, level=0.90, edist="gno", nsim=1000,
+             expand=FALSE, verbose=FALSE, showpar=FALSE, quiet=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>lmom2par</code> or similar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The sample size for each Monte Carlo simulation will use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Vector of nonexceedance probabilities (<code class="reqn">0 \le f \le 1</code>) of the quantiles for which the confidence interval are needed. If <code>NULL</code>, then the vector as returned by <code>nonexceeds</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>The confidence interval (<code class="reqn">0 \le </code> <code>level</code> <code class="reqn"> &lt; 1</code>). The interval is specified as the size of the interval. The default is 0.90 or the 90th percentile. The function will return the 5th (<code class="reqn">(1-0.90)/2</code>) and 95th (<code class="reqn">1-(1-0.90)/2</code>) percentile cumulative probability of the error distribution for the parent quantile as specified by the nonexceedance probability argument (<code>f</code>). This argument is passed unused to <code>qua2ci.simple</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edist</code></td>
+<td>
+<p>The model for the error distribution. Although the Normal (the default) commonly is  assumed in error analyses, it need not be, as support for other distributions supported by <span class="pkg">lmomco</span> is available. The default is the Generalized Normal so the not only is the Normal possible but asymmetry is also accomodated (<code>lmomgno</code>).  For example, if the L-skew  (<code class="reqn">\tau_4</code>) or L-kurtosis (<code class="reqn">\tau_4</code>) values depart considerably from those of the Normal (<code class="reqn">\tau_3 = 0</code> and <code class="reqn">\tau_4 = 0.122602</code>), then the Generalized Normal or some alternative distribution would likely provide more reliable confidence interval estimation. This argument is passed unused to <code>qua2ci.simple</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>The number of simulations (replications) for the sample size <code>n</code> to perform. Much larger simulation numbers are recommended—see discussion about<br><code>qua2ci.simple</code>. This argument is passed unused to <code>qua2ci.simple</code>. Users are encouraged to experiment with <code>qua2ci.simple</code> to get a feel for the value of <code>edist</code> and <code>nsim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand</code></td>
+<td>
+<p>Should the returned values be expanded to include information relating to the distribution type and L-moments of the distribution at the corresponding nonexceedance probabilities—in other words the information necessary to reconstruct the reported confidence interval. The default is <code>FALSE</code>. If <code>expand=FALSE</code> then a single <code>data.frame</code> of the lower and upper limits along with the true quantile value of the parent is returned. If <code>expand=TRUE</code>, then a more complicated <code>list</code> containing multiple <code>data.frame</code>s is returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The verbosity of the operation of the function. This argument is passed unused to <code>qua2ci.simple</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>showpar</code></td>
+<td>
+<p>The parameters of the <code>edist</code> for each simulation for each <code class="reqn">F</code> value passed to <code>qua2ci.simple</code> are printed. This argument is passed unused to <code>qua2ci.simple</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Suppress incremental counter for a count down of the <code class="reqn">F</code> values.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>data.frame</code> or <code>list</code> is returned (see discussion of argument <code>expand</code>). The following elements could be available.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>nonexceed</code></td>
+<td>
+<p>A vector of <code class="reqn">F</code> values, which is returned for convenience so that post operations such as plotting are easily coded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lwr</code></td>
+<td>
+<p>The lower value of the confidence interval having nonexceedance probability equal to <code>(1-level)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true</code></td>
+<td>
+<p>The true quantile value from <code class="reqn">Q(F,\theta)</code> for the corresponding <code class="reqn">F</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upr</code></td>
+<td>
+<p>The upper value of the confidence interval having <code class="reqn">F</code> equal to <code>1-(1-level)/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lscale</code></td>
+<td>
+<p>The second L-moment (L-scale, <code class="reqn">\lambda_2</code>) of the distribution of quantiles for the corresponding <code class="reqn">F</code>. This value is included in the primary returned <code>data.frame</code> because it measures the fundamental sampling variability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent</code></td>
+<td>
+<p>The paraments of the parent distribution if <code>expand=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edist</code></td>
+<td>
+<p>The type of error distribution used to model the confidence interval if the argument <code>expand=TRUE</code> is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elmoms</code></td>
+<td>
+<p>The L-moment of the distribution of quantiles for the corresponding <code class="reqn">F</code> if the argument  <code>expand=TRUE</code> is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epara</code></td>
+<td>
+<p>An environment containing the parameter lists of the error distribution fit to the <code>elmoms</code> for each of the <code>f</code> if the argument <code>expand=TRUE</code> is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A failure integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifailtext</code></td>
+<td>
+<p>Text message associated with <code>ifail</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>genci</code>, <code>gen.freq.curves</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# For all these examples, nsim is way too small.
+mean   &lt;- 0; sigma &lt;- 100
+parent &lt;- vec2par(c(mean,sigma), type='nor') # make parameter object
+f      &lt;- c(0.5, 0.8, 0.9, 0.96, 0.98, 0.99) # nonexceed probabilities
+# nsim is small for speed of example not accuracy.
+CI     &lt;- genci.simple(parent, n=10, f=f, nsim=20); FF &lt;- CI$nonexceed
+plot( FF, CI$true, type='l', lwd=2)
+lines(FF, CI$lwr, col=2); lines(FF, CI$upr, col=3)
+
+pdf("twoCIplots.pdf")
+# The qnorm() call has been added to produce "normal probability"
+# paper on the horizonal axis. The parent is heavy-tailed.
+GEV  &lt;- vec2par(c(10000,1500,-0.3), type='gev') # a GEV distribution
+CI   &lt;- genci.simple(GEV, n=20, nsim=200, edist='gno')
+ymin &lt;- log10(min(CI$lwr[! is.na(CI$lwr)]))
+ymax &lt;- log10(max(CI$upr[! is.na(CI$upr)]))
+qFF  &lt;- qnorm(CI$nonexceed) 
+plot( qFF, log10(CI$true), type='l', ylim=c(ymin,ymax),lwd=2)
+lines(qFF, log10(CI$lwr), col=2); lines(qFF, log10(CI$upr), col=3)
+# another error distribution model
+CI   &lt;- genci.simple(GEV, n=20, nsim=200, edist='aep4')
+lines(qFF,log10(CI$lwr),col=2,lty=2); lines(qFF,log10(CI$upr),col=3,lty=2)
+dev.off() # 
+## End(Not run)
+</code></pre>
+
+
+</div>

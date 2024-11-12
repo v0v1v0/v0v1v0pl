@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>expression_logger</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The expression logger.</h2>
+
+<h3>Description</h3>
+
+<p>Records the result of one or more user-defined expressions that perform
+calculations on the object being tracked.
+</p>
+
+
+<h3>Format</h3>
+
+<p>An <code>R6</code> class object.
+</p>
+
+
+<h3>Creating a logger</h3>
+
+<p><code>expression_logger$new(..., verbose=TRUE)</code>
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+<code>...</code>
+</td>
+<td style="text-align: left;"> A comma-separated list of <code>name = expression</code> pairs. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>verbose</code>
+</td>
+<td style="text-align: left;"> <code>[logical]</code> toggle verbosity.
+</td>
+</tr>
+</table>
+<p>Each expression will be evaluated in the context of the object tracked with
+this logger. An expression is expected to have a single <code>numeric</code> or
+<code>character</code> output.
+</p>
+
+
+<h3>Dump options</h3>
+
+<p><code>$dump(file=NULL)</code>
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+  <code>file</code>
+</td>
+<td style="text-align: left;"> <code>[character]</code> location to write final output to.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The default location is <code>"expression.csv"</code> in an interactive session, and
+<code>"DATA_expression.csv"</code> in a script that executed via <code>run_file</code>.
+Here, <code>DATA</code> is the variable name of the data being tracked
+or the <code>label</code> provided with <code>start_log</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other loggers: 
+<code>cellwise</code>,
+<code>filedump</code>,
+<code>no_log</code>,
+<code>simple</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+logfile &lt;- file.path(tempfile(fileext=".csv"))
+e &lt;- expression_logger$new(mean=mean(height), sd=sd(height))
+
+out &lt;- women %L&gt;%
+  start_log(e) %L&gt;%
+  within(height &lt;- height * 2) %L&gt;%
+  within(height &lt;- height * 3) %L&gt;%
+  dump_log(file=logfile)
+
+read.csv(logfile)
+
+
+</code></pre>
+
+
+</div>

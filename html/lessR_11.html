@@ -1,0 +1,519 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>corCFA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Confirmatory Factor Analysis of a Multiple Indicator Measurement Model</h2>
+
+<h3>Description</h3>
+
+<p>Abbreviation: <code>cfa</code>
+</p>
+<p>A multiple indicator measurement model partitions a set of indicators, such as items on a survey, into mutually exclusive groups with one common factor per group of indicators. From the input correlation matrix of the indicator variables, this procedure uses iterated centroid estimation to estimate the coefficients of the model, the factor pattern and factor-factor correlations, as well as the correlations of each factor with each indicator. The analysis is an adaptation and extension of John Hunter's program PACKAGE (Hunter and Cohen, 1969).
+</p>
+<p>Corresponding scale reliabilities are provided, as well as the residuals, the difference between the indicator correlations and those predicted by the model.  To visualize the relationships, a heat map of the re-ordered correlation matrix is also provided, with indicator communalities in the diagonal. To understand the meaning of each factor, the corresponding indicator content is displayed for each factor if the indicators have been read as variable labels. Also provides the code to obtain the maximum likelihood solution of the corresponding multiple indicator measurement model (MIMM) with the <code>cfa</code> function from the <code>lavaan</code> package.
+</p>
+<p>The <code>scales</code> is a wrapper that retains 1's in the diagonal of the indicator correlation matrix, so provides scale reliabilities and observed indicator-scale and scale-scale correlations.
+</p>
+<p>Output is generated into distinct pieces by topic, organized and displayed in sequence by default. When the output is assigned to an object, such as <code>f</code> in <code>f &lt;- cfa(Fac =~ X1 + X2 + X3)</code>, the full or partial output can be accessed for later analysis and/or viewing. A primary such analysis is with <code>knitr</code> for dynamic report generation, run from, for example, <code>RStudio</code>. The input instructions written to the R~Markdown file are written comments and interpretation with embedded <code>R</code> code. Doing a <code>knitr</code> analysis is to "knit" these comments and subsequent output together so that the <code>R</code> output is embedded in the resulting document, either html, pdf or Word, by default with explanation and interpretation. Generate a complete R~Markdown set of instructions ready to knit from the <code>Rmd</code> option. Simply specify the option and create the file and then open in <code>RStudio</code> and click the <code>knit</code> button to create a formatted document that consists of the statistical results and interpretative comments. See the following sections <code>arguments</code>, <code>value</code> and <code>examples</code> for more information. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">corCFA(mimm=NULL, R=mycor, data=d, fac.names=NULL, 
+
+         Rmd=NULL, explain=getOption("explain"),
+         interpret=getOption("interpret"), results=getOption("results"),
+
+         labels=c("include", "exclude", "only"),
+
+         min_cor=.10, min_res=.05, iter=50, grid=TRUE, 
+
+         resid=TRUE, item_cor=TRUE, sort=TRUE,
+
+         main=NULL, heat_map=TRUE, bottom=NULL, right=NULL, 
+
+         pdf_file=NULL, width=5, height=5,
+
+         F1=NULL, F2=NULL, F3=NULL, F4=NULL, F5=NULL,
+         F6=NULL, F7=NULL, F8=NULL, F9=NULL, F10=NULL,
+         F11=NULL, F12=NULL, F13=NULL, F14=NULL, F15=NULL,
+         F16=NULL, F17=NULL, F18=NULL, F19=NULL, F20=NULL,
+
+         fun_call=NULL, ...)
+
+cfa(...)
+
+scales(..., iter=0, resid=FALSE, item_cor=FALSE, sort=FALSE, heat_map=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mimm</code></td>
+<td>
+<p>Multiple indicator measurement model, a character string with the
+specification of each factor on a separate line: the factor
+name, an equals sign, and the indicators separated by plus signs. 
+Each indicator is assigned to only one factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>Correlation matrix to be analyzed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame of the original data to be checked for any
+variable labels, usually indicator (item) content. This is not to
+calculate correlations, which is separately provided for by the
+<code>lessR</code> function <code>Correlation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fac.names</code></td>
+<td>
+<p>Optional factor names for the original, non-lavaan
+model specification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rmd</code></td>
+<td>
+<p>File name for the file of R Markdown instructions to be written,
+if specified. The file type is .Rmd, which automatically opens in
+RStudio, but it is a simple text file that can be edited with any text
+editor, including RStudio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>explain</code></td>
+<td>
+<p>If set to <code>FALSE</code> the explanations of the results are not
+provided in the R~Markdown file. Set globally with options(explain=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interpret</code></td>
+<td>
+<p>If set to <code>FALSE</code> the interpretations
+of the results are not provided in the R~Markdown file. Set globally with
+options(interpret=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>results</code></td>
+<td>
+<p>If set to <code>FALSE</code> the results
+are not provided in the R~Markdown file, relying upon the interpretations.
+Set globally with options(results=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>If "include" or "exclude" then variable labels are displayed
+(if available) or not, organized by the items within each factor.
+If "only" then no data analysis performed, only the display of the
+labels by factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_cor</code></td>
+<td>
+<p>Minimum correlation to display. To display all, set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_res</code></td>
+<td>
+<p>Minimum residual to display. To display all, set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of iterations for communality estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>If <code>TRUE</code>, then separate items in different factors
+by a grid of horizontal and vertical lines in the output 
+correlation matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resid</code></td>
+<td>
+<p>If <code>TRUE</code>, then calculate and print the residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>item_cor</code></td>
+<td>
+<p>If <code>TRUE</code>, display the indicator correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>If <code>TRUE</code>, re-order the output correlation matrix so that
+indicators within each factor are sorted by their factor loadings on
+their own factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>Graph title of heat map. Set to <code>main=""</code> to turn off.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heat_map</code></td>
+<td>
+<p>If <code>TRUE</code>, display a heat map of the indicator
+correlations with indicator communalities in the diagonal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bottom</code></td>
+<td>
+<p>Number of lines of bottom margin of heat map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>right</code></td>
+<td>
+<p>Number of lines of right margin of heat map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf_file</code></td>
+<td>
+<p>Name of the pdf file to which graphics are redirected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>Width of the pdf file in inches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Height of the pdf file in inches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F1</code></td>
+<td>
+<p>Variables that define Factor 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F2</code></td>
+<td>
+<p>Variables that define Factor 2.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F3</code></td>
+<td>
+<p>Variables that define Factor 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F4</code></td>
+<td>
+<p>Variables that define Factor 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F5</code></td>
+<td>
+<p>Variables that define Factor 5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F6</code></td>
+<td>
+<p>Variables that define Factor 6.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F7</code></td>
+<td>
+<p>Variables that define Factor 7.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F8</code></td>
+<td>
+<p>Variables that define Factor 8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F9</code></td>
+<td>
+<p>Variables that define Factor 9.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F10</code></td>
+<td>
+<p>Variables that define Factor 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F11</code></td>
+<td>
+<p>Variables that define Factor 11.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F12</code></td>
+<td>
+<p>Variables that define Factor 12.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F13</code></td>
+<td>
+<p>Variables that define Factor 13.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F14</code></td>
+<td>
+<p>Variables that define Factor 14.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F15</code></td>
+<td>
+<p>Variables that define Factor 15.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F16</code></td>
+<td>
+<p>Variables that define Factor 16.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F17</code></td>
+<td>
+<p>Variables that define Factor 17.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F18</code></td>
+<td>
+<p>Variables that define Factor 18.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F19</code></td>
+<td>
+<p>Variables that define Factor 19.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F20</code></td>
+<td>
+<p>Variables that define Factor 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun_call</code></td>
+<td>
+<p>Function call. Used internally with <code>knitr</code> to pass the 
+function call when obtained from the abbreviated function call <code>cfa</code>.
+Not usually invoked by the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameter values_</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>OVERVIEW<br>
+A multiple indicator measurement model defines one or more latent variables, called factors, in terms of mutually exclusive sets of indicator variables, such as items from a questionnaire or survey.  That is, each factor is defined by a unique set or group of indicators, and each indicator only contributes to the definition of one factor. Two sets of parameters are estimated by the model, the factor pattern coefficients, the lambda's, and the factor-factor correlations, the phi's. Also estimated here are the correlations of each indicator with the other factors. 
+</p>
+<p>INPUT<br>
+Unless <code>labels="only"</code>, the analysis requires the correlation matrix of the indicators and the specification of the groups of indicators, each of which defines a factor in the multiple indicator measurement model.  The default name for the indicator correlation matrix is <code>mycor</code>, which is also the default name of the matrix produced by the <code>lessR</code> function <code>Correlation</code> that computes the correlations from the data, as well as the name of the matrix read by the <code>lessR</code> function <code>corRead</code> that reads the already computed correlation matrix from an external file.
+</p>
+<p>For versions of <code>lessR</code> after 3.3, the correlation matrix computed by <code>Correlation</code> is now a list element called <code>R</code> within the returned list. For example, <code>mycor$R</code> from <code>mycor &lt;- cr(d)</code>. The function <code>corCFA</code> automatically finds this correlation matrix from just entering the entire list name of the returned list, <code>mycor</code>, or the specific location, <code>mycor$R</code>, or as a stand-alone numerical matrix as done in versions of <code>lessR</code> previous to 3.3. 
+</p>
+<p>The data frame from which the correlation matrix was computed is required only if any associated variable labels are listed, organized by the items within each factor. By default, <code>labels="include"</code>, these labels are listed as part of the analysis if they are available.
+</p>
+<p>Define the constituent variables, the indicators, of each factor with a listing of each variable by its name in the correlation matrix. Each of the up to 20 factors is named by default F1, F2, etc. If the specified variables of a factor are in consecutive order in the input correlation matrix, the list can be specified by listing the first variable, a colon, and then the last variable.  To specify multiple variables, a single variable or a list, separate each by a comma, then invoke the R combine or <code>c</code> function, preceded by the factor's name and an equals sign. For example, if the first factor is defined by variables in the input correlation matrix from m02 through m05, and the variable Anxiety, then define the factor in the <code>corCFA</code> function call according to <code>F1=c(m02:m05,Anxiety)</code>. 
+</p>
+<p>OUTPUT<br>
+The result of the analysis is the correlation matrix of the indicator variables and resulting factors, plus the reliability analysis of the observed total scores or scale that corresponds to each factor.  Each scale is defined as an unweighted composite. The corresponding code to analyze the model with the <code>cfa</code> function from the <code>lavaan</code> package is also provided with the default maximum likelihood estimation procedure. The comparable <code>lavaan</code> solution appears in the column that represents the fully standardized solution, factors and indicators, <code>Std.all</code>, the last column of the solution output. If the <code>lavaan</code> library is loaded, then explicitly refer to the <code>lessR</code> function <code>cfa</code> with <code>lessR::cfa</code> and the corresponding <code>lavaan</code> function with <code>lavaan::cfa</code>.  
+</p>
+<p>VARIABLE LABELS<br>
+To display the indicator content, first read the indicators as variable labels with the <code>lessR</code> function <code>Read</code>.  If this labels data frame exists, then the corresponding variable labels, such as the actual items on a survey, are listed by factor. For more information, see <code>Read</code>.
+</p>
+<p>HEAT MAP<br>
+To help visualize the overall pattering of the correlations, the corresponding heat map of the item correlation matrix with communalities is produced when <code>heat_map=TRUE</code>, the default. As is true of the output correlation matrix, the correlations illustrated in the heat map are also sorted by their ordering within each factor. The corresponding color scheme is dictated by the system setting, according to the <code>lessR</code> function <code>style</code>.  The default color scheme is <code>blue</code>.
+</p>
+<p>ESTIMATION PROCEDURE<br>
+The estimation procedure is centroid factor analysis, which defines each factor, parallel to the definition of each scale score, as the unweighted composite of the corresponding items for that scale.  The latent variables are obtained by replacing the 1's in the diagonal of the indicator variable correlation matrix with communality estimates.  These estimates are obtained by iterating the solution to the specified number of iterations according to <code>iter</code>, which defaults to 50.
+</p>
+<p>A communality is the percentage of the item's correlation attributable to, in this situation of a multiple indicator measurement model, its one underlying factor.  As such, the communality is comparable to the item correlations for items within the same factor, which are also due only to the influence of the one common, underlying factor. A value of 0 for <code>iter</code> implies that the 1's remain in the observed variable correlation matrix, which then means that there are no latent factors defined.  Instead the resulting correlation matrix is of the observed scale scores and the component items.
+</p>
+
+
+<h3>Value</h3>
+
+<p>TEXT OUTPUT<br><code>out_labels</code>: variables in the model<br><code>out_reliability</code>: reliability analysis with alpha and omega<br><code>out_indicators</code>: solution in terms of the analysis of each indicator<br><code>out_solution</code>: full solution<br><code>out_residuals</code>: residuals<br><code>out_res_stats</code>: stats for residuals<br><code>out_lavaan</code>: lavaan model specification<br></p>
+<p>Separated from the rest of the text output are the major headings, which can then be deleted from custom collations of the output.
+<code>out_title_scales</code>: scales<br><code>out_title_rel</code>: reliability analysis<br><code>out_title_solution</code>: solution<br><code>out_title_residuals</code>: residual analysis<br><code>out_title_lavaan</code>: lavaan specification<br></p>
+<p>STATISTICS<br>
+Returns a list of six components.<br>
+1. <code>ff.cor</code>: matrix of the factor correlations<br>
+2. <code>if.cor</code>: matrix of the indicator-factor correlations that includes the estimated pattern coefficients of the model that link a factor to its indicators<br>
+3. <code>diag.cor</code>: the indicator communalities<br>
+4. <code>alpha</code>: coefficient alpha for each set of indicators<br>
+5. <code>omega</code>: if a factor analysis with communality estimates (<code>iter</code> &gt; 0), contains coefficient omega for each set of indicators<br>
+6. <code>pred</code>: matrix of correlations predicted by the model and its estimates 
+7. <code>resid</code>: matrix of raw indicator residuals defined as the observed correlation minus that predicted by the model and its estimates 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)</p>
+
+
+<h3>References</h3>
+
+<p>Gerbing, D. W. (2014). R Data Analysis without Programming, Chapter 11, NY: Routledge.
+</p>
+<p>Gerbing, D. W., &amp; Hamilton, J. G. (1994). The surprising viability of a simple alternate estimation procedure for the construction of large-scale structural equation measurement models. Structural Equation Modeling: A Multidisciplinary Journal, 1, 103-115.
+</p>
+<p>Hunter, J. E., Gerbing, D. W., &amp; Boster, F. J. (1982). Machiavellian beliefs and personality: The construct invalidity of the Machiavellian dimension. Journal of Personality and Social Psychology, 43, 1293-1305.
+</p>
+<p>Hunter, J. &amp; Cohen, J. (1969). PACKAGE: A system of computer routines for the analysis of correlational data. Educational and Psychological Measurement, 1969, 29, 697-700.
+</p>
+<p>Yves Rosseel (2012). lavaan: An R Package for Structural Equation
+Modeling. Journal of Statistical Software, 48(2), 1-36. URL
+http://www.jstatsoft.org/v48/i02/.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Correlation</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># perfect input correlation matrix for two-factor model
+# Population Factor Pattern of the 3 items for each respective
+#   Factor: 0.8, 0.6, 0.4
+# Population Factor-Factor correlation: 0.3
+mycor &lt;- matrix(nrow=6, ncol=6, byrow=TRUE,
+c(1.000,0.480,0.320,0.192,0.144,0.096,
+  0.480,1.000,0.240,0.144,0.108,0.072,
+  0.320,0.240,1.000,0.096,0.072,0.048,
+  0.192,0.144,0.096,1.000,0.480,0.320,
+  0.144,0.108,0.072,0.480,1.000,0.240,
+  0.096,0.072,0.048,0.320,0.240,1.000))
+colnames(mycor) &lt;- c("X1", "X2", "X3", "X4", "X5", "X6")
+rownames(mycor) &lt;- colnames(mycor)
+
+# the confirmatory factor analysis
+# first three variables with first factor, last three with second
+# default correlation matrix is mycor
+MeasModel &lt;- 
+" 
+   First =~ X1 + X2 + X3 
+   Second =~ X4 + X5 + X6
+"
+c &lt;- cfa(MeasModel)
+
+# access the solution directly by saving to an object called fit
+cfa(MeasModel)
+fit &lt;- cfa(MeasModel)
+fit
+# get the pattern coefficients from the communalities
+lambda &lt;- sqrt(fit$diag.cor)
+lambda
+
+# alternative specification described in Gerbing(2014),
+#   retained to be consistent with that description
+# can specify the items with a colon and with commas
+# abbreviated form of function name: cfa
+cfa(F1=c(X4,X5,X6), F2=X1:X3)
+
+# component analysis, show observed scale correlations
+scales(F1=X1:X3, F2=X4:X6)
+
+# produce a gray scale heat map of the item correlations
+#   with communalities in the diagonal
+# all subsequent graphics are in gray scale until changed
+style("gray")
+corCFA(F1=X1:X3, F2=X4:X6)
+
+# access the lessR data set called datMach4
+# read the optional variable labels
+d &lt;- Read("Mach4", quiet=TRUE)
+l &lt;- Read("Mach4_lbl", var_labels=TRUE)
+# calculate the correlations and store in mycor
+mycor &lt;- cr(m01:m20)
+R &lt;- mycor$R
+# specify measurement model in Lavaan notation
+MeasModel &lt;- 
+" 
+   Deceit =~ m07 + m06 + m10 + m09 
+   Trust =~ m12 + m05 + m13 + m01 
+   Cynicism =~ m11 + m16 + m04 
+   Flattery =~ m15 + m02 
+"
+# confirmatory factor analysis of 4-factor solution of Mach IV scale
+# Hunter, Gerbing and Boster (1982)
+# generate R Markdown instructions with the option: Rmd
+# Output file will be m4.Rmd, a simple text file that can
+#   be edited with any text editor including RStudio, from which it
+#   can be knit to generate dynamic output such as to a Word document
+#c &lt;- cfa(MeasModel, R, Rmd="m4")
+# view all the output
+#c
+# view just the scale reliabilities
+#c$out_reliability
+
+# analysis of item content only
+cfa(MeasModel, labels="only")
+
+
+# bad fitting model to illustrate indicator diagnostics
+mycor &lt;- corReflect(vars=c(m20))
+MeasModel &lt;- 
+" 
+   F1 =~ m06 + m09 + m19
+   F2 =~ m07
+   F3 =~ m04 + m11 + m16 
+   F4 =~ m15 + m12 + m20 + m18 
+"
+cfa(MeasModel)
+</code></pre>
+
+
+</div>

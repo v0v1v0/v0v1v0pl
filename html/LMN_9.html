@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmn_suff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the sufficient statistics of an LMN model.</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the sufficient statistics of an LMN model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmn_suff(Y, X, V, Vtype, npred = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>An <code style="white-space: pre;">⁠n x q⁠</code> matrix of responses.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>An <code style="white-space: pre;">⁠N x p⁠</code> matrix of covariates, where <code>N = n + npred</code> (see <strong>Details</strong>). May also be passed as:
+</p>
+
+<ul><li>
+<p> A scalar, in which case the one-column covariate matrix is <code>X = X * matrix(1, N, 1)</code>.
+-<code>X = 0</code>, in which case the mean of <code>Y</code> is known to be zero, i.e., no regression coefficients are estimated.
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>V, Vtype</code></td>
+<td>
+<p>The between-observation variance specification.  Currently the following options are supported:
+</p>
+
+<ul>
+<li> <p><code>Vtype = "full"</code>: <code>V</code> is an <code style="white-space: pre;">⁠N x N⁠</code> symmetric positive-definite matrix.
+</p>
+</li>
+<li> <p><code>Vtype = "diag"</code>: <code>V</code> is a vector of length <code>N</code> such that <code>V = diag(V)</code>.
+</p>
+</li>
+<li> <p><code>Vtype = "scalar"</code>: <code>V</code> is a scalar such that <code>V = V * diag(N)</code>.
+</p>
+</li>
+<li> <p><code>Vtype = "acf"</code>: <code>V</code> is either a vector of length <code>N</code> or an object of class <code>SuperGauss::Toeplitz</code>, such that <code>V = toeplitz(V)</code>.
+</p>
+</li>
+</ul>
+<p>For <code>V</code> specified as a matrix or scalar, <code>Vtype</code> is deduced automatically and need not be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npred</code></td>
+<td>
+<p>A nonnegative integer.  If positive, calculates sufficient statistics to make predictions for new responses. See <strong>Details</strong>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The multi-response normal linear regression model is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">
+\boldsymbol{Y} \sim \textrm{Matrix-Normal}(\boldsymbol{X}\boldsymbol{B}, \boldsymbol{V}, \boldsymbol{\Sigma}),
+</code>
+</p>
+
+<p>where <code class="reqn">\boldsymbol{Y}_{n \times q}</code> is the response matrix, <code class="reqn">\boldsymbol{X}_{n \times p}</code> is the covariate matrix, <code class="reqn">\boldsymbol{B}_{p \times q}</code> is the coefficient matrix, <code class="reqn">\boldsymbol{V}_{n \times n}</code> and <code class="reqn">\boldsymbol{\Sigma}_{q \times q}</code> are the between-row and between-column variance matrices, and the Matrix-Normal distribution is defined by the multivariate normal distribution
+<code class="reqn">
+\textrm{vec}(\boldsymbol{Y}) \sim \mathcal{N}(\textrm{vec}(\boldsymbol{X}\boldsymbol{B}), \boldsymbol{\Sigma} \otimes \boldsymbol{V}),
+</code>
+where <code class="reqn">\textrm{vec}(\boldsymbol{Y})</code> is a vector of length <code class="reqn">nq</code> stacking the columns of of <code class="reqn">\boldsymbol{Y}</code>, and <code class="reqn">\boldsymbol{\Sigma} \otimes \boldsymbol{V}</code> is the Kronecker product.
+</p>
+<p>The function <code>lmn_suff()</code> returns everything needed to efficiently calculate the likelihood function
+</p>
+<p style="text-align: center;"><code class="reqn">\mathcal{L}(\boldsymbol{B}, \boldsymbol{\Sigma} \mid \boldsymbol{Y}, \boldsymbol{X}, \boldsymbol{V}) = p(\boldsymbol{Y} \mid \boldsymbol{X}, \boldsymbol{V}, \boldsymbol{B}, \boldsymbol{\Sigma}).
+</code>
+</p>
+
+<p>When <code>npred &gt; 0</code>, define the variables <code>Y_star = rbind(Y, y)</code>, <code>X_star = rbind(X, x)</code>, and <code>V_star = rbind(cbind(V, w), cbind(t(w), v))</code>.  Then <code>lmn_suff()</code> calculates summary statistics required to estimate the conditional distribution
+</p>
+<p style="text-align: center;"><code class="reqn">
+p(\boldsymbol{y} \mid \boldsymbol{Y}, \boldsymbol{X}_\star, \boldsymbol{V}_\star, \boldsymbol{B}, \boldsymbol{\Sigma}).
+</code>
+</p>
+
+<p>The inputs to <code>lmn_suff()</code> in this case are <code>Y = Y</code>, <code>X = X_star</code>, and <code>V = V_star</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S3 object of type <code>lmn_suff</code>, consisting of a list with elements:
+</p>
+
+<dl>
+<dt><code>Bhat</code></dt>
+<dd>
+<p>The <code class="reqn">p \times q</code> matrix <code class="reqn">\hat{\boldsymbol{B}} = (\boldsymbol{X}'\boldsymbol{V}^{-1}\boldsymbol{X})^{-1}\boldsymbol{X}'\boldsymbol{V}^{-1}\boldsymbol{Y}</code>.</p>
+</dd>
+<dt><code>T</code></dt>
+<dd>
+<p>The <code class="reqn">p \times p</code> matrix <code class="reqn">\boldsymbol{T} = \boldsymbol{X}'\boldsymbol{V}^{-1}\boldsymbol{X}</code>.</p>
+</dd>
+<dt><code>S</code></dt>
+<dd>
+<p>The <code class="reqn">q \times q</code> matrix <code class="reqn">\boldsymbol{S} = (\boldsymbol{Y} - \boldsymbol{X} \hat{\boldsymbol{B}})'\boldsymbol{V}^{-1}(\boldsymbol{Y} - \boldsymbol{X} \hat{\boldsymbol{B}})</code>.</p>
+</dd>
+<dt><code>ldV</code></dt>
+<dd>
+<p>The scalar log-determinant of <code>V</code>.</p>
+</dd>
+<dt>
+<code>n</code>, <code>p</code>, <code>q</code>
+</dt>
+<dd>
+<p>The problem dimensions, namely <code>n = nrow(Y)</code>, <code>p = nrow(Beta)</code> (or <code>p = 0</code> if <code>X = 0</code>), and <code>q = ncol(Y)</code>.</p>
+</dd>
+</dl>
+<p>In addition, when <code>npred &gt; 0</code> and with <code class="reqn">\boldsymbol{x}</code>, <code class="reqn">\boldsymbol{w}</code>, and <code class="reqn">v</code> defined in <strong>Details</strong>:
+</p>
+
+<dl>
+<dt><code>Ap</code></dt>
+<dd>
+<p>The <code style="white-space: pre;">⁠npred x q⁠</code> matrix <code class="reqn">\boldsymbol{A}_p = \boldsymbol{w}'\boldsymbol{V}^{-1}\boldsymbol{Y}</code>.</p>
+</dd>
+<dt><code>Xp</code></dt>
+<dd>
+<p>The <code style="white-space: pre;">⁠npred x p⁠</code> matrix <code class="reqn">\boldsymbol{X}_p = \boldsymbol{x} - \boldsymbol{w}\boldsymbol{V}^{-1}\boldsymbol{X}</code>.</p>
+</dd>
+<dt><code>Vp</code></dt>
+<dd>
+<p>The scalar <code class="reqn">V_p = v - \boldsymbol{w}\boldsymbol{V}^{-1}\boldsymbol{w}</code>.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Data
+n &lt;- 50
+q &lt;- 3
+Y &lt;- matrix(rnorm(n*q),n,q)
+
+# No intercept, diagonal V input
+X &lt;- 0
+V &lt;- exp(-(1:n)/n)
+lmn_suff(Y, X = X, V = V, Vtype = "diag")
+
+# X = (scaled) Intercept, scalar V input (no need to specify Vtype)
+X &lt;- 2
+V &lt;- .5
+lmn_suff(Y, X = X, V = V)
+
+# X = dense matrix, Toeplitz variance matrix
+p &lt;- 2
+X &lt;- matrix(rnorm(n*p), n, p)
+Tz &lt;- SuperGauss::Toeplitz$new(acf = 0.5*exp(-seq(1:n)/n))
+lmn_suff(Y, X = X, V = Tz, Vtype = "acf")
+
+</code></pre>
+
+
+</div>

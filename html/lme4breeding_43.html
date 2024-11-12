@@ -1,0 +1,274 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmebreed</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit mixed-effects models incorporating relationships</h2>
+
+<h3>Description</h3>
+
+<p>Fit linear or generalized linear mixed models incorporating the
+effects of relationships.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmebreed(formula, data, family = NULL, REML = TRUE,
+           relmat = list(), addmat = list(), control = list(),
+           start = NULL, verbose = TRUE, subset, weights,
+           na.action, offset, contrasts = NULL, model = TRUE,
+           x = TRUE, dateWarning=TRUE, returnParams=FALSE,
+           rotation=FALSE, coefOutRotation=8, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>relmat</code></td>
+<td>
+<p>an optional named list of relationship matrices (not the inverse). 
+Internally the Cholesky decomposition of those matrices will be computed.
+The names of the elements must correspond to the names of grouping factors for
+random-effects terms in the <code>formula</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addmat</code></td>
+<td>
+<p>an optional named list of customized incidence matrices.
+The names of the elements must correspond to the names of grouping factors for
+random-effects terms in the <code>formula</code> argument. Depending on the use-case
+the element in the list may be a single matrix or a list of matrices. Please see
+examples and vignettes to learn how to use it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dateWarning</code></td>
+<td>
+<p>an logical value indicating if you want to be warned when a new 
+version of lme4breeding is available on CRAN.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnParams</code></td>
+<td>
+<p>an logical value indicating if you want to only get the incidence 
+matrices of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotation</code></td>
+<td>
+<p>an logical value indicating if you want to compute the eigen decomposition 
+of the relationship matrix to rotate y and X and accelerate the computation. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefOutRotation</code></td>
+<td>
+<p>a numeric value denoting the inter-quantile outlier coefficient to
+be used in the rotation of the response when using the eigen decomposition to avoid 
+overshooting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>as in <code>glmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>REML</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>as in <code>lmer</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All arguments to this function are the same as those to the function
+<code>lmer</code> except <code>relmat</code> and <code>addmat</code> which must be 
+named lists.  Each name must correspond to the name of a grouping factor in a
+random-effects term in the <code>formula</code>.  The observed levels
+of that factor must be contained in the rownames and columnames of the relmat.  
+Each relmat is the relationship matrix restricted 
+to the observed levels and applied to the model matrix for that term. The incidence
+matrices in the addmat argument must match the dimensions of the final fit (pay 
+attention to missing data in responses).
+</p>
+<p>It is important to remember that when you use the <code>relmat</code> argument you are providing
+the square root of the relationship matrix and to recover the correct BLUPs for those effects
+you need to use the <code>ranef</code> function which internally multiple those BLUPs the 
+square root of the relationship matrix one more time to recover the correct BLUPs.
+</p>
+<p>The argument <code>rotation</code> applies the eigen decomposition proposed by Lee and Van der Werf in 2016
+and makes the genetic evaluation totally sparse leading to incredible gains in speed compared 
+to the classical approach. Internally, the eigen decomposition UDU' is carried in the relationship 
+matrix. The U matrix is then taken to the n x n level (n being the number of records), and post-multiplied
+by a matrix of records presence (n x n) using the element-wise multiplication of two matrices (Schur product). 
+By default is not activated since this may not provide the exact same variance components than other software due to
+numerical reasons. If you would like to obtain the exact same variance components than other software you will
+have to keep <code>rotation=FALSE</code>. This will slow down considerably the speed. Normally when the rotation is 
+activated and variance components differ slightly with other software they will still provide highly similar 
+estimates at the speed of hundreds or thousands of times faster. Please consider this.
+</p>
+<p>When using the optimizer argument inside the <code>lmerControl</code> keep in mind that the number of iterations is called differently depending on the optimizer. For <code>Nelder_Mead</code>, bobyqa and <code>nlminbwrap</code> is called "maxfun" whereas for <code>nloptwrap</code> is called "maxeval". This should be passed inside a list in the <code>optCtrl</code> argument. For example:
+</p>
+<p><code>lmebreed(... , 
+         control = lmerControl(
+           optimizer="Nelder_Mead",
+           optCtrl=list(maxfun=100)
+         ), ...
+        )</code>
+</p>
+<p><strong>Example Datasets</strong>
+</p>
+<p>The package has been equiped with several datasets to learn how to use the lme4breeding package:
+</p>
+<p>* <code>DT_halfdiallel</code>, <code>DT_fulldiallel</code> and <code>DT_mohring</code> datasets have examples to fit half and full diallel designs.
+</p>
+<p>* <code>DT_h2</code> to calculate heritability
+</p>
+<p>* <code>DT_cornhybrids</code> and <code>DT_technow</code> datasets to perform genomic prediction in hybrid single crosses
+</p>
+<p>* <code>DT_wheat</code> dataset to do genomic prediction in single crosses in species displaying only additive effects.
+</p>
+<p>* <code>DT_cpdata</code> dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects.
+</p>
+<p>* <code>DT_polyploid</code> to fit genomic prediction and GWAS analysis in polyploids.
+</p>
+<p>* <code>DT_gryphon</code> data contains an example of an animal model including pedigree information.
+</p>
+<p>* <code>DT_btdata</code> dataset contains an animal (birds) model.
+</p>
+<p>* <code>DT_legendre</code> simulated dataset for random regression model.
+</p>
+<p>* <code>DT_sleepstudy</code> dataset to know how to translate lme4 models to sommer models.
+</p>
+<p>* <code>DT_ige</code> dataset to show how to fit indirect genetic effect models.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a <code>lmebreed</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Giovanny Covarrubias-Pazaran
+</p>
+
+
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+<p>Lee &amp; Van der Werf (2016). MTG2: an efficient algorithm for multivariate linear mixed model analysis based on genomic information. Bioinformatics, 32(9), 1420-1422.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_example)
+DT &lt;- DT_example
+A &lt;- A_example
+
+ansMain &lt;- lmebreed(Yield ~ Env + (1|Name),
+                        relmat = list(Name = A ),
+                        data=DT)
+vc &lt;- VarCorr(ansMain); print(vc,comp=c("Variance"))
+
+BLUP &lt;- ranef(ansMain, condVar=TRUE)$Name
+SEs &lt;- attr(BLUP, which="postVar")[,,]
+
+</code></pre>
+
+
+</div>

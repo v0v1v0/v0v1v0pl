@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gg_doubleplot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Double Plots</h2>
+
+<h3>Description</h3>
+
+<p>The function is by default opinionated, and will automatically select the best way to display the double date plot. However, the user can also manually select the type of double date plot to be displayed: repeating each day (default when there is only one day in all of the groups), or displaying consecutive days (default when there are multiple days in the groups).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gg_doubleplot(
+  dataset,
+  Datetime.colname = Datetime,
+  type = c("auto", "repeat", "next"),
+  geom = "ribbon",
+  alpha = 0.5,
+  col = "grey40",
+  fill = "#EFC000FF",
+  linewidth = 0.4,
+  x.axis.breaks.next = Datetime_breaks,
+  x.axis.format.next = "%a %D",
+  x.axis.breaks.repeat = ~Datetime_breaks(.x, by = "6 hours", shift =
+    lubridate::duration(0, "hours")),
+  x.axis.format.repeat = "%H:%M",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Expects a <code>dataframe</code>. If not imported
+by LightLogR, take care to choose a sensible variable for the
+<code>Datetime.colname</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>column name that contains the datetime. Defaults to
+<code>"Datetime"</code> which is automatically correct for data imported with
+LightLogR. Expects a <code>symbol</code>. Needs to be part of the <code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>One of "auto", "repeat", or "next". The default is "auto", which will automatically select the best way to display the double date plot based on the amount of days in the dataset (<code style="white-space: pre;">⁠all = 1 &gt;&gt; "repeat", else "next⁠</code>). "repeat" will repeat each day in the plot, and "next" will display consecutive days.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>The type of geom to be used in the plot. The default is "ribbon".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha, linewidth</code></td>
+<td>
+<p>The alpha and linewidth setting of the geom. The default is 0.5 and 0.4, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col, fill</code></td>
+<td>
+<p>The color and fill of the geom. The default is "#EFC000FF". If the parameters <code>aes_col</code> or <code>aes_fill</code> are used through <code>...</code>, these will override the respective <code>col</code> and <code>fill</code> parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.breaks.next, x.axis.breaks.repeat</code></td>
+<td>
+<p>Datetime breaks when consecutive days are displayed (<code>type = "next"</code>) or days are repeated (<code>type = "repeat"</code>). Must be a function. The default for <code>next</code> is a label at 12:00 am of each day, and for <code>repeat</code> is a label every 6 hours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.format.next, x.axis.format.repeat</code></td>
+<td>
+<p>Datetime label format when consecutive days are displayed (<code>type = "next"</code>) or days are repeated (<code>type = "repeat"</code>). The default for <code>next</code> is <code>"%a %D"</code>, showing the date, and for <code>repeat</code> ist <code>"%H:%M"</code>, showing hours and minutes. See <code>base::strptime()</code> for more options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed to <code>gg_days()</code>. When the arguments <code>aes_col</code> and <code>aes_fill</code> are used, they will invalidate the <code>col</code> and <code>fill</code> parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>gg_doubleplot()</code> is a wrapper function for <code>gg_days()</code>, combined with an internal function to duplicate and reorganize dates in a dataset for a <em>double plot</em> view. This means that the same day is displayed multiple times within the plot in order to reveal pattern across days.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a ggplot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#take only the Participant data from sample data, and three days
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+sample.data &lt;- 
+sample.data.environment %&gt;% 
+dplyr::filter(Id == "Participant") %&gt;% 
+filter_Date(length = ddays(3))
+
+#create a double plot with the default settings
+sample.data %&gt;% gg_doubleplot()
+
+#repeat the same day in the plot
+sample.data %&gt;% gg_doubleplot(type = "repeat")
+
+#use the function with more than one Id
+sample.data.environment %&gt;% 
+filter_Date(length = ddays(3)) %&gt;% 
+gg_doubleplot(aes_fill = Id, aes_col = Id) +
+facet_wrap(~ Date.data, ncol = 1, scales = "free_x", strip.position = "left")
+
+#if data is already grouped by days, type = "repeat" will be automatic
+sample.data.environment %&gt;% 
+dplyr::group_by(Date = date(Datetime), .add = TRUE) %&gt;% 
+filter_Date(length = ddays(3)) %&gt;% 
+gg_doubleplot(aes_fill = Id, aes_col = Id) + 
+guides(fill = "none", col = "none") + #remove the legend
+facet_wrap(~ Date.data, ncol = 1, scales = "free_x", strip.position = "left")
+
+#combining `aggregate_Date()` with `gg_doubleplot()` easily creates a good
+#overview of the data
+sample.data.environment %&gt;%
+aggregate_Date() %&gt;%
+gg_doubleplot()
+</code></pre>
+
+
+</div>

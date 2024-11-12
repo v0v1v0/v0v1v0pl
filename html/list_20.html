@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.ictregBayesHier</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict Method for the Item Count Technique with Bayesian Hierarchical
+Regression</h2>
+
+<h3>Description</h3>
+
+<p>Function to calculate predictions and uncertainties of predictions from
+estimates from hierarchical multivariate regression analysis of survey data
+with the item count technique.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'ictregBayesHier'
+predict(
+  object,
+  newdata,
+  se.fit = FALSE,
+  interval = c("none", "confidence"),
+  level = 0.95,
+  sensitive.item,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class inheriting from "ictregBayes" or
+"ictregBayesMulti"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>An optional data frame containing data that will be used to
+make predictions from. If omitted, the data used to fit the regression are
+used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+<p>A switch indicating if standard errors are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Type of interval calculation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Significance level for confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive.item</code></td>
+<td>
+<p>For the multiple sensitive item design, the integer
+indicating which sensitive item coefficients will be used for prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to or from other methods.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>predict.ictregBayesHier</code> produces predicted values, obtained by
+evaluating the regression function in the frame newdata (which defaults to
+<code>model.frame(object)</code>. If the logical <code>se.fit</code> is <code>TRUE</code>,
+standard errors of the predictions are calculated. Setting <code>interval</code>
+specifies computation of confidence intervals at the specified level or no
+intervals.
+</p>
+<p>The mean prediction across all observations in the dataset is calculated,
+and if the <code>se.fit</code> option is set to <code>TRUE</code> a standard error for
+this mean estimate will be provided. The <code>interval</code> option will output
+confidence intervals instead of only the point estimate if set to
+<code>TRUE</code>.
+</p>
+<p>In the multiple sensitive item design, prediction can only be based on the
+coefficients from one of the sensitive item fits. The <code>sensitive.item</code>
+option allows you to specify which is used, using integers from 1 to the
+number of sensitive items.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>predict.ictreg</code> produces a vector of predictions or a matrix
+of predictions and bounds with column names fit, lwr, and upr if interval is
+set. If se.fit is TRUE, a list with the following components is returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>vector or matrix as above</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se.fit</code></td>
+<td>
+<p>standard error of
+prediction</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Graeme Blair, UCLA, <a href="mailto:graeme.blair@ucla.edu">graeme.blair@ucla.edu</a>
+and Kosuke Imai, Princeton University, <a href="mailto:kimai@princeton.edu">kimai@princeton.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Blair, Graeme and Kosuke Imai. (2012) “Statistical Analysis of
+List Experiments."  Political Analysis, Vol. 20, No 1 (Winter). available at
+<a href="http://imai.princeton.edu/research/listP.html">http://imai.princeton.edu/research/listP.html</a>
+</p>
+<p>Imai, Kosuke. (2011) “Multivariate Regression Analysis for the Item Count
+Technique.” Journal of the American Statistical Association, Vol. 106, No.
+494 (June), pp. 407-416. available at
+<a href="http://imai.princeton.edu/research/list.html">http://imai.princeton.edu/research/list.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ictreg</code> for model fitting
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(race)
+
+## Not run: 
+
+mle.estimates.multi &lt;- ictreg(y ~ male + college, data = multi,
+  constrained = TRUE)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates.multi), 
+  Sigma = vcov(mle.estimates.multi) * 9)
+
+bayes.fit &lt;- ictregBayesHier(y ~ male + college,
+                        formula.level.2 = ~ 1, 
+                        delta.start.level.1 = list(draws[1, 8:9], draws[1, 2:3], draws[1, 5:6]),
+                        data = multi, treat = "treat",
+                        delta.tune = list(rep(0.005, 2), rep(0.05, 2), rep(0.05, 2)),
+                        alpha.tune = rep(0.001, length(unique(multi$state))),
+                        J = 3, group.level.2 = "state",
+                        n.draws = 100, burnin = 10, thin = 1)
+
+bayes.predict &lt;- predict(bayes.fit, interval = "confidence", se.fit = TRUE)
+
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

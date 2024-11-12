@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LossMatrix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Loss Matrix</h2>
+
+<h3>Description</h3>
+
+<p>A loss matrix is useful in Bayesian decision theory for selecting the
+Bayes action, the optimal Bayesian decision, when there are a discrete
+set of possible choices (actions) and a discrete set of possible
+outcomes (states of the world). The Bayes action is the action that
+minimizes expected loss, which is equivalent to maximizing expected
+utility.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LossMatrix(L, p.theta)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>This required argument accepts a <code class="reqn">S \times A</code>
+matrix or <code class="reqn">S \times A \times N</code> array of losses,
+where <code class="reqn">S</code> is the number of states of the world, <code class="reqn">A</code> is the
+number of actions, and <code class="reqn">N</code> is the number of samples. These
+losses have already been estimated, given a personal loss
+function. One or more personal losses has already been estimated
+for each combination of possible actions
+<code class="reqn">a=1,\dots,A</code> and possible states
+<code class="reqn">s=1,\dots,S</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.theta</code></td>
+<td>
+<p>This required argument accepts a
+<code class="reqn">S \times A</code> matrix or
+<code class="reqn">S \times A \times N</code> array of state prior
+probabilities, where <code class="reqn">S</code> is the number of states of the world,
+<code class="reqn">A</code> is the number of actions, and <code class="reqn">N</code> is the number of
+samples. The sum of each column must equal one.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Bayesian inference is often tied to decision theory (Bernardo and
+Smith, 2000), and decision theory has long been considered the
+foundations of statistics (Savage, 1954).
+</p>
+<p>Before using the <code>LossMatrix</code> function, the user should have
+already considered all possible actions (choices), states of the world
+(outcomes unknown at the time of decision-making), chosen a loss
+function <code class="reqn">L(\theta, \alpha)</code>, estimated loss, and
+elicited prior probabilities <code class="reqn">p(\theta | x)</code>.
+</p>
+<p>Although possible actions (choices) for the decision-maker and
+possible states (outcomes) may be continuous or discrete, the loss
+matrix is used for discrete actions and states. An example of a
+continuous action may be that a decision-maker has already decided to
+invest, and the remaining, current decision is how much to invest.
+Likewise, an example of continuous states of the world (outcomes) may
+be how much profit or loss may occur after a given continuous unit of
+time.
+</p>
+<p>The coded example provided below is taken from Berger (1985, p. 6-7)
+and described here. The set of possible actions for a decision-maker
+is to invest in bond ZZZ or alternatively in bond XXX, as it is called
+here. A real-world decision should include a mutually exhaustive list
+of actions, such as investing in neither, but perhaps the
+decision-maker has already decided to invest and narrowed the options
+down to these two bonds.
+</p>
+<p>The possible states of the world (outcomes unknown at the time of
+decision-making) are considered to be two states: either the chosen
+bond will not default or it will default. Here, the loss function is
+a negative linear identity of money, and hence a loss in element
+<code>L[1,1]</code> of -500 is a profit of 500, while a loss in
+<code>L[2,1]</code> of 1,000 is a loss of 1,000.
+</p>
+<p>The decision-maker's dilemma is that bond ZZZ may return a higher
+profit than bond XXX, however there is an estimated 10% chance, the
+prior probability, that bond ZZZ will default and return a substantial
+loss. In contrast, bond XXX is considered to be a sure-thing and 
+return a steady but smaller profit. The Bayes action is to choose the
+first action and invest in bond ZZZ, because it minimizes expected
+loss, even though there is a chance of default.
+</p>
+<p>A more realistic application of a loss matrix may be to replace the
+point-estimates of loss with samples given uncertainty around the
+estimated loss, and replace the point-estimates of the prior
+probability of each state with samples given the uncertainty of the
+probability of each state. The loss function used in the example is
+intuitive, but a more popular monetary loss function may be
+<code class="reqn">-\log(E(W | R))</code>, the negative log of the
+expectation of wealth, given the return. There are many alternative
+loss functions.
+</p>
+<p>Although isolated decision-theoretic problems exist such as the
+provided example, decision theory may also be applied to the results
+of a probability model (such as from
+<code>IterativeQuadrature</code>, <code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>, <code>PMC</code>), or
+<code>VariationalBayes</code>, contingent on how
+a decision-maker is considering to use the information from the
+model. The statistician may pass the results of a model to a client,
+who then considers choosing possible actions, given this
+information. The statistician should further assist the client with
+considering actions, states of the world, then loss functions, and
+finally eliciting the client's prior probabilities (such as with the
+<code>elicit</code> function).
+</p>
+<p>When the outcome is finally observed, the information from this
+outcome may be used to refine the priors of the next such decision. In
+this way, Bayesian learning occurs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>LossMatrix</code> function returns a list with two components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>BayesAction</code></td>
+<td>
+<p>This is a numeric scalar that indicates the action
+that minimizes expected loss.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E.Loss</code></td>
+<td>
+<p>This is a vector of expected losses, one for each
+action.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Berger, J.O. (1985). "Statistical Decision Theory and Bayesian
+Analysis", Second Edition. Springer: New York, NY.
+</p>
+<p>Bernardo, J.M. and Smith, A.F.M. (2000). "Bayesian Theory". John
+Wiley \&amp; Sons: West Sussex, England.
+</p>
+<p>Savage, L.J. (1954). "The Foundations of Statistics". John Wiley \&amp;
+Sons: West Sussex, England.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>elicit</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>,
+<code>PMC</code>, and
+<code>VariationalBayes</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+### Point-estimated loss and state probabilities
+L &lt;- matrix(c(-500,1000,-300,-300), 2, 2)
+rownames(L) &lt;- c("s[1]: !Defaults","s[2]: Defaults")
+colnames(L) &lt;- c("a[1]: Buy ZZZ", "a[2]: Buy XXX")
+L
+p.theta &lt;- matrix(c(0.9, 0.1, 1, 0), 2, 2)
+Fit &lt;- LossMatrix(L, p.theta)
+
+### Point-estimated loss and samples of state probabilities
+L &lt;- matrix(c(-500,1000,-300,-300), 2, 2)
+rownames(L) &lt;- c("s[1]: Defaults","s[2]: !Defaults")
+colnames(L) &lt;- c("a[1]: Buy ZZZ", "a[2]: Buy XXX")
+L
+p.theta &lt;- array(runif(4000), dim=c(2,2,1000)) #Random probabilities,
+#just for a quick example. And, since they must sum to one:
+for (i in 1:1000) {
+     p.theta[,,i] &lt;- p.theta[,,i] / matrix(colSums(p.theta[,,i]),
+          dim(p.theta)[1], dim(p.theta)[2], byrow=TRUE)}
+Fit &lt;- LossMatrix(L, p.theta)
+Fit
+
+### Point-estimates of loss may be replaced with samples as well.
+</code></pre>
+
+
+</div>

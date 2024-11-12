@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>requireData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Attach packages as required and expose non-LazyData data sets as promises.
+</h2>
+
+<h3>Description</h3>
+
+<p>This function provides <code>LazyData</code> functionality for packages
+which do not provide it.  It acts as an enhanced substitute for the
+base packges <code>require</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">requireData(package = stop("you must specify a package"),
+            lib.loc = NULL, quietly = TRUE, character.only = FALSE,
+            warn.conflicts = TRUE, reallyQuietly = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>package</code></td>
+<td>
+
+<p>The name of the package whose attachment to the search path is
+required.  May me a name or a literal character string.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lib.loc</code></td>
+<td>
+
+<p>The path to the library holding the package.  As for
+<code>require</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quietly</code></td>
+<td>
+
+<p>Logical: should the stanandard loading message be suppressed?
+Ignored if <code>reallyQuiet</code> is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>character.only</code></td>
+<td>
+
+<p>Logical: should the <code>package</code> argument be treated as a
+character string even if not literal?
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn.conflicts</code></td>
+<td>
+
+<p>Should objects masked by the attachment of the package be flagged?
+As for <code>require</code>.
+Ignored if <code>reallyQuiet</code> is <code>TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reallyQuietly</code></td>
+<td>
+
+<p>Logical: should the <code>package</code> be loaded using
+<code>suppressPackageStartupMessages</code>?  If <code>TRUE</code>, the default,
+this will make the loading
+as quietly as possible, but will suppress potentially useful
+messages, such as masking information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Additional arguments currently ignored.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The only function this package provides, <code>requireData</code>, is a
+substitute for the base function <code>require</code>.  If the package is
+not already on the search path, it attaches it.  In addition, if the
+package a) has data sets and b) does NOT use the LazyData facility,
+then an additonal entry is made on the search path.  This is an
+unlocked environment initially populated by ‘promises’
+(using <code>delayedAssign</code>) to load a copy of the data set into
+memory if and when it is needed.
+</p>
+<p>This is done recursively for all packages attached to the search path
+via dependencies.
+</p>
+<p>If the package appears on the search path as <code>package:&lt;pkg&gt;</code> at
+positon <code>p</code>, then any exposed data set objects appear at postion
+<code>p+1</code> as <code>datasets:&lt;pkg&gt;</code>.  The package environment is
+locked, but the datasets environment is not.  If a data set object is
+needed at any stage, it is brought silently into memory at position
+<code>p+1</code> on the search path.
+</p>
+<p>Any further call to <code>requireData(&lt;pkg&gt;)</code> will reinstate the
+datasets as promises, thus potentially freeing memory.
+</p>
+<p>The intended effect is to make data sets more conveniently available
+to users, to make the use of the <code>data</code> function largely
+unnecessary, and to avoid cluttering the global environment with
+copies of passive data set objects.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>TRUE</code> if the package was successfully attached and <code>FALSE</code>
+otherwise.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bill Venables
+</p>
+
+
+<h3>References</h3>
+
+<p>Null
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>require</code>, <code>data</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+requireData("mgcv") ## we assume has data sets but no LazyLoad
+.Search()           ## show augmented search path
+
+## &gt; ls("datasets:mgcv")
+##[1] "columb"       "columb.polys"
+</code></pre>
+
+
+</div>

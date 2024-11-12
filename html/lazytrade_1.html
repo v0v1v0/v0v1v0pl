@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aml_collect_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to read, transform, aggregate and save data for further retraining
+of regression model for a single asset</h2>
+
+<h3>Description</h3>
+
+<p>Function is collecting data from the csv files
+Data objects are transformed to be suitable for Regression Modelling.
+Price change will be in the column 'LABEL', column X1 will keep the time index
+Result will be written to a new or aggregated to the existing '.rds' file
+</p>
+<p>Function is keeping generated dataset to be not larger than specified by the user
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aml_collect_data(
+  indicator_dataset,
+  symbol,
+  timeframe = 60,
+  path_data,
+  max_nrows = 2500
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>indicator_dataset</code></td>
+<td>
+<p>Dataset containing assets indicator which pattern will be used as predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symbol</code></td>
+<td>
+<p>Character symbol of the asset for which to train the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Data timeframe e.g. 1 min</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_data</code></td>
+<td>
+<p>Path where the aggregated historical data is stored, if exists in rds format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_nrows</code></td>
+<td>
+<p>Integer, Maximum number of rows to collect</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function is not handling shift of the price and indicator datasets.
+</p>
+<p>This function is relying on the data collection from the dedicated data robot
+Other 'aml_*' functions will work based on the data processed by this function
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function is writing files into Decision Support System folder, mainly file object with the model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2020, 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# write examples for the function
+library(dplyr)
+library(readr)
+library(lubridate)
+library(lazytrade)
+library(magrittr)
+
+# sample dataset
+ind = system.file("extdata", "AI_RSIADXUSDJPY60.csv",
+                  package = "lazytrade") %&gt;% read_csv(col_names = FALSE)
+
+# convert to POSIX format
+ind$X1 &lt;- ymd_hms(ind$X1)
+
+# create temporary path (check output of tempdir() to check the result)
+path_data &lt;- normalizePath(tempdir(),winslash = "/")
+
+# add tick data to the folder
+tick = system.file("extdata", "TickSize_AI_RSIADX.csv",
+                  package = "lazytrade") %&gt;% read_csv(col_names = FALSE)
+
+write_csv(tick, file.path(path_data, "TickSize_AI_RSIADX.csv"), col_names = FALSE)
+
+
+# data transformation using the custom function for one symbol
+aml_collect_data(indicator_dataset = ind,
+                 symbol = 'USDJPY',
+                 timeframe = 60,
+                 path_data = path_data)
+
+
+</code></pre>
+
+
+</div>

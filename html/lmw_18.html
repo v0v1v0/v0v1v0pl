@@ -1,0 +1,351 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>summary.lmw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Assess balance for an <code>lmw</code> object</h2>
+
+<h3>Description</h3>
+
+<p>Computes balance statistics for an <code>lmw</code> object created by
+<code>lmw()</code>. Balance involves not only the similarity between the treatment
+groups but also the similarity between each treatment group and the target
+population.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmw'
+summary(
+  object,
+  un = TRUE,
+  addlvariables = NULL,
+  standardize = TRUE,
+  data = NULL,
+  stat = "balance",
+  ...
+)
+
+## S3 method for class 'lmw_multi'
+summary(
+  object,
+  un = TRUE,
+  addlvariables = NULL,
+  standardize = TRUE,
+  data = NULL,
+  contrast = NULL,
+  stat = "balance",
+  ...
+)
+
+## S3 method for class 'summary.lmw'
+print(x, digits = max(3, getOption("digits") - 4), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an <code>lmw</code> object; the output of a call to <code>lmw()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>un</code></td>
+<td>
+<p><code>logical</code>; whether to display balance statistics for the sample
+prior to weighting and, additionally, with base weights applied (if
+supplied). If <code>s.weights</code> were supplied to <code>lmw()</code>, the unadjusted sample
+will be weighted by the sampling weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addlvariables</code></td>
+<td>
+<p>additional variables for which balance statistics are to
+be computed along with the covariates in the <code>lmw</code> object. Can be entered
+in one of three ways: as a data frame of covariates with as many rows as
+there were units in the original <code>lmw()</code> call, as a string containing the
+names of variables in <code>data</code>, or as a right-sided formula with the
+additional variables (and possibly their transformations) found in <code>data</code>,
+the environment, or the <code>lmw</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p><code>logical</code>; whether to compute standardized (<code>TRUE</code>) or
+unstandardized (<code>FALSE</code>) mean differences. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a optional data frame containing variables named in
+<code>addlvariables</code> if specified as a string or formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p><code>character</code>; whether to display balance statistics (i.e.,
+standardized mean differences and Kolmogorv-Smirnov statistics;
+<code>"balance"</code>) or distribution statistics (i.e., means and standard
+deviations; <code>"distribution"</code>). Default is <code>"balance"</code>. Abbreviations
+allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrast</code></td>
+<td>
+<p>for multi-category treatments with <code>method = "MRI"</code>, which
+two groups should be compared. If <code>NULL</code>, only target balance statistics
+will be displayed. Ignored with binary treatments or when <code>method = "URI"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>summary.lmw</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>the number of digits to print.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>summary.lmw()</code> produces covariate balance or distribution
+statistics and effective samples sizes before and after adjustment by the
+regression weights and base weights, if supplied. For each covariate, the
+following balance statistics are computed when <code>stat = "balance"</code>:
+</p>
+
+<ul>
+<li> <p><code>SMD</code> - the standardized mean difference (SMD) between the
+treated and control groups
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠TSMD Treated⁠</code> - the target
+standardized mean difference (TSMD) between the treated group and target
+sample
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠TSMD Control⁠</code> - the TSMD between between the control
+group and target sample
+</p>
+</li>
+<li> <p><code>KS</code> - the Kolmogorov-Smirnov (KS)
+statistic between the treated and control groups
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠TKS Treated⁠</code> -
+the target KS (TKS) statistic between the treated group and target sample
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠TKS Control⁠</code> - the TKS statistic between the control group and
+target sample
+</p>
+</li>
+</ul>
+<p>For multi-category treatments with <code>method = "MRI"</code>, balance statistics are
+are computed between each treatment group and the target sample.
+</p>
+<p>When <code>stat = "distribution"</code> the mean and standard deviation of each
+covariate is compute before and after adjustment and for the target sample.
+(Standard deviations are printed in parentheses for visual clarity.)
+</p>
+<p>After weighting with the regression weights, the mean difference between
+the treated and control groups of each covariate included in the original
+call to <code>lmw()</code> will be equal to zero. However, the mean difference between
+each treatment group and the target sample may not be equal to zero when
+<code>method = "URI"</code> in the call to <code>lmw()</code>, and covariates supplied to
+<code>addlvariables</code> not included in the call to <code>lmw()</code> may not be well
+balanced.
+</p>
+<p>When <code>s.weights</code> are supplied to <code>lmw()</code>, the unadjusted statistics (if
+requested) will incorporate the sampling weights. When <code>base.weights</code> are
+supplied to <code>lmw()</code>, the unadjusted statistics will <em>not</em> incorporate the
+base weights; rather, balance with base weights applied (if supplied) will
+be produced in a separate balance table (see Value below).
+</p>
+<p>SMDs are computed as the difference between the (weighted) means divided by
+a standardization factor, which is the standard deviation of the covariate
+in the target sample. When <code>estimand = "ATT"</code> in the call to <code>lmw()</code>, the
+standardization factor is the standard deviation in the treated group; when
+<code>estimand = "ATC"</code>, the standardization factor is the standard deviation in
+the control group; when <code>estimand = "ATE"</code> or when <code>estimand = "CATE"</code> and
+a target profile is supplied, the standardization factor is the square root
+of the average of the variances of both treatment groups; when <code>estimand = "CATE"</code>
+and a target dataset is supplied, the standardization factor is the
+standard deviation in the target dataset. When <code>s.weights</code> is supplied, the
+standardization factor is computed including the sampling weights;
+otherwise it is computed in the unweighted sample.
+</p>
+<p>For binary covariates, the KS statistic is equal to the unstandardized
+difference in means and is computed as such.
+</p>
+<p>When <code>estimand = "CATE"</code> in the original call to <code>lmw()</code>, any variables
+supplied to <code>addlvariables</code> that were not given a target value will not
+have any target statistics computed (e.g., TSMD, TKS, target means, etc.).
+</p>
+<p>The effective sample size (ESS) is computed within each group as <code class="reqn">(\sum w)^2/\sum w^2</code>.
+With uniform weights, this is equal to the sample size.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>summary.lmw</code> object, which contains the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The original call to <code>lmw()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>The (effective)
+sample sizes before and after weighting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bal.un</code></td>
+<td>
+<p>When <code>stat = "balance"</code> and <code>un = TRUE</code>, the balance statistics prior
+to weighting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bal.base.weighted</code></td>
+<td>
+<p>When <code>stat = "balance"</code>, <code>un = TRUE</code> and
+base weights were supplied to <code>lmw()</code>, the balance statistics with the
+base weights applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bal.weighted</code></td>
+<td>
+<p>When <code>stat = "balance"</code>, the balance statistics with the implied regression
+weights applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.un</code></td>
+<td>
+<p>When <code>stat = "distribution"</code> and <code>un = TRUE</code>, the
+distribution statistics prior to weighting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.base.weighted</code></td>
+<td>
+<p>When
+<code>stat = "distribution"</code>, <code>un = TRUE</code> and base weights were
+supplied to <code>lmw()</code>, the distribution statistics with the base weights
+applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.weighted</code></td>
+<td>
+<p>When <code>stat = "distribution"</code>, the distribution statistics with the implied
+regression weights applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method used to estimate the weights (i.e., URI or MRI)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.weights.origin</code></td>
+<td>
+<p>If base weights were supplied through the
+<code>obj</code> argument to <code>lmw()</code>, their origin (i.e, <span class="pkg">MatchIt</span> or <span class="pkg">WeightIt</span>)</p>
+</td>
+</tr>
+</table>
+<p>With multi-category treatments and <code>method = "MRI"</code>, the object will also
+inherit from class <code>summary.lmw_multi</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmw()</code> for computing the implied regression weights,
+<code>plot.summary.lmw()</code> for plotting the balance statistics in a Love plot,
+<code>plot.lmw()</code> for assessing the representativeness and extrapolation of the
+weights
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("lalonde")
+
+# URI regression for ATT
+lmw.out1 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                  estimand = "ATT", method = "URI",
+                  treat = "treat")
+
+lmw.out1
+
+summary(lmw.out1)
+
+summary(lmw.out1, stat = "distribution")
+
+# Adding additional variables to summary, removing unweighted
+summary(lmw.out1, un = FALSE,
+        addlvariables = ~I(age^2) + I(nodegree*re74))
+
+
+# MRI regression for ATT after PS matching
+m.out &lt;- MatchIt::matchit(treat ~ age + education + race + married +
+                            nodegree + re74 + re75,
+                          data = lalonde, method = "nearest",
+                          estimand = "ATT")
+
+lmw.out2 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                method = "MRI", treat = "treat", obj = m.out)
+
+lmw.out2
+
+summary(lmw.out2)
+
+# MRI for a multi-category treatment ATE
+lmw.out3 &lt;- lmw(~ treat_multi + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "ATE", method = "MRI",
+                treat = "treat_multi")
+
+lmw.out3
+
+summary(lmw.out3)
+
+summary(lmw.out3, contrast = c("2", "1"))
+
+</code></pre>
+
+
+</div>

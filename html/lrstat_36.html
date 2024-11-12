@@ -1,0 +1,269 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getDesignLogistic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power and sample size for logistic regression</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the power given sample size or obtains the sample
+size given power for logistic regression of a binary response given
+the covariate of interest and other covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getDesignLogistic(
+  beta = NA_real_,
+  n = NA_real_,
+  ncovariates = NA_integer_,
+  nconfigs = NA_integer_,
+  x = NA_real_,
+  pconfigs = NA_real_,
+  corr = 0,
+  oddsratios = NA_real_,
+  responseprob = NA_real_,
+  rounding = TRUE,
+  alpha = 0.05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The type II error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The total sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncovariates</code></td>
+<td>
+<p>The number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nconfigs</code></td>
+<td>
+<p>The number of configurations of discretized covariate
+values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The matrix of covariate values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pconfigs</code></td>
+<td>
+<p>The vector of probabilities for the configurations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>The multiple correlation between the predictor and other
+covariates. Defaults to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oddsratios</code></td>
+<td>
+<p>The odds ratios for one unit increase in the
+covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>responseprob</code></td>
+<td>
+<p>The response probability in the full model when
+all predictor variables are equal to their means.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounding</code></td>
+<td>
+<p>Whether to round up sample size. Defaults to 1 for
+sample size rounding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The two-sided significance level. Defaults to 0.05.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We consider the logistic regression of a binary response variable
+<code class="reqn">Y</code> on a set of predictor variables <code class="reqn">x = (x_1,\ldots,x_K)^T</code>
+with <code class="reqn">x_1</code> being the covariate of interest:
+<code class="reqn">\log \frac{P(Y_i=1)}{1 - P(Y_i = 1)} = \psi_0 + x_i^T \psi,</code>
+where <code class="reqn">\psi = (\psi_1,\ldots,\psi_K)^T</code>.
+Similar to Self et al (1992), we assume that all covariates are
+either inherently discrete or discretized from continuous
+distributions (e.g. using the quantiles). Let <code class="reqn">m</code> denote the total
+number of configurations of the covariate values. Let
+</p>
+<p style="text-align: center;"><code class="reqn">\pi_i = P(x = x_i), i = 1,\ldots, m</code>
+</p>
+
+<p>denote the probabilities for the configurations of the covariates
+under independence. The likelihood ratio test statistic for testing
+<code class="reqn">H_0: \psi_1 = 0</code> can be approximated by a noncentral chi-square
+distribution with one degree of freedom and noncentrality parameter
+</p>
+<p style="text-align: center;"><code class="reqn">\Delta = 2 \sum_{i=1}^m \pi_i [b'(\theta_i)(\theta_i - \theta_i^*)
+- \{b(\theta_i) - b(\theta_i^*)\}],</code>
+</p>
+<p> where
+</p>
+<p style="text-align: center;"><code class="reqn">\theta_i = \psi_0 + \sum_{j=1}^{k} \psi_j x_{ij},</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\theta_i^* = \psi_0^* + \sum_{j=2}^{k} \psi_j^* x_{ij},</code>
+</p>
+
+<p>for <code class="reqn">\psi_0^* = \psi_0 + \psi_1 \mu_1</code>, and <code class="reqn">\psi_j^* = \psi_j</code>
+for <code class="reqn">j=2,\ldots,K</code>. Here <code class="reqn">\mu_1</code> is the mean of <code class="reqn">x_1</code>,
+e.g., <code class="reqn">\mu_1 = \sum_i \pi_i x_{i1}.</code> In addition, by
+formulating the logistic regression in the framework of generalized
+linear models, </p>
+<p style="text-align: center;"><code class="reqn">b(\theta) = \log(1 + \exp(\theta)),</code>
+</p>
+<p> and
+</p>
+<p style="text-align: center;"><code class="reqn">b'(\theta) = \frac{\exp(\theta)}{1 + \exp(\theta)}.</code>
+</p>
+
+<p>The regression coefficients <code class="reqn">\psi</code> can be obtained by taking the
+log of the odds ratios for the covariates. The intercept <code class="reqn">\psi_0</code>
+can be derived as </p>
+<p style="text-align: center;"><code class="reqn">\psi_0 = \log(\bar{\mu}/(1- \bar{\mu})) -
+\sum_{j=1}^{K} \psi_j \mu_j,</code>
+</p>
+<p> where <code class="reqn">\bar{\mu}</code> denotes the
+response probability when all predictor variables are equal to their
+means.
+</p>
+<p>Finally, let <code class="reqn">\rho</code> denote the multiple correlation between
+the predictor and other covariates. The noncentrality parameter
+of the chi-square test is adjusted downward by multiplying by
+<code class="reqn">1-\rho^2</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An S3 class <code>designLogistic</code> object with the
+following components:
+</p>
+
+<ul>
+<li> <p><code>power</code>: The power to reject the null hypothesis.
+</p>
+</li>
+<li> <p><code>alpha</code>: The two-sided significance level.
+</p>
+</li>
+<li> <p><code>n</code>: The total sample size.
+</p>
+</li>
+<li> <p><code>ncovariates</code>: The number of covariates.
+</p>
+</li>
+<li> <p><code>nconfigs</code>: The number of configurations of discretized covariate
+values.
+</p>
+</li>
+<li> <p><code>x</code>: The matrix of covariate values.
+</p>
+</li>
+<li> <p><code>pconfigs</code>: The vector of probabilities for the configurations.
+</p>
+</li>
+<li> <p><code>corr</code>: The multiple correlation between the predictor and other
+covariates.
+</p>
+</li>
+<li> <p><code>oddsratios</code>: The odds ratios for one unit increase in the
+covariates.
+</p>
+</li>
+<li> <p><code>responseprob</code>: The response probability in the full model when
+all predictor variables are equal to their means.
+</p>
+</li>
+<li> <p><code>effectsize</code>: The effect size for the chi-square test.
+</p>
+</li>
+<li> <p><code>rounding</code>: Whether to round up sample size.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Steven G. Self, Robert H. Mauritsen and Jill Ohara.
+Power calculations for likelihood ratio tests in generalized linear
+models. Biometrics 1992; 48:31-39.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# two ordinal covariates
+x1 = c(5, 10, 15, 20)
+px1 = c(0.2, 0.3, 0.3, 0.2)
+
+x2 = c(2, 4, 6)
+px2 = c(0.4, 0.4, 0.2)
+
+# discretizing a normal distribution with mean 4 and standard deviation 2
+nbins = 10
+x3 = qnorm(((1:nbins) - 0.5)/nbins)*2 + 4
+px3 = rep(1/nbins, nbins)
+
+# combination of covariate values
+nconfigs = length(x1)*length(x2)*length(x3)
+x = expand.grid(x3 = x3, x2 = x2, x1 = x1)
+x = as.matrix(x[, ncol(x):1])
+
+# probabilities for the covariate configurations under independence
+pconfigs = as.numeric(px1 %x% px2 %x% px3)
+
+# convert the odds ratio for the predictor variable in 5-unit change
+# to the odds ratio in 1-unit change
+(design1 &lt;- getDesignLogistic(
+  beta = 0.1, ncovariates = 3,
+  nconfigs = nconfigs,
+  x = x,
+  pconfigs = pconfigs,
+  oddsratios = c(1.2^(1/5), 1.4, 1.3),
+  responseprob = 0.25,
+  alpha = 0.1))
+
+</code></pre>
+
+
+</div>

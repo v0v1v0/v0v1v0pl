@@ -1,0 +1,174 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loo_compare</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model comparison</h2>
+
+<h3>Description</h3>
+
+<p>Compare fitted models based on ELPD.
+</p>
+<p>By default the print method shows only the most important information. Use
+<code>print(..., simplify=FALSE)</code> to print a more detailed summary.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loo_compare(x, ...)
+
+## Default S3 method:
+loo_compare(x, ...)
+
+## S3 method for class 'compare.loo'
+print(x, ..., digits = 1, simplify = TRUE)
+
+## S3 method for class 'compare.loo_ss'
+print(x, ..., digits = 1, simplify = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class <code>"loo"</code> or a list of such objects. If a list is
+used then the list names will be used as the model names in the output. See
+<strong>Examples</strong>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional objects of class <code>"loo"</code>, if not passed in as a single
+list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>For the print method only, the number of digits to use when
+printing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>For the print method only, should only the essential columns
+of the summary matrix be printed? The entire matrix is always returned, but
+by default only the most important columns are printed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When comparing two fitted models, we can estimate the difference in their
+expected predictive accuracy by the difference in
+<code>elpd_loo</code> or <code>elpd_waic</code> (or multiplied by <code class="reqn">-2</code>, if
+desired, to be on the deviance scale).
+</p>
+<p>When using <code>loo_compare()</code>, the returned matrix will have one row per model
+and several columns of estimates. The values in the
+<code>elpd_diff</code> and <code>se_diff</code> columns of the
+returned matrix are computed by making pairwise comparisons between each
+model and the model with the largest ELPD (the model in the first row). For
+this reason the <code>elpd_diff</code> column will always have the value <code>0</code> in the
+first row (i.e., the difference between the preferred model and itself) and
+negative values in subsequent rows for the remaining models.
+</p>
+<p>To compute the standard error of the difference in ELPD —
+which should not be expected to equal the difference of the standard errors
+— we use a paired estimate to take advantage of the fact that the same
+set of <code class="reqn">N</code> data points was used to fit both models. These calculations
+should be most useful when <code class="reqn">N</code> is large, because then non-normality of
+the distribution is not such an issue when estimating the uncertainty in
+these sums. These standard errors, for all their flaws, should give a
+better sense of uncertainty than what is obtained using the current
+standard approach of comparing differences of deviances to a Chi-squared
+distribution, a practice derived for Gaussian linear models or
+asymptotically, and which only applies to nested models in any case.
+Sivula et al. (2022) discuss the conditions when the normal
+approximation used for SE and <code>se_diff</code> is good.
+</p>
+<p>If more than <code class="reqn">11</code> models are compared, we internally recompute the model
+differences using the median model by ELPD as the baseline model. We then
+estimate whether the differences in predictive performance are potentially
+due to chance as described by McLatchie and Vehtari (2023). This will flag
+a warning if it is deemed that there is a risk of over-fitting due to the
+selection process. In that case users are recommended to avoid model
+selection based on LOO-CV, and instead to favor model averaging/stacking or
+projection predictive inference.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with class <code>"compare.loo"</code> that has its own
+print method. See the <strong>Details</strong> section.
+</p>
+
+
+<h3>References</h3>
+
+<p>Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC.
+<em>Statistics and Computing</em>. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4
+(<a href="https://link.springer.com/article/10.1007/s11222-016-9696-4">journal version</a>,
+<a href="https://arxiv.org/abs/1507.04544">preprint arXiv:1507.04544</a>).
+</p>
+<p>Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2024).
+Pareto smoothed importance sampling. <em>Journal of Machine Learning Research</em>,
+25(72):1-58.
+<a href="https://jmlr.org/papers/v25/19-556.html">PDF</a>
+</p>
+<p>Sivula, T, Magnusson, M., Matamoros A. A., and Vehtari, A. (2022).
+Uncertainty in Bayesian leave-one-out cross-validation based model
+comparison. <a href="https://arxiv.org/abs/2008.10296v3">preprint arXiv:2008.10296v3.</a>.
+</p>
+<p>McLatchie, Y., and Vehtari, A. (2023).  Efficient estimation and
+correction of selection-induced bias with order statistics.
+<a href="https://arxiv.org/abs/2309.03742">preprint arXiv:2309.03742</a>
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul><li>
+<p> The <a href="https://mc-stan.org/loo/articles/online-only/faq.html">FAQ page</a> on
+the <strong>loo</strong> website for answers to frequently asked questions.
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># very artificial example, just for demonstration!
+LL &lt;- example_loglik_array()
+loo1 &lt;- loo(LL)     # should be worst model when compared
+loo2 &lt;- loo(LL + 1) # should be second best model when compared
+loo3 &lt;- loo(LL + 2) # should be best model when compared
+
+comp &lt;- loo_compare(loo1, loo2, loo3)
+print(comp, digits = 2)
+
+# show more details with simplify=FALSE
+# (will be the same for all models in this artificial example)
+print(comp, simplify = FALSE, digits = 3)
+
+# can use a list of objects with custom names
+# will use apple, banana, and cherry, as the names in the output
+loo_compare(list("apple" = loo1, "banana" = loo2, "cherry" = loo3))
+
+## Not run: 
+# works for waic (and kfold) too
+loo_compare(waic(LL), waic(LL - 10))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

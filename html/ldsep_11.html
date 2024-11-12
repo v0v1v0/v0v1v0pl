@@ -1,0 +1,334 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldest_hap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate haplotypic pair-wise LD using either genotypes or genotype
+likelihoods.</h2>
+
+<h3>Description</h3>
+
+<p>Given genotype (allele dosage) or genotype likelihood data
+for each individual at a pair of loci, this function will
+calculate the maximum likelihood estimates
+and their corresponding asymptotic standard errors of some
+measures of linkage disequilibrium (LD): D, D', the Pearson correlation,
+the squared Pearson correlation, and the Fisher-z transformation of the
+Pearson correlation. This function can be used for both
+diploids and polyploids.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldest_hap(
+  ga,
+  gb,
+  K,
+  reltol = 10^-8,
+  nboot = 100,
+  useboot = FALSE,
+  pen = 2,
+  grid_init = FALSE,
+  se = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ga</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the first locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the first locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>ga[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gb</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the second locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the second locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>gb[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The ploidy of the species. Assumed to be the same for all
+individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reltol</code></td>
+<td>
+<p>The relative tolerance for the stopping criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nboot</code></td>
+<td>
+<p>Sometimes, the MLE standard errors don't exist. So we use
+the bootstrap as a backup. <code>nboot</code> specifies the number
+of bootstrap iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useboot</code></td>
+<td>
+<p>A logical. Optionally, you may always use the bootstrap
+to estimate the standard errors (<code>TRUE</code>). These will be more
+accurate but also much slower, so this defaults to <code>FALSE</code>. Only
+applicable if using genotype likelihoods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty to be applied to the likelihood. You can think about
+this as the prior sample size. Should be greater than 1. Does not
+apply if <code>model = "norm"</code>, <code>type = "comp"</code>, and using
+genotype likelihoods. Also does not apply when <code>type = "comp"</code>
+and using genotypes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_init</code></td>
+<td>
+<p>A logical. Should we initialize the gradient ascent
+at a grid of initial values (<code>TRUE</code>) or just initialize
+at one value corresponding to the simplex point
+<code>rep(0.25, 4)</code> (<code>FALSE</code>)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>A logical. Should we calculate standard errors (<code>TRUE</code>) or
+not (<code>FALSE</code>). Calculating standard errors can be really slow
+when <code>type = "comp"</code>, <code>model = "flex"</code>, and when using
+genotype likelihoods. Otherwise, standard error calculations
+should be pretty fast.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let A and a be the reference and alternative alleles, respectively, at
+locus 1. Let B and b be the reference and alternative alleles,
+respectively, at locus 2. Let paa, pAb, paB, and pAB be the
+frequencies of haplotypes ab, Ab, aB, and AB, respectively.
+Let pA = pAb + pAB and let pB = paB + pAB
+The <code>ldest</code> returns estimates of the following measures
+of LD.
+</p>
+
+<ul>
+<li>
+<p>D: pAB - pA pB
+</p>
+</li>
+<li>
+<p>D': D / Dmax, where Dmax = min(pA pB, (1 - pA) (1 - pB)) if
+D &lt; 0 and Dmax = min(pA (1 - pB), pA (1 - pB)) if D &gt; 0
+</p>
+</li>
+<li>
+<p>r-squared: The squared Pearson correlation,
+r^2 = D^2 / (pA (1 - pA) pB (1 - pB))
+</p>
+</li>
+<li>
+<p>r: The Pearson correlation,
+r = D / sqrt(pA (1 - pA) pB (1 - pB))
+</p>
+</li>
+</ul>
+<p>Estimates are obtained via maximum likelihood under the assumption
+of Hardy-Weinberg equilibrium. The likelihood is calculated by
+integrating over the possible haplotypes for each pair of genotypes.
+</p>
+<p>The resulting standard errors are based on the square roots of the inverse of the
+negative Fisher-information. This is from standard maximum likelihood
+theory. The Fisher-information is known to be biased low, so the actual
+standard errors are probably a little bigger for small n (n &lt; 20).
+In some cases the Fisher-information matrix is singular, and so we
+in these cases we return a bootstrap estimate of the standard error.
+</p>
+<p>The standard error estimate of the squared Pearson correlation is not
+valid when r^2 = 0.
+</p>
+<p>In cases where either SNP is estimated to be monoallelic
+(<code>pA %in% c(0, 1)</code> or <code>pB %in% c(0, 1)</code>), this function
+will return LD estimates of <code>NA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with some or all of the following elements:
+</p>
+
+<dl>
+<dt><code>D</code></dt>
+<dd>
+<p>The estimate of the LD coefficient.</p>
+</dd>
+<dt><code>D_se</code></dt>
+<dd>
+<p>The standard error of the estimate of
+the LD coefficient.</p>
+</dd>
+<dt><code>r2</code></dt>
+<dd>
+<p>The estimate of the squared Pearson correlation.</p>
+</dd>
+<dt><code>r2_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+squared Pearson correlation.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The estimate of the Pearson correlation.</p>
+</dd>
+<dt><code>r_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+Pearson correlation.</p>
+</dd>
+<dt><code>Dprime</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. When <code>type</code> = "comp", this corresponds
+to the standardization where we fix allele frequencies.</p>
+</dd>
+<dt><code>Dprime_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprime</code>.</p>
+</dd>
+<dt><code>Dprimeg</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. This corresponds to the standardization where
+we fix genotype frequencies.</p>
+</dd>
+<dt><code>Dprimeg_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprimeg</code>.</p>
+</dd>
+<dt><code>z</code></dt>
+<dd>
+<p>The Fisher-z transformation of <code>r</code>.</p>
+</dd>
+<dt><code>z_se</code></dt>
+<dd>
+<p>The standard error of the Fisher-z
+transformation of <code>r</code>.</p>
+</dd>
+<dt><code>p_ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_Ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of Ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_aB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of aB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_AB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of AB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>q_ij</code></dt>
+<dd>
+<p>The estimated frequency of genotype i at locus 1
+and genotype j at locus 2. Only returned if estimating the
+composite LD.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p>The number of individuals used to estimate pairwise LD.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>David Gerard
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 100 # sample size
+K &lt;- 6 # ploidy
+
+## generate some fake genotypes when LD = 0.
+ga &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+gb &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+head(ga)
+head(gb)
+
+## generate some fake genotype likelihoods when LD = 0.
+gamat &lt;- t(sapply(ga, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+gbmat &lt;- t(sapply(gb, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+head(gamat)
+head(gbmat)
+
+## Haplotypic LD with genotypes
+ldout1 &lt;- ldest_hap(ga = ga,
+                    gb = gb,
+                    K = K)
+head(ldout1)
+
+## Haplotypic LD with genotype likelihoods
+ldout2 &lt;- ldest_hap(ga = gamat,
+                    gb = gbmat,
+                    K = K)
+head(ldout2)
+
+</code></pre>
+
+
+</div>

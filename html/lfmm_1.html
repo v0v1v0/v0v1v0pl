@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>effect_size</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Direct effect sizes estimated from latent factor models</h2>
+
+<h3>Description</h3>
+
+<p>This function returns 'direct' effect sizes for the regression of X (of dimension 1) on the matrix Y,
+as usually computed in genome-wide association studies.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">effect_size(Y, X, lfmm.object)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a response variable matrix with n rows and p columns.
+Each column is a response variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an explanatory variable with n rows and d = 1 column (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfmm.object</code></td>
+<td>
+<p>an object of class <code>lfmm</code> returned by the lfmm_lasso
+or lfmm_ridge function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The response variable matrix Y and the explanatory variable are centered.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a vector of length p containing all effect sizes for the regression
+of X on the matrix Y
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kevin Caye, Basile Jumentier, Olivier Francois
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lfmm)
+
+## Simulation of 1000 genotypes for 100 individuals (y)
+u &lt;- matrix(rnorm(300, sd = 1), nrow = 100, ncol = 3) 
+v &lt;- matrix(rnorm(3000, sd = 3), nrow = 3, ncol = 1000)
+w &lt;- u %*% v
+y &lt;- matrix(rbinom(100000, size = 2, 
+                  prob = 1/(1 + exp(-0.3*(w
+                  + rnorm(100000, sd = 2))))),
+                  nrow = 100,
+                  ncol = 1000)
+
+#PCA of genotypes, 3 main axes of variation (K = 2) 
+plot(prcomp(y))
+  
+## Simulation of 1000 phenotypes (x)
+## Only the last 10 genotypes have significant effect sizes (b)
+b &lt;- matrix(c(rep(0, 990), rep(6000, 10)))
+x &lt;- y%*%b + rnorm(100, sd = 100)
+
+## Compute effect sizes using lfmm_ridge
+## Note that centering is important (scale = F).
+mod.lfmm &lt;- lfmm_ridge(Y = y, 
+                  X = x,
+                  K = 2)
+              
+## Compute direct effect sizes using lfmm_ridge estimates
+b.estimates &lt;- effect_size(y, x, mod.lfmm)
+
+## plot the last 30 effect sizes (true values are 0 and 6000)
+plot(b.estimates[971:1000])
+abline(0, 0)
+abline(6000, 0, col = 2)
+
+## Prediction of phenotypes
+candidates &lt;- 991:1000 #set of causal loci 
+x.pred &lt;- scale(y[,candidates], scale = FALSE) %*% matrix(b.estimates[candidates])
+
+## Check predictions
+plot(x - mean(x), x.pred, 
+     pch = 19, col = "grey", 
+     xlab = "Observed phenotypes (centered)", 
+     ylab = "Predicted from PRS")
+     abline(0,1)
+     abline(lm(x.pred ~ scale(x, scale = FALSE)), col = 2)
+</code></pre>
+
+
+</div>

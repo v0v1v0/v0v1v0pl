@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Mean shift clustering.
+</h2>
+
+<h3>Description</h3>
+
+<p>Function for mean shift clustering, which, for a given bandwidth, detects the local modes and performs the clustering.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ms(X, h, subset,  thr=0.01, scaled= 1, iter=200, plot=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>data matrix or vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>scalar or vector-valued bandwidth (by default, 5 percent of
+the  data range, or 20 percent of the standard deviation, respectively, in each direction). If set manually and <code>scaled&gt;0</code>, this
+bandwidth needs to be set on the scaled scale; for instance setting scale; for instance <code>scaled=1</code> and <code>h=0.10</code> will use a bandwidth of <code class="reqn">10</code> percent of the  data range in either direction. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>vector specifying a subset of 1:n, where n is the sample
+size. This allows to run the iterative mean shift procedure only
+from a subset of points (if unspecified, 1:n is used here,
+i.e. each data point serves as a starting point).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thr</code></td>
+<td>
+<p>adjacent mean shift clusters are merged if their relative
+distance falls below this threshold (see Note section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaled</code></td>
+<td>
+<p>if equal to 1 (default), each variable is divided by its range, and if equal to 2 (or any other positive value other than 1), each variable is divided by its standard deviation. If equal to 0, then no scaling is applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>maximum mean shift iterations (passed to <code>ms.rep</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>if equal to 0, then no plotted output. For bivariate
+data, <code>plot=1</code> gives by default a dynamically created color plot showing the mean
+shift trajectories and the resulting clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further graphical parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The methods implemented here can be used for density mode estimation,
+clustering, and the selection of starting points for the LPC algorithm. They are based on Ameijeiras-Alonso and Einbeck (2023).
+</p>
+<p>It can be shown (Chen, 1995, Comaniciu &amp; Meer, 2002, Li, 2005) that, if the mean shift is computed iteratively, the
+resulting sequence of local means converges to a mode of the estimated
+density function.  By assigning each data point to the mode to which it
+has converged, this turns into a clustering technique.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function <code>ms</code> produces an object of class <code>ms</code>,
+with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>cluster.center</code></td>
+<td>
+<p>a matrix which gives the coordinates of the
+estimated density modes (i.e., of the mean-shift based cluster centers).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.label</code></td>
+<td>
+<p>assigns each data point to the cluster center to
+which its mean shift trajectory has converged. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>closest.label</code></td>
+<td>
+<p>assigns each data point to the closest cluster
+center in terms of Euclidean distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data frame (scaled if <code>scaled=TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaled</code></td>
+<td>
+<p>the user-supplied value, could be boolean or numerical.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaled.by</code></td>
+<td>
+<p>the data were scaled by dividing each variable through
+the values provided in this vector.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>All values provided in the output refer to the scaled data, unless <code>scaled=0</code> or (equivalently) <code>scaled=FALSE</code>. 
+</p>
+<p>The default option <code>scaled=1</code> or  <code>scaled=TRUE</code>  scales the data by dividing each variable through their range (differing from the scaling through the standard deviation as common e.g. for  PCA).  All other settings  <code>scaled&gt;0</code> will scale the data by their standard deviation.
+</p>
+<p>If <code>scaled=1</code> or if no scaling is applied, then the default bandwidth setting is 5 percent of the data range in each direction. If the data are scaled through the standard deviation, then the default setting is 20 percent of the standard deviation in each direction. 
+</p>
+<p>The threshold <code>thr</code> for merging cluster centers works as follows: After identification of a new cluster center, we compute the Euclidean distance of the new center to (each) existing center, relative to the Euclidean distance of the existing center to the overall mean. If this distance falls below <code>thr</code>, then the new center is deemed identical to the old one.
+</p>
+<p>The goodness-of-fit measure <code>Rc</code> can also be  applied in this context. For
+instance, a value of <code class="reqn">R_C=0.8</code> means that,
+after the clustering, the mean absolute residual length has been
+reduced by <code class="reqn">80\%</code> (compared to the distances to the overall mean).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. Einbeck. See <code>LPCM-package</code> for further
+acknowledgements. 
+</p>
+
+
+<h3>References</h3>
+
+<p>Ameijeiras-Alonso, J. and Einbeck, J. (2023). A fresh look at mean-shift based modal clustering, Advances in Data Analysis and Classification, <a href="https://doi.org/10.1007/s11634-023-00575-1">doi:10.1007/s11634-023-00575-1</a>.
+</p>
+<p>Chen, Y. (1995).  Mean Shift, Mode Seeking, and Clustering. IEEE
+Transactions on Pattern Analysis and Machine Intelligence, 17, 790-799.
+</p>
+<p>Comaniciu, D. and Meer,P. (2002). Mean shift: a robust approach toward feature 
+space analysis, IEEE Transactions on Pattern Analysis and Machine Intelligence
+24, 603-619.
+</p>
+<p>Li, X,  Hu, Z, and Wu, F. (2007). A note on the convergence of the mean shift, Pattern
+Recognition 40, 1756 - 1762.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ms.rep</code>, <code>Rc</code>, <code>plot.ms</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(faithful)
+# Mean shift clustering with default bandwidth (5 percent of data range)
+ms(faithful)
+
+
+</code></pre>
+
+
+</div>

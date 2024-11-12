@@ -1,0 +1,238 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lyl_range</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Life Years Lost at a range of different ages.</h2>
+
+<h3>Description</h3>
+
+<p><code>lyl</code> estimates remaining life expectancy and Life Years Lost for a given population
+after a range of specific ages (<code>age_begin</code> to <code>age_end</code>) and restrictied to
+a maximum theoretical age <code class="reqn">\tau</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lyl_range(
+  data,
+  t0 = NULL,
+  t,
+  status,
+  age_begin,
+  age_end,
+  censoring_label = "Alive",
+  death_labels = "Dead",
+  tau = 100
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A dataframe, where each raw represents a person. The dataframe will
+have a time-to-event format with at least two variables: age at end of follow-up (<code>t</code>)
+and status indicator with death/censoring (<code>status</code>). Note that this package is not developed
+to be used with tibbles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t0</code></td>
+<td>
+<p>Age at start of the follow-up time. Default is <code>NULL</code>, which
+means all subjects are followed from birth. For delayed entry, <code>t0</code> indicates
+beginning of follow-up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>Age at the end of the follow-up time (death or censoring).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p>Status indicator, normally 0=alive, 1=dead. Other choices are
+TRUE/FALSE (TRUE = death) or 1/2 (2=death). For multiple causes of death (competing risks
+analysis), the status variable will be a factor, whose first level is treated as censoring; or
+a numeric variable, whose lowest level is treated as censoring. In the latter case,
+the label for censoring is <code>censoring_label</code> (<code>"Alive"</code> by default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_begin</code></td>
+<td>
+<p>Specific starting age at which the Life Years Lost have to be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age_end</code></td>
+<td>
+<p>Specific ending age at which the Life Years Lost have to be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censoring_label</code></td>
+<td>
+<p>Label for censoring status. If <code>status</code> is not a factor, <code>"Alive"</code> by default. If
+<code>status</code> is a factor, the first level will be treated as censoring label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>death_labels</code></td>
+<td>
+<p>Label for event status. For only one cause of death, <code>"Dead"</code> is the default.
+For multiple causes, the default are the values given in variable <code>status</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Remaining life expectancy and Life Years Lost are estimated restrictied to a maximum
+theoretical age <code class="reqn">\tau</code> (<code class="reqn">\tau</code>=100 years by default).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with class <code>"lyl_range"</code> containing the following components:
+</p>
+
+<ul>
+<li>
+<p><code>data</code>: Data frame with 3 variables and as many observations as the original
+data provided to estimate Life Years Lost: <code>t0</code>, <code>t</code>, and <code>status</code>
+</p>
+</li>
+<li>
+<p><code>LYL</code>: Data frame with <code>(age_end - age_begin + 1)</code> observations and at least 3 variables: <code>age</code> which corresponds
+to each specific age from <code>age_begin</code> to <code>age_end</code>; <code>life_exp</code> which is the estimated remaining life expectancy at age specific age
+and before age <code>tau</code> years; and one variable corresponding to the estimated Life Years Lost for each specific
+cause of death. If only one cause of death is considered (no competing risks), this variable is <code>Dead</code> and includes
+the total overall Life Years Lost
+</p>
+</li>
+<li>
+<p><code>tau</code>: Maximum theoretical age <code class="reqn">\tau</code>
+</p>
+</li>
+<li>
+<p><code>age_begin</code>: Specific starting age at which the Life Years Lost have been estimated
+</p>
+</li>
+<li>
+<p><code>age_end</code>: Specific ending age at which the Life Years Lost have been estimated
+</p>
+</li>
+<li>
+<p><code>censoring_label</code>: Label for censoring status
+</p>
+</li>
+<li>
+<p><code>death_labels</code>: Label(s) for death status
+</p>
+</li>
+<li>
+<p><code>competing_risks</code>: Logical value (<code>TRUE</code> = more than one cause of death (competing risks))
+</p>
+</li>
+<li>
+<p><code>numbers_at_risk</code>: Data frame with <code>(tau - age_begin + 1)</code> observations and 2 variables: <code>age</code> which corresponds
+to each specific age from <code>age_begin</code> to <code>tau</code>; and <code>number</code> which is the number of persons at risk of dying at each
+specific age
+</p>
+</li>
+<li>
+<p><code>type</code>: Whether the estimation is at <code>"age_specific"</code> or <code>"age_range"</code>.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Andersen PK. Life years lost among patients with a given disease. <em>Statistics in Medicine</em>. 2017;36(22):3573- 3582.
+</p>
+</li>
+<li>
+<p>Andersen PK. Decomposition of number of life years lost according to causes of death. <em>Statistics in Medicine</em>. 2013;32(30):5278-5285.
+</p>
+</li>
+<li>
+<p>Plana-Ripoll et al. lillies – An R package for the estimation of excess Life Years Lost among patients with a given disease or condition.
+<em>PLoS ONE</em>. 2020;15(3):e0228073.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p><code>lyl</code> for estimation of Life Years Lost at one specific age.
+</p>
+</li>
+<li>
+<p><code>lyl_diff</code> to compare average Life Years Lost for two populations.
+</p>
+</li>
+<li>
+<p><code>lyl_checkplot</code> to check whether small numbers could compromise the estimation.
+</p>
+</li>
+<li>
+<p><code>lyl_ci</code> to estimate bootstrapped confidence intervals.
+</p>
+</li>
+<li>
+<p><code>summary.lyl_range</code> to summarize objects obtained with function <code>lyl_range</code>.
+</p>
+</li>
+<li>
+<p><code>plot.lyl_range</code> to plot objects obtained with function <code>lyl_range</code>.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load simulated data as example
+data(simu_data)
+
+
+# Estimate remaining life expectancy and Life Years
+# Lost after each age from 0 to 94 years and before age 95 years
+lyl_estimation &lt;- lyl_range(data = simu_data, t = age_death, status = death,
+                            age_begin = 0, age_end = 94, tau = 95)
+
+# Visualize data at each different specific age
+summary(lyl_estimation)
+plot(lyl_estimation)
+
+# Summarize data over an age distribution
+summary(lyl_estimation, weights = simu_data$age_disease)
+
+# Estimate remaining life expectancy and Life Years
+# Lost due to specific causes of death after each age
+# from 0 to 94 years and before age 95 years
+lyl_estimation2 &lt;- lyl_range(data = simu_data, t = age_death, status = cause_death,
+                             age_begin = 0, age_end = 94, tau = 95)
+
+# Visualize data at each different specific age
+summary(lyl_estimation2)
+plot(lyl_estimation2)
+
+# Summarize data over an age distribution
+summary(lyl_estimation2, weights = simu_data$age_disease)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readLAS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read .las or .laz files</h2>
+
+<h3>Description</h3>
+
+<p>Reads .las or .laz files into an object of class LAS. If several files are read at
+once the returned LAS object is considered as one LAS file. The optional parameters enable the user
+to save a substantial amount of memory by choosing to load only the attributes or points of interest.
+LAS formats 1.0 to 1.4 are supported. Point Data Record Format 0 to 10 are supported.<br><br><code>readLAS</code> is the original function and always works. Using one of the <code>read*LAS</code> functions
+adds information to the returned object to register a point-cloud type. Registering the correct point
+type <strong>may</strong> improve the performance of some functions by enabling users to select an appropriate spatial index.
+See spatial indexing. Notice that by legacy and for backwards-compatibility reasons,
+<code>readLAS()</code> and <code>readALSLAS()</code> are equivalent because lidR was originally designed for ALS and thus the
+original function <code>readLAS()</code> was (supposedly) used for ALS. Reading a TLS dataset with <code>readLAS()</code> instead
+of <code>readTLSLAS()</code> is perfectly valid and performs similarly to versions <code style="white-space: pre;">⁠&lt;= 3.0.0⁠</code>, with neither
+performance degradation nor improvements.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readLAS(files, select = "*", filter = "")
+
+readALSLAS(files, select = "*", filter = "")
+
+readTLSLAS(files, select = "*", filter = "")
+
+readUAVLAS(files, select = "*", filter = "")
+
+readDAPLAS(files, select = "*", filter = "")
+
+readMSLAS(files1, files2, files3, select = "*", filter = "")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>files</code></td>
+<td>
+<p>characters. Path(s) to one or several a file(s). Can also be a
+LAScatalog object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>select</code></td>
+<td>
+<p>character. Read only attributes of interest to save memory (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>character. Read only points of interest to save memory (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>files1, files2, files3</code></td>
+<td>
+<p>characters. Path(s) to one or several a file(s). Each argument being
+one channel (see section 'Multispectral data'). 'files2' and 'files3' can be missing.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><strong>Select:</strong> the 'select' argument specifies the data that will actually be loaded. For example,
+'xyzia' means that the x, y, and z coordinates, the intensity and the scan angle will be loaded.
+The supported entries are t - gpstime, a - scan angle, i - intensity, n - number of returns,
+r - return number, c - classification, s - synthetic flag, k - keypoint flag, w - withheld flag,
+o - overlap flag (format 6+), u - user data, p - point source ID, e - edge of flight line flag,
+d - direction of scan flag, R - red channel of RGB color, G - green channel of RGB color,
+B - blue channel of RGB color, N - near-infrared channel, C - scanner channel (format 6+),
+W - Full waveform.
+Also numbers from 1 to 9 for the extra bytes data numbers 1 to 9. 0 enables all extra bytes to be
+loaded and '*' is the wildcard that enables everything to be loaded from the LAS file. <br>
+Note that x, y, z are implicit and always loaded. 'xyzia' is equivalent to 'ia'.<br><br><strong>Filter:</strong> the 'filter' argument allows filtering of the point cloud while reading files.
+This is much more efficient than filter_poi in many ways. If the desired filters are known
+before reading the file, the internal filters should always be preferred. The available filters are
+those from <code>LASlib</code> and can be found by running the following command: <code>readLAS(filter = "-help")</code>.
+(see also rlas::read.las). From <code>rlas</code> v1.3.6 the transformation commands
+can also be passed via the argument filter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A LAS object
+</p>
+
+
+<h3>Full waveform</h3>
+
+<p>With most recent versions of the <code>rlas</code> package, full waveform (FWF) can be read and <code>lidR</code>
+provides some compatible functions. However, the support of FWF is still a work-in-progress
+in the <code>rlas</code> package. How it is read, interpreted and represented in R may change. Consequently,
+tools provided by <code>lidR</code> may also change until the support of FWF becomes mature and
+stable in <code>rlas</code>. See also rlas::read.las.<br><br>
+Remember that FWF represents an insanely huge amount of data. It terms of memory it is like
+having between 10 to 100 times more points. Consequently, loading FWF data in R should be
+restricted to relatively small point clouds.
+</p>
+
+
+<h3>Multispectral data</h3>
+
+<p>Multispectral laser data are often stored in 3 different files. If this is the case
+<code>readMSLAS</code> reads the .las or .laz files of each channel and merges them into
+an object of class LAS and takes care of attributing an ID to each
+channel. If the multisprectral point cloud is already stored in a single file
+leave <code>file2</code> and <code>file3</code> missing.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+las = readLAS(LASfile)
+las = readLAS(LASfile, select = "xyz")
+las = readLAS(LASfile, select = "xyzi", filter = "-keep_first")
+las = readLAS(LASfile, select = "xyziar", filter = "-keep_first -drop_z_below 0")
+
+# Negation of attributes is also possible (all except intensity and angle)
+las = readLAS(LASfile, select = "* -i -a")
+</code></pre>
+
+
+</div>

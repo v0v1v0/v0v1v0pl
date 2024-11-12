@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SIR</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sampling Importance Resampling</h2>
+
+<h3>Description</h3>
+
+<p>The <code>SIR</code> function performs Sampling Importance Resampling, also
+called Sequential Importance Resampling, and uses a multivariate normal
+proposal density.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SIR(Model, Data, mu, Sigma, n=1000, CPUs=1, Type="PSOCK")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Model</code></td>
+<td>
+<p>This is a model specification function. For more
+information, see <code>LaplaceApproximation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Data</code></td>
+<td>
+<p>This is a list of data. For more information, see
+<code>LaplaceApproximation</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>This is a mean vector, <code class="reqn">\mu</code>, for a multivariate
+normal distribution, and is usually the posterior means from an
+object of class <code>iterquad</code> (from
+<code>IterativeQuadrature</code>) or class <code>vb</code> (from
+<code>VariationalBayes</code>), or the posterior modes from an
+object of class <code>laplace</code> (from 
+<code>LaplaceApproximation</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p>This is a covariance matrix, <code class="reqn">\Sigma</code>, for a
+multivariate normal distribution, and is usually the <code>Covar</code>
+component of an object of class <code>iterquad</code>, <code>laplace</code>, or
+<code>vb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>This is the number of samples to be drawn from the posterior
+distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CPUs</code></td>
+<td>
+<p>This argument accepts an integer that specifies the number
+of central processing units (CPUs) of the multicore computer or
+computer cluster. This argument defaults to <code>CPUs=1</code>, in which
+parallel processing does not occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Type</code></td>
+<td>
+<p>This argument specifies the type of parallel processing to
+perform, accepting either <code>Type="PSOCK"</code> or
+<code>Type="MPI"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Sampling Importance Resampling (SIR) was introduced in Gordon, et
+al. (1993), and is the original particle filtering algorithm (and this
+family of algorithms is also known as Sequential Monte Carlo). A
+distribution is approximated with importance weights, which are
+approximations to the relative posterior densities of the particles,
+and the sum of the weights is one. In this terminology, each sample in
+the distribution is a “particle”. SIR is a sequential or recursive
+form of importance sampling. As in importance sampling, the
+expectation of a function can be approximated as a weighted
+average. The optimal proposal distribution is the target distribution.
+</p>
+<p>In the <code>LaplacesDemon</code> package, the main use of the <code>SIR</code>
+function is to produce posterior samples for iterative quadrature,
+Laplace Approximation, or Variational Bayes, and <code>SIR</code> is called
+behind-the-scenes by the <code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>, or <code>VariationalBayes</code>
+function.
+</p>
+<p>Iterative quadrature estimates the posterior mean and the associated
+covariance matrix. Assuming normality, this output characterizes the
+marginal posterior distributions. However, it is often useful to have
+posterior samples, in which case the <code>SIR</code> function is used to
+draw samples. The number of samples, <code>n</code>, should increase with
+the number and intercorrelations of the parameters. Otherwise,
+multimodal posterior distributions may occur.
+</p>
+<p>Laplace Approximation estimates the posterior mode and the associated
+covariance matrix. Assuming normality, this output characterizes the
+marginal posterior distributions. However, it is often useful to have
+posterior samples, in which case the <code>SIR</code> function is used to
+draw samples. The number of samples, <code>n</code>, should increase with
+the number and intercorrelations of the parameters. Otherwise,
+multimodal posterior distributions may occur.
+</p>
+<p>Variational Bayes estimates both the posterior mean and
+variance. Assuming normality, this output characterizes the marginal
+posterior distributions. However, it is often useful to have posterior
+samples, in which case the <code>SIR</code> function is used to draw
+samples. The number of samples, <code>n</code>, should increase with the
+number of intercorrelations of the parameters. Otherwise, multimodal
+posterior distributions may occur.
+</p>
+<p>SIR is also commonly used when considering a mild change in a prior
+distribution. For example, suppose a model was updated in
+<code>LaplacesDemon</code>, and it had a least-informative prior
+distribution, but the statistician would like to estimate the impact
+of changing to a weakly-informative prior distribution. The change is
+made in the model specification function, and the posterior means and
+covariance are supplied to the <code>SIR</code> function. The returned
+samples are estimates of the posterior, given the different prior
+distribution. This is akin to sensitivity analysis (see the
+<code>SensitivityAnalysis</code> function).
+</p>
+<p>In other contexts (for which this function is not designed), SIR is
+used with dynamic linear models (DLMs) and state-space models (SSMs)
+for state filtering.
+</p>
+<p>Parallel processing may be performed when the user specifies
+<code>CPUs</code> to be greater than one, implying that the specified number
+of CPUs exists and is available. Parallelization may be performed on a
+multicore computer or a computer cluster. Either a Simple Network of
+Workstations (SNOW) or Message Passing Interface (MPI) is used. With
+small data sets and few samples, parallel processing may be slower,
+due to computer network communication. With larger data sets and more
+samples, the user should experience a faster run-time.
+</p>
+<p>This function was adapted from the <code>sir</code> function in the
+<code>LearnBayes</code> package.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>SIR</code> function returns a matrix of samples drawn from the
+posterior distribution.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Gordon, N.J., Salmond, D.J., and Smith, A.F.M. (1993). "Novel Approach
+to Nonlinear/Non-Gaussian Bayesian State Estimation". <em>IEEE
+Proceedings F on Radar and Signal Processing</em>, 140(2), p. 107–113.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dmvn</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>,
+<code>SensitivityAnalysis</code>, and
+<code>VariationalBayes</code>.
+</p>
+
+
+</div>

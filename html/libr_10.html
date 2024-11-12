@@ -1,0 +1,384 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>libname</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a data library</h2>
+
+<h3>Description</h3>
+
+<p>A data library is a collection of data sets. The purpose of 
+the data library is to combine related data sets, and provides the opportunity
+to manipulate all of them as a single object. A data library is created using 
+the <code>libname</code> function. The <code>libname</code> function allows you to 
+load an entire directory of data into memory in one step.  The <strong>libr</strong>
+package contains additional functions to add and remove data from the library, 
+copy the library, and write any changed data to the file system.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">libname(
+  name,
+  directory_path,
+  engine = "rds",
+  read_only = FALSE,
+  env = parent.frame(),
+  import_specs = NULL,
+  filter = NULL,
+  standard_eval = FALSE,
+  quiet = FALSE,
+  log = TRUE,
+  where = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>The unquoted name of the library to create.  The library name will 
+be created as a variable in the environment specified on the <code>env</code>
+parameter.  The default environment is the parent frame. If you want
+to pass the library name as a quoted string or a variable, 
+set the <code>standard_eval</code> parameter to TRUE to turn off the
+non-standard evaluation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>directory_path</code></td>
+<td>
+<p>A directory path to associate with the library.  If 
+the directory contains data files of the type specified on the 
+<code>engine</code> parameter, they will be imported into the library list.  If
+the directory does not contains data sets of the appropriate type, 
+it will be created as an empty library. If the directory does not exist, 
+it will be created by the <code>libname</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>engine</code></td>
+<td>
+<p>The engine to associate with the library.  The specified 
+engine will be used to import and export data.  The engine name 
+corresponds to the standard file extension of the data file type. The
+default engine is 'rds'.
+Valid values are 'rds', 'Rdata', 'rda', 'sas7bdat', 'xpt', 'xls', 'xlsx', 
+'dbf', and 'csv'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>read_only</code></td>
+<td>
+<p>Whether the library should be created as read-only.
+Default is FALSE.  If TRUE, the user will be restricted from
+appending, removing, or writing any data from memory to the file system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>The environment to use for the libname. 
+Default is <code>parent.frame()</code>.  When working inside a function, the 
+<code>parent.frame()</code> will refer to the local function scope.  When
+working outside a function, the <code>parent.frame()</code> will be the
+global environment. If the <code>env</code> parameter is set to a custom 
+environment, the custom environment will be used for all subsequent 
+operations with that libname.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>import_specs</code></td>
+<td>
+<p>A collection of import specifications, 
+defined using the <code>specs</code> function.
+The import specs should be named according to the file names in 
+the library directory. See the <code>specs</code> function for additional
+information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>One or more quoted strings to use as filters for the incoming 
+file names. For more than one filter string, pass them as a vector of
+strings. The filter string can be a full or partial file name, without
+extension.  If using a partial file name, use a wild-card character (*) 
+to identify the missing portion. The match will be case-insensitive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standard_eval</code></td>
+<td>
+<p>A TRUE or FALSE value which indicates whether to 
+use standard (quoted) or non-standard (unquoted) evaluation on the library
+<code>name</code> parameter. Use standard evaluation when you want to pass
+the library name with a variable.  Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>When TRUE, minimizes output to the console when loading 
+files.  Default is FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log</code></td>
+<td>
+<p>Whether to log the libname operation.  Default is TRUE. This
+parameter is used internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>where</code></td>
+<td>
+<p>An expression used to subset all datasets in the library.
+The where clause will be executed when the library is created.  Use the 
+Base R <code>expression</code> function to define the subset.  If a where clause
+is supplied, the library will be opened read-only.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For most projects, a data file does not exist in isolation.  There are sets of 
+related files of the same file type.  The aim of the <code>libname</code> function
+is to take advantage of this fact, and give you an easy way to manage
+the entire set.
+</p>
+<p>The <code>libname</code> function points to a directory of data files, and associates
+a name with that set of data.  The name refers to an object of class 'lib', 
+which at its heart is a named list.  When the <code>libname</code> function 
+executes, it will load all the data in the directory into the list, and assign
+the file name (without extension) as the list item name. Data can be accessed
+using list syntax, or loaded directly into the local environment using the 
+<code>lib_load</code> function.
+</p>
+<p>The <code>libname</code> function provides several data engines to read
+data of different types.  For example, there is an engine for Excel 
+files, and another engine for SAS® datasets.  The engines are identified
+by the extension of the file type they handle.  The available engines are 
+'rds', 'RData', 'rda', 'csv', 'xlsx', 'xls', 'sas7bdat', 'xpt', and 'dbf'.
+Once an engine has been assigned to a library, all other read/write 
+operations will be performed by that engine.  
+</p>
+<p>The data engines largely hide file import details from you.  
+The purpose of the <code>libname</code> function is to make it easy to 
+import a set of related data files that follow standard conventions.  
+The function assumes that the 
+data has file extensions that match the file type, and then makes further
+assumptions based on each type of file.  As a result, there are very few 
+import options on the <code>libname</code> function.  If your data does not
+follow standard conventions, it is recommended that you import your 
+data using a package that gives you more control over import options.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The library object, with all data files loaded into the library
+list.  Items in the list will be named according the the file name,
+minus the file extension.
+</p>
+
+
+<h3>Data Engines</h3>
+
+<p>The <code>libname</code> function currently provides seven different engines for 
+seven different types of data files.
+Here is a complete list of available engines and some commentary about each:
+</p>
+
+<ul>
+<li>
+<p><strong>rds</strong>: For R data sets.  This engine is the default.  Because
+detailed data type and attribute information can be stored inside the rds
+file, the rds engine is the most reliable and easiest to use.
+</p>
+</li>
+<li>
+<p><strong>Rdata</strong> and <strong>rda</strong>: Older R data storage formats.  
+Like the 'rds' engine,
+these storage types retain column attributes and data types.
+</p>
+</li>
+<li>
+<p><strong>csv</strong>: For comma separated value files.  This engine assumes
+that the first row has column names, and that strings containing commas are 
+quoted.  Blank values and the string 'NA' will be interpreted as NA.
+Because data type information is not stored in csv files, the 
+csv engine will attempt to guess the data types based on the available data.
+For most columns, the csv engine is able to guess accurately. Where
+it fails most commonly is with date and time columns. For csv date and time
+columns, it is therefore recommended to assign an import spec that tells
+the engine how to read the date or time. See the <code>specs</code>
+documentation for additional details.
+</p>
+</li>
+<li>
+<p><strong>xlsx</strong>: For Excel files produced with the current version 
+of Excel.  Excel provides more data type information than csv, but it 
+is not as accurate as rds.  Therefore, you may also need to provide 
+import specifications with Excel files. Also note that currently 
+the xlsx import engine will only import the first sheet of an Excel workbook.  
+If you need to import a sheet that is not the first sheet, use a 
+different package to import the data.
+</p>
+</li>
+<li>
+<p><strong>xls</strong>: An Excel file format used between 1997 and 2003, and 
+still used in some organizations. As with xlsx, this file format provides more 
+information than csv, but is not entirely reliable. Therefore, you may need 
+to provide import specifications to the xls engine. Also note that the xls
+engine can read, but not write xls files.  Any xls files read with the
+xls engine will be written as an xlsx file. Like the xlsx engine, the xls
+engine can only read the first sheet of a workbook.
+</p>
+</li>
+<li>
+<p><strong>sas7bdat</strong>: Handles SAS® datasets. SAS® datasets provide better
+type information than either csv or Excel.  In most cases, you will not 
+need to define import specifications for SAS® datasets.  The sas7bdat engine
+interprets empty strings, single blanks, and a single dot (".") as missing
+values. While the import of SAS® datasets is fairly reliable, sas7bdat files 
+cannot be written or exported with the sas7bdat engine.
+In these cases, it is recommended to export to another file format, such
+as csv or dbf, and then import into SAS®.
+</p>
+</li>
+<li>
+<p><strong>xpt</strong>: The SAS® transport file engine.  Transport format is 
+a platform independent file format.  Similar to SAS® datasets, it 
+provides data type information.  In most cases, you will not need to 
+define import specifications.  The xpt engine also interprets empty strings, 
+single blanks, and a single dot (".") as missing values.
+</p>
+</li>
+<li>
+<p><strong>dbf</strong>: The DBASE file format engine.  The DBASE engine
+was added to the <strong>libr</strong> package because many types of software can
+read and write in DBASE format reliably.  Therefore it is a useful 
+file format for interchange between software systems.  The DBASE file 
+format contains type information.
+</p>
+</li>
+</ul>
+<h3>File Filters</h3>
+
+<p>If you wish to import only a portion of your data files into a library, 
+you may accomplish it with the <code>filter</code> parameter.  The filter 
+parameter allows you to pass a vector of strings corresponding to the 
+names of the files you want to import.  The function allows a 
+wild-card (*) for partial matching.  For example, <code>"te*"</code> means any
+file name that that begins with a "te", and <code>"*st"</code> means any file name
+that ends with an "st".
+</p>
+
+
+<h3>Import Specifications</h3>
+
+<p>In most cases, it is not necessary to specify the data types for incoming
+columns in your data.  Either the file format will preserve the appropriate
+data type information, or the assigned engine will guess correctly.  
+</p>
+<p>However, in some cases it will be necessary to control the column data types.
+For these cases, use the  
+<code>import_specs</code> parameter.  The <code>import_specs</code> parameter allows you
+to specify the data types by data set and column name. All the data type
+specifications are contained within a <code>specs</code> collection, and the 
+specifications for a particular data set are defined by an 
+<code>import_spec</code> function. See the <code>specs</code> and 
+<code>import_spec</code> documentation for further information
+and examples of defining an import spec.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>specs</code> to define import specifications, 
+<code>dictionary</code> to view the data dictionary for a library,
+and <code>datastep</code> to perform a data step.
+</p>
+<p>Other lib: 
+<code>is.lib()</code>,
+<code>lib_add()</code>,
+<code>lib_copy()</code>,
+<code>lib_delete()</code>,
+<code>lib_export()</code>,
+<code>lib_info()</code>,
+<code>lib_load()</code>,
+<code>lib_path()</code>,
+<code>lib_remove()</code>,
+<code>lib_replace()</code>,
+<code>lib_size()</code>,
+<code>lib_sync()</code>,
+<code>lib_unload()</code>,
+<code>lib_write()</code>,
+<code>print.lib()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create temp directory
+tmp &lt;- tempdir()
+
+# Save some data to temp directory
+# for illustration purposes
+saveRDS(trees, file.path(tmp, "trees.rds"))
+saveRDS(rock, file.path(tmp, "rocks.rds"))
+saveRDS(beaver1, file.path(tmp, "beaver1.rds"))
+
+# Create data library
+libname(dat, tmp)
+# # library 'dat': 3 items
+# - attributes: rds not loaded
+# - path: C:\Users\User\AppData\Local\Temp\RtmpklJcfl
+# - items:
+#      Name Extension Rows Cols   Size        LastModified
+# 1 beaver1       rds  114    4 5.9 Kb 2020-12-06 15:21:30
+# 2   rocks       rds   48    4 3.6 Kb 2020-12-06 15:21:30
+# 3   trees       rds   31    3 2.9 Kb 2020-12-06 15:21:30
+
+# Print dictionary for library
+dictionary(dat)
+# A tibble: 11 x 10
+#    Name    Column Class   Label Description Format Width Justify  Rows   NAs
+#    &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;       &lt;lgl&gt;  &lt;lgl&gt; &lt;chr&gt;   &lt;int&gt; &lt;int&gt;
+#  1 beaver1 day    numeric NA    NA          NA     NA    NA        114     0
+#  2 beaver1 time   numeric NA    NA          NA     NA    NA        114     0
+#  3 beaver1 temp   numeric NA    NA          NA     NA    NA        114     0
+#  4 beaver1 activ  numeric NA    NA          NA     NA    NA        114     0
+#  5 rocks   area   integer NA    NA          NA     NA    NA         48     0
+#  6 rocks   peri   numeric NA    NA          NA     NA    NA         48     0
+#  7 rocks   shape  numeric NA    NA          NA     NA    NA         48     0
+#  8 rocks   perm   numeric NA    NA          NA     NA    NA         48     0
+#  9 trees   Girth  numeric NA    NA          NA     NA    NA         31     0
+# 10 trees   Height numeric NA    NA          NA     NA    NA         31     0
+# 11 trees   Volume numeric NA    NA          NA     NA    NA         31     0
+
+# Load library into workspace 
+lib_load(dat)
+
+# Print summaries for each data frame
+# Note that once loaded into the workspace, 
+# data can be accessed using two-level syntax.
+summary(dat.rocks)
+summary(dat.trees)
+summary(dat.beaver1)
+
+#Unload from workspace
+lib_unload(dat)
+
+# Clean up
+lib_delete(dat)
+</code></pre>
+
+
+</div>

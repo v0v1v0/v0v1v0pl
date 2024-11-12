@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ln_quantile_value</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the lab value for a given quantile</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>ln_quantile_value</code> calculates lab values at a specified quantile, using the default units for that lab. The function <code>ln_patients_quantile_value</code> does the same calculation for a specific group of patients. <br>
+Default units for a lab can be obtained using <code>ln_lab_default_units</code>. <br>
+If no quantile data is available for a particular lab, age, and sex, the function returns 'NA'. <br>
+It should be noted that the values of extreme quantiles (e.g. &gt;0.95 or &lt;0.05 on low resolution, &gt;0.99 or &lt;0.01 on high resolution) may not be reliable, as they may represent outliers in the data. <br><br></p>
+<p>Note that <code>ln_quantile_value</code> returns values for all combinations of age, sex, and lab, while <code>ln_patients_quantile_value</code> returns values for a specific set of patients, similar to <code>ln_normalize</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ln_quantile_value(
+  quantiles,
+  age,
+  sex,
+  lab,
+  reference = "Clalit",
+  allow_edge_quantiles = FALSE
+)
+
+ln_patients_quantile_value(
+  quantiles,
+  age,
+  sex,
+  lab,
+  reference = "Clalit",
+  allow_edge_quantiles = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>a vector of quantiles (in the range 0-1) to compute the lab value for, or a vector with a quantile for each patient when running <code>ln_patients_quantile_value</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>a vector of ages to compute the lab values for or a vector with an age for each patient when running <code>ln_patients_quantile_value</code>. Note that the age should be in years, and would be floored to the nearest integer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>the sexes to compute the lab values for, or a vector with a sex for each patient when running <code>ln_patients_quantile_value</code>. Note that for <code>ln_quantile_value</code> this parameter can only be either: "male", "female" or c("male", "female")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lab</code></td>
+<td>
+<p>The lab name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+<p>the reference distribution to use. Can be either "Clalit" or "UKBB" or "Clalit-demo". Please download the Clalit and UKBB reference distributions using <code>ln_download_data()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow_edge_quantiles</code></td>
+<td>
+<p>If <code>TRUE</code> (default) then the function will return the value for the edge quantiles (&lt;0.01 or &gt;0.99) even though they are not reliable. If <code>FALSE</code> then the function will return <code>NA</code> for those quantiles. Note that for the "Clalit-demo" reference, the threshold would be &lt;0.05 or &gt;0.95.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ln_quantile_value</code> returns a data frame which contains the values for each combination of quantile, age and sex.
+The data frame has the the following columns:
+</p>
+
+<ul>
+<li>
+<p>age: age in years
+</p>
+</li>
+<li>
+<p>sex: "male" or "female"
+</p>
+</li>
+<li>
+<p>quantile: he quantile
+</p>
+</li>
+<li>
+<p>value: the lab value
+</p>
+</li>
+<li>
+<p>unit: the lab unit
+</p>
+</li>
+<li>
+<p>lab: the lab name
+</p>
+</li>
+</ul>
+<p><code>ln_patients_quantile_value</code> returns a vector of value per patient.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+ln_quantile_value(c(0.05, 0.5, 0.95), 50, "male", "WBC")
+
+ln_quantile_value(
+    c(0, 0.05, 0.1, 0.4, 0.5, 0.6, 0.9, 1),
+    c(50, 60),
+    c("male", "female"),
+    "Glucose"
+)
+
+
+# on the demo data
+
+
+
+hemoglobin_data$quantile &lt;- ln_normalize(
+    hemoglobin_data$value,
+    hemoglobin_data$age,
+    hemoglobin_data$sex,
+    "Hemoglobin"
+)
+
+hemoglobin_data$value1 &lt;- ln_patients_quantile_value(
+    hemoglobin_data$quantile,
+    hemoglobin_data$age,
+    hemoglobin_data$sex,
+    "Hemoglobin"
+)
+head(hemoglobin_data)
+
+
+
+
+</code></pre>
+
+
+</div>

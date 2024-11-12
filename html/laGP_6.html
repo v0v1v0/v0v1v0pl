@@ -1,0 +1,645 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Localized Approximate GP Regression For Many Predictive Locations
+</h2>
+
+<h3>Description</h3>
+
+<p>Facilitates localized Gaussian process inference and prediction at a large 
+set of predictive locations, by (essentially) calling <code>laGP</code>
+at each location, and returning the moments of the predictive
+equations, and indices into the design, thus obtained
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aGP(X, Z, XX, start = 6, end = 50, d = NULL, g = 1/10000,
+    method = c("alc", "alcray", "mspe", "nn", "fish"), Xi.ret = TRUE,
+    close = min((1000+end)*if(method[1] == "alcray") 10 else 1, nrow(X)), 
+    numrays = ncol(X), num.gpus = 0, gpu.threads = num.gpus, 
+    omp.threads = if (num.gpus &gt; 0) 0 else 1, 
+    nn.gpu = if (num.gpus &gt; 0) nrow(XX) else 0, verb = 1)
+aGP.parallel(cls, XX, chunks = length(cls), X, Z, start = 6, end = 50, 
+    d = NULL, g = 1/10000, method = c("alc", "alcray", "mspe", "nn", "fish"), 
+    Xi.ret = TRUE, 
+    close = min((1000+end)*if(method[1] == "alcray") 10 else 1, nrow(X)),
+    numrays = ncol(X), num.gpus = 0, gpu.threads = num.gpus, 
+    omp.threads = if (num.gpus &gt; 0) 0 else 1,
+    nn.gpu = if (num.gpus &gt; 0) nrow(XX) else 0, verb = 1)
+aGP.R(X, Z, XX, start = 6, end = 50, d = NULL, g = 1/10000,
+    method = c("alc", "alcray", "mspe", "nn", "fish"), Xi.ret = TRUE,
+    close = min((1000+end) *if(method[1] == "alcray") 10 else 1, nrow(X)),
+    numrays = ncol(X), laGP=laGP.R, verb = 1)
+aGPsep(X, Z, XX, start = 6, end = 50, d = NULL, g = 1/10000,
+    method = c("alc", "alcray", "nn"), Xi.ret = TRUE,
+    close = min((1000+end)*if(method[1] == "alcray") 10 else 1, nrow(X)),
+    numrays = ncol(X),  omp.threads = 1, verb = 1)
+aGPsep.R(X, Z, XX, start = 6, end = 50, d = NULL, g = 1/10000,
+    method = c("alc", "alcray", "nn"), Xi.ret = TRUE,
+    close = min((1000+end)*if(method[1] == "alcray") 10 else 1, nrow(X)),
+    numrays = ncol(X), laGPsep=laGPsep.R, verb = 1)
+aGP.seq(X, Z, XX, d, methods=rep("alc", 2), M=NULL, ncalib=0, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>a vector of responses/dependent values with <code>length(Z) = nrow(X)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XX</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> of out-of-sample
+predictive locations with <code>ncol(XX) = ncol(X)</code>; <code>aGP</code> calls <code>laGP</code> for
+each row of <code>XX</code> as a value of <code>Xref</code>, independently
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>the number of Nearest Neighbor (NN) locations to start each
+independent call to <code>laGP</code> with; must have <code>start &gt;= 6</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+
+<p>the total size of the local designs; <code>start &lt; end</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>a prior or initial setting for the lengthscale
+parameter in a Gaussian correlation function; a (default)
+<code>NULL</code> value triggers a sensible regularization (prior) and
+initial setting to be generated via <code>darg</code>;
+a scalar specifies an initial value, causing <code>darg</code>
+to only generate the prior; otherwise,
+a list or partial list matching the output
+of <code>darg</code> can be used to specify a custom prior.  In the
+case of a partial list, only the missing entries will be
+generated. Note that a default/generated list specifies MLE/MAP
+inference for this parameter.  When specifying initial values, a
+vector of length <code>nrow(XX)</code> can be provided, giving a
+different initial value for each predictive location. With 
+<code>aGPsep</code>, the starting values can be an 
+<code>ncol(X)</code>-by-<code>nrow(XX)</code> <code>matrix</code> or an <code>ncol(X)</code> vector
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>a prior or initial setting for the nugget parameter; a 
+<code>NULL</code> value causes a sensible regularization (prior) and
+initial setting to be generated via <code>garg</code>; a scalar
+(default <code>g = 1/10000</code>) specifies an initial value, causing <code>garg</code>
+to only generate the prior; otherwise, a
+list or partial list matching the output of <code>garg</code> can be used to
+specify a custom prior.  In the case of a partial list, only the
+missing entries will be generated. Note that a default/generated list
+specifies <em>no</em> inference for this parameter; i.e., it is fixed
+at its starting or default value, which may be appropriate for
+emulating deterministic computer code output. In such situations a 
+value much smaller than the default may work even better (i.e., 
+yield better out-of-sample predictive performance).  
+The default was chosen conservatively.  When specifying non-default initial
+values, a vector of length <code>nrow(XX)</code> can be provided, giving a different
+initial value for each predictive location
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>specifies the method by which <code>end-start</code> candidates from
+<code>X</code> are chosen in order to predict at each row <code>XX</code> independently. 
+In brief, ALC (<code>"alc"</code>, default) minimizes predictive variance; 
+ALCRAY (<code>"alcray")</code> executes a thrifty search focused on rays emanating
+from the reference location(s); MSPE
+(<code>"mspe"</code>) augments ALC with extra derivative information to
+minimize mean-squared prediction error (requires extra computation);
+NN (<code>"nn"</code>) uses nearest neighbor; and (<code>"fish"</code>) uses
+the expected Fisher information - essentially <code>1/G</code> from
+Gramacy &amp; Apley (2015) - which is global heuristic, i.e., not
+localized to each row of <code>XX</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methods</code></td>
+<td>
+<p> for <code>aGP.seq</code> this is a vectorized <code>method</code> argument,
+containing a list of valid methods to perform in sequence.  When <code>methods = FALSE</code>
+a call to <code>M</code> is invoked instead; see below for
+more details </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xi.ret</code></td>
+<td>
+
+<p>a scalar logical indicating whether or not a <code>matrix</code> of indices
+into <code>X</code>, describing the chosen sub-design for each of the
+predictive locations in <code>XX</code>, should be returned on
+output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>close</code></td>
+<td>
+
+<p>a non-negative integer  <code>end &lt; close &lt;= nrow(X)</code>
+specifying the number of NNs
+(to each row <code>XX</code>) in <code>X</code> to consider when
+searching for the sub-design; <code>close = 0</code> specifies all. 
+For <code>method="alcray"</code> this
+specifies the scope used to snap ray-based solutions back to
+elements of <code>X</code>, otherwise there are no restrictions on that 
+search
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numrays</code></td>
+<td>
+<p> a scalar integer indicating the number of rays for each
+greedy search; only relevant when <code>method="alcray"</code>.  More rays
+leads to a more thorough, but more computationally intensive search </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>laGP</code></td>
+<td>
+
+<p>applicable only to the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-version <code>aGP.R</code>, this is a
+function providing the local design implementation to be used.
+Either <code>laGP</code> or <code>laGP.R</code> can be
+provided, or a bespoke routine providing similar outputs
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>laGPsep</code></td>
+<td>
+
+<p>applicable only to the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-version <code>aGPsep.R</code>, this is a
+function providing the local design implementation to be used.
+Either <code>laGPsep</code> or <code>laGPsep.R</code> can be
+provided, or a bespoke routine providing similar outputs
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.gpus</code></td>
+<td>
+
+<p>applicable only to the C-version <code>aGP</code>, this is a scalar 
+positive integer indicating the number of GPUs available for calculating 
+ALC (see <code>alcGP</code>); the package must be compiled for CUDA support; 
+see README/INSTALL in the package source for more details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpu.threads</code></td>
+<td>
+<p> applicable only to the C-version <code>aGP</code>; this 
+is a scalar positive integer indicating the number of SMP (i.e., CPU)
+threads queuing ALC jobs on a GPU; the package must be compiled for CUDA support.
+If <code>gpu.threads &gt;= 2</code> then the package must <em>also</em>
+be compiled for OpenMP support; see README/INSTALL in the package source for
+more details.  We recommend setting <code>gpu.threads</code> to up to two-times
+the sum of the number of GPU devices and CPU cores.
+Only <code>method = "alc"</code> is supported when using CUDA.   If the
+sum of <code>omp.threads</code> and <code>gpu.threads</code> is bigger than the
+max allowed by your system, then that max is used instead (giving 
+<code>gpu.threads</code> preference) 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omp.threads</code></td>
+<td>
+<p> applicable only to the C-version <code>aGP</code>;
+this is a scalar positive integer indicating the number
+of threads to use for SMP parallel processing; the package must be 
+compiled for OpenMP support; see README/INSTALL in the package source for
+more details.  For most Intel-based machines, we recommend setting
+<code>omp.threads</code> to up to two-times the number of hyperthreaded cores.  When
+using GPUs (<code>num.gpu &gt; 0</code>), a good default is <code>omp.threads=0</code>,
+otherwise load balancing could be required; see <code>nn.gpu</code> below. If the
+sum of <code>omp.threads</code> and <code>gpu.threads</code> is bigger than the
+max allowed by your system, then that max is used instead (giving 
+<code>gpu.threads</code> preference)  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn.gpu</code></td>
+<td>
+<p> a scalar non-negative integer between <code>0</code> and 
+<code>nrow(XX)</code> indicating the number of predictive locations 
+utilizing GPU ALC calculations.  Note this argument is only useful when
+both <code>gpu.threads</code> and <code>omp.threads</code> are non-zero, whereby
+it acts as a load balancing mechanism </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer specifying the verbosity level; <code>verb = 0</code>
+is quiet, and larger values cause more progress information to be
+printed to the screen.  The value <code>min(0,verb-1)</code> is provided
+to each <code>laGP</code> call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cls</code></td>
+<td>
+ 
+<p>a cluster object created by <code>makeCluster</code> 
+from the <span class="pkg">parallel</span> or <span class="pkg">snow</span> packages
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunks</code></td>
+<td>
+
+<p>a scalar integer indicating the number of chunks to break <code>XX</code> into
+for <span class="pkg">parallel</span> evaluation on cluster <code>cls</code>.  
+Usually <code>chunks = length(cl)</code> is appropriate.  
+However specifying more chunks can be useful when the nodes of
+the cluster are not homogeneous</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p> an optional function taking two matrix inputs, of <code>ncol(X)-ncalib</code>
+and <code>ncalib</code> columns respectively, which is applied in lieu of 
+<code>aGP</code>.  This can be useful for calibration where the computer model
+is cheap, i.e., does not require emulation; more details below
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncalib</code></td>
+<td>
+<p> an integer between 1 and <code>ncol(X)</code> indicating how to
+partition <code>X</code> and <code>XX</code> inputs into the two matrices required for <code>M</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> other arguments passed from <code>aGP.sep</code> to <code>aGP</code> </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function invokes <code>laGP</code> with argument <code>Xref
+  = XX[i,]</code> for each <code>i=1:nrow(XX)</code>, building up local designs,
+inferring local correlation parameters, and
+obtaining predictive locations independently for each location.  For
+more details see <code>laGP</code>.
+</p>
+<p>The function <code>aGP.R</code> is a prototype <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-only version for
+debugging and transparency purposes.  It is slower than
+<code>aGP</code>, which is primarily in C.  However it may be
+useful for developing new programs that involve similar subroutines.
+Note that <code>aGP.R</code> may provide different output than <code>aGP</code>
+due to differing library subroutines deployed in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> and C.
+</p>
+<p>The function <code>aGP.parallel</code> allows <code>aGP</code> to be called on segments
+of the <code>XX</code> matrix distributed to a cluster created by <span class="pkg">parallel</span>.
+It breaks <code>XX</code> into <code>chunks</code> which are sent to <code>aGP</code> 
+workers pointed to by the entries of <code>cls</code>.  The <code>aGP.parallel</code> function
+collects the outputs from each chunk before returning an object
+almost identical to what would have been returned from a single <code>aGP</code>
+call.  On a single (SMP) node, this represents is a poor-man's version of
+the OpenMP version described below.  On multiple nodes both can be used.
+</p>
+<p>If compiled with OpenMP flags, the independent calls to 
+<code>laGP</code> will be
+farmed out to threads allowing them to proceed in parallel - obtaining
+nearly linear speed-ups.  At this time <code>aGP.R</code> does not
+facilitate parallel computation, although a future version may exploit
+the <span class="pkg">parallel</span> functionality for clustered parallel execution.
+</p>
+<p>If <code>num.gpus &gt; 0</code> then the ALC part of the independent 
+calculations performed by each thread will be offloaded to a GPU.  
+If both <code>gpu.threads &gt;= 1</code> and <code>omp.threads &gt;= 1</code>, 
+some of the ALC calculations will be done on the GPUs, and some 
+on the CPUs.  In our own experimentation we have not found this
+to lead to large speedups relative to <code>omp.threads = 0</code> when
+using GPUs.  For more details, see Gramacy, Niemi, &amp; Weiss (2014).
+</p>
+<p>The <code>aGP.sep</code> function is provided primarily for use in calibration
+exercises, see Gramacy, et al. (2015).  It automates a sequence of
+<code>aGP</code> calls, each with a potentially different method, 
+successively feeding the previous estimate of local lengthscale (<code>d</code>)
+in as an initial set of values for the next call.  It also allows the
+use of <code>aGP</code> to be bypassed, feeding the inputs into a user-supplied
+<code>M</code> function instead.  This feature is enabled when 
+<code>methods = FALSE</code>.  The <code>M</code> function takes two matrices
+(same number of rows) as inputs, where the first <code>ncol(X) - ncalib</code> 
+columns represent
+“field data” inputs shared by the physical and computer model
+(in the calibration context), and the remaining <code>ncalib</code> are 
+the extra tuning or calibration parameters required to evalue the computer
+model.  For examples illustrating <code>aGP.seq</code> please see the
+documentation file for <code>discrep.est</code> and <code>demo("calib")</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output is a <code>list</code> with the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mean </code></td>
+<td>
+<p>a vector of predictive means of length <code>nrow(XX)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var </code></td>
+<td>
+<p>a vector of predictive variances of length
+<code>nrow(Xref)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>llik </code></td>
+<td>
+<p>a vector indicating the log likelihood/posterior
+probability of the data/parameter(s) under the chosen sub-design for
+each predictive location in <code>XX</code>; provided up to an additive constant</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time </code></td>
+<td>
+<p>a scalar giving the passage of wall-clock time elapsed
+for (substantive parts of) the calculation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method </code></td>
+<td>
+<p>a copy of the <code>method</code> argument</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d </code></td>
+<td>
+<p>a full-list version of the <code>d</code> argument, possibly completed by <code>darg</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g </code></td>
+<td>
+<p>a full-list version of the <code>g</code> argument, possibly
+completed by <code>garg</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mle </code></td>
+<td>
+<p>if <code>d$mle</code> and/or <code>g$mle</code> are <code>TRUE</code>, then
+<code>mle</code> is a <code>data.frame</code> containing the values found for
+these parameters, and the number of required iterations, for each
+predictive location in <code>XX</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xi </code></td>
+<td>
+<p>when <code>Xi.ret = TRUE</code>, this field contains a <code>matrix</code> of
+indices of length <code>end</code> into <code>X</code> indicating the sub-design
+chosen for each predictive location in <code>XX</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>close </code></td>
+<td>
+<p> a copy of the input argument </p>
+</td>
+</tr>
+</table>
+<p>The <code>aGP.seq</code> function only returns the output from the final <code>aGP</code> call.
+When <code>methods = FALSE</code> and <code>M</code> is supplied, the returned object
+is a data frame with a <code>mean</code> column indicating the output of the computer
+model run, and a <code>var</code> column, which at this time is zero
+</p>
+
+
+<h3>Note</h3>
+
+<p><code>aGPsep</code> provides the same functionality as <code>aGP</code> but deploys
+a separable covariance function.  Criteria (<code>method</code>s) EFI and
+MSPE are not supported by <code>aGPsep</code> at this time.
+</p>
+<p>Note that using <code>method="NN"</code> gives the same result as specifying
+<code>start=end</code>, however at some extra computational expense.
+</p>
+<p>At this time, this function provides no facility to find local designs
+for the subset of predictive locations <code>XX</code> jointly, i.e.,
+providing a matrix <code>Xref</code> to <code>laGP</code>.  See <code>laGP</code>
+for more details/support for this alternative.
+</p>
+<p>The use of OpenMP threads with <code>aGPsep</code> is not as efficient as with
+<code>aGP</code> when calculating MLEs with respect to the lengthscale (i.e.,
+<code>d=list(mle=TRUE, ...)</code>).  The reason is that the <code>lbfgsb</code> C
+entry point uses static variables, and is therefore not thread safe.  
+To circumvent this problem, an OpenMP <code>critical</code> pragma is used,
+which can create a small bottle neck
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 9.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>R.B. Gramacy (2016). <em><span class="pkg">laGP</span>: Large-Scale Spatial Modeling via 
+Local Approximate Gaussian Processes in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.</em>, Journal of Statistical 
+Software, 72(1), 1-46; <a href="https://doi.org/10.18637/jss.v072.i01">doi:10.18637/jss.v072.i01</a> 
+or see <code>vignette("laGP")</code>
+</p>
+<p>R.B. Gramacy and D.W. Apley (2015).
+<em>Local Gaussian process approximation for large computer
+experiments.</em> Journal of Computational and Graphical Statistics, 
+24(2), pp. 561-678; preprint on arXiv:1303.0383; 
+<a href="https://arxiv.org/abs/1303.0383">https://arxiv.org/abs/1303.0383</a>
+</p>
+<p>R.B. Gramacy, J. Niemi, R.M. Weiss (2014). 
+<em>Massively parallel approximate Gaussian process regression.</em>
+SIAM/ASA Journal on Uncertainty Quantification, 2(1), pp. 568-584;
+preprint on arXiv:1310.5182;
+<a href="https://arxiv.org/abs/1310.5182">https://arxiv.org/abs/1310.5182</a>
+</p>
+<p>R.B. Gramacy and B. Haaland (2016).
+<em>Speeding up neighborhood search in local Gaussian process prediction.</em>
+Technometrics, 58(3), pp. 294-303;
+preprint on arXiv:1409.0074 
+<a href="https://arxiv.org/abs/1409.0074">https://arxiv.org/abs/1409.0074</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>laGP</code>, <code>alcGP</code>, <code>mspeGP</code>,  <code>alcrayGP</code>,
+<code>makeCluster</code>, <code>clusterApply</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## first, a "computer experiment"
+
+## Simple 2-d test function used in Gramacy &amp; Apley (2014);
+## thanks to Lee, Gramacy, Taddy, and others who have used it before
+f2d &lt;- function(x, y=NULL)
+  {
+    if(is.null(y)){
+      if(!is.matrix(x) &amp;&amp; !is.data.frame(x)) x &lt;- matrix(x, ncol=2)
+      y &lt;- x[,2]; x &lt;- x[,1]
+    }
+    g &lt;- function(z)
+      return(exp(-(z-1)^2) + exp(-0.8*(z+1)^2) - 0.05*sin(8*(z+0.1)))
+    z &lt;- -g(x)*g(y)
+  }
+
+## build up a design with N=~40K locations
+x &lt;- seq(-2, 2, by=0.02)
+X &lt;- expand.grid(x, x)
+Z &lt;- f2d(X)
+
+## predictive grid with NN=400 locations,
+## change NN to 10K (length=100) to mimic setup in Gramacy &amp; Apley (2014)
+## the low NN set here is for fast CRAN checks
+xx &lt;- seq(-1.975, 1.975, length=10)
+XX &lt;- expand.grid(xx, xx)
+ZZ &lt;- f2d(XX)
+
+## get the predictive equations, first based on Nearest Neighbor
+out &lt;- aGP(X, Z, XX, method="nn", verb=0)
+## RMSE
+sqrt(mean((out$mean - ZZ)^2))
+
+## Not run: 
+## refine with ALC
+out2 &lt;- aGP(X, Z, XX, method="alc", d=out$mle$d)
+## RMSE
+sqrt(mean((out2$mean - ZZ)^2))
+
+## visualize the results
+par(mfrow=c(1,3))
+image(xx, xx, matrix(out2$mean, nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="predictive mean")
+image(xx, xx, matrix(out2$mean-ZZ, nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="bias")
+image(xx, xx, matrix(sqrt(out2$var), nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="sd")
+
+## refine with MSPE
+out3 &lt;- aGP(X, Z, XX, method="mspe", d=out2$mle$d)
+## RMSE
+sqrt(mean((out3$mean - ZZ)^2))
+
+## End(Not run)
+
+## version with ALC-ray which is much faster than the ones not
+## run above
+out2r &lt;- aGP(X, Z, XX, method="alcray", d=out$mle$d, verb=0)
+sqrt(mean((out2r$mean - ZZ)^2))
+
+## a simple example with estimated nugget
+if(require("MASS")) {
+
+  ## motorcycle data and predictive locations
+  X &lt;- matrix(mcycle[,1], ncol=1)
+  Z &lt;- mcycle[,2]
+  XX &lt;- matrix(seq(min(X), max(X), length=100), ncol=1)
+
+  ## first stage
+  out &lt;- aGP(X=X, Z=Z, XX=XX, end=30, g=list(mle=TRUE), verb=0) 
+  
+  ## plot smoothed versions of the estimated parameters
+  par(mfrow=c(2,1))
+  df &lt;- data.frame(y=log(out$mle$d), XX)
+  lo &lt;- loess(y~., data=df, span=0.25)
+  plot(XX, log(out$mle$d), type="l")
+  lines(XX, lo$fitted, col=2)
+  dfnug &lt;- data.frame(y=log(out$mle$g), XX)
+  lonug &lt;- loess(y~., data=dfnug, span=0.25)
+  plot(XX, log(out$mle$g), type="l")
+  lines(XX, lonug$fitted, col=2)
+
+  ## second stage design
+  out2 &lt;- aGP(X=X, Z=Z, XX=XX, end=30, verb=0,
+		  d=list(start=exp(lo$fitted), mle=FALSE),
+		  g=list(start=exp(lonug$fitted)))
+  
+  ## plot the estimated surface
+  par(mfrow=c(1,1))
+  plot(X,Z)
+  df &lt;- 20
+  s2 &lt;- out2$var*(df-2)/df
+  q1 &lt;- qt(0.05, df)*sqrt(s2) + out2$mean
+  q2 &lt;- qt(0.95, df)*sqrt(s2) + out2$mean
+  lines(XX, out2$mean)
+  lines(XX, q1, col=1, lty=2)
+  lines(XX, q2, col=1, lty=2)
+}
+
+## compare to the single-GP result provided in the mleGP documentation
+</code></pre>
+
+
+</div>

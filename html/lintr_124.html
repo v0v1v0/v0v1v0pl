@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>redundant_ifelse_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prevent <code>ifelse()</code> from being used to produce <code>TRUE</code>/<code>FALSE</code> or <code>1</code>/<code>0</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>Expressions like <code>ifelse(x, TRUE, FALSE)</code> and <code>ifelse(x, FALSE, TRUE)</code> are
+redundant; just <code>x</code> or <code>!x</code> suffice in R code where logical vectors are a
+core data structure. <code>ifelse(x, 1, 0)</code> is also <code>as.numeric(x)</code>, but even
+this should be needed only rarely.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">redundant_ifelse_linter(allow10 = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>allow10</code></td>
+<td>
+<p>Logical, default <code>FALSE</code>. If <code>TRUE</code>, usage like
+<code>ifelse(x, 1, 0)</code> is allowed, i.e., only usage like
+<code>ifelse(x, TRUE, FALSE)</code> is linted.</p>
+</td>
+</tr></table>
+<h3>Tags</h3>
+
+<p>best_practices, configurable, consistency, efficiency
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = "ifelse(x &gt;= 2.5, TRUE, FALSE)",
+  linters = redundant_ifelse_linter()
+)
+
+lint(
+  text = "ifelse(x &lt; 2.5, 1L, 0L)",
+  linters = redundant_ifelse_linter()
+)
+
+# okay
+lint(
+  text = "x &gt;= 2.5",
+  linters = redundant_ifelse_linter()
+)
+
+# Note that this is just to show the strict equivalent of the example above;
+# converting to integer is often unnecessary and the logical vector itself
+# should suffice.
+lint(
+  text = "as.integer(x &lt; 2.5)",
+  linters = redundant_ifelse_linter()
+)
+
+lint(
+  text = "ifelse(x &lt; 2.5, 1L, 0L)",
+  linters = redundant_ifelse_linter(allow10 = TRUE)
+)
+
+</code></pre>
+
+
+</div>

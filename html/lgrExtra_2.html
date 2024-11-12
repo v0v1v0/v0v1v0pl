@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AppenderDbi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log to databases via DBI</h2>
+
+<h3>Description</h3>
+
+<p>Log to a database table with any <strong>DBI</strong> compatible backend. Please be
+aware that AppenderDbi does <em>not</em> support case sensitive / quoted column
+names, and you advised to only use all-lowercase names for
+custom fields (see <code>...</code> argument of lgr::LogEvent).
+When appending to a database table all LogEvent values for which a column
+exists in the target table will be appended, all others are ignored.
+</p>
+<p><strong>NOTE</strong>: AppenderDbi works reliable for most databases, but is still
+considered <strong>experimental</strong>, especially because the configuration is
+excessively complicated. Expect <strong>breaking changes</strong> to AppenderDbi in the
+future.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code style="white-space: pre;">⁠$new()⁠</code> method returns an R6::R6 that inherits from
+lgr::Appender and can be uses as an appender by a lgr::Logger.
+</p>
+
+
+<h3>Buffered Logging</h3>
+
+<p>By default, AppenderDbi writes each LogEvent directly to the target database
+which can be relatively slow. To improve performance it is possible to tell
+AppenderDbi to buffer db writes by setting <code>buffer_size</code> to something greater
+than <code>0</code>. This buffer is written to the database whenever it is full
+(<code>buffer_size</code>), whenever a LogEvent with a level of <code>fatal</code> or <code>error</code> is
+encountered (<code>flush_threshold</code>), or when the Appender is garbage collected
+(<code>flush_on_exit</code>), i.e. when you close the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> session or shortly after you
+remove the Appender object via <code>rm()</code>.
+</p>
+
+
+<h3>Creating a New Appender</h3>
+
+<p>An AppenderDbi is linked to a database table via its <code>table</code> argument. If the
+table does not exist it is created either when the Appender is first
+instantiated or (more likely) when the first LogEvent would be written to
+that table. Rather than to rely on this feature, it is recommended that you
+create the target table first using an <code style="white-space: pre;">⁠SQL CREATE TABLE⁠</code> statement as this
+is safer and more flexible. See also LayoutDbi.
+</p>
+
+
+<h3>Choosing the correct DBI Layout</h3>
+
+<p>Layouts for relational database tables are tricky as they have very strict
+column types and further restrictions. On top of that implementation details
+vary between database backends.
+</p>
+<p>To make setting up <code>AppenderDbi</code> as painless as possible, the helper function
+<code>select_dbi_layout()</code> tries to automatically determine sensible LayoutDbi
+settings based on <code>conn</code> and - if it exists in the database already -
+<code>table</code>. If <code>table</code> does not exist in the database and you start logging, a
+new table will be created with the <code>col_types</code> from <code>layout</code>.
+</p>
+
+
+<h3>Super classes</h3>
+
+<p><code>lgr::Filterable</code> -&gt; <code>lgr::Appender</code> -&gt; <code>lgr::AppenderMemory</code> -&gt; <code>AppenderDbi</code>
+</p>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>conn</code></dt>
+<dd>
+<p>a DBI connection</p>
+</dd>
+<dt><code>close_on_exit</code></dt>
+<dd>
+<p><code>TRUE</code> or <code>FALSE</code>. Close the Database connection
+when the Logger is removed?</p>
+</dd>
+<dt><code>col_types</code></dt>
+<dd>
+<p>a named <code>character</code> vector providing information about the
+column types in the database. How the column types are reported
+depends on the database driver. For example, SQLite returns human
+readable data types (character, double, ...) while IBM DB2 returns
+numeric codes representing the data type.</p>
+</dd>
+<dt><code>table</code></dt>
+<dd>
+<p>a <code>character</code> scalar or a DBI::Id specifying the target
+database table</p>
+</dd>
+<dt><code>table_name</code></dt>
+<dd>
+<p><code>character</code> scalar. Like <code style="white-space: pre;">⁠$table⁠</code>, but always returns a
+<code>character</code> scalar</p>
+</dd>
+<dt><code>table_id</code></dt>
+<dd>
+<p><code>DBI::Id</code>. Like <code style="white-space: pre;">⁠$table⁠</code>, but always returns a DBI::Id</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-AppenderDbi-new"><code>AppenderDbi$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDbi-set_close_on_exit"><code>AppenderDbi$set_close_on_exit()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDbi-set_conn"><code>AppenderDbi$set_conn()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDbi-show"><code>AppenderDbi$show()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDbi-flush"><code>AppenderDbi$flush()</code></a>
+</p>
+</li>
+</ul>
+<details><summary>Inherited methods</summary><ul>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="add_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-add_filter"><code>lgr::Filterable$add_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="../../lgr/html/Filterable.html#method-Filterable-filter"><code>lgr::Filterable$filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="../../lgr/html/Filterable.html#method-Filterable-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_layout"><a href="../../lgr/html/Appender.html#method-Appender-set_layout"><code>lgr::Appender$set_layout()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_threshold"><a href="../../lgr/html/Appender.html#method-Appender-set_threshold"><code>lgr::Appender$set_threshold()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="append"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-append"><code>lgr::AppenderMemory$append()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="clear"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-clear"><code>lgr::AppenderMemory$clear()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="format"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-format"><code>lgr::AppenderMemory$format()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_buffer_size"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-set_buffer_size"><code>lgr::AppenderMemory$set_buffer_size()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_exit"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-set_flush_on_exit"><code>lgr::AppenderMemory$set_flush_on_exit()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_on_rotate"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-set_flush_on_rotate"><code>lgr::AppenderMemory$set_flush_on_rotate()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_flush_threshold"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-set_flush_threshold"><code>lgr::AppenderMemory$set_flush_threshold()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="AppenderMemory" data-id="set_should_flush"><a href="../../lgr/html/AppenderMemory.html#method-AppenderMemory-set_should_flush"><code>lgr::AppenderMemory$set_should_flush()</code></a></span></li>
+</ul></details><hr>
+<a id="method-AppenderDbi-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDbi$new(
+  conn,
+  table,
+  threshold = NA_integer_,
+  layout = select_dbi_layout(conn, table),
+  close_on_exit = TRUE,
+  buffer_size = 0,
+  flush_threshold = "error",
+  flush_on_exit = TRUE,
+  flush_on_rotate = TRUE,
+  should_flush = NULL,
+  filters = NULL
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>conn, table</code></dt>
+<dd>
+<p>see section <em>Fields</em></p>
+</dd>
+<dt><code>threshold, flush_threshold, layout, buffer_size</code></dt>
+<dd>
+<p>see lgr::AppenderBuffer</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderDbi-set_close_on_exit"></a>
+
+
+
+<h4>Method <code>set_close_on_exit()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDbi$set_close_on_exit(x)</pre></div>
+
+
+<hr>
+<a id="method-AppenderDbi-set_conn"></a>
+
+
+
+<h4>Method <code>set_conn()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDbi$set_conn(conn)</pre></div>
+
+
+<hr>
+<a id="method-AppenderDbi-show"></a>
+
+
+
+<h4>Method <code>show()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDbi$show(threshold = NA_integer_, n = 20)</pre></div>
+
+
+<hr>
+<a id="method-AppenderDbi-flush"></a>
+
+
+
+<h4>Method <code>flush()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDbi$flush()</pre></div>
+
+
+
+
+<h3>See Also</h3>
+
+<p>Other Appenders: 
+<code>AppenderDt</code>,
+<code>AppenderElasticSearch</code>,
+<code>AppenderGmail</code>,
+<code>AppenderPushbullet</code>,
+<code>AppenderSendmail</code>,
+<code>AppenderSyslog</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (requireNamespace("RSQLite")){
+  app &lt;- AppenderDbi$new(
+    conn = DBI::dbConnect(RSQLite::SQLite(), dbname = ":memory:"),
+    table = "log"
+   )
+
+  lg &lt;- lgr::get_logger("test/dbi")$
+    add_appender(app, "db")$
+    set_propagate(FALSE)
+  lg$info("test")
+  print(lg$appenders[[1]]$data)
+
+  invisible(lg$config(NULL))  # cleanup
+}
+</code></pre>
+
+
+</div>

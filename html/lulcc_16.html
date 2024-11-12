@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>c.PredictiveModelList</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge PredictiveModelList objects</h2>
+
+<h3>Description</h3>
+
+<p>Combine different PredictiveModelList objects into one
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'PredictiveModelList'
+c(..., recursive = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>two or more PredictiveModelList objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recursive</code></td>
+<td>
+<p>for consistency with generic method (ignored)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a PredictiveModelList object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+## Plum Island Ecosystems
+
+## load data
+data(pie)
+
+## observed maps
+obs &lt;- ObsLulcRasterStack(x=pie,
+                   pattern="lu", 
+                   categories=c(1,2,3), 
+                   labels=c("Forest","Built","Other"), 
+                   t=c(0,6,14))
+
+## explanatory variables
+ef &lt;- ExpVarRasterList(x=pie, pattern="ef")
+
+part &lt;- partition(x=obs[[1]], size=0.1, spatial=TRUE)
+train.data &lt;- getPredictiveModelInputData(obs=obs, ef=ef, cells=part[["train"]], t=0)
+
+forms &lt;- list(Built ~ ef_001+ef_002+ef_003,
+              Forest ~ 1,
+              Other ~ ef_001+ef_002)
+
+glm.models &lt;- glmModels(formula=forms, family=binomial, data=train.data, obs=obs)
+glm.models
+
+## separate glm.models into two PredictiveModelList objects
+mod1 &lt;- glm.models[[1]]
+mod2 &lt;- glm.models[[2:3]]
+
+## put them back together again
+glm.models &lt;- c(mod1, mod2)
+glm.models
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

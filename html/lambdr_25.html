@@ -1,0 +1,46 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>handle_event_error</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate a handling function for an invocation error</h2>
+
+<h3>Description</h3>
+
+<p>An error caught during event handling must be handled in a special way. An
+error message must be logged and posted to the invocation error endpoint,
+and the the runtime must continue — an invocation error is a problem for
+the invocation, not the runtime.
+</p>
+<p>The <code>handle_event_error</code> function accepts an event and generates a
+function. The generated function accepts error caught by
+<code>tryCatch</code>, logs it, and then submits it to the invocation
+error endpoint. Importantly it does not stop the kernel — the intention is
+that the runtime moves onto the next event.
+</p>
+<p>This function may need to be implemented differently depending on the source
+of an event. As such, <code>handle_event_error</code> is an S3 generic that can dispatch
+on the event class as returned by <code>classify_event</code>.
+</p>
+<div class="sourceCode r"><pre>tryCatch(
+    handle_event(...),
+    error = handle_invocation_error(event) # returns a function(e)
+ )
+</pre></div>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">handle_event_error(event, config, ...)
+</code></pre>
+
+
+<h3>Value</h3>
+
+<p>A function that accepts an error <code>e</code> as caught by
+<code>tryCatch</code>
+</p>
+
+
+</div>

@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.logitr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict probabilities and / or outcomes</h2>
+
+<h3>Description</h3>
+
+<p>This method is used for computing predicted probabilities and / or outcomes
+for either the data used for model estimation or a new data set consisting
+of a single or multiple sets of alternatives.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'logitr'
+predict(
+  object,
+  newdata = NULL,
+  obsID = NULL,
+  type = "prob",
+  returnData = FALSE,
+  interval = "none",
+  level = 0.95,
+  numDrawsCI = 10^4,
+  pars = NULL,
+  scalePar = NULL,
+  randPars = NULL,
+  randScale = NULL,
+  ci,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>is an object of class <code>logitr</code> (a model estimated using
+the 'logitr()' function).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>a <code>data.frame</code>. Each row is an alternative and each column an
+attribute corresponding to parameter names in the estimated model. Defaults
+to <code>NULL</code>, in which case predictions are made on the original data used to
+estimate the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsID</code></td>
+<td>
+<p>The name of the column that identifies each set of
+alternatives in the data. Required if newdata != NULL. Defaults to <code>NULL</code>,
+in which case the value for <code>obsID</code> from the data in <code>object</code> is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character vector defining what to predict: <code>prob</code> for
+probabilities, <code>outcomes</code> for outcomes. If you want both outputs, use
+<code>c("prob", "outcome")</code>. Outcomes are predicted randomly according to the
+predicted probabilities. Defaults to <code>"prob"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>returnData</code></td>
+<td>
+<p>If <code>TRUE</code> the data is also returned, otherwise only the
+predicted values ("prob" and / or  "outcome") are returned.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>Type of interval calculation: "none" (default) or
+"confidence". Future versions will include "prediction" intervals as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Tolerance / confidence interval. Defaults to 0.95.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numDrawsCI</code></td>
+<td>
+<p>The number of draws to use in simulating uncertainty
+for the computed CI. Defaults to 10^4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>The names of the parameters to be estimated in the model.
+Must be the same as the column names in the <code>data</code> argument. For WTP space
+models, do not include the <code>scalePar</code> variable in <code>pars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalePar</code></td>
+<td>
+<p>The name of the column that identifies the scale variable,
+which is typically "price" for WTP space models, but could be any
+continuous variable, such as "time". Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randPars</code></td>
+<td>
+<p>A named vector whose names are the random parameters and
+values the distribution: <code>'n'</code> for normal, <code>'ln'</code> for log-normal, or
+<code>'cn'</code> for zero-censored normal. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randScale</code></td>
+<td>
+<p>The random distribution for the scale parameter: <code>'n'</code> for
+normal, <code>'ln'</code> for log-normal, or <code>'cn'</code> for zero-censored normal. Only used
+for WTP space MXL models. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>No longer used as of v1.1.0 - if provided, this is passed
+to the <code>level</code> argument, <code>interval</code> is set to <code>"confidence"</code>,
+and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame of predicted probabilities and / or outcomes.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(logitr)
+
+# Estimate a preference space model
+mnl_pref &lt;- logitr(
+  data    = yogurt,
+  outcome = "choice",
+  obsID   = "obsID",
+  pars    = c("price", "feat", "brand")
+)
+
+# Predict probabilities and / or outcomes
+
+# Predict probabilities for each alternative in the model data
+probs &lt;- predict(mnl_pref)
+head(probs)
+
+# Create a set of alternatives for which to make predictions.
+# Each row is an alternative and each column an attribute.
+data &lt;- subset(
+    yogurt, obsID %in% c(42, 13),
+    select = c('obsID', 'alt', 'price', 'feat', 'brand'))
+data
+
+# Predict probabilities using the estimated model
+predict(mnl_pref, newdata = data, obsID = "obsID")
+
+# Predict probabilities and include a 95% confidence interval
+predict(
+  mnl_pref,
+  newdata = data,
+  obsID = "obsID",
+  interval = "confidence",
+  level = 0.95
+)
+
+# Predict outcomes
+predict(mnl_pref, newdata = data, obsID = "obsID", type = "outcome")
+
+# Predict outcomes and probabilities
+predict(mnl_pref, newdata = data, obsID = "obsID", type = c("prob", "outcome"))
+</code></pre>
+
+
+</div>

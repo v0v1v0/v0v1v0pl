@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>if_not_else_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Block statements like if (!A) x else y</h2>
+
+<h3>Description</h3>
+
+<p><code>if (!A) x else y</code> is the same as <code>if (A) y else x</code>, but the latter is
+easier to reason about in the <code style="white-space: pre;">⁠else⁠</code> case. The former requires
+double negation that can be avoided by switching the statement order.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">if_not_else_linter(exceptions = c("is.null", "is.na", "missing"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>exceptions</code></td>
+<td>
+<p>Character vector of calls to exclude from linting.
+By default, <code>is.null()</code>, <code>is.na()</code>, and <code>missing()</code> are excluded
+given the common idiom <code>!is.na(x)</code> as "x is present".</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>This only applies in the simple <code style="white-space: pre;">⁠if/else⁠</code> case. Statements like
+<code>if (!A) x else if (B) y else z</code> don't always have a simpler or
+more readable form.
+</p>
+<p>It also applies to <code>ifelse()</code> and the package equivalents
+<code>dplyr::if_else()</code> and <code>data.table::fifelse()</code>.
+</p>
+
+
+<h3>Tags</h3>
+
+<p>configurable, consistency, readability
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = "if (!A) x else y",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "if (!A) x else if (!B) y else z",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "ifelse(!is_treatment, x, y)",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "if (!is.null(x)) x else 2",
+  linters = if_not_else_linter(exceptions = character())
+)
+
+# okay
+lint(
+  text = "if (A) x else y",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "if (!A) x else if (B) z else y",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "ifelse(is_treatment, y, x)",
+  linters = if_not_else_linter()
+)
+
+lint(
+  text = "if (!is.null(x)) x else 2",
+  linters = if_not_else_linter()
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ind_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Independence tests</h2>
+
+<h3>Description</h3>
+
+<p>Independence tests based on the local Gaussian correlation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ind_test(lg_object, h = function(x) x^2, S = function(y)
+  as.logical(rep(1, nrow(y))), bootstrap_type = "plain",
+  block_length = NULL, n_rep = 1000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lg_object</code></td>
+<td>
+<p>An object of type <code>lg</code>, as produced by the
+<code>lg_main</code>-function. The data must be two dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>The <code>h</code>-function used in the calculation of the test statistic.
+The default value is <code>h(x) = x^2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>The integration area for the test statistic. Must be a logical
+function that accepts an n x 2 matrix and returns TRUE if a row is in S.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap_type</code></td>
+<td>
+<p>The bootstrap method. Choose "plain" for the ordinary
+nonparametric bootstrap valid for independence test for iid data and for
+serial dependence within a time series. Choose "stationary" or "block" for
+a test for cross dependence between two time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_length</code></td>
+<td>
+<p>Block length if using block bootstrap for the cross
+dependence test. Calculated by <code>np::b.star()</code> if not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_rep</code></td>
+<td>
+<p>Number of bootstrap replications.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implementation of three independence tests: For iid data (Berentsen et al., 2014),
+for serial dependence within a time series (Lacal and Tjøstheim, 2017a), and
+for serial cross-dependence between two time series (Lacal and Tjøstheim,
+2017b). The first test has a different theoretical foundation than the latter
+two, but the implementations are similar and differ only in the bootstrap
+procedure. For the time series applications, the user must lag the series to
+his/her convenience before making the <code>lg</code>_object and calling this
+function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the test result as well as various parameters. The
+elements are:
+</p>
+
+<ul>
+<li> <p><code>lg_object</code> The lg-object supplied by the user.
+</p>
+</li>
+<li> <p><code>observed</code> The observed value of the test statistic.
+</p>
+</li>
+<li> <p><code>replicated</code> The replicated values of the test statistic.
+</p>
+</li>
+<li> <p><code>bootstrap_type</code> The bootstrap type.
+</p>
+</li>
+<li> <p><code>block_length</code> The block length used for the block bootstrap.
+</p>
+</li>
+<li> <p><code>p_value</code> The p-value of the test.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Berentsen, Geir Drage, and Dag Tjøstheim. "Recognizing and visualizing
+departures from independence in bivariate data using local Gaussian
+correlation." Statistics and Computing 24.5 (2014): 785-801.
+</p>
+<p>Lacal, Virginia, and Dag Tjøstheim. "Local Gaussian autocorrelation and
+tests for serial independence." Journal of Time Series Analysis 38.1
+(2017a): 51-71.
+</p>
+<p>Lacal, Virginia, and Dag Tjøstheim. "Estimating and testing nonlinear local
+dependence between two time series." Journal of Business &amp; Economic
+Statistics just-accepted (2017b).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+    # Remember to increase the number of bootstrap samplesin preactical
+    # implementations.
+
+    ## Not run: 
+
+    # Test for independence between two vectors, iid data.
+    x1 &lt;- cbind(rnorm(100), rnorm(100))
+    lg_object1 &lt;- lg_main(x1)
+    test_result1 = ind_test(lg_object1,
+                            bootstrap_type = "plain",
+                            n_rep = 20)
+
+    # Test for serial dependence in time series, lag 1
+    data(EuStockMarkets)
+    logreturns &lt;- apply(EuStockMarkets, 2, function(x) diff(log(x)))
+    x2 &lt;- cbind(logreturns[1:100,1], logreturns[2:101, 1])
+    lg_object2 &lt;- lg_main(x2)
+    test_result2 = ind_test(lg_object2,
+                            bootstrap_type = "plain",
+                            n_rep = 20)
+
+    # Test for cross-dependence, lag 1
+    x3 &lt;- cbind(logreturns[1:100,1], logreturns[2:101, 2])
+    lg_object3 &lt;- lg_main(x3)
+    test_result3 = ind_test(lg_object3,
+                            bootstrap_type = "block",
+                            n_rep = 20)
+    
+## End(Not run)
+
+</code></pre>
+
+
+</div>

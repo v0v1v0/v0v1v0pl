@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>discretize_density</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Discretize Density</h2>
+
+<h3>Description</h3>
+
+<p>Transforms the density function of a continuous random variable into a
+discrete probability distribution with minimal distortion
+using the Lloyd-Max algorithm.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">discretize_density(density_fn, n_levels, eps = 1e-06)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>density_fn</code></td>
+<td>
+<p>probability density function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_levels</code></td>
+<td>
+<p>cardinality of the set of all possible outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>convergence threshold for the algorithm.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function addresses the problem of transforming a continuous random
+variable <code class="reqn">X</code> into a discrete random variable <code class="reqn">Y</code> with minimal
+distortion. Distortion is measured as mean-squared error (MSE):
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \text{E}\left[ (X - Y)^2 \right] =
+  \sum_{k=1}^{K} \int_{x_{k-1}}^{x_{k}} f_{X}(x)
+  \left( x - r_{k} \right)^2 \, dx
+</code>
+</p>
+
+<p>where:
+</p>
+
+<dl>
+<dt><code class="reqn">f_{X}</code></dt>
+<dd>
+<p> is the probability density function of <code class="reqn">X</code>,</p>
+</dd>
+<dt><code class="reqn">K</code></dt>
+<dd>
+<p> is the number of possible outcomes of <code class="reqn">Y</code>,</p>
+</dd>
+<dt><code class="reqn">x_{k}</code></dt>
+<dd>
+<p> are endpoints of intervals that partition the domain
+of <code class="reqn">X</code>,</p>
+</dd>
+<dt><code class="reqn">r_{k}</code></dt>
+<dd>
+<p> are representation points of the intervals.</p>
+</dd>
+</dl>
+<p>This problem is solved using the following iterative procedure:
+</p>
+
+<dl>
+<dt><code class="reqn">1.</code></dt>
+<dd>
+<p>Start with an arbitrary initial set of representation
+points: <code class="reqn">r_{1} &lt; r_{2} &lt; \dots &lt; r_{K}</code>.</p>
+</dd>
+<dt><code class="reqn">2.</code></dt>
+<dd>
+<p>Repeat the following steps until the improvement in MSE
+falls below given <code class="reqn">\varepsilon</code>.</p>
+</dd>
+<dt><code class="reqn">3.</code></dt>
+<dd>
+<p>Calculate endpoints as <code class="reqn">x_{k} = (r_{k+1} + r_{k})/2</code>
+for each <code class="reqn">k = 1, \dots, K-1</code> and set <code class="reqn">x_{0}</code> and <code class="reqn">x_{K}</code> to
+<code class="reqn">-\infty</code> and <code class="reqn">\infty</code>, respectively.</p>
+</dd>
+<dt><code class="reqn">4.</code></dt>
+<dd>
+<p>Update representation points by setting <code class="reqn">r_{k}</code>
+equal to the conditional mean of <code class="reqn">X</code> given <code class="reqn">X \in (x_{k-1}, x_{k})</code>
+for each <code class="reqn">k = 1, \dots, K</code>.</p>
+</dd>
+</dl>
+<p>With each execution of step <code class="reqn">(3)</code> and step <code class="reqn">(4)</code>, the MSE decreases
+or remains the same. As MSE is nonnegative, it approaches a limit.
+The algorithm terminates when the improvement in MSE is less than a given
+<code class="reqn">\varepsilon &gt; 0</code>, ensuring convergence after a finite number
+of iterations.
+</p>
+<p>This procedure is known as Lloyd-Max's algorithm, initially used for scalar
+quantization and closely related to the k-means algorithm. Local convergence
+has been proven for log-concave density functions by Kieffer. Many common
+probability distributions are log-concave including the normal and skew
+normal distribution, as shown by Azzalini.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+
+<dl>
+<dt>prob</dt>
+<dd>
+<p>discrete probability distribution.</p>
+</dd>
+<dt>endp</dt>
+<dd>
+<p>endpoints of intervals that partition the continuous domain.</p>
+</dd>
+<dt>repr</dt>
+<dd>
+<p>representation points of the intervals.</p>
+</dd>
+<dt>dist</dt>
+<dd>
+<p>distortion measured as the mean-squared error (MSE).</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Azzalini, A. (1985).
+A class of distributions which includes the normal ones.
+<em>Scandinavian Journal of Statistics</em> <b>12(2)</b>, 171–178.
+</p>
+<p>Kieffer, J. (1983).
+Uniqueness of locally optimal quantizer for log-concave density and convex
+error function.
+<em>IEEE Transactions on Information Theory</em> <b>29</b>, 42–47.
+</p>
+<p>Lloyd, S. (1982).
+Least squares quantization in PCM.
+<em>IEEE Transactions on Information Theory</em> <b>28 (2)</b>, 129–137.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">discretize_density(density_fn = stats::dnorm, n_levels = 5)
+discretize_density(density_fn = function(x) {
+  2 * stats::dnorm(x) * stats::pnorm(0.5 * x)
+}, n_levels = 4)
+</code></pre>
+
+
+</div>

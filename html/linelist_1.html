@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>linelist-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Base Tools for Storing and Handling Case Line Lists</h2>
+
+<h3>Description</h3>
+
+<p>The <em>linelist</em> package provides tools to help storing and handling case line
+list data. The <code>linelist</code> class adds a tagging system to classical
+<code>data.frame</code> or <code>tibble</code> objects which permits to identify key
+epidemiological data such as dates of symptom onset, epi case definition,
+age, gender or disease outcome. Once tagged, these variables can be
+seamlessly used in downstream analyses, making data pipelines more robust and
+reliable.
+</p>
+
+
+<h3>Main functions</h3>
+
+
+<ul>
+<li> <p><code>make_linelist()</code>: to create <code>linelist</code> objects from a <code>data.frame</code> or a
+<code>tibble</code>, with the possibility to tag key epi variables
+</p>
+</li>
+<li> <p><code>set_tags()</code>: to change or add tagged variables in a <code>linelist</code>
+</p>
+</li>
+<li> <p><code>tags()</code>: to get the list of tags of a <code>linelist</code>
+</p>
+</li>
+<li> <p><code>tags_df()</code>: to get a <code>data.frame</code> of all tagged variables
+</p>
+</li>
+<li> <p><code>lost_tags_action()</code>: to change the behaviour of actions where tagged
+variables are lost (e.g. removing columns storing tagged variables) to
+issue warnings, errors, or do nothing
+</p>
+</li>
+<li> <p><code>get_lost_tags_action()</code>: to check the current behaviour of actions where
+tagged variables are lost
+</p>
+</li>
+</ul>
+<h3>Dedicated methods</h3>
+
+<p>Specific methods commonly used to handle <code>data.frame</code> are provided for
+<code>linelist</code> objects, typically to help flag or prevent actions which could
+alter or lose tagged variables (and may thus break downstream data
+pipelines).
+</p>
+
+<ul>
+<li> <p><code style="white-space: pre;">⁠names() &lt;-⁠</code> (and related functions, such as <code>dplyr::rename()</code>) will
+rename tags as needed
+</p>
+</li>
+<li> <p><code style="white-space: pre;">⁠x[...] &lt;-⁠</code> and <code style="white-space: pre;">⁠x[[...]] &lt;-⁠</code> (see sub_linelist): will adopt the
+desired behaviour when tagged variables are lost
+</p>
+</li>
+<li> <p><code>print()</code>: prints info about the <code>linelist</code> in addition to the
+<code>data.frame</code> or <code>tibble</code>
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p><strong>Maintainer</strong>: Hugo Gruson <a href="mailto:hugo@data.org">hugo@data.org</a> (<a href="https://orcid.org/0000-0002-4094-1476">ORCID</a>)
+</p>
+<p>Authors:
+</p>
+
+<ul><li>
+<p> Thibaut Jombart [conceptor]
+</p>
+</li></ul>
+<p>Other contributors:
+</p>
+
+<ul>
+<li>
+<p> Tim Taylor [contributor]
+</p>
+</li>
+<li>
+<p> Chris Hartgerink (<a href="https://orcid.org/0000-0003-1050-6809">ORCID</a>) [reviewer]
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Useful links:
+</p>
+
+<ul>
+<li> <p><a href="https://epiverse-trace.github.io/linelist/">https://epiverse-trace.github.io/linelist/</a>
+</p>
+</li>
+<li> <p><a href="https://github.com/epiverse-trace/linelist">https://github.com/epiverse-trace/linelist</a>
+</p>
+</li>
+<li>
+<p> Report bugs at <a href="https://github.com/epiverse-trace/linelist/issues">https://github.com/epiverse-trace/linelist/issues</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (require(outbreaks)) {
+  # using base R style
+
+  ## dataset we'll create a linelist from, only using the first 50 entries
+  measles_hagelloch_1861[1:50, ]
+
+  ## create linelist
+  x &lt;- make_linelist(measles_hagelloch_1861[1:50, ],
+    id = "case_ID",
+    date_onset = "date_of_prodrome",
+    age = "age",
+    gender = "gender"
+  )
+  x
+
+  ## check tagged variables
+  tags(x)
+
+  ## robust renaming
+  names(x)[1] &lt;- "identifier"
+  x
+
+  ## example of dropping tags by mistake - default: warning
+  x[, 2:5]
+
+  ## to silence warnings when taggs are dropped
+  lost_tags_action("none")
+  x[, 2:5]
+
+  ## to trigger errors when taggs are dropped
+  # lost_tags_action("error")
+  # x[, 2:5]
+
+  ## reset default behaviour
+  lost_tags_action()
+
+
+  # using tidyverse style
+
+  ## example of creating a linelist, adding a new variable, and adding a tag
+  ## for it
+
+  if (require(dplyr) &amp;&amp; require(magrittr)) {
+    x &lt;- measles_hagelloch_1861 %&gt;%
+      tibble() %&gt;%
+      make_linelist(
+        id = "case_ID",
+        date_onset = "date_of_prodrome",
+        age = "age",
+        gender = "gender"
+      ) %&gt;%
+      mutate(result = if_else(is.na(date_of_death), "survived", "died")) %&gt;%
+      set_tags(outcome = "result") %&gt;%
+      rename(identifier = case_ID)
+
+    head(x)
+
+    ## extract tagged variables
+    x %&gt;%
+      select(has_tag(c("gender", "age")))
+
+    x %&gt;%
+      tags()
+
+    x %&gt;%
+      select(starts_with("date"))
+  }
+}
+
+</code></pre>
+
+
+</div>

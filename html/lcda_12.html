@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.lcda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict method for Latent Class Discriminant Analysis (LCDA)</h2>
+
+<h3>Description</h3>
+
+<p>Classifies new observations using the parameters determined by
+the <code>lcda</code>-function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lcda'
+predict(object, newdata, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class <code>lcda2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data frame of cases to be classified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments are ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Posterior probabilities for new observations using parameters determined by
+the <code>lcda</code>-function are computed. The classification of the new data is done by the Bayes decision function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>Vector (of class <code>factor</code>) of classifications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posterior</code></td>
+<td>
+<p>Posterior probabilities for the classes. 
+For details of computation see <code>lcda</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Michael B\"ucker</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>lcda</code>, <code>cclcda</code>, <code>predict.cclcda</code>, <code>cclcda2</code>, <code>predict.cclcda2</code>, <code>poLCA</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># response probabilites for class 1
+probs1 &lt;- list()
+probs1[[1]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1), 
+                      nrow=2, byrow=TRUE)
+probs1[[2]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=2, byrow=TRUE)
+probs1[[3]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7),
+                      nrow=2, byrow=TRUE)
+probs1[[4]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+
+# response probabilites for class 2
+probs2 &lt;- list()
+probs2[[1]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7),
+                      nrow=2, byrow=TRUE)
+probs2[[2]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+probs2[[3]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1),
+                      nrow=2, byrow=TRUE)
+probs2[[4]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=2, byrow=TRUE)
+
+# generation of data
+simdata1 &lt;- poLCA.simdata(N = 500, probs = probs1, nclass = 2,
+              ndv = 4, nresp = 4, missval = FALSE)
+
+simdata2 &lt;- poLCA.simdata(N = 500, probs = probs2, nclass = 2,
+              ndv = 4, nresp = 4, missval = FALSE)
+
+data1 &lt;- simdata1$dat
+data2 &lt;- simdata2$dat
+
+data &lt;- cbind(rbind(data1, data2), rep(c(1,2), each=500))
+names(data)[5] &lt;- "grouping"
+data &lt;- data[sample(1:1000),]
+grouping &lt;- data[[5]]
+data &lt;- data[,1:4]
+
+# lcda-procedure
+object &lt;- lcda(data, grouping=grouping, m=2)
+pred.class &lt;- predict(object, newdata=data)$class
+sum(pred.class==grouping)/length(pred.class)
+</code></pre>
+
+
+</div>

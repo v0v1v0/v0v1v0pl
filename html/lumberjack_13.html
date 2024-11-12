@@ -1,0 +1,85 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>start_log</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Start tracking an R object</h2>
+
+<h3>Description</h3>
+
+<p>Start tracking an R object
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">start_log(data, logger = simple$new(), label = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logger</code></td>
+<td>
+<p>A logging object (typically an environment wrapped in an S3 class)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p><code>[character]</code> scalar. A label to attach to the logger (for
+loggers supporting it).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All loggers that come with <span class="pkg">lumberjack</span> support labeling. The label is
+used by <code>dump</code> methods to create a unique file name for each
+object/logger combination.
+</p>
+<p>If <code>label</code> is not supplied, <code>start_log</code> attempts to create a label
+from the name of the <code>data</code> variable. This probably fails when
+<code>data</code> is not a variable but an expression (like <code>read.csv...</code>). A
+label is also not created when data is passed via the lumberjack not-a-pipe
+operator.  In that case the label is (silently) not set. In cases where
+multiple datasets are logged with the same type of logger, this could lead
+to overwriting of dump files, unless <code>file</code> is explicitly defined when
+calling <code>dump_log</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other control: 
+<code>%&gt;&gt;%()</code>,
+<code>dump_log()</code>,
+<code>get_log()</code>,
+<code>run_file()</code>,
+<code>stop_log()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfile &lt;- tempfile(fileext=".csv")
+women %L&gt;%
+  start_log(logger=simple$new()) %L&gt;%
+  transform(height_cm = height*2.52) %L&gt;%
+  dump_log(file=logfile)
+logdata &lt;- read.csv(logfile)
+head(logdata)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fsets</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>S3 class representing a set of fuzzy sets on the fixed universe</h2>
+
+<h3>Description</h3>
+
+<p>The aim of the <code>fsets</code> S3 class is to store several fuzzy sets in the
+form of numeric matrix where columns represent fuzzy sets, rows are
+elements from the universe, and therefore a value of <code>i</code>-th row and <code>j</code>-th
+column is a membership degree of <code>i</code>-th element of the universe to <code>j</code>-th fuzzy
+set. The <code>fsets</code> object also stores the information about
+the origin of the fuzzy sets as well as a relation of specificity among
+them.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fsets(
+  x,
+  vars = rep(deparse(substitute(x)), ncol(x)),
+  specs = matrix(0, nrow = ncol(x), ncol = ncol(x))
+)
+
+vars(f)
+
+vars(f) &lt;- value
+
+specs(f)
+
+specs(f) &lt;- value
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A matrix of membership degrees. Columns of the matrix represent
+fuzzy sets, colnames are names of the fuzzy sets (and must not be NULL). Rows
+of the matrix represent elements of the universe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>A character vector that must correspond to the
+columns of <code>x</code>. It is a vector of names of original variables that the
+fuzzy sets were created from. In other words, the <code>vars</code> vector should
+contain the same value for each <code>x</code>'s column that corresponds to the same
+variable. Names of the <code>vars</code> vector are ignored.
+For instance, an <code>fcut()</code> function can transform a single numeric
+vector into several different fuzzy sets. To indicate that all of them in
+fact describe the same original variable, the same name is stored on
+appropriate positions of the <code>vars</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>specs</code></td>
+<td>
+<p>A square numeric matrix containing values from <code style="white-space: pre;">⁠{0, 1}⁠</code>.
+It is a specificity matrix, for which both rows and columns correspond to
+<code>x</code>'s columns and where <code>specs[i][j] == 1</code> if and only if <code>i</code>-th fuzzy
+set (i.e. <code>x[, i]</code>) is more specific (is a subset or equal to) than <code>j</code>-th fuzzy
+set (i.e. <code>x[, j]</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>An instance of S3 class <code>fsets</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>Attribute values to be set to the object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>fsets()</code> function is a constructor of an object of type <code>fsets</code>.
+Each object stores two attributes: <code>vars</code> and <code>specs</code>. The functions <code>vars()</code>
+and <code>specs()</code>). can be used to access these attributes.
+</p>
+<p>It is assumed that the fuzzy sets
+are derived from some raw variables, e.g. numeric vectors or factors. <code>vars</code>
+attribute is a character vector of names of raw variables with size equal
+to the number of fuzzy sets in <code>fsets</code> object. It is then assumed that
+two fuzzy sets with the same name in <code>vars()</code> attribute are derived from
+the same variable.
+</p>
+<p><code>specs</code> attribute gives a square numeric matrix of size equal to the number
+of fuzzy sets in <code>fsets</code>. <code>specs[i][j] == 1</code> if and only if the <code>i</code>-th fuzzy
+set is more specific than <code>j</code>-th fuzzy set. Specificity of fuzzy sets means
+the nestedness of fuzzy set: for instance, <code style="white-space: pre;">⁠very small⁠</code> is more specific than
+<code>small</code>; similarly, <code style="white-space: pre;">⁠extremely big⁠</code> is more specific than <code style="white-space: pre;">⁠very big⁠</code>; on the
+other hand, <code style="white-space: pre;">⁠very big⁠</code> and <code style="white-space: pre;">⁠extremely small⁠</code> are incomparable. A necessary
+condition for specificity is subsethood.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fsets()</code> returns an object of S3 class <code>fsets</code>. <code>vars()</code> returns
+a vector of original variable names of the <code>fsets</code> object. <code>specs</code>
+returns the specificity matrix.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fcut()</code>, <code>lcut()</code>, <code>is.specific()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    # create a matrix of random membership degrees
+    m &lt;- matrix(runif(30), ncol=5)
+    colnames(m) &lt;- c('a1', 'a2', 'a12', 'b1', 'b2')
+
+    # create vars - first three (a1, a2, a3) and next two (b1, b2)
+    # fuzzy sets originate from the same variable
+    v &lt;- c('a', 'a', 'a', 'b', 'b')
+    names(v) &lt;- colnames(m)
+
+    # create specificity matrix - a1 and a2 are more specific than a12,
+    # the rest is incomparable
+    s &lt;- matrix(c(0, 0, 1, 0, 0,
+                  0, 0, 1, 0, 0,
+                  0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0), byrow=TRUE, ncol=5)
+    colnames(s) &lt;- colnames(m)
+    rownames(s) &lt;- colnames(m)
+
+    # create a valid instance of the fsets class
+    o &lt;- fsets(m, v, s)
+
+</code></pre>
+
+
+</div>

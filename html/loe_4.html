@@ -1,0 +1,261 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LOE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+LOE for a unweighted Graph.
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs LOE for a given unweighted grah.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LOE(ADM, p=2, c=0.1,eps= 1e-5,maxit =1000,method=c("BFGS","SD","MM"),
+iniX = "auto",report=100,DEL=1,H=0.5)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ADM</code></td>
+<td>
+
+<p>The adjacency matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>Number of dimensions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c</code></td>
+<td>
+
+<p>Scale parameter which only takes strictly positive value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>Convergence criterion for the majorization algorithm or the steepest descent algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+
+<p>Maximum number of iteretions.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>If "BFGS", then the BFGS method is used for optimizing the stress function.
+If "SD", then the steepest descent method is used.
+If "MM", then the majorization minimization algortihm is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iniX</code></td>
+<td>
+
+<p>Matrix with starting values for embedding (optional). If "auto", then Laplacian eigenmaps is used as a starting value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report</code></td>
+<td>
+
+<p>The frequency of reports. Defaults to every 100 iterations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DEL</code></td>
+<td>
+
+<p>The initial step size in the steepest descent algorithm. Defaults to 1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+
+<p>The rate parameter of the backtracking line search in the steepest descent algorithm. 
+This parameter only takes value in <code class="reqn">(0,1)</code>.
+Defaults to 0.5.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>LOE</code> returns a list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>The best corrdinate matrix with p columns whose rows give the coordinates of the vertexes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>str</code></td>
+<td>
+<p> If <code>method</code> is "BFGS", then the value of the stress function of LOE corresponding to <code>X</code> is returned.
+If "SD" or "MM", then the vector of values on each iteration is returned.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yoshikazu Terada
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#################
+#Realizable case#
+#################
+library(igraph)
+###############################
+#Create a toy data
+x &lt;- seq(-5,5,by=1)
+y &lt;- seq(1,6,by=1)
+hx1 &lt;- seq(-3.5,-1.5,by=0.5)
+hx2 &lt;- seq(1.5,3.5,by=0.5)
+hy &lt;- seq(2.5,4.5,by=0.5)
+D1 &lt;- matrix(0,66,2)
+for(i in 1:11){
+	for(j in 1:6){
+		D1[i+11*(j-1),] &lt;- c(x[i],y[j])
+	}
+}
+D2n &lt;- matrix(0,25,2)
+D2p &lt;- matrix(0,25,2)
+for(i in 1:5){
+	for(j in 1:5){
+		D2n[i+5*(j-1),] &lt;- c(hx1[i],hy[j])
+		D2p[i+5*(j-1),] &lt;- c(hx2[i],hy[j])
+	}
+}
+D2n &lt;- D2n[-c(7,9,17,19),]
+D2p &lt;- D2p[-c(7,9,17,19),]
+Data &lt;- rbind(D1,D2n,D2p)
+Data &lt;- scale(Data[order(Data[,1]),], scale=FALSE)
+N &lt;- nrow(Data)
+#Visualization of the original data
+plot(Data,pch=20,xlab="",ylab="",cex=1,col=rainbow(N,start=.7,end=.9),
+xlim=c(-7,7),ylim=c(-7,7),main="Original data")
+
+#Creating a k-NN graph based on Data
+DM &lt;- as.matrix(dist(Data))
+ADM &lt;- make.kNNG(DM,k=25)
+
+#plot of the adjacency matrix
+AADM &lt;- ADM
+diag(AADM) &lt;- NA
+image(AADM[N:1,],col=topo.colors(3),ann=FALSE,axes=FALSE)
+
+#Apply some graph embedding methods
+LE &lt;-spec.emb(A=ADM,2,norm=FALSE)
+result.LOE &lt;- LOE(ADM=ADM,p=2,c=0.1,method="BFGS",report=1000,iniX=LE)
+
+#Procrustes transform
+library(vegan)
+LOEX &lt;- procrustes(X=Data,Y=result.LOE$X)$Yrot
+plot(LOEX,pch=20,xlab="",ylab="",cex=1,col=rainbow(N,start=.7,end=.9),
+xlim=c(-7,7),ylim=c(-7,7),main="LOE")
+###############################
+
+#############
+#This function provide appropriate vectors of xlim and ylim
+#for given embedding matrix X.
+#############
+make.lim &lt;- function(X){
+			mima &lt;- matrix(0, 2,2)
+			mima[,1] &lt;- apply(X, 2, min)
+			mima[,2] &lt;- apply(X, 2, max)
+			han &lt;- mima[,2] - mima[,1]
+			cent &lt;-  (mima[,2] + mima[,1])/2
+			tmpr &lt;- max(han)+max(han)*0.05
+			for(s in 1:2){
+				mima[s,] &lt;- c(cent[s]-tmpr/2,cent[s]+tmpr/2)
+			}
+			return(mima)
+		}
+##############################
+#Standered graph-drawing task#
+##############################
+###############################
+ADM &lt;- as.matrix( get.adjacency(graph.famous("Thomassen")) )
+TG &lt;- graph.adjacency(ADM)
+
+#Apply some graph embedding methods
+LE &lt;-spec.emb(A=ADM,2,norm=FALSE)
+KK &lt;- layout.kamada.kawai(TG,maxiter=1000,start=LE)
+FR &lt;- layout.fruchterman.reingold(TG,maxiter=1000,start=LE)
+result.LOE &lt;- LOE(ADM=ADM,p=2,c=0.1,method="MM",report=1000,maxit=2000)
+
+
+#Visualization of embeddings
+par(mfrow=c(2,3),oma = c(0, 0, 4, 0))
+#plot of the adjacency matrix
+	AADM &lt;- ADM
+	N &lt;- nrow(AADM)
+	diag(AADM) &lt;- NA
+	image(AADM[N:1,],col=topo.colors(3),ann=FALSE,axes=FALSE)
+#plot of Laplacian eigenmaps
+	tmplim &lt;- make.lim(LE)
+	vsize &lt;- (tmplim[1,2] -tmplim[1,1])*4
+	plot(TG, layout=LE, main="Laplacian eigenmaps",
+		vertex.size=vsize,vertex.color="blue",vertex.label.color="white",vertex.label=NA,
+		edge.arrow.size=0.1,xlim=tmplim[1,],ylim=tmplim[2,],axes=TRUE,rescale=FALSE)
+#plot of Kamada and Kawai
+	tmplim &lt;- make.lim(KK)
+	vsize &lt;- (tmplim[1,2] -tmplim[1,1])*4
+	plot(TG, layout=KK, main="Kamada and Kawai",
+		vertex.size=vsize,vertex.color="blue",vertex.label.color="white",vertex.label=NA,
+		edge.arrow.size=0.1,xlim=tmplim[1,],ylim=tmplim[2,],axes=TRUE,rescale=FALSE)
+#plot of Fruchterman Reingold
+	tmplim &lt;- make.lim(FR)
+	vsize &lt;- (tmplim[1,2] -tmplim[1,1])*4
+	plot(TG, layout=FR, main="Fruchterman Reingold",
+		vertex.size=vsize,vertex.color="blue",vertex.label.color="white",vertex.label=NA,
+		edge.arrow.size=0.1,xlim=tmplim[1,],ylim=tmplim[2,],axes=TRUE,rescale=FALSE)
+#plot of LOE
+	tmplim &lt;- make.lim(result.LOE$X)
+	vsize &lt;- (tmplim[1,2] -tmplim[1,1])*4
+	plot(TG, layout=result.LOE$X, main="LOE",
+		vertex.size=vsize,vertex.color="blue",vertex.label.color="white",vertex.label=NA,
+		edge.arrow.size=0.1,xlim=tmplim[1,],ylim=tmplim[2,],axes=TRUE,rescale=FALSE)
+	plot(result.LOE$str,type="l",xlab="Number of iter.", ylab="Stress")
+#Make title
+	mtext(side = 3, line=1, outer=TRUE, text = "Thomassen", cex=2)
+###############################
+</code></pre>
+
+
+</div>

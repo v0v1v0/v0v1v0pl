@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>drop_val_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Drop Value Labels from One or More Variables</h2>
+
+<h3>Description</h3>
+
+<p>Drop all value labels previously applied to one or more variables using
+<code>add_val_labs</code>, <code>add_quant_labs</code>,<code>add_m1_lab</code>, and related functions (e.g.,
+<code>add_val1</code>) or aliases (e.g., <code>avl</code>).
+</p>
+<p>Note: <code>dvl</code> is a compact alias for <code>drop_val_labs</code>: they do the same thing,
+and the former is easier to type
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">drop_val_labs(data, vars = NULL, partial = FALSE, not.vars = NULL)
+
+dvl(data, vars = NULL, partial = FALSE, not.vars = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>a character vector that corresponds to the name(s) (or substring
+within the name(s), if partial = TRUE) of one or more variables form which
+value labels will be removed. If NULL, all value labels will be removed from
+all value-labeled variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partial</code></td>
+<td>
+<p>To drop labels for many, similarly named variables (e.g., "x1"
+through "x20"), you can provide a substring only and set partial = TRUE
+(default is FALSE). For example, to drop value labels for colnames "x1"
+through "x20",  you could use vars = c("x"), along with partial = TRUE. Be
+careful with this, as it also will attempt to drop value labels for columns
+with colnames "sex" or "tax.bracket" (etc.), because they, too, contain an "x"
+in their names).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.vars</code></td>
+<td>
+<p>use of the partial argument can result in situations where
+you inadvertently attempt to drop value labels for a variable. For example,
+if vars="x", and partial=TRUE, then <code>drop_val_labs</code> will attempt to drop
+labels for not only "x1", "x2","x3", and "x4", but also for "sex",
+"tax.bracket", and other "x"-containing variable names. Use of not.vars
+allows you to indicate variables that you wish to exempt from value label-
+dropping, even if their names contain the string found in vars. Note that
+not.vars gets priority: setting vars="x", partial=TRUE, and not.vars="x" is
+tantamount to telling <code>drop_val_labs</code> that you actually do not wish to drop
+value labels for any of the variables that you specified in vars, resulting
+in no value labels being dropped.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>drop_val_labs</code> works with other labelr functions (e.g., <code>add_val_labs</code>,
+<code>get_val_labs</code>, <code>use_val_labs</code>, <code>add_lab_cols</code>) to facilitate the creation,
+accessing, modification, use, or deletion of variable value labels.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame, with all value labels dropped from specified variables.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># make a "Likert"-type fake data set to demo
+# note, by default, add_val_labs() "vars" arg will do partial matching
+# in this case, we catch all vars with "x" in their name
+set.seed(272)
+dflik &lt;- make_likert_data(scale = 1:7)
+vals2label &lt;- 1:7
+labs2use &lt;- c(
+  "VSD",
+  "SD",
+  "D",
+  "N",
+  "A",
+  "SA",
+  "VSA"
+)
+
+dflik &lt;- add_val_labs(
+  data = dflik, vars = c("x", "y3"), # note the vars args
+  vals = vals2label,
+  labs = labs2use,
+  partial = TRUE
+)
+
+dfdrop &lt;- drop_val_labs(dflik,
+  vars = c("x2", "y3"),
+  partial = FALSE
+)
+
+# var x2's value labels are gone, like we asked for
+get_val_labs(dfdrop, "x2")
+
+# var x1's value labels are intact, b/c we didn't ask to drop them
+get_val_labs(dfdrop, "x1")
+
+dfxgone &lt;- drop_val_labs(dflik,
+  c("x"),
+  partial = TRUE
+)
+
+# still a lot of value labels, but all are for "y" vars,
+# ...none is left for "x" vars
+get_val_labs(dfxgone)
+</code></pre>
+
+
+</div>

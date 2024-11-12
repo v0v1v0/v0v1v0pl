@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>readLAScatalog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create an object of class LAScatalog</h2>
+
+<h3>Description</h3>
+
+<p>Create an object of class LAScatalog from a folder
+or a collection of filenames. A LAScatalog is a representation of a collection
+of las/laz files. A computer cannot load all the data at once. A <code>LAScatalog</code>
+is a simple way to manage all the files sequentially. Most functions from
+<code>lidR</code> can be used seamlessly with a LAScatalog using the internal
+<code>LAScatalog</code> processing engine. To take advantage of the <code>LAScatalog</code>
+processing engine the user must first adjust some processing options using the
+appropriate functions. Careful reading of the
+LAScatalog class documentation is required to use the
+<code>LAScatalog</code> class correctly.<br><br><code>readLAScatalog</code> is the original function and always works. Using one of the <code>read*LAScatalog</code> functions
+adds information to the returned object to register a point-cloud type. Registering the correct point
+type <strong>may</strong> improve the performance of some functions by enabling users to select an appropriate spatial index.
+See spatial indexing. Notice that by legacy and for backwards-compatibility
+reasons <code>readLAScatalog()</code> and <code>readALSLAScatalog()</code> are equivalent because lidR was originally designed
+for ALS and thus the original function <code>readLAScatalog()</code> was (supposedly) used for ALS.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">readLAScatalog(
+  folder,
+  progress = TRUE,
+  select = "*",
+  filter = "",
+  chunk_size = 0,
+  chunk_buffer = 30,
+  ...
+)
+
+readALSLAScatalog(folder, ...)
+
+readTLSLAScatalog(folder, ...)
+
+readUAVLAScatalog(folder, ...)
+
+readDAPLAScatalog(folder, ...)
+
+catalog(folder, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>folder</code></td>
+<td>
+<p>string. The path of a folder containing a set of las/laz files.
+Can also be a vector of file paths.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress, select, filter, chunk_size, chunk_buffer</code></td>
+<td>
+<p>Easily accessible processing
+options tuning. See LAScatalog-class and engine_options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra parameters to list.files. Typically
+<code>recursive = TRUE</code>. Propagates also to <code>readLAScatalog</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>LAScatalog</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A single file LAScatalog using data provided with the package
+LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+ctg = readLAScatalog(LASfile)
+plot(ctg)
+
+## Not run: 
+ctg &lt;- readLAScatalog("&lt;/path/to/folder/of/las/&gt;")
+
+# Internal engine will sequentially process chunks of size 500 x 500 m
+opt_chunk_size(ctg) &lt;- 500
+
+# Internal engine will align the 500 x 500 m chunks on x = 250 and y = 300
+opt_alignment(ctg) &lt;- c(250, 300)
+
+# Internal engine will not display a progress estimation
+opt_progress(ctg) &lt;- FALSE
+
+# Internal engine will not return results into R.
+# Instead it will write results in files.
+# Files will be named e.g.
+# filename_256000_1.ext
+# filename_257000_2.ext
+# filename_258000_3.ext
+# ...
+opt_output_files(ctg) &lt;- "/path/filename_{XBOTTOM}_{ID}"
+
+# More details in the documentation
+help("LAScatalog-class", "lidR")
+help("engine_options", "lidR")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

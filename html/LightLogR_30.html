@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gap_handler</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fill implicit gaps in a light logger dataset</h2>
+
+<h3>Description</h3>
+
+<p>Datasets from light loggers often have implicit gaps. These gaps are implicit in the sense that consecutive timestamps (<code>Datetimes</code>) might not follow a regular epoch/interval. This function fills these implicit gaps by creating a gapless sequence of <code>Datetimes</code> and joining it to the dataset. The gapless sequence is determined by the minimum and maximum <code>Datetime</code> in the dataset (per group) and an epoch. The epoch can either be guessed from the dataset or specified by the user. A sequence of gapless <code>Datetimes</code> can be created with the <code>gapless_Datetimes()</code> function, whereas the dominant epoch in the data can be checked with the <code>dominant_epoch()</code> function. The <code>behaviour</code> argument specifies how the data is combined. By default, the data is joined with a full join, which means that all rows from the gapless sequence are kept, even if there is no matching row in the dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gap_handler(
+  dataset,
+  Datetime.colname = Datetime,
+  epoch = "dominant.epoch",
+  behavior = c("full_sequence", "regulars", "irregulars", "gaps"),
+  full.days = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Needs to be a dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>The column that contains the datetime. Needs to be a
+<code>POSIXct</code> and part of the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch to use for the gapless sequence. Can be either a
+<code>lubridate::duration()</code> or a string. If it is a string, it needs to be
+either '"dominant.epoch"' (the default) for a guess based on the data or a valid <code>lubridate::duration()</code> string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>behavior</code></td>
+<td>
+<p>The behavior of the join of the <code>dataset</code> with the <code>gapless</code> sequence. Can be one of <code>"full_sequence"</code> (the default), <code>"regulars"</code>, <code>"irregulars"</code>, or <code>"gaps"</code>. See @return for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.days</code></td>
+<td>
+<p>If <code>TRUE</code>, the gapless sequence will include the whole first and last day where there is data.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A modified <code>tibble</code> similar to <code>dataset</code> but with handling of implicit gaps, depending on the <code>behavior</code> argument:
+</p>
+
+<ul>
+<li> <p><code>"full_sequence"</code> adds timestamps to the <code>dataset</code> that are missing based on a full sequence of <code>Datetimes</code> (i.e., the gapless sequence). The <code>dataset</code> is this equal (no gaps) or greater in the number of rows than the input. One column is added. <code>is.implicit</code> indicates whether the row was added (<code>TRUE</code>) or not (<code>FALSE</code>). This helps differentiating measurement values from values that might be imputed later on.
+</p>
+</li>
+<li> <p><code>"regulars"</code> keeps only rows from the gapless sequence that have a matching row in the dataset. This can be interpreted as a row-reduced <code>dataset</code> with only regular timestamps according to the <code>epoch</code>. In case of no gaps this tibble has the same number of rows as the input.
+</p>
+</li>
+<li> <p><code>"irregulars"</code> keeps only rows from the <code>dataset</code> that do not follow the regular sequence of <code>Datetimes</code> according to the <code>epoch</code>. In case of no gaps this tibble has 0 rows.
+</p>
+</li>
+<li> <p><code>"gaps"</code> returns a <code>tibble</code> of all implicit gaps in the dataset. In case of no gaps this tibble has 0 rows.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p>Other regularize: 
+<code>dominant_epoch()</code>,
+<code>gap_finder()</code>,
+<code>gapless_Datetimes()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dataset &lt;-
+tibble::tibble(Id = c("A", "A", "A", "B", "B", "B"),
+              Datetime = lubridate::as_datetime(1) +
+                         lubridate::days(c(0:2, 4, 6, 8)) +
+                         lubridate::hours(c(0,12,rep(0,4)))) %&gt;% 
+dplyr::group_by(Id)
+dataset
+#assuming the epoch is 1 day, we can add implicit data to our dataset
+dataset %&gt;% gap_handler(epoch = "1 day")
+
+#we can also check whether there are irregular Datetimes in our dataset
+dataset %&gt;% gap_handler(epoch = "1 day", behavior = "irregulars")
+
+#to get to the gaps, we can use the "gaps" behavior
+dataset %&gt;% gap_handler(epoch = "1 day", behavior = "gaps")
+ 
+#finally, we can also get just the regular Datetimes
+dataset %&gt;% gap_handler(epoch = "1 day", behavior = "regulars")
+</code></pre>
+
+
+</div>

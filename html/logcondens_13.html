@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>intF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes the Integral of the estimated CDF at Arbitrary Real Numbers in s</h2>
+
+<h3>Description</h3>
+
+<p>Based on an object of class <code>dlc</code> as output by the function <code>logConDens</code>, 
+this function gives values of 
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat I(t) = \int_{x_1}^t \widehat{F}(r) d r</code>
+</p>
+
+<p>at all numbers in <code class="reqn">\bold{s}</code>. Note that <code class="reqn">t</code> (so all elements in <code class="reqn">\bold{s}</code>) must lie in 
+<code class="reqn">[x_1,x_m]</code>. The exact formula for <code class="reqn">\widehat I(t)</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat I(t)  = \Bigl(\sum_{i=1}^{i_0} \widehat{I}_i(x_{i+1})\Bigr)+\widehat{I}_{i_0}(t)</code>
+</p>
+
+<p>where <code class="reqn">i_0 = </code>min<code class="reqn">\{m-1 \, , \ \{i \ : \ x_i \le t \}\}</code> and
+</p>
+<p style="text-align: center;"><code class="reqn">I_j(x) = \int_{x_j}^x \widehat{F}(r) d r = (x-x_j)\widehat{F}(x_j)+\Delta x_{j+1}\Bigl(\frac{\Delta x_{j+1}}{\Delta \widehat\phi_{j+1}}J\Bigl(\widehat\phi_j,\widehat\phi_{j+1}, \frac{x-x_j}{\Delta x_{j+1}}\Bigr)-\frac{\widehat f(x_j)(x-x_j)}{\Delta \widehat \phi_{j+1}}\Bigr)</code>
+</p>
+
+<p>for <code class="reqn">x \in [x_j, x_{j+1}], \ j = 1,\ldots, m-1</code>, <code class="reqn">\Delta v_{i+1} = v_{i+1} - v_i</code> for any vector <code class="reqn">\bold{v}</code>
+and the function <code class="reqn">J</code> introduced in <code>Jfunctions</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">intF(s, res)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>Vector of real numbers where the functions should be evaluated at.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>An object of class <code>"dlc"</code>, usually a result of a call to <code>logConDens</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Vector of the same length as <code class="reqn">\bold{s}</code>, containing the values of <code class="reqn">\widehat I</code> at the elements of 
+<code class="reqn">\bold{s}</code>.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach, <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a>, <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a> 
+</p>
+<p>Lutz Duembgen, <a href="mailto:duembgen@stat.unibe.ch">duembgen@stat.unibe.ch</a>, <br><a href="https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html">https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html</a></p>
+
+
+<h3>References</h3>
+
+<p>Duembgen, L. and Rufibach, K. (2009)
+Maximum likelihood estimation of a log–concave density and its distribution function: basic properties and uniform consistency. 
+<em>Bernoulli</em>, <b>15(1)</b>, 40–68.  
+</p>
+<p>Duembgen, L. and Rufibach, K. (2011)
+logcondens: Computations Related to Univariate Log-Concave Density Estimation. 
+<em>Journal of Statistical Software</em>, <b>39(6)</b>, 1–28. <a href="https://doi.org/10.18637/jss.v039.i06">doi:10.18637/jss.v039.i06</a>
+</p>
+<p>Rufibach K. (2006) <em>Log-concave Density Estimation and Bump Hunting for i.i.d. Observations.</em>
+PhD Thesis, University of Bern, Switzerland and Georg-August University of Goettingen, Germany, 2006.
+<br> Available at <a href="https://slsp-ube.primo.exlibrisgroup.com/permalink/41SLSP_UBE/17e6d97/alma99116730175505511">https://slsp-ube.primo.exlibrisgroup.com/permalink/41SLSP_UBE/17e6d97/alma99116730175505511</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>This function uses the output of <code>activeSetLogCon</code>. The function <code>intECDF</code> is similar, but based
+on the empirical distribution function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## estimate gamma density
+set.seed(1977)
+x &lt;- rgamma(200, 2, 1)
+res &lt;- logConDens(x, smoothed = FALSE, print = FALSE)
+
+## compute and plot the process D(t) in Duembgen and Rufibach (2009)
+s &lt;- seq(min(res$x), max(res$x), by = 10 ^ -3)
+D1 &lt;- intF(s, res)
+D2 &lt;- intECDF(s, res$xn)
+par(mfrow = c(2, 1))
+plot(res$x, res$phi, type = 'l'); rug(res$x)
+plot(s, D1 - D2, type = 'l'); abline(h = 0, lty = 2)
+</code></pre>
+
+
+</div>

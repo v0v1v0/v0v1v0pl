@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>render_docker</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Render Containerized R Markdown Documents</h2>
+
+<h3>Description</h3>
+
+<p>Render R Markdown documents using Docker.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">render_docker(input = NULL, tag = NULL, container_name = NULL,
+  cache = TRUE, build_args = NULL, run_args = NULL, prune = TRUE,
+  prune_info = TRUE, dry_run = FALSE, ...)
+
+drender(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Input file to render in Docker container.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tag</code></td>
+<td>
+<p>Docker image name to build, sent as docker argument <code>-t</code>.
+If not specified, it will use the same name as the input file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>container_name</code></td>
+<td>
+<p>Docker container name to run.
+If not specified, will use a randomly generated name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>Logical. Controls the <code>--no-cache</code> argument
+in <code>docker run</code>. Setting this to be <code>TRUE</code> can accelerate
+the rendering speed substantially for repeated/interactive rendering
+since the Docker image layers will be cached, with only the changed
+(knitr related) image layer being updated. Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>build_args</code></td>
+<td>
+<p>A character string specifying additional
+<code>docker build</code> arguments. For example,
+<code>--pull=true -m="1024m" --memory-swap="-1"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run_args</code></td>
+<td>
+<p>A character string specifying additional
+<code>docker run</code> arguments. For example, <code>--privileged=true</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prune</code></td>
+<td>
+<p>Logical. Should we clean up all dangling containers,
+volumes, networks, and images in case the rendering was not successful?
+Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prune_info</code></td>
+<td>
+<p>Logical. Should we save the Docker container and
+image information to a YAML file (name ended with <code>.docker.yml</code>)
+for manual pruning or inspections later? Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dry_run</code></td>
+<td>
+<p>Preview the Docker commands but do not run them?
+Useful for debugging purposes. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to
+<code>render</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Before using this function, please run <code>lift</code> on the
+RMD document first to generate the <code>Dockerfile</code>.
+</p>
+<p>After a successful rendering, you will be able to clean up the
+Docker image with <code>prune_image</code>.
+</p>
+<p>Please see <code>vignette('liftr-intro')</code> for details of the extended
+YAML metadata format and system requirements for writing and rendering
+containerized R Markdown documents.
+</p>
+
+
+<h3>Value</h3>
+
+
+<ul>
+<li>
+<p> A list containing the image name, container name,
+and Docker commands will be returned.
+</p>
+</li>
+<li>
+<p> An YAML file ending with <code>.docker.yml</code> storing the
+image name, container name, and Docker commands for rendering
+this document will be written to the directory of the input file.
+</p>
+</li>
+<li>
+<p> The rendered output will be written to the directory of the
+input file.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># copy example file
+dir_example = paste0(tempdir(), "/liftr-tidyverse/")
+dir.create(dir_example)
+file.copy(system.file("examples/liftr-tidyverse.Rmd", package = "liftr"), dir_example)
+
+# containerization
+input = paste0(dir_example, "liftr-tidyverse.Rmd")
+lift(input)
+
+## Not run: 
+# print the Docker commands first
+render_docker(input, dry_run = TRUE)
+
+# render the document with Docker
+render_docker(input)
+
+# view rendered document
+browseURL(paste0(dir_example, "liftr-tidyverse.pdf"))
+
+# remove the generated Docker image
+prune_image(paste0(dir_example, "liftr-tidyverse.docker.yml"))
+## End(Not run)
+</code></pre>
+
+
+</div>

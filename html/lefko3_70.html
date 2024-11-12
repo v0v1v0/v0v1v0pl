@@ -1,0 +1,218 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sf_distrib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test Overdispersion and Zero Inflation in Size and Fecundity Distributions</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>sf_distrib</code> takes a historically formatted vertical data as
+input and tests whether size and fecundity data are dispersed according to a
+Poisson distribution (where mean = variance), and whether the number of 0s
+exceeds expectations. This function is now deprecated in favor of function
+<code>hfv_qc()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sf_distrib(
+  data,
+  sizea = NA,
+  sizeb = NA,
+  sizec = NA,
+  obs3 = NA,
+  fec = NA,
+  repst = NA,
+  zisizea = TRUE,
+  zisizeb = TRUE,
+  zisizec = TRUE,
+  zifec = TRUE,
+  fectime = 2,
+  show.size = TRUE,
+  show.fec = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A historical vertical data file, which is a data frame of class
+<code>hfvdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizea</code></td>
+<td>
+<p>A vector holding the name or column number of the variables
+corresponding to primary size in occasions <em>t</em>+1 and <em>t</em>. Input 
+only if <code>sizea</code> is to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeb</code></td>
+<td>
+<p>A vector holding the name or column number of the variables
+corresponding to secondary size in occasions <em>t</em>+1 and <em>t</em>. Input 
+only if <code>sizeb</code> is to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizec</code></td>
+<td>
+<p>A vector holding the name or column number of the variables
+corresponding to tertiary size in occasions <em>t</em>+1 and <em>t</em>. Input 
+only if <code>sizec</code> is to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs3</code></td>
+<td>
+<p>The name or column number of the variable corresponding to
+observation status in occasion <em>t</em>+1. This should be used if observation
+status will be used as a vital rate to absorb states of size = 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fec</code></td>
+<td>
+<p>A vector holding the names or column numbers of the variables
+corresponding to in occasions <em>t</em>+1 and <em>t</em>. Input only if 
+<code>fec</code> is to be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repst</code></td>
+<td>
+<p>A vector holding the names or column numbers of the variables
+corresponding to reproductive status in occasions <em>t</em>+1 and <em>t</em>.
+If not provided, then fecundity will be tested without subsetting to only
+reproductive individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zisizea</code></td>
+<td>
+<p>A logical value indicating whether to conduct a test of zero
+inflation in primary size. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zisizeb</code></td>
+<td>
+<p>A logical value indicating whether to conduct a test of zero
+inflation in secondary size. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zisizec</code></td>
+<td>
+<p>A logical value indicating whether to conduct a test of zero
+inflation in tertiary size. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zifec</code></td>
+<td>
+<p>A logical value indicating whether to conduct a test of zero
+inflation in fecundity. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fectime</code></td>
+<td>
+<p>An integer indicating whether to treat fecundity as occurring
+in time <em>t</em> (<code>2</code>) or time <em>t</em>+1 (<code>3</code>). Defaults to
+<code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.size</code></td>
+<td>
+<p>A logical value indicating whether to show the output for
+tests of size. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show.fec</code></td>
+<td>
+<p>A logical value indicating whether to show the output for
+tests of fecundity. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Produces text describing the degree and significance of difference
+from expected dispersion, and the degree and significance of zero inflation.
+The tests are chi-squared score tests based on the expectations of 
+mean = variance, and 0s as abundant as predicted by the value of lambda
+estimated from the dataset. See van der Broek (1995) for more details.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>This function subsets the data in the same way as <code>modelsearch()</code>
+before testing underlying distributions, making the output much more
+appropriate than a simple analysis of size and fecundity variables in
+<code>data</code>.
+</p>
+<p>The specific test used for overdispersion is a chi-squared test of the
+dispersion parameter estimated using a generalized linear model predicting
+the response given size in occasion <em>t</em>, under a quasi-Poisson
+distribution.
+</p>
+<p>The specific test used for zero-inflation is the chi-squared test presented
+in van der Broek (1995).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(lathyrus)
+
+sizevector &lt;- c(0, 4.6, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8,
+  9)
+stagevector &lt;- c("Sd", "Sdl", "Dorm", "Sz1nr", "Sz2nr", "Sz3nr", "Sz4nr",
+  "Sz5nr", "Sz6nr", "Sz7nr", "Sz8nr", "Sz9nr", "Sz1r", "Sz2r", "Sz3r",
+  "Sz4r", "Sz5r", "Sz6r", "Sz7r", "Sz8r", "Sz9r")
+repvector &lt;- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+obsvector &lt;- c(0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+matvector &lt;- c(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+immvector &lt;- c(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0)
+indataset &lt;- c(0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 4.6, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+  0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+
+lathframeln &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec,
+  propstatus = propvector)
+
+lathvertln &lt;- verticalize3(lathyrus, noyears = 4, firstyear = 1988,
+  patchidcol = "SUBPLOT", individcol = "GENET", blocksize = 9,
+  juvcol = "Seedling1988", sizeacol = "lnVol88", repstracol = "Intactseed88",
+  fecacol = "Intactseed88", deadacol = "Dead1988",
+  nonobsacol = "Dormant1988", stageassign = lathframeln, stagesize = "sizea",
+  censorcol = "Missing1988", censorkeep = NA, NAas0 = TRUE, censor = TRUE)
+
+lathvertln$feca2 &lt;- round(lathvertln$feca2)
+lathvertln$feca1 &lt;- round(lathvertln$feca1)
+lathvertln$feca3 &lt;- round(lathvertln$feca3)
+
+sf_distrib(lathvertln, sizea = c("sizea3", "sizea2"), fec = c("feca3", "feca2"),
+  repst = c("repstatus3", "repstatus2"), zifec = FALSE)
+
+</code></pre>
+
+
+</div>

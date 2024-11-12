@@ -1,0 +1,498 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ves</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Vector Exponential Smoothing in SSOE state space model</h2>
+
+<h3>Description</h3>
+
+<p>Function constructs vector ETS model and returns forecast, fitted values, errors
+and matrix of states along with other useful variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ves(data, model = "PPP", lags = c(frequency(data)),
+  persistence = c("common", "individual", "dependent"),
+  transition = c("common", "individual", "dependent"), phi = c("common",
+  "individual"), initial = c("individual", "common"),
+  initialSeason = c("common", "individual"), loss = c("likelihood",
+  "diagonal", "trace"), ic = c("AICc", "AIC", "BIC", "BICc"), h = 10,
+  holdout = FALSE, occurrence = c("none", "fixed", "logistic"),
+  bounds = c("admissible", "usual", "none"), silent = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The matrix with the data, where series are in columns and
+observations are in rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The type of ETS model. Can consist of 3 or 4 chars: <code>ANN</code>,
+<code>AAN</code>, <code>AAdN</code>, <code>AAA</code>, <code>AAdA</code>, <code>MMdM</code> etc.
+<code>PPP</code> means that the best pure model will be selected based on the chosen
+information criteria type.
+ATTENTION! ONLY PURE ADDITIVE AND PURE MULTIPLICATIVE MODELS ARE
+AVAILABLE!
+Pure multiplicative models are done as additive model applied to log(y).
+</p>
+<p>Also <code>model</code> can accept a previously estimated VES model and use all its
+parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lags</code></td>
+<td>
+<p>The lags of the model. Needed for seasonal models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>persistence</code></td>
+<td>
+<p>Persistence matrix <code class="reqn">G</code>, containing smoothing
+parameters. Can be:
+</p>
+
+<ul>
+<li> <p><code>"independent"</code> - each series has its own smoothing parameters
+and no interactions are modelled (all the other values in the matrix are set
+to zero);
+</p>
+</li>
+<li> <p><code>"dependent"</code> - each series has its own smoothing parameters, but
+interactions between the series are modelled (the whole matrix is estimated);
+</p>
+</li>
+<li> <p><code>"group"</code> each series has the same smoothing parameters for respective
+components (the values of smoothing parameters are repeated, all the other values
+in the matrix are set to zero).
+</p>
+</li>
+<li> <p><code>"seasonal"</code> - each component has its own smoothing parameter, except
+for the seasonal one, which is common across the time series.
+</p>
+</li>
+<li>
+<p> provided by user as a vector or as a matrix. The value is used by the model.
+</p>
+</li>
+</ul>
+<p>You can also use the first letter instead of writing the full word.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transition</code></td>
+<td>
+<p>Transition matrix <code class="reqn">F</code>. Can be:
+</p>
+
+<ul>
+<li> <p><code>"independent"</code> - each series has its own preset transition matrix
+and no interactions are modelled (all the other values in the matrix are set
+to zero);
+</p>
+</li>
+<li> <p><code>"dependent"</code> - each series has its own transition matrix, but
+interactions between the series are modelled (the whole matrix is estimated). The
+estimated model behaves similar to VAR in this case;
+</p>
+</li>
+<li> <p><code>"group"</code> each series has the same transition matrix for respective
+components (the values are repeated, all the other values in the matrix are set to
+zero).
+</p>
+</li>
+<li>
+<p> provided by user as a vector or as a matrix. The value is used by the model.
+</p>
+</li>
+</ul>
+<p>You can also use the first letter instead of writing the full word.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>In cases of damped trend this parameter defines whether the <code class="reqn">phi</code>
+should be estimated separately for each series (<code>"individual"</code>) or for the whole
+set (<code>"common"</code>). If vector or a value is provided here, then it is used by the
+model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial</code></td>
+<td>
+<p>Can be either character or a vector / matrix of initial states.
+If it is character, then it can be <code>"individual"</code>, individual values of
+the initial non-seasonal components are used, or <code>"common"</code>, meaning that
+the initials for all the time series are set to be equal to the same value.
+If vector of states is provided, then it is automatically transformed into
+a matrix, assuming that these values are provided for the whole group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialSeason</code></td>
+<td>
+<p>Can be either character or a vector / matrix of initial
+states. Treated the same way as <code>initial</code>. This means that different time
+series may share the same initial seasonal component.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>Type of Loss Function used in optimization. <code>loss</code> can
+be:
+</p>
+
+<ul>
+<li> <p><code>"likelihood"</code> - which implies the maximisation of likelihood of
+multivariate normal distribution (or log Normal if the multiplicative model
+is constructed);
+</p>
+</li>
+<li> <p><code>"diagonal"</code> - similar to <code>"likelihood"</code>, but assumes that
+covariances between the error terms are zero.
+</p>
+</li>
+<li> <p><code>"trace"</code> - the trace of the covariance matrix of errors.
+The sum of variances is minimised in this case.
+</p>
+</li>
+<li>
+<p> Provided by user as a custom function of <code>actual</code>, <code>fitted</code> and
+<code>B</code>. Note that internally function transposes the data, so that <code>actual</code>
+and <code>fitted</code> contain observations in columns and series in rows.
+</p>
+</li>
+</ul>
+<p>An example of the latter option is:
+<code>lossFunction &lt;- function(actual,fitted,B){return(mean(abs(actual - fitted)))}</code>
+followed by <code>loss=lossFunction</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ic</code></td>
+<td>
+<p>The information criterion used in the model selection procedure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+<p>Length of forecasting horizon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout</code></td>
+<td>
+<p>If <code>TRUE</code>, holdout sample of size <code>h</code> is taken from
+the end of the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occurrence</code></td>
+<td>
+<p>Defines type of occurrence model used. Can be:
+</p>
+
+<ul>
+<li> <p><code>none</code>, meaning that the data should be considered as non-intermittent;
+</p>
+</li>
+<li> <p><code>fixed</code>, taking into account constant Bernoulli distribution of
+demand occurrences;
+</p>
+</li>
+<li> <p><code>logistic</code>, based on logistic regression.
+</p>
+</li>
+</ul>
+<p>In this case, the ETS model inside the occurrence part will correspond to
+<code>model</code> and <code>probability="dependent"</code>.
+Alternatively, model estimated using oves function can be provided
+here.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>What type of bounds to use in the model estimation. The first
+letter can be used instead of the whole word. <code>"admissible"</code> means that the
+model stability is ensured, while <code>"usual"</code> means that the all the parameters
+are restricted by the (0, 1) region.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>If <code>silent="none"</code>, then nothing is silent, everything is
+printed out and drawn. <code>silent="all"</code> means that nothing is produced or
+drawn (except for warnings). In case of <code>silent="graph"</code>, no graph is
+produced. If <code>silent="legend"</code>, then legend of the graph is skipped.
+And finally <code>silent="output"</code> means that nothing is printed out in the
+console, but the graph is produced. <code>silent</code> also accepts <code>TRUE</code>
+and <code>FALSE</code>. In this case <code>silent=TRUE</code> is equivalent to
+<code>silent="all"</code>, while <code>silent=FALSE</code> is equivalent to
+<code>silent="none"</code>. The parameter also accepts first letter of words ("n",
+"a", "g", "l", "o").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other non-documented parameters. For example <code>FI=TRUE</code> will
+make the function also produce Fisher Information matrix, which then can be
+used to calculated variances of smoothing parameters and initial states of
+the model. The vector of initial parameter for the optimiser can be provided
+here as the variable <code>B</code>. The upper bound for the optimiser is provided
+via <code>ub</code>, while the lower one is <code>lb</code>. Also, the options for nloptr can be
+passed here:
+</p>
+
+<ul>
+<li> <p><code>maxeval=40*k</code> is the default number of iterations for both optimisers
+used in the function (k is the number of parameters to estimate).
+</p>
+</li>
+<li> <p><code>algorithm1="NLOPT_LN_BOBYQA"</code> is the algorithm used in the first
+optimiser, while <code>algorithm2="NLOPT_LN_NELDERMEAD"</code> is the second one.
+</p>
+</li>
+<li> <p><code>xtol_rel1=1e-8</code> is the relative tolerance in the first optimiser,
+while <code>xtol_rel2=1e-6</code> is for the second one. All of this can be amended and
+passed in ellipsis for finer tuning.
+</p>
+</li>
+<li> <p><code>print_level</code> - the level of output for the optimiser (0 by default).
+If equal to 41, then the detailed results of the optimisation are returned.</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function estimates vector ETS in a form of the Single Source of Error state space
+model of the following type:
+</p>
+<p style="text-align: center;"><code class="reqn">
+\mathbf{y}_{t} = (\mathbf{W} \mathbf{v}_{t-l} + \mathbf{x}_t
+\mathbf{a}_{t-1} + \mathbf{\epsilon}_{t})
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">
+\mathbf{v}_{t} = \mathbf{F} \mathbf{v}_{t-l} + \mathbf{G}
+\mathbf{\epsilon}_{t}
+</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\mathbf{a}_{t} = \mathbf{F_{X}} \mathbf{a}_{t-1} + \mathbf{G_{X}}
+\mathbf{\epsilon}_{t} / \mathbf{x}_{t}</code>
+</p>
+
+<p>Where <code class="reqn">y_{t}</code> is the vector of time series on observation <code class="reqn">t</code>,
+<code class="reqn">\mathbf{v}_{t}</code> is the matrix of
+states and <code class="reqn">l</code> is the matrix of lags, <code class="reqn">\mathbf{x}_t</code> is the vector of
+exogenous variables. <code class="reqn">\mathbf{W}</code> is the measurement matrix, <code class="reqn">\mathbf{F}</code>
+is the transition matrix and <code class="reqn">\mathbf{G}</code> is the persistence matrix.
+Finally, <code class="reqn">\epsilon_{t}</code> is the vector of error terms.
+</p>
+<p>Conventionally we formulate values as:
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{y}'_t = (y_{1,t}, y_{2,t}, \dots, y_{m,t})</code>
+</p>
+
+<p>where <code class="reqn">m</code> is the number of series in the group.
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{v}'_t = (v_{1,t}, v_{2,t}, \dots, v_{m,t})</code>
+</p>
+
+<p>where <code class="reqn">v_{i,t}</code> is vector of components for i-th time series.
+</p>
+<p style="text-align: center;"><code class="reqn">\mathbf{W}' = (w_{1}, \dots , 0;
+\vdots , \ddots , \vdots;
+0 , \vdots , w_{m})</code>
+</p>
+<p> is matrix of measurement vectors.
+</p>
+<p>For the details on the additive model see Hyndman et al. (2008),
+chapter 17.
+</p>
+<p>In case of multiplicative model, instead of the vector y_t we use its logarithms.
+As a result the multiplicative model is much easier to work with.
+</p>
+<p>For some more information about the model and its implementation, see the
+vignette: <code>vignette("ves","legion")</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of class "legion" is returned. It contains the following list of
+values:
+</p>
+
+<ul>
+<li> <p><code>model</code> - The name of the fitted model;
+</p>
+</li>
+<li> <p><code>timeElapsed</code> - The time elapsed for the construction of the model;
+</p>
+</li>
+<li> <p><code>states</code> - The matrix of states with components in columns and time in rows;
+</p>
+</li>
+<li> <p><code>persistence</code> - The persistence matrix;
+</p>
+</li>
+<li> <p><code>transition</code> - The transition matrix;
+</p>
+</li>
+<li> <p><code>measurement</code> - The measurement matrix;
+</p>
+</li>
+<li> <p><code>phi</code> - The damping parameter value;
+</p>
+</li>
+<li> <p><code>lagsAll</code> - The vector of the internal lags used in the model;
+</p>
+</li>
+<li> <p><code>B</code> - The vector of all the estimated coefficients;
+</p>
+</li>
+<li> <p><code>initial</code> - The initial values of the non-seasonal components;
+</p>
+</li>
+<li> <p><code>initialSeason</code> - The initial values of the seasonal components;
+</p>
+</li>
+<li> <p><code>nParam</code> - The number of estimated parameters;
+</p>
+</li>
+<li> <p><code>occurrence</code> - The occurrence part of the model estimated with VES;
+</p>
+</li>
+<li> <p><code>data</code> - The matrix with the original data;
+</p>
+</li>
+<li> <p><code>fitted</code> - The matrix of the fitted values;
+</p>
+</li>
+<li> <p><code>holdout</code> - The matrix with the holdout values (if <code>holdout=TRUE</code> in
+the estimation);
+</p>
+</li>
+<li> <p><code>residuals</code> - The matrix of the residuals of the model;
+</p>
+</li>
+<li> <p><code>Sigma</code> - The covariance matrix of the errors (estimated with the correction
+for the number of degrees of freedom);
+</p>
+</li>
+<li> <p><code>forecast</code> - The matrix of point forecasts;
+</p>
+</li>
+<li> <p><code>ICs</code> - The values of the information criteria;
+</p>
+</li>
+<li> <p><code>logLik</code> - The log-likelihood function;
+</p>
+</li>
+<li> <p><code>lossValue</code> - The value of the loss function;
+</p>
+</li>
+<li> <p><code>loss</code> - The type of the used loss function;
+</p>
+</li>
+<li> <p><code>lossFunction</code> - The loss function if the custom was used in the process;
+</p>
+</li>
+<li> <p><code>accuracy</code> - the values of the error measures. Currently not available.
+</p>
+</li>
+<li> <p><code>FI</code> - Fisher information if user asked for it using <code>FI=TRUE</code>.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Ivan Svetunkov, <a href="mailto:ivan@svetunkov.ru">ivan@svetunkov.ru</a>
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p> de Silva A., Hyndman R.J. and Snyder, R.D. (2010). The vector
+innovations structural time series framework: a simple approach to
+multivariate forecasting. Statistical Modelling, 10 (4), pp.353-374
+</p>
+</li>
+<li>
+<p> Hyndman, R.J., Koehler, A.B., Ord, J.K., and Snyder, R.D. (2008)
+Forecasting with exponential smoothing: the state space approach,
+Springer-Verlag.
+</p>
+</li>
+<li>
+<p> Lütkepohl, H. (2005). New Introduction to Multiple Time Series
+Analysis. New introduction to Multiple Time Series Analysis. Berlin,
+Heidelberg: Springer Berlin Heidelberg.
+<a href="https://doi.org/10.1007/978-3-540-27752-1">doi:10.1007/978-3-540-27752-1</a>
+</p>
+</li>
+<li>
+<p> Chen H., Svetunkov I., Boylan J. (2021). A New Taxonomy for
+Vector Exponential Smoothing and Its Application to Seasonal Time
+Series.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>vets, es, adam</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+Y &lt;- ts(cbind(rnorm(100,100,10),rnorm(100,75,8)),frequency=12)
+
+# The simplest model applied to the data with the default values
+ves(Y,model="ANN",h=10,holdout=TRUE)
+
+# Damped trend model with the dependent persistence
+ves(Y,model="AAdN",persistence="d",h=10,holdout=TRUE)
+
+# Multiplicative damped trend model with individual phi
+ves(Y,model="MMdM",persistence="i",h=10,holdout=TRUE,initialSeason="c")
+
+# Automatic selection between pure models
+ves(Y,model="PPP",persistence="i",h=10,holdout=TRUE,initialSeason="c")
+
+# Intermittent demand vector model
+Y &lt;- cbind(c(rpois(25,0.1),rpois(25,0.5),rpois(25,1),rpois(25,5)),
+           c(rpois(25,0.1),rpois(25,0.5),rpois(25,1),rpois(25,5)))
+
+ves(Y,model="MNN",h=10,holdout=TRUE,occurrence="l")
+
+</code></pre>
+
+
+</div>

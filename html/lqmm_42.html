@@ -1,0 +1,442 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lqmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Linear Quantile Mixed Models</h2>
+
+<h3>Description</h3>
+
+<p><code>lqmm</code> is used to fit linear quantile mixed models based on the asymmetric Laplace distribution.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lqmm(fixed, random, group, covariance = "pdDiag", tau = 0.5,
+	nK = 7, type = "normal", rule = 1, data = sys.frame(sys.parent()),
+	subset, weights, na.action = na.fail, control = list(),
+	contrasts = NULL, fit = TRUE) 
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+
+<p>an object of class <code>formula</code> for fixed effects: a symbolic description of the model to be fitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random</code></td>
+<td>
+
+<p>a one-sided formula of the form <code>~x1 + x2 + ... + xn</code> for random effects: a symbolic description of the model to be fitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+
+<p>grouping factor.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariance</code></td>
+<td>
+
+<p>variance–covariance matrix of the random effects. Default is <code>pdDiag</code> (see details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+
+<p>the quantile(s) to be estimated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nK</code></td>
+<td>
+
+<p>number of quadrature knots.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>type of quadrature "c("normal","robust")" (see details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule</code></td>
+<td>
+
+<p>quadrature rule (see details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional data frame containing the variables named in
+<code>fixed</code>, <code>random</code> and <code>group</code>. By default the variables are taken from the environment from which <code>lqmm</code> is called.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>an optional vector specifying a subset of observations to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+
+<p>an optional vector of weights to be used in the fitting process of the same length as the number of rows of <code>data</code>. Weights are given to clusters, therefore units within the same cluster receive the same weight (see details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function that indicates what should happen when the
+data contain <code>NA</code>s.  The default action (<code>na.fail</code>) causes
+<code>lqmm</code> to print an error message and terminate if there are any
+incomplete observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+
+<p>list of control parameters of the fitting process. See <code>lqmmControl</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+
+<p>not yet implemented.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+
+<p>logical flag. If FALSE the function returns a list of arguments to be passed to <code>lqmm.fit</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function computes an estimate on the tau-th quantile function of the response, conditional on the covariates, as specified by the <code>formula</code> argument, and on random effects, as specified by the <code>random</code> argument. The quantile predictor is assumed to be linear. The function maximizes the (log)likelihood of the Laplace regression proposed by Geraci and Bottai (2014). The likelihood is numerically integrated via Gaussian quadrature techniques. The optimization algorithm is based on the gradient of the Laplace log–likelihood (<code>control = list(method = "gs")</code>). An alternative optimization algorithm is based on a Nelder-Mead algorithm (<code>control = list(method = "df")</code>) via <code>optim</code>. The scale parameter is optimized in a refinement step via <code>optimize</code>.
+</p>
+<p>Quadrature approaches include Gauss-Hermite (<code>type = "normal"</code>) and Gauss-Laguerre (<code>type = "robust"</code>) quadrature. The argument <code>rule</code> takes one of the following: 1 (product rule quadrature), 2 (sparse grid quadrature), 3 (nested quadrature rule - only for <code>type = "normal"</code>), 4 (quadrature rule with the smallest number of nodes between rules 1 or 2). Rules 2 and 3 have not yet been tested extensively.
+</p>
+<p>Different standard types of positive–definite matrices for the random effects can be specified: <code>pdIdent</code> multiple of an identity; <code>pdCompSymm</code> compound symmetry structure (constant diagonal and constant off–diagonal elements); <code>pdDiag</code> diagonal; <code>pdSymm</code> general positive–definite matrix, with no additional structure.
+</p>
+<p>Weights are given to clusters, therefore it is expected that these are constant within cluster. When the weights are specified in the main call, then the first value by <code>group</code> in the vector <code>weights</code> will be replicated for the same length of each group. Alternatively, different weights within the same cluster can be introduced with a direct call to <code>lqmm.fit.gs or lqmm.fit.df</code>.
+</p>
+<p>The <code>lqmm</code> vignette can be accessed by typing <code>help(package = "lqmm")</code> and then following the link 'User guides, package vignettes and other documentation'.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>lqmm</code> returns an object of <code>class</code> <code>lqmm</code>.
+</p>
+<p>The function <code>summary</code> is used to obtain and print a summary of the results.
+</p>
+<p>An object of class <code>lqmm</code> is a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>a vector containing fixed regression coefficients and parameters of the variance–covariance matrix of the random effects. See <code>VarCorr.lqmm</code> to extract the variance–covariance of the random effects from an "lqmm" object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_x,theta_z</code></td>
+<td>
+<p>partition of <code>theta</code>: fixed regression coefficients (<code>theta_x</code>) and unique variance–covariance parameters (<code>theta_z</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>the scale parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gradient</code></td>
+<td>
+<p>the gradient (<code>control = list(method = "gs")</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logLik</code></td>
+<td>
+<p>the log–likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p>details on optimization (see <code>lqmm.fit.gs</code> and <code>lqmm.fit.df</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nn</code></td>
+<td>
+<p>column names of <code>mmf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mm</code></td>
+<td>
+<p>column names of <code>mmr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>the number of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim_theta</code></td>
+<td>
+<p>the number of columns in <code>mmf</code> and <code>mmr</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dim_theta_z</code></td>
+<td>
+<p>the length of <code>theta_z</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edf</code></td>
+<td>
+<p>length of <code>theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rdf</code></td>
+<td>
+<p>the number of residual degrees of freedom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>edf + 1 (scale parameter).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>the estimated quantile(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mmf</code></td>
+<td>
+<p>the model matrix – fixed effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mmr</code></td>
+<td>
+<p>the model matrix – random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the model response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>revOrder</code></td>
+<td>
+<p>original order of observations (now ordered according to <code>group</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the likelihood weights used in the fitting process (a vector of 1's if <code>weights</code> is missing or <code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>the grouping factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ngroups</code></td>
+<td>
+<p>the number of groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>QUAD</code></td>
+<td>
+<p>quadrature nodes and weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the type of quadrature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rule</code></td>
+<td>
+<p>quadrature rule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>InitialPar</code></td>
+<td>
+<p>starting values for theta.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>list of control parameters used for optimization (see <code>lqmmControl</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov_name</code></td>
+<td>
+<p>class of variance-covariance matrix for the random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mfArgs</code></td>
+<td>
+<p>arguments for <code>model.frame</code> to return the full data frame.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Updates/FAQ/news are published here <a href="https://marcogeraci.wordpress.com/">https://marcogeraci.wordpress.com/</a>. New versions are usually published here <a href="https://github.com/marco-geraci/lqmm/">https://github.com/marco-geraci/lqmm/</a> before going on CRAN.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marco Geraci
+</p>
+
+
+<h3>References</h3>
+
+<p>Genz A, and Keister BD (1996). Fully symmetric interpolatory rules for multiple integrals over infinite regions with Gaussian weight. Journal of Computational and Applied Mathematics, 71(2), 299–309. &lt;doi:10.1016/0377-0427(95)00232-4&gt;
+</p>
+<p>Geraci M (2014). Linear quantile mixed models: The lqmm package for Laplace quantile regression. Journal of Statistical Software, 57(13), 1–29. &lt;doi:10.18637/jss.v057.i13&gt;
+</p>
+<p>Geraci M and Bottai M (2007). Quantile regression for longitudinal data using the asymmetric Laplace distribution. Biostatistics 8(1), 140–154. &lt;doi:10.1093/biostatistics/kxj039&gt;
+</p>
+<p>Geraci M and Bottai M (2014). Linear quantile mixed models. Statistics and Computing, 24(3), 461–479. &lt;doi:10.1007/s11222-013-9381-9&gt;.
+</p>
+<p>Heiss F, and Winschel V (2008). Likelihood approximation by numerical integration on sparse grids. Journal of Econometrics, 144(1), 62–80. &lt;doi:10.1016/j.jeconom.2007.12.004&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lqm, summary.lqmm, coef.lqmm, VarCorr.lqmm, predict.lqmm, residuals.lqmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Test example
+set.seed(123)
+
+M &lt;- 50
+n &lt;- 10
+test &lt;- data.frame(x = runif(n*M,0,1), group = rep(1:M,each=n))
+test$y &lt;- 10*test$x + rep(rnorm(M, 0, 2), each = n) + rchisq(n*M, 3)
+fit.lqmm &lt;- lqmm(fixed = y ~ x, random = ~ 1, group = group,	
+	data = test, tau = 0.5, nK = 11, type = "normal")
+fit.lqmm
+
+#Call: lqmm(fixed = y ~ x, random = ~1, group = group, tau = 0.5, nK = 11, 
+#    type = "normal", data = test)
+#Quantile 0.5 
+
+#Fixed effects:
+#(Intercept)            x  
+#      3.443        9.258  
+
+#Covariance matrix of the random effects:
+#(Intercept) 
+#      3.426 
+
+#Residual scale parameter: 0.8697 (standard deviation 2.46)
+#Log-likelihood: -1178 
+
+#Number of observations: 500 
+#Number of groups: 50 
+
+
+## Orthodont data
+data(Orthodont)
+
+# Random intercept model
+fitOi.lqmm &lt;- lqmm(distance ~ age, random = ~ 1, group = Subject,
+	tau = c(0.1,0.5,0.9), data = Orthodont)
+coef(fitOi.lqmm)
+
+# Random slope model
+fitOs.lqmm &lt;- lqmm(distance ~ age, random = ~ age, group = Subject,
+	tau = c(0.1,0.5,0.9), cov = "pdDiag", data = Orthodont)
+
+# Extract estimates
+VarCorr(fitOs.lqmm)
+coef(fitOs.lqmm)
+ranef(fitOs.lqmm)
+
+# AIC
+AIC(fitOi.lqmm)
+AIC(fitOs.lqmm)
+
+</code></pre>
+
+
+</div>

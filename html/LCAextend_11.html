@@ -1,0 +1,313 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lca.model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>fits latent class models for phenotypic measurements in pedigrees
+with or without 
+familial dependence using an Expectation-Maximization (EM) algorithm </h2>
+
+<h3>Description</h3>
+
+<p>This is the main function for fitting latent class models. It performs some checks of the pedigrees (it exits if an individual has only one 
+parent in the pedigree, if no children is in the pedigree or if there
+are not enough individuals for parameters estimation) and of the
+initial values (positivity of probabilites and their summation to
+one). For models with familial dependence, the child latent class
+depends on his parents classes via 
+triplet-transition probabilities. In the case of models without
+familial dependence, it performs the classical Latent 
+Class Analysis (LCA) where all individuals are supposed independent 
+and the pedigree structure is meaningless. The EM algorithm stops when
+the difference between log-likelihood is smaller then <code>tol</code> that
+is fixed by the user. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lca.model(ped, probs, param, optim.param, fit = TRUE, 
+optim.probs.indic = c(TRUE, TRUE, TRUE, TRUE), tol = 0.001, 
+x = NULL, var.list = NULL, famdep = TRUE, modify.init = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code> ped </code></td>
+<td>
+<p> a matrix or data frame representing pedigrees and measurements: <code>ped[,1]</code> family ID, <code>ped[,2]</code> subjects ID, <code>ped[,3]</code> dad ID, 
+<code>ped[,4]</code> mom ID, <code>ped[,5]</code> sex, <code>ped[,6]</code> symptom
+status (2: symptomatic, 1: without symptoms, 0: missing), 
+<code>ped[,7:ncol(ped)]</code> measurements, each column corresponds to a phenotypic measurement. If the measurement distribution specified with <code>optim.param</code> is multinomial, then these columns must either be of type <code>integer</code> of <code>factor</code>,  </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> probs </code></td>
+<td>
+<p> a list of initial probability parameters (see below
+for more details). The function <code>init.p.trans</code> can be
+used to compute an initial value  
+of the component <code>p.trans</code> of <code>probs</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> param </code></td>
+<td>
+<p> a list of initial measurement distribution parameters (see below for more details). The function <code>init.ordi</code> can be used to compute an initial 
+value of <code>param</code> in the case of discrete or ordinal data (product
+multinomial distribution) and <code>init.norm</code> in the case of
+continous data (mutivariate normal distribution), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> optim.param </code></td>
+<td>
+<p> a variable indicating how measurement distribution parameter optimization is performed (see below for more details), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> fit </code></td>
+<td>
+<p> a logical variable, if <code>TRUE</code>, the EM algorithm is
+performed, if <code>FALSE</code>, only computation of weights and
+log-likelihood are performed with the initial parameter values
+without log-likelihood maximization, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> optim.probs.indic </code></td>
+<td>
+<p> a vector of logical values indicating which probability parameters to estimate, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> tol </code></td>
+<td>
+<p> a small number governing the stopping rule of the EM algorithm. Default is 0.001, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> x </code></td>
+<td>
+<p> a matrix of covariates (optional), default is <code>NULL</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> var.list </code></td>
+<td>
+<p> a list of integers indicating the columns of
+<code>x</code> containing the covariates to use for a given phenotypic measurement, default is <code>NULL</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> famdep </code></td>
+<td>
+<p> a logical variable indicating if familial dependence model is used or not. Default is <code>TRUE</code>. In models without familial dependence, individuals 
+are treated as independent and pedigree structure is meaningless. In models with familial dependence, a child class depends in his parents classes via a 
+triplet-transition probability, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> modify.init </code></td>
+<td>
+<p> a function to modify initial values of the EM algorithm, or <code>NULL</code>, default is <code>NULL</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The symptom status vector (column 6 of <code>ped</code>) takes value 1 for
+subjects that have been
+examined and show no symptoms (i.e. completely unaffected
+subjects). When applying the LCA to
+measurements available on all subjects, the status vector must take the
+value of 2 for every individual with measurements.
+</p>
+<p><code>probs </code> is a list of initial probability parameters:
+</p>
+<p>For models with familial dependence:
+</p>
+
+<dl>
+<dt><code>p</code></dt>
+<dd>
+<p> a probability vector, each <code>p[c]</code> is the probability that an symptomatic founder is in class  <code>c</code> for <code>c&gt;=1</code>, </p>
+</dd>
+<dt><code>p0</code></dt>
+<dd>
+<p> the probability that a founder without symptoms is in class 0, </p>
+</dd>
+<dt><code>p.trans</code></dt>
+<dd>
+<p> an array of dimension <code>K</code> times <code>K+1</code>
+times <code>K+1</code>, where <code>K</code> is the number of latent classes of
+the model, and is such that <code>p.trans[c_i,c_1,c_2]</code> is the
+conditional probability that a symptomatic individual
+<code>i</code> is in class <code>c_i</code> given that his parents are in classes
+<code>c_1</code> and <code>c_2</code>, </p>
+</dd>
+<dt><code>p0connect</code></dt>
+<dd>
+<p> a vector of length <code>K</code>, where
+<code>p0connect[c]</code> is the probability that a connector without
+symptoms is in class <code>0</code>, 
+given that one of his parents is in class <code>c&gt;=1</code> and the other in class 0, </p>
+</dd>
+<dt><code>p.found</code></dt>
+<dd>
+<p> the probability that a founder is symptomatic, </p>
+</dd>
+<dt><code>p.child</code></dt>
+<dd>
+<p> the probability that a child is symptomatic, </p>
+</dd>
+</dl>
+<p>For models without familial dependence, all individuals are independent:
+</p>
+
+<dl>
+<dt><code>p</code></dt>
+<dd>
+<p> a probability vector, each <code>p[c]</code> is the probability that an symptomatic individual is in class <code>c</code> for <code>c&gt;=1</code>, </p>
+</dd>
+<dt><code>p0</code></dt>
+<dd>
+<p> the probability that an individual without symptoms is in class 0, </p>
+</dd>
+<dt><code>p.aff</code></dt>
+<dd>
+<p> the probability that an individual is symptomatic, </p>
+</dd>
+</dl>
+<p><code>param</code> is a list of measurement distribution parameters: the coefficients <code>alpha</code> (cumulative logistic coefficients see <code>alpha.compute</code>) in 
+the case of discrete or ordinal data, and means <code>mu</code> and variances-covariances matrices <code>sigma</code> in the case of continuous data,
+</p>
+<p><code>optim.param</code> is a variable indicating how the measurement distribution parameter estimation of the M step is performed. Two possibilities, 
+<code>optim.noconst.ordi</code> and <code>optim.const.ordi</code>, are now available in the case of discrete or ordinal measurements, and four possibilities 
+<code>optim.indep.norm</code> (measurements are independent, diagonal variance-covariance matrix), 
+<code>optim.diff.norm</code> (general variance-covariance matrix but equal for all classes), 
+<code>optim.equal.norm</code> (variance-covariance matrices are different for each class but equal variance and equal covariance for a class) and  
+<code>optim.gene.norm</code> (general variance-covariance matrices for all classes), are now available in the case of continuous measurements, 
+One of the allowed values of <code>optim.param</code> must be entered without quotes. 
+</p>
+<p><code>optim.probs.indic</code> is a vector of logical values of length 4 for
+models with familial dependence and 2 for models without familial
+dependence.
+</p>
+<p>For models with familial dependence:
+</p>
+
+<dl>
+<dt><code>optim.probs.indic[1]</code></dt>
+<dd>
+<p> indicates whether <code>p0</code> will be estimated or not, </p>
+</dd>
+<dt><code>optim.probs.indic[2]</code></dt>
+<dd>
+<p> indicates whether <code>p0connect</code> will be estimated or not, </p>
+</dd>
+<dt><code>optim.probs.indic[3]</code></dt>
+<dd>
+<p> indicates whether <code>p.found</code> will be estimated or not, </p>
+</dd>
+<dt><code>optim.probs.indic[4]</code></dt>
+<dd>
+<p> indicates whether <code>p.connect</code> will
+be estimated or not. </p>
+</dd>
+</dl>
+<p>For models without familial dependence:
+</p>
+
+<dl>
+<dt><code>optim.probs.indic[1]</code></dt>
+<dd>
+<p> indicates whether <code>p0</code> will be estimated or not, </p>
+</dd>
+<dt><code>optim.probs.indic[2]</code></dt>
+<dd>
+<p> indicates whether <code>p.aff</code> will be
+estimated or not. </p>
+</dd>
+</dl>
+<p>All defaults are <code>TRUE</code>. If the dataset contains only nuclear families, there is no information to estimate p0connect and p.connect, and these parameters will not be estimated, irrespective of the indicator value.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns a list of 4 elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code> param </code></td>
+<td>
+<p> the Maximum Likelihood Estimator (MLE) of the
+measurement  distribution parameters if <code>fit=TRUE</code> or the input
+<code>param</code> if <code>fit=FALSE</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> probs </code></td>
+<td>
+<p> the MLE of probability parameters if <code>fit=TRUE</code> or the input <code>probs</code> if <code>fit=FALSE</code>, </p>
+</td>
+</tr>
+</table>
+<p>When measurements are available on all subjects, the probability parameters <code>p0</code> and <code>p0connect</code> are degenerated to 0 and 
+<code>p.afound</code>, <code>p.child</code> and <code>p.aff</code> to 1 in the output. 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code> weight </code></td>
+<td>
+<p> an array of dimension <code>n</code> (the number of individuals) times 2 times <code>K+1</code> (<code>K</code> being the number of latent classes in the selected 
+model and the <code>K+1</code>th class being the unaffected class) giving
+the individual posterior probabilities. 
+<code>weight[i,s,c]</code> is the
+posterior probability  
+that individual <code>i</code> belongs to class <code>c</code> when his symptom
+status is <code>s</code>, where  
+<code>s</code> takes two values: 1 for symptomatic and 2 for without
+symptom. In particular, all <code>weight[,2,]</code> are 0 for symptomatic
+individuals and all <code>weight[,1,]</code> are  
+0 for individuals without symptoms. For missing individuals (unkown
+symptom status), both <code>weight[,1,]</code> and <code>weight[,2,]</code> may be
+greater than 0. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> ll </code></td>
+<td>
+<p> the maximum log-likelihood value (log-ML) if <code>fit=TRUE</code> or the log-likelihood computed with the input values of <code>param</code> 
+and <code>probs</code> if <code>fit=FALSE</code>, </p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p> TAYEB, A. LABBE, A., BUREAU, A. and MERETTE, C. (2011) Solving Genetic Heterogeneity in Extended
+Families by Identifying Sub-types of Complex Diseases. Computational Statistics, 26(3): 539-560. DOI: 10.1007/s00180-010-0224-2, <br></p>
+<p>LABBE, A., BUREAU, A. et MERETTE, C. (2009) Integration of Genetic Familial Dependence Structure in Latent Class Models. The International Journal of Biostatistics, 5(1): Article 6. </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#data
+data(ped.ordi)
+fam &lt;- ped.ordi[,1]
+#probs and param
+data(param.ordi)
+data(probs)
+#the function applied only to two first families of ped.ordi
+lca.model(ped.ordi[fam%in%1:2,],probs,param.ordi,optim.noconst.ordi,
+          fit=TRUE,optim.probs.indic=c(TRUE,TRUE,TRUE,TRUE),tol=0.001,x=NULL,
+          var.list=NULL,famdep=TRUE,modify.init=NULL)
+</code></pre>
+
+
+</div>

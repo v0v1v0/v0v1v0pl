@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>locHeatmap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a heatmap to visualize localization output.</h2>
+
+<h3>Description</h3>
+
+<p>This function can be used to create a heatmap from the localization grid search. In general,
+this function should only be used internally, but it could be useful for making customized figures.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">locHeatmap(SearchMap, SMap, NodeInfo, location, mar)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>SearchMap</code></td>
+<td>
+<p>An array created by the localize() function containing x, y and z coordinates.
+Created by setting keep.SearchMap = TRUE when running the localize() function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SMap</code></td>
+<td>
+<p>An array created by the localize() function containing the power values.
+Created by setting keep.SearchMap = TRUE when running the localize() function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NodeInfo</code></td>
+<td>
+<p>A list with two elements. First element Num is numeric, specifying the number of
+microphones used for localization. Second element Pos is a matrix of coordinates with column names
+Easting, Northing and Elevation, and row names corresponding to the Station (i.e. location) names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location</code></td>
+<td>
+<p>Data frame. The location estimate of the sound source. Four columns: Easting, Northing,
+Elevation, Power. Data frame should only contain one row.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mar</code></td>
+<td>
+<p>Numeric vector with four elements. Passed to <code>oce::imagep()</code> for plotting.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>No return value.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">    
+    #Get filepaths for example data.
+    fp &lt;- list.files(system.file('extdata', package = 'locaR'), pattern = '.mp3', full.names = TRUE)
+    #Add names.
+    names(fp) &lt;- sapply(strsplit(basename(fp), '_'), '[[', 1)
+    #Load first row of detection data.
+    row &lt;- read.csv(system.file('extdata',
+         'Vignette_Detections_20200617_090000.csv', package = 'locaR'),
+          stringsAsFactors = FALSE)[1,]
+    #Get non-empty Station columns.
+    stationSubset &lt;- unlist(row[1,paste0('Station',1:6)])
+    stationSubset &lt;- stationSubset[!is.na(stationSubset) &amp; stationSubset != '']
+    #Create wav list.
+    wl &lt;- createWavList(paths = fp[stationSubset], names = stationSubset,
+           from = row$From, to = row$To, buffer = 0.2, index=1)
+    #Read coordinates.
+    coordinates &lt;- read.csv(system.file('extdata',
+                            'Vignette_Coordinates.csv', package = 'locaR'),
+                             stringsAsFactors = FALSE)
+    row.names(coordinates) &lt;- coordinates$Station
+    #Subset coordinates.
+    crd &lt;- coordinates[stationSubset,]
+    #Localize.
+    loc &lt;- localize(wavList = wl, coordinates = crd, locFolder = tempdir(),
+               F_Low = row$F_Low, F_High = row$F_High,
+               jpegName = '0001.jpeg', keep.SearchMap = TRUE)
+    #Convert crd (coordinates) to matrix called NodePos.
+    NodePos &lt;- as.matrix(crd[,c('Easting', 'Northing', 'Elevation')])
+    colnames(NodePos) &lt;- c('Easting', 'Northing', 'Elevation')
+    row.names(NodePos) &lt;- crd$Station
+    #Plot heatmap with locHeatmap().
+    locHeatmap(SearchMap = loc$SearchMap, SMap = loc$SMap,
+                NodeInfo = list(Num = 5, Pos = NodePos), location = loc$location,
+                mar = c(0,0,0,0))
+    
+</code></pre>
+
+
+</div>

@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Treee</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classification trees with Linear Discriminant Analysis terminal nodes</h2>
+
+<h3>Description</h3>
+
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a> Fit an LDATree model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Treee(
+  formula,
+  data,
+  missingMethod = c("meanFlag", "newLevel"),
+  splitMethod = "LDscores",
+  pruneMethod = "none",
+  numberOfPruning = 10,
+  maxTreeLevel = 4,
+  minNodeSize = NULL,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of class formula, which has the form <code>class ~ x1 + x2 + ...</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame that contains both predictors and the response.
+Missing values are allowed in predictors but not in the response.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missingMethod</code></td>
+<td>
+<p>Missing value solutions for numerical variables and
+factor variables. <code>'mean'</code>, <code>'median'</code>, <code>'meanFlag'</code>, <code>'medianFlag'</code> are
+available for numerical variables. <code>'mode'</code>, <code>'modeFlag'</code>, <code>'newLevel'</code> are
+available for factor variables. The word <code>'Flag'</code> in the methods indicates
+whether a missing flag is added or not. The <code>'newLevel'</code> method means that
+all missing values are replaced with a new level rather than imputing them
+to another existing value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>splitMethod</code></td>
+<td>
+<p>the splitting rule in LDATree growing process. For now,
+<code>'LDscores'</code> is the only available option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pruneMethod</code></td>
+<td>
+<p>the model selection method in the LDATree growing process,
+which controls the size of the tree. By default, it's set to <code>'none'</code>,
+which applies a direct stopping rule. Alternatively, <code>'CV'</code> uses the
+alpha-pruning process from CART. Although <code>'CV'</code> is often more accurate, it
+can be slower, especially with large datasets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numberOfPruning</code></td>
+<td>
+<p>controls the number of cross-validation in the
+pruning. It is 10 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxTreeLevel</code></td>
+<td>
+<p>controls the largest tree size possible for either a
+direct-stopping tree or a CV-pruned tree. Adding one extra level (depth)
+introduces an additional layer of nodes at the bottom of the current tree.
+e.g., when the maximum level is 1 (or 2), the maximum tree size is 3 (or
+7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minNodeSize</code></td>
+<td>
+<p>controls the minimum node size. Think carefully before
+changing this value. Setting a large number might result in early stopping
+and reduced accuracy. By default, it's set to one plus the number of
+classes in the response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>a logical. If TRUE, the function provides additional
+diagnostic messages or detailed output about its progress or internal
+workings. Default is FALSE, where the function runs silently without
+additional output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Unlike other classification trees, LDATree integrates LDA throughout the
+entire tree-growing process. Here is a breakdown of its distinctive features:
+</p>
+
+<ul>
+<li>
+<p> The tree searches for the best binary split based on sample quantiles of the first linear discriminant score.
+</p>
+</li>
+<li>
+<p> An LDA/GSVD model is fitted for each terminal node (For more details, refer to <code>ldaGSVD()</code>).
+</p>
+</li>
+<li>
+<p> Missing values can be imputed using the mean, median, or mode, with optional missing flags available.
+</p>
+</li>
+<li>
+<p> By default, the tree employs a direct-stopping rule. However, cross-validation using the alpha-pruning from CART is also provided.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of class <code>Treee</code> containing the following components:
+</p>
+
+<ul>
+<li> <p><code>formula</code>: the formula passed to the <code>Treee()</code>
+</p>
+</li>
+<li> <p><code>treee</code>: a list of all the tree nodes, and each node is an object of class <code>TreeeNode</code>.
+</p>
+</li>
+<li> <p><code>missingMethod</code>: the missingMethod passed to the <code>Treee()</code>
+</p>
+<p>An object of class <code>TreeeNode</code> containing the following components:
+</p>
+</li>
+<li> <p><code>currentIndex</code>: the node index of the current node
+</p>
+</li>
+<li> <p><code>currentLevel</code>: the level of the current node in the tree
+</p>
+</li>
+<li> <p><code>idxRow</code>, <code>idxCol</code>: the row and column indices showing which portion of data is used in the current node
+</p>
+</li>
+<li> <p><code>currentLoss</code>: the training error (number of misclassified sample) of the current node
+</p>
+</li>
+<li> <p><code>accuracy</code>: the training accuracy of the current node
+</p>
+</li>
+<li> <p><code>proportions</code>: shows the observed frequency for each class
+</p>
+</li>
+<li> <p><code>parent</code>: the node index of its parent
+</p>
+</li>
+<li> <p><code>children</code>: the node indices of its direct children (not including its children's children)
+</p>
+</li>
+<li> <p><code>misReference</code>: a data frame, serves as the reference for missing value imputation
+</p>
+</li>
+<li> <p><code>splitCut</code>: the cut point of the split
+</p>
+</li>
+<li> <p><code>nodeModel</code>: one of <code>'mode'</code> or <code>'LDA'</code>. It shows the type of predictive model fitted in the current node
+</p>
+</li>
+<li> <p><code>nodePredict</code>: the fitted predictive model in the current node. It is an object of class <code>ldaGSVD</code> if LDA is fitted. If <code>nodeModel = 'mode'</code>, then it is a vector of length one, showing the plurality class.
+</p>
+</li>
+<li> <p><code>offsprings</code>: (available only if <code>pruneMethod = 'CV'</code>) showing all terminal descendant nodes of the current node
+</p>
+</li>
+<li> <p><code>offspringLoss</code>: (available only if <code>pruneMethod = 'CV'</code>) sum of the <code>currentLoss</code> of the <code>offsprings</code> of the current node
+</p>
+</li>
+<li> <p><code>alpha</code>: (available only if <code>pruneMethod = 'CV'</code>) the alpha in alpha-pruning from CART
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">fit &lt;- Treee(Species~., data = iris)
+# Use cross-validation to prune the tree
+fitCV &lt;- Treee(Species~., data = iris, pruneMethod = "CV")
+# prediction
+predict(fit,iris)
+# plot the overall tree
+plot(fit)
+# plot a certain node
+plot(fit, iris, node = 1)
+</code></pre>
+
+
+</div>

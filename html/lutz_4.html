@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tz_lookup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lookup time zones of sf or sp points</h2>
+
+<h3>Description</h3>
+
+<p>There are two methods - <code>"fast"</code>, and <code>"accurate"</code>. The <code>"fast"</code> version can
+look up many thousands of points very quickly, however  when a point is near
+a time zone boundary and not near a populated centre, it may return the
+incorrect time zone. If accuracy is more important than speed, use
+<code>method = "accurate"</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tz_lookup(x, crs = NULL, method = "fast", warn = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>either an <code>sfc</code> or <code>sf</code> points or <code>SpatialPoints(DataFrame)</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crs</code></td>
+<td>
+<p>the coordinate reference system: integer with the EPSG code, or character with proj4string.
+If not specified (i.e., <code>NULL</code>) and <code>x</code> has no existing <code>crs</code>, EPSG: 4326 is assumed (lat/long).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method by which to do the lookup. Either <code>"fast"</code> (default)
+or <code>"accurate"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn</code></td>
+<td>
+<p>By default, if <code>method = "fast"</code> a warning is issued about
+the potential for inaccurate results. Set <code>warn</code> to <code>FALSE</code> to turn
+this off.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that there are some regions in the world where a single point can land in
+two different overlapping time zones. The <code>"accurate"</code> method includes these,
+and when they are encountered they are concatenated in a single string,
+separated by a semicolon.
+The data used in the <code>"fast"</code> method does not include overlapping time zones
+at this time.
+</p>
+
+
+<h3>Value</h3>
+
+<p>character vector the same length as <code>x</code> specifying the time zone of the points.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (require("sf")) {
+
+state_pts &lt;- lapply(seq_along(state.center$x), function(i) {
+  st_point(c(state.center$x[i], state.center$y[i]))
+})
+
+state_centers_sf &lt;- st_sf(st_sfc(state_pts))
+
+state_centers_sf$tz &lt;- tz_lookup(state_centers_sf)
+
+plot(state_centers_sf[, "tz"])
+}
+
+</code></pre>
+
+
+</div>

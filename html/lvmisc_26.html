@@ -1,0 +1,73 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compare_accuracy</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compare models accuracy</h2>
+
+<h3>Description</h3>
+
+<p>Computes some common model accuracy indices of several different models at
+once, allowing model comparison.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compare_accuracy(..., rank_by = NULL, quiet = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>A list of models. The models can be of the same or of different
+classes, including <code>lvmisc_cv</code> class.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank_by</code></td>
+<td>
+<p>A character string with the name of an accuracy index to rank
+the models by.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>A logical indicating whether or not to show any warnings. If
+<code>FALSE</code> (the default) no warnings are shown.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with a model per row and an index per column.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">m1 &lt;- lm(Sepal.Length ~ Species, data = iris)
+m2 &lt;- lm(Sepal.Length ~ Species + Petal.Length, data = iris)
+m3 &lt;- lm(Sepal.Length ~ Species * Petal.Length, data = iris)
+compare_accuracy(m1, m2, m3)
+
+if (require(lme4, quietly = TRUE)) {
+  mtcars &lt;- tibble::as_tibble(mtcars, rownames = "cars")
+  m1 &lt;- lm(Sepal.Length ~ Species, data = iris)
+  m2 &lt;- lmer(
+    Sepal.Length ~ Sepal.Width + Petal.Length + (1 | Species), data = iris
+  )
+  m3 &lt;- lm(disp ~ mpg * hp, mtcars)
+  cv3 &lt;- loo_cv(m3, mtcars, cars)
+  compare_accuracy(m1, m2, cv3, rank_by = "AIC")
+}
+</code></pre>
+
+
+</div>

@@ -1,0 +1,551 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute linear regression-implied weights</h2>
+
+<h3>Description</h3>
+
+<p>Computes the weights implied by a linear outcome regression model that would
+estimate a weighted difference in outcome means equal to the
+covariate-adjusted treatment effect resulting from the supplied regression
+model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmw(
+  formula,
+  data = NULL,
+  estimand = "ATE",
+  method = "URI",
+  treat = NULL,
+  base.weights = NULL,
+  s.weights = NULL,
+  dr.method = "WLS",
+  obj = NULL,
+  fixef = NULL,
+  target = NULL,
+  target.weights = NULL,
+  contrast = NULL,
+  focal = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a one-sided formula with the treatment and covariates on the
+right-hand side corresponding to the outcome regression model to be fit. The
+outcome variable is not involved in computing the weights and does not need
+to be specified. See Details for how this formula is interpreted in light of
+other options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the variables named in <code>formula</code>
+and <code>treat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimand</code></td>
+<td>
+<p>the estimand of interest, which determines how covariates
+are centered. Should be one of <code>"ATE"</code> for the average treatment
+effect, <code>"ATT"</code> for the average treatment effect in the treated,
+<code>"ATC"</code> for the average treatment effect in the control, or
+<code>"CATE"</code> for the conditional average treatment effect. When
+<code>estimand = "CATE"</code>, an argument to <code>target</code> must be supplied.
+This argument also affects what <code>summary.lmw()</code> considers to be
+the target population. Default is <code>"ATE"</code> unless <code>obj</code> is
+specified, in which case it takes its value from the supplied object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method used to estimate the weights; either <code>"URI"</code>
+(the default) for uni-regression imputation weights, where a single model is
+fit to the whole dataset, or <code>"MRI"</code> for multi-regression imputation,
+where the model is fit separately in the treatment groups. This affects the
+interpretation of <code>formula</code>. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>the name of the treatment variable in <code>data</code>. If
+unspecified, the first variable present in <code>formula</code> will be taken as
+the treatment variable with a message. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.weights</code></td>
+<td>
+<p>a vector of base weights. See Details. If omitted and
+<code>obj</code> is specified, the weights from the supplied object will be used.
+Can be supplied as a numeric vector, a string containing the name of the
+variable in <code>data</code> containing the base weights, or the unquoted name of
+the variable in <code>data</code> containing the base weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s.weights</code></td>
+<td>
+<p>a vector of sampling weights. See Details. If omitted and
+<code>obj</code> is specified, the sampling weights from the supplied object will
+be used. Can be supplied as a numeric vector, a string containing the name
+of the variable in <code>data</code> containing the sampling weights, or the
+unquoted name of the variable in <code>data</code> containing the sampling
+weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dr.method</code></td>
+<td>
+<p>the method used to incorporate the <code>base.weights</code> into
+a doubly-robust estimator. Can be one of <code>"WLS"</code> for weighted least
+squares (<code>"IPWRA"</code> is an allowable alias) or <code>"AIPW"</code> for augmented inverse probability weighting.
+Ignored when <code>base.weights</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>a <code>matchit</code> or <code>weightit</code> object corresponding to the
+matched or weighted sample in which the implied outcome regression would
+take place. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixef</code></td>
+<td>
+<p>optional; a string or one-sided formula containing the name of
+the fixed effects variable in <code>data</code>. See Details. Cannot be used with
+<code>dr.method = "AIPW"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>a list or data frame containing the target values for each
+covariate included in <code>formula</code>. Ignored with a warning when
+<code>estimand</code> is not <code>"CATE"</code>. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target.weights</code></td>
+<td>
+<p>a vector of sampling weights to be applied to
+<code>target</code> when supplied as a data frame. Ignored with a warning when
+<code>estimand</code> is not <code>"CATE"</code>. See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrast</code></td>
+<td>
+<p>for multi-category treatments with <code>method = "URI"</code>, a
+vector containing the names or indices of the two treatment levels to be
+contrasted (since in this case the weights depend on the specific contrast).
+See Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>focal</code></td>
+<td>
+<p>the level of the treatment variable to be considered "focal"
+(i.e., the "treated" level when <code>estimand = "ATT"</code> or the control level
+when <code>estimand = "ATC"</code>). Ignored when <code>estimand</code> is <code>"ATE"</code>
+or <code>"CATE"</code>. Otherwise, if unspecified, the second value of
+<code>contrast</code> will be considered focal when <code>estimand = "ATT"</code> and
+the first value of <code>contrast</code> will be considered focal when
+<code>estimand = "ATC"</code>. For binary treatments, this generally does not need
+to be supplied. See Details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>formula</code> is interpreted differently depending on whether <code>method</code>
+is <code>"URI"</code> or <code>"MRI"</code>. When <code>method = "URI"</code>, the formula is
+taken literally as the right-hand side of the outcome model formula. The
+only difference is that the covariates will be centered based on the
+argument to <code>estimand</code> (see below). When <code>method = "MRI"</code>, all
+references to the treatment are removed (i.e., covariate interactions with
+treatment become covariate main effects if not already present), and the new
+formula is taken as the right-hand side of the model formula fit within each
+treatment group. This is equivalent to allowing all covariates to have both
+main effects and interactions with treatment after centering the covariates
+based on the argument to <code>estimand</code>. Allowing the treatment to interact
+with all covariates with <code>method = "URI"</code> is equivalent to specifying
+<code>method = "MRI"</code>, and, for binary treatments, the returned weights will
+be the same when <code>fixef = NULL</code>.
+</p>
+<p>When any treatment-by-covariate interactions are present in <code>formula</code>
+or when <code>method = "MRI"</code>, covariates are centered at specific values to
+ensure the resulting weights correspond to the desired estimand as supplied
+to the <code>estimand</code> argument. For the ATE, the covariates are centered at
+their means in the full sample. For the ATT and ATC, the covariates are
+centered at their means in the treatment or control group (i.e., the
+<code>focal</code> group), respectively. For the CATE, the covariates are centered
+according to the argument supplied to <code>target</code> (see below). Note that
+when covariate-by-covariate interactions are present, they will be centered
+after computing the interaction rather than the interaction being computed
+on the centered covariates unless <code>estimand = "CATE"</code>, in which case
+the covariates will be centered at the values specified in <code>target</code>
+prior to involvement in interactions.
+</p>
+
+
+<h4>Estimating a CATE</h4>
+
+<p>When <code>estimand = "CATE"</code>, <code>target</code> can be supplied either as a
+single target profile (i.e., a list or a data frame with one row) or as a
+target dataset, potentially with its own sampling weights, which are
+supplied to <code>target.weights</code>. The variables included in <code>target</code>
+must correspond to all the named <em>covariates</em> in <code>formula</code>; for
+example, if <code>formula = ~ X1 + log(X1) + X2 + X1:X2</code>, values in
+<code>target</code> must be given for <code>X1</code> and <code>X2</code>, but not
+<code>log(X1)</code> or <code>X1:X2</code>. To choose a target profile value for a
+factor corresponding to a proportion (e.g., a target value of .5 for a
+variable like <code>sex</code> indicating a target population with a 50-50 sex
+split), the factor variable must be split into a numeric variable
+beforehand, e.g., using <code>model.matrix()</code> or
+<code>cobalt::splitfactor()</code>. <code>target</code> values cannot be given to
+variables specified using <code>$</code>, <code style="white-space: pre;">⁠[[]]⁠</code>, or <code style="white-space: pre;">⁠[]⁠</code> (e.g.,
+<code>data$X1</code>), so an error will be thrown if they are used in
+<code>formula</code>. When a target dataset is supplied, covariates will be
+centered at their means in the (<code>target.weights</code>-weighted) target
+dataset.
+</p>
+
+
+
+<h4>Base weights and sampling weights</h4>
+
+<p>Base weights (<code>base.weights</code>) and sampling weights (<code>s.weights</code>)
+are similar in that they both involve combining weights with an outcome
+regression model. However, they differ in a few ways. Sampling weights are
+primarily used to adjust the target population; when the outcome model is
+fit, it is fit using weighted least squares, and when target balance is
+assessed, it is assessed using the sampling weighted population as the
+target population. Centering of covariates in the outcome model is done
+using the sampling weighted covariate means. Base weights are primarily used
+to offer a second level of balancing beyond the implied regression weights;
+they can be incorporated into the effect estimate either using weighted
+least squares or using the augmented inverse probability weighting (AIPW)
+estimator. Base weights do not change the target population, so when target
+balance is assessed, it is assessed using the unweighted population as the
+target population.
+</p>
+<p>Some forms of weights both change the target population and provide an extra
+layer of balancing, like propensity score weights that target estimands
+other than the ATT, ATC, or ATE (e.g., overlap weights), or matching weights
+where the target population is defined by the matching (e.g., matching with
+a caliper, cardinality matching, or coarsened exact matching). Because these
+weights change the target population, they should be supplied to
+<code>s.weights</code> to ensure covariates are appropriately centered. When there
+are no treatment-by-covariate interactions and <code>method = "URI"</code>,
+whether weights are supplied to <code>base.weights</code> or <code>s.weights</code> will
+not matter for the estimation of the weights but will affect the target
+population in balance assessment.
+</p>
+<p>When both <code>base.weights</code> and <code>s.weights</code> are supplied, e.g., when
+the base weights are the result of a propensity score model fit with
+sampling weights, it is assumed the base weights do not incorporate the
+sampling weights; that is, it is assumed that to estimate a treatment effect
+<em>without</em> regression adjustment, the base weights and the sampling
+weights would have to be multiplied together. This is true, for example, for
+the weights in a <code>matchit</code> or <code>weightit</code> object (see below) but
+not for weights in the output of <code>MatchIt::match.data()</code> unless called
+with <code>include.s.weights = FALSE</code> or weights resulting from
+<code>CBPS::CBPS()</code>.
+</p>
+
+
+
+<h4>Regression after using <span class="pkg">MatchIt</span> or <span class="pkg">WeightIt</span>
+</h4>
+
+<p>Regression weights can be computed in a matched or weighted sample by
+supplying a <code>matchit</code> or <code>weightit</code> object (from <span class="pkg">MatchIt</span> or
+<span class="pkg">WeightIt</span>, respectively) to the <code>obj</code> argument of <code>lmw()</code>.
+The estimand, focal group (if any), base weights, and sampling weights (if any) will be taken from
+the supplied object and used in the calculation of the implied regression
+weights, unless these have been supplied separately to <code>lmw()</code>. The
+<code>weights</code> component of the supplied object containing the matching or
+balancing weights will be passed to <code>base.weights</code> and the
+<code>s.weights</code> component will be passed to <code>s.weights</code>. Arguments
+supplied to <code>lmw()</code> will take precedence over the corresponding
+components in the <code>obj</code> object.
+</p>
+
+
+
+<h4>Multi-category treatments</h4>
+
+<p>There are a few differences when the
+treatment has multiple (i.e., more than 2) categories. If <code>estimand</code> is
+<code>"ATT"</code> or <code>"ATC"</code>, an argument should be supplied to <code>focal</code>
+identifying which group is the treated or control (i.e., "focal") group,
+respectively.
+</p>
+<p>The key difference, though, is when <code>method = "URI"</code>, because in this
+case the contrast between each pair of treatment groups has its own weights
+and its own implied target population. Because <code>lmw()</code> only produces
+one set of weights, an argument must be supplied to <code>contrast</code>
+identifying which groups are to be used as the contrast for computing the
+weights. In addition, to compute the treatment effect corresponding to the
+chosen contrast as a weighted difference in outcome means, the difference
+must be taken between the weighted mean of the non-reference group and the
+weighted mean of <em>all other groups combined</em>, rather than simply the
+weighted mean of the reference group.
+</p>
+<p>The implication of this is that contrast statistics computed in the weighted
+sample involve all units, even those not in the contrasted groups, whereas
+statistics computed in the unweighted sample only involve units in the
+contrasted groups. See <code>summary.lmw()</code> for more information on
+assessing balance using the regression weights for multi-category
+treatments. Given these complications, it is generally best to use
+<code>method = "MRI"</code> with multi-category treatments.
+</p>
+
+
+
+<h4>Fixed effects</h4>
+
+<p>A fixed effects variable can be supplied to the
+<code>fixef</code> argument. This is equivalent to adding the fixed effects
+variable as a predictor that does not interact with the treatment or any
+other covariate. The difference is that computation is much faster when the
+fixed effect has many levels because demeaning is used rather than including
+the fixed effect variable as a collection of dummy variables. When using
+URI, the weights will be the same regardless of whether the fixed effect
+variable is included as a covariate or supplied to <code>fixef</code>; when using
+MRI, results will differ because the fixed effect variable does not interact
+with treatment. The fixed effects variable will not appear in the
+<code>summary.lmw()</code> output (but can be added using <code>addlvariables</code>
+argument) or in the model output of <code>lmw_est()</code> or
+<code>summary.lmw_est()</code>. Because it does not interact with the
+treatment, the distribution of the fixed effect variable may not correspond
+to the target population, so caution should be used if it is expected the
+treatment effect varies across levels of this variable (in which case it
+should be included as a predictor). Currently only one fixed effect variable
+is allowed.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An <code>lmw</code> object, which contains the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>the treatment variable, given as a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>the
+computed implied regression weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covs</code></td>
+<td>
+<p>a data frame containing
+the covariates included the model formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimand</code></td>
+<td>
+<p>the requested
+estimand.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method used to estimate the weights
+(<code>"URI"</code> or <code>"MRI"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base.weights</code></td>
+<td>
+<p>the weights supplied to
+<code>base.weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s.weights</code></td>
+<td>
+<p>the weights supplied to
+<code>s.weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dr.method</code></td>
+<td>
+<p>when <code>base.weights</code> are supplied,
+the method for computing the doubly-robust weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the
+original call to <code>lmw()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixef</code></td>
+<td>
+<p>the fixed effects variable if
+supplied to <code>fixef</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>the model formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>the supplied target profile or dataset when <code>estimand = "CATE"</code>,
+after some initial processing. The <code>"target.weights"</code>
+attribute contains the <code>target.weights</code> if supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrast</code></td>
+<td>
+<p>the contrasted treatment groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>focal</code></td>
+<td>
+<p>the focal
+treatment level when <code>estimand</code> is <code>"ATT"</code> or <code>"ATC"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Chattopadhyay, A., &amp; Zubizarreta, J. R. (2023). On the implied weights of linear regression for causal inference. <em>Biometrika</em>, 110(3), 615–629. <a href="https://doi.org/10.1093/biomet/asac058">doi:10.1093/biomet/asac058</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.lmw()</code> for summarizing balance and
+representativeness; <code>plot.lmw()</code> for plotting features of the
+weights; <code>lmw_est()</code> for estimating treatment effects from
+<code>lmw</code> objects; <code>influence.lmw()</code> for influence measures;
+<code>lm()</code> for fitting standard regression models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("lalonde")
+
+# URI regression for ATT
+lmw.out1 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "ATT", method = "URI",
+                treat = "treat")
+lmw.out1
+summary(lmw.out1)
+
+# MRI regression for ATT
+lmw.out2 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "ATT", method = "MRI",
+                treat = "treat")
+lmw.out2
+summary(lmw.out2)
+
+
+# MRI regression for ATT after propensity score matching
+m.out &lt;- MatchIt::matchit(treat ~ age + education + race +
+                            married + nodegree + re74 + re75,
+                          data = lalonde, method = "nearest",
+                          estimand = "ATT")
+lmw.out3 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                method = "MRI", treat = "treat", obj = m.out)
+lmw.out3
+summary(lmw.out3)
+
+# MRI regression for CATE with given target profile
+target.prof &lt;- list(age = 25, education = 11, race = "black",
+                    married = 0, nodegree = 1, re74 = 0,
+                    re75 = 0)
+lmw.out4 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "CATE", method = "MRI",
+                treat = "treat", target = target.prof)
+lmw.out4
+summary(lmw.out4)
+
+# MRI regression for CATE with given target dataset (in
+# this case, will give the same as with estimand = "ATT")
+target.data &lt;- subset(lalonde, treat == 1)
+lmw.out4 &lt;- lmw(~ treat + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "CATE", method = "MRI",
+                treat = "treat", target = target.data)
+lmw.out4
+summary(lmw.out4)
+
+# URI regression with fixed effects for 'race'
+lmw.out5 &lt;- lmw(~ treat + age + education + married +
+                  nodegree + re74 + re75, data = lalonde,
+                method = "URI", treat = "treat",
+                fixef = ~race)
+lmw.out5
+
+# Produces the same weights as when included as a covariate
+all.equal(lmw.out1$weights, lmw.out5$weights)
+
+# MRI for a multi-category treatment, ATT with 1 as the focal
+# group
+lmw.out6 &lt;- lmw(~ treat_multi + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "ATT", method = "MRI",
+                treat = "treat_multi", focal = "1")
+lmw.out6
+summary(lmw.out6)
+
+# URI for a multi-category treatment; need to specify
+# contrast because only two groups can be compared at
+# a time
+lmw.out7 &lt;- lmw(~ treat_multi + age + education + race + married +
+                  nodegree + re74 + re75, data = lalonde,
+                estimand = "ATE", method = "URI",
+                treat = "treat_multi", contrast = c("2", "3"))
+lmw.out7
+summary(lmw.out7)
+
+</code></pre>
+
+
+</div>

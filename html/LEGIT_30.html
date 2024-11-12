@@ -1,0 +1,212 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>r1nes_var_select</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parallel natural evolutionary variable selection assuming multivariate normal search distribution with a simple covariance matrix parametrization (for IMLEGIT)</h2>
+
+<h3>Description</h3>
+
+<p>[Slow, highly recommended when the number of variables is large] Use natural evolution strategy (nes) gradient descent ran in parallel to find the best subset of variables. It is often as good as genetic algorithms but much faster so it is the recommended variable selection function to use as default. This is slower than nes_var_select but much less likely to get stuck into local optimum so the parallelization is not really needed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">r1nes_var_select(
+  data,
+  formula,
+  parallel_iter = 3,
+  alpha = c(1, 5, 10),
+  entropy_threshold = 0.05,
+  popsize = 25,
+  lr = 0.2,
+  prop_ignored = 0.5,
+  latent_var = NULL,
+  search_criterion = "AICc",
+  n_cluster = 3,
+  eps = 0.01,
+  maxiter = 100,
+  family = gaussian,
+  ylim = NULL,
+  seed = NULL,
+  progress = TRUE,
+  cv_iter = 5,
+  cv_folds = 5,
+  folds = NULL,
+  Huber_p = 1.345,
+  classification = FALSE,
+  print = FALSE,
+  test_only = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model formula. The names of <code>latent_var</code> can be used in the formula to represent the latent variables. If names(<code>latent_var</code>) is NULL, then L1, L2, ... can be used in the formula to represent the latent variables. Do not manually code interactions, write them in the formula instead (ex: G*E1*E2 or G:E1:E2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel_iter</code></td>
+<td>
+<p>number of parallel tries (Default = 3). For speed, I recommend using the number of CPU cores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>vector of the parameter for the Dirichlet distribution of the starting points (Assuming a symmetric Dirichlet distribution with only one parameter). If the vector has size N and parralel_iter=K, we use alpha[1], ..., alpha[N], alpha[1], ... , alpha[N], ... for parallel_iter 1 to K respectively. We assume a dirichlet distribution for the starting points to get a bit more variability and make sure we are not missing on a great subset of variable that doesn't converge to the global optimum with the default starting points. Use bigger values for less variability and lower values for more variability (Default = c(1,5,10)).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>entropy_threshold</code></td>
+<td>
+<p>Entropy threshold for convergence of the population (Default = .10). The smaller the entropy is, the less diversity there is in the population, which means convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popsize</code></td>
+<td>
+<p>Size of the population, the number of subsets of variables sampled at each iteration (Default = 25). Between 25 and 100 is generally adequate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lr</code></td>
+<td>
+<p>learning rate of the gradient descent, higher will converge faster but more likely to get stuck in local optium (Default = .2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prop_ignored</code></td>
+<td>
+<p>The proportion of the population that are given a fixed fitness value, thus their importance is greatly reduce. The higher it is, the longer it takes to converge. Highers values makes the algorithm focus more on favorizing the good subsets of variables than penalizing the bad subsets (Default = .50).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latent_var</code></td>
+<td>
+<p>list of data.frame. The elements of the list are the datasets used to construct each latent variable. For interpretability and proper convergence, not using the same variable in more than one latent variable is highly recommended. It is recommended to set names to the list elements to prevent confusion because otherwise, the latent variables will be named L1, L2, ...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>search_criterion</code></td>
+<td>
+<p>Criterion used to determine which variable subset is the best. If <code>search_criterion="AIC"</code>, uses the AIC, if <code>search_criterion="AICc"</code>, uses the AICc, if <code>search_criterion="BIC"</code>, uses the BIC, if <code>search_criterion="cv"</code>, uses the cross-validation error, if <br><code>search_criterion="cv_AUC"</code>, uses the cross-validated AUC, if <code>search_criterion="cv_Huber"</code>, uses the Huber cross-validation error, if <code>search_criterion="cv_L1"</code>, uses the L1-norm cross-validation error (Default = "AIC"). The Huber and L1-norm cross-validation errors are alternatives to the usual cross-validation L2-norm error (which the <code class="reqn">R^2</code> is based on) that are more resistant to outliers, the lower the values the better.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_cluster</code></td>
+<td>
+<p>Number of parallel clusters, I recommend using the number of CPU cores (Default = 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results). Note that using .001 rather than .01 (default) can more than double or triple the computing time of genetic_var_select.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Outcome distribution and link function (Default = gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Optional seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>progress</code></td>
+<td>
+<p>If TRUE, shows the progress done (Default=TRUE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_iter</code></td>
+<td>
+<p>Number of cross-validation iterations (Default = 5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_folds</code></td>
+<td>
+<p>Number of cross-validation folds (Default = 10). Using <code>cv_folds=NROW(data)</code> will lead to leave-one-out cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Optional list of vectors containing the fold number for each observation. Bypass cv_iter and cv_folds. Setting your own folds could be important for certain data types like time series or longitudinal data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Huber_p</code></td>
+<td>
+<p>Parameter controlling the Huber cross-validation error (Default = 1.345).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classification</code></td>
+<td>
+<p>Set to TRUE if you are doing classification and cross-validation (binary outcome).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+<p>If TRUE, print the parameters of the search distribution and the entropy at each iteration. Note: Only works using Rterm.exe in Windows due to parallel clusters. (Default = FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_only</code></td>
+<td>
+<p>If TRUE, only uses the first fold for training and predict the others folds; do not train on the other folds. So instead of cross-validation, this gives you train/test and you get the test R-squared as output.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing the best subset's fit, cross-validation output, latent variables and starting points.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+## Example
+train = example_3way_3latent(250, 2, seed=777)
+nes = r1nes_var_select(train$data, latent_var=train$latent_var,
+formula=y ~ E*G*Z)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

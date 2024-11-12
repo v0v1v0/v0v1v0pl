@@ -1,0 +1,964 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Logger</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Loggers</h2>
+
+<h3>Description</h3>
+
+<p>A Logger produces a LogEvent that contains a log message along with
+metadata (timestamp, calling function, ...) and dispatches it to one or
+more Appenders which are responsible for the output (console, file, ...)
+of the event. <strong>lgr</strong> comes with a single pre-configured Logger called the
+<code style="white-space: pre;">⁠root Logger⁠</code> that can be accessed via <code style="white-space: pre;">⁠lgr$&lt;...&gt;⁠</code>. Instantiation of new
+Loggers is done with <code>get_logger()</code>. It is advisable to instantiate a
+separate Logger with a descriptive name for each package/script in which
+you use <span class="pkg">lgr</span>.
+</p>
+
+
+<h3>Super class</h3>
+
+<p><code>lgr::Filterable</code> -&gt; <code>Logger</code>
+</p>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p>A <code>character</code> scalar. The unique name of each logger,
+which also includes the names of its ancestors (separated by <code>/</code>).</p>
+</dd>
+<dt><code>threshold</code></dt>
+<dd>
+<p><code>integer</code> scalar. The threshold of the <code>Logger</code>, or if it
+<code>NULL</code> the threshold it inherits from its closest ancestor with a
+non-<code>NULL</code> threshold</p>
+</dd>
+<dt><code>propagate</code></dt>
+<dd>
+<p>A <code>TRUE</code> or <code>FALSE</code>. The unique name of each logger,
+which also includes the names of its ancestors (separated by <code>/</code>).</p>
+</dd>
+<dt><code>ancestry</code></dt>
+<dd>
+<p>A named <code>logical</code> vector of containing the propagate value
+of each Logger upper the inheritance tree. The names are the names of
+the appenders. <code>ancestry</code> is an S3 class with a custom
+<code>format()</code>/<code>print()</code> method, so if you want to use the plain logical
+vector use <code>unclass(lg$ancestry)</code></p>
+</dd>
+<dt><code>parent</code></dt>
+<dd>
+<p>a <code>Logger</code>. The direct ancestor of the <code>Logger</code>.</p>
+</dd>
+<dt><code>last_event</code></dt>
+<dd>
+<p>The last LogEvent produced by the current Logger</p>
+</dd>
+<dt><code>appenders</code></dt>
+<dd>
+<p>a <code>list</code> of all Appenders of the Logger</p>
+</dd>
+<dt><code>inherited_appenders</code></dt>
+<dd>
+<p>A <code>list</code> of all appenders that the Logger
+inherits from its ancestors</p>
+</dd>
+<dt><code>exception_handler</code></dt>
+<dd>
+<p>a <code>function</code>. See <code style="white-space: pre;">⁠$set_exception_handler⁠</code> and
+<code style="white-space: pre;">⁠$handle_exception⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-Logger-new"><code>Logger$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-log"><code>Logger$log()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-fatal"><code>Logger$fatal()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-error"><code>Logger$error()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-warn"><code>Logger$warn()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-info"><code>Logger$info()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-debug"><code>Logger$debug()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-trace"><code>Logger$trace()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-list_log"><code>Logger$list_log()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-config"><code>Logger$config()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-add_appender"><code>Logger$add_appender()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-remove_appender"><code>Logger$remove_appender()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-handle_exception"><code>Logger$handle_exception()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-set_exception_handler"><code>Logger$set_exception_handler()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-set_propagate"><code>Logger$set_propagate()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-set_threshold"><code>Logger$set_threshold()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-set_appenders"><code>Logger$set_appenders()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-Logger-spawn"><code>Logger$spawn()</code></a>
+</p>
+</li>
+</ul>
+<details open><summary>Inherited methods</summary><ul>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="add_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-add_filter"><code>lgr::Filterable$add_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="../../lgr/html/Filterable.html#method-Filterable-filter"><code>lgr::Filterable$filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="../../lgr/html/Filterable.html#method-Filterable-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
+</ul></details><hr>
+<a id="method-Logger-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p><strong>Loggers should never be instantiated directly with <code>Logger$new()</code></strong> but
+rather via <code>get_logger("name")</code>. This way new Loggers are
+registered in a global namespace which ensures uniqueness and
+facilitates inheritance between Loggers. If <code>"name"</code> does not exist, a
+new Logger with that name will be created, otherwise the function returns
+a Reference to the existing Logger.
+</p>
+<p><code>name</code> is potentially a <code>"/"</code> separated hierarchical value like
+<code>foo/bar/baz</code>. Loggers further down the hierarchy are descendants of the
+loggers above and (by default) inherit <code>threshold</code> and <code>Appenders</code> from
+their ancestors.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$new(
+  name = "(unnamed logger)",
+  appenders = list(),
+  threshold = NULL,
+  filters = list(),
+  exception_handler = default_exception_handler,
+  propagate = TRUE
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name, appenders, threshold, filters, exception_handler, propagate</code></dt>
+<dd>
+<p>See section Active bindings.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-log"></a>
+
+
+
+<h4>Method <code>log()</code>
+</h4>
+
+<p>Log an event.
+</p>
+<p>If <code>level</code> passes the Logger's <code>threshold</code> a new LogEvent with <code>level</code>,
+<code>msg</code>, <code>timestamp</code> and <code>caller</code> is created.  If the new LogEvent also
+passes the Loggers Filters, it is be dispatched to the
+relevant Appenders.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$log(level, msg, ..., timestamp = Sys.time(), caller = get_caller(-7))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>level</code></dt>
+<dd>
+<p>a <code>character</code> or <code>integer</code> scalar. See log_levels.</p>
+</dd>
+<dt><code>msg</code></dt>
+<dd>
+<p><code>character</code>. A log message. If unnamed arguments are supplied
+in <code>...</code>, <code>msg</code> is passed on to <code>base::sprintf()</code> (which means <code>"%"</code> have
+to be escaped), otherwise <code>msg</code> is left as-is.</p>
+</dd>
+<dt><code>...</code></dt>
+<dd>
+<p><em>unnamed</em> arguments in <code>...</code> must be <code>character</code> scalars and
+are passed to <code>base::sprintf()</code>. <em>Named</em> arguments must have unique names
+but can be arbitrary <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> objects that are passed to <code>LogEvent$new()</code> and
+will be turned into custom fields.</p>
+</dd>
+<dt><code>timestamp</code></dt>
+<dd>
+<p>POSIXct. Timestamp of the event.</p>
+</dd>
+<dt><code>caller</code></dt>
+<dd>
+<p>a <code>character</code> scalar. The name of the calling function.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-fatal"></a>
+
+
+
+<h4>Method <code>fatal()</code>
+</h4>
+
+<p>Log an Event fatal priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$fatal(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-error"></a>
+
+
+
+<h4>Method <code>error()</code>
+</h4>
+
+<p>Log an Event error priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$error(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-warn"></a>
+
+
+
+<h4>Method <code>warn()</code>
+</h4>
+
+<p>Log an Event warn priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$warn(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-info"></a>
+
+
+
+<h4>Method <code>info()</code>
+</h4>
+
+<p>Log an Event info priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$info(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-debug"></a>
+
+
+
+<h4>Method <code>debug()</code>
+</h4>
+
+<p>Log an Event debug priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$debug(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-trace"></a>
+
+
+
+<h4>Method <code>trace()</code>
+</h4>
+
+<p>Log an Event trace priority
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$trace(msg, ..., caller = get_caller(-8L))</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>msg, ..., caller</code></dt>
+<dd>
+<p>see <code style="white-space: pre;">⁠$log()⁠</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-list_log"></a>
+
+
+
+<h4>Method <code>list_log()</code>
+</h4>
+
+<p><code>list_log()</code> is a shortcut for <code>do.call(Logger$log, x)</code>.
+See <a href="https://github.com/s-fleck/joblog">https://github.com/s-fleck/joblog</a> for an R package that
+leverages this feature to create custom log event types for tracking
+the status of cron jobs.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$list_log(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>a named <code>list</code> that must at least contain the named elements
+<code>level</code> and <code>timestamp</code></p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>lg &lt;- get_logger("test")
+lg$list_log(list(level = 400, msg = "example"))
+</pre>
+</div>
+
+
+<hr>
+<a id="method-Logger-config"></a>
+
+
+
+<h4>Method <code>config()</code>
+</h4>
+
+<p>Load a Logger configuration.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$config(cfg, file, text, list)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>cfg</code></dt>
+<dd>
+<ul>
+<li>
+<p> a special <code>list</code> object with any or all of the the following elements:
+<code>appenders</code>, <code>threshold</code>, <code>filters</code>, <code>propagate</code>, <code>exception_handler</code>,
+</p>
+</li>
+<li>
+<p> the path to a <code>YAML</code>/<code>JSON</code> config file,
+</p>
+</li>
+<li>
+<p> a <code>character</code> scalar containing <code>YAML/JSON</code>,
+</p>
+</li>
+<li> <p><code>NULL</code> (to reset the logger config to the default/unconfigured state)
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>file, text, list</code></dt>
+<dd>
+<p>can be used as an alternative to
+<code>cfg</code> that  enforces that the  supplied  argument is of the specified
+type. See logger_config for details.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-add_appender"></a>
+
+
+
+<h4>Method <code>add_appender()</code>
+</h4>
+
+<p>Add an Appender to the Logger
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$add_appender(appender, name = NULL)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>appender</code></dt>
+<dd>
+<p>a single Appender</p>
+</dd>
+<dt><code>name</code></dt>
+<dd>
+<p>a <code>character</code> scalar. Optional but recommended.</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>lg &lt;- get_logger("test")
+lg$add_appender(AppenderConsole$new(), name = "myconsole")
+lg$appenders[[1]]
+lg$appenders$myconsole
+lg$remove_appender("myconsole")
+lg$config(NULL)  # reset config
+</pre>
+</div>
+
+
+<hr>
+<a id="method-Logger-remove_appender"></a>
+
+
+
+<h4>Method <code>remove_appender()</code>
+</h4>
+
+<p>remove an appender
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$remove_appender(pos)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>pos</code></dt>
+<dd>
+<p><code>integer</code> index or <code>character</code> name of the Appender(s) to
+remove</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-handle_exception"></a>
+
+
+
+<h4>Method <code>handle_exception()</code>
+</h4>
+
+<p>To prevent errors in the logging logic from crashing the whole script,
+Loggers pass errors they encounter to an exception handler. The default
+behaviour is to demote errors to warnings. See also
+<code>set_exception_handler()</code>.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$handle_exception(expr)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>expr</code></dt>
+<dd>
+<p>expression to be evaluated.</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-set_exception_handler"></a>
+
+
+
+<h4>Method <code>set_exception_handler()</code>
+</h4>
+
+<p>Set the exception handler of a logger
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$set_exception_handler(fun)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>fun</code></dt>
+<dd>
+<p>a <code>function</code> with the single argument <code>e</code> (an error condition)</p>
+</dd>
+</dl>
+</div>
+
+
+
+<h5>Examples</h5>
+
+<div class="r example copy">
+<pre>lgr$info(stop("this produces a warning instead of an error"))
+</pre>
+</div>
+
+
+<hr>
+<a id="method-Logger-set_propagate"></a>
+
+
+
+<h4>Method <code>set_propagate()</code>
+</h4>
+
+<p>Should a Logger propagate events to the Appenders of its ancestors?
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$set_propagate(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p><code>TRUE</code> or <code>FALSE</code>. Should LogEvents be passed on to the appenders
+of the ancestral Loggers?</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-set_threshold"></a>
+
+
+
+<h4>Method <code>set_threshold()</code>
+</h4>
+
+<p>Set the minimum log level of events that a Logger should process
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$set_threshold(level)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>level</code></dt>
+<dd>
+<p><code>character</code> or <code>integer</code> scalar. The minimum
+log level that triggers this Logger</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-set_appenders"></a>
+
+
+
+<h4>Method <code>set_appenders()</code>
+</h4>
+
+<p>Set the Logger's Appenders
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$set_appenders(x)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>x</code></dt>
+<dd>
+<p>single Appender or a <code>list</code> thereof. Appenders control the
+output of a Logger. Be aware that a Logger also inherits the Appenders
+of its ancestors (see <code>vignette("lgr", package = "lgr")</code> for more info
+about Logger inheritance).</p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-Logger-spawn"></a>
+
+
+
+<h4>Method <code>spawn()</code>
+</h4>
+
+<p>Spawn a child Logger.
+This is very similar to using <code>get_logger()</code>, but
+can be useful in some cases where Loggers are created programmatically
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>Logger$spawn(name)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>name</code></dt>
+<dd>
+<p><code>character</code> vector. Name of the child logger
+<code>get_logger("foo/bar")$spawn("baz")</code> is equivalent
+to <code>get_logger("foo/bar/baz")</code></p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>Note</h3>
+
+<p>If you are a package developer you should define a new Logger for each
+package, but you do not need to configure it. The user of the package
+should decide how and where to output logging, usually by configuring the
+root Logger (new Appenders added/removed, Layouts modified, etc...).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><a href="https://glue.tidyverse.org/">glue</a>
+</p>
+<p><code>get_logger()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># lgr::lgr is the root logger that is always available
+lgr$info("Today is a good day")
+lgr$fatal("This is a serious error")
+
+# Loggers use sprintf() for string formatting by default
+lgr$info("Today is %s", Sys.Date() )
+
+# If no unnamed `...` are present, msg is not passed through sprintf()
+lgr$fatal("100% bad")  # so this works
+lgr$fatal("%s%% bad", 100)  # if you use unnamed arguments, you must escape %
+
+# You can create new loggers with get_logger()
+tf &lt;- tempfile()
+lg &lt;- get_logger("mylogger")$set_appenders(AppenderFile$new(tf))
+
+# The new logger passes the log message on to the appenders of its parent
+# logger, which is by default the root logger. This is why the following
+# writes not only the file 'tf', but also to the console.
+lg$fatal("blubb")
+readLines(tf)
+
+# This logger's print() method depicts this relationship.
+child &lt;- get_logger("lg/child")
+print(child)
+print(child$name)
+
+# use formatting strings and custom fields
+tf2 &lt;- tempfile()
+lg$add_appender(AppenderFile$new(tf2, layout = LayoutJson$new()))
+lg$info("Not all %s support custom fields", "appenders", type = "test")
+cat(readLines(tf), sep = "\n")
+cat(readLines(tf2), sep = "\n")
+
+# cleanup
+unlink(c(tf, tf2))
+lg$config(NULL)  # reset logger config
+
+# LoggerGlue
+# You can also create a new logger that uses the awesome glue library for
+# string formatting instead of sprintf
+
+if (requireNamespace("glue")){
+
+  lg &lt;- get_logger_glue("glue")
+  lg$fatal("blah ", "fizz is set to: {fizz}", foo = "bar", fizz = "buzz")
+  # prevent creation of custom fields with prefixing a dot
+  lg$fatal("blah ", "fizz is set to: {.fizz}", foo = "bar", .fizz = "buzz")
+
+  #' # completely reset 'glue' to an unconfigured vanilla Logger
+  get_logger("glue", reset = TRUE)
+
+}
+
+
+# Configuring a Logger
+lg &lt;- get_logger("test")
+lg$config(NULL)  # resets logger to unconfigured state
+
+# With setters
+lg$
+  set_threshold("error")$
+  set_propagate(FALSE)$
+  set_appenders(AppenderConsole$new(threshold = "info"))
+
+lg$config(NULL)
+
+# With a list
+lg$config(list(
+  threshold = "error",
+  propagate = FALSE,
+  appenders = list(AppenderConsole$new(threshold = "info"))
+))
+
+lg$config(NULL)  # resets logger to unconfigured state
+
+# Via YAML
+cfg &lt;- "
+Logger:
+  threshold: error
+  propagate: false
+  appenders:
+    AppenderConsole:
+      threshold: info
+"
+
+lg$config(cfg)
+lg$config(NULL)
+
+## ------------------------------------------------
+## Method `Logger$list_log`
+## ------------------------------------------------
+
+lg &lt;- get_logger("test")
+lg$list_log(list(level = 400, msg = "example"))
+
+## ------------------------------------------------
+## Method `Logger$add_appender`
+## ------------------------------------------------
+
+lg &lt;- get_logger("test")
+lg$add_appender(AppenderConsole$new(), name = "myconsole")
+lg$appenders[[1]]
+lg$appenders$myconsole
+lg$remove_appender("myconsole")
+lg$config(NULL)  # reset config
+
+## ------------------------------------------------
+## Method `Logger$set_exception_handler`
+## ------------------------------------------------
+
+lgr$info(stop("this produces a warning instead of an error"))
+</code></pre>
+
+
+</div>

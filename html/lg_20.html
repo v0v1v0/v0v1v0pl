@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cont_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Test for financial contagion</h2>
+
+<h3>Description</h3>
+
+<p>Test for financial contagion by means of the local Gaussian correlation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cont_test(lg_object_nc, lg_object_c,
+  grid_range = quantile(rbind(lg_object_nc$x, lg_object_c$x), c(0.05,
+  0.95)), grid_length = 30, n_rep = 1000, weight = function(y) {    
+  rep(1, nrow(y)) })
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lg_object_nc</code></td>
+<td>
+<p>An object of type <code>lg</code>, as produced by the
+<code>lg_main</code>-function for the observations covering the non-crisis
+period. The data must be two dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lg_object_c</code></td>
+<td>
+<p>An object of type <code>lg</code>, as produced by the
+<code>lg_main</code>-function for the observations covering the crisis period.
+The data must be two dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_range</code></td>
+<td>
+<p>This test measures the local correlations a long the
+diagonal specified by this vector of length two.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid_length</code></td>
+<td>
+<p>The number of grid points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_rep</code></td>
+<td>
+<p>The number of bootstrap replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>Weight function</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is an implementation of the test for financial contagion
+developed by Støve, Tjøstheim and Hufthammer (2013). They test whether the
+local correlations between two financial time series are different before and
+during crisis times. The distinction between crisis and non-crisis times must
+be made by the user.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the test result as well as various parameters. The
+elements are:
+</p>
+
+<ul>
+<li> <p><code>observed</code> The observed value of the test statistic.
+</p>
+</li>
+<li> <p><code>replicated</code> The replicated values of the test statistic.
+</p>
+</li>
+<li> <p><code>p_value</code> The p-value of the test.
+</p>
+</li>
+<li> <p><code>local_correlations</code> The local correlations measured along the
+diagonal, for the non-crisis and crisis periods respectively.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Støve, Bård, Dag Tjøstheim, and Karl Ove Hufthammer. "Using local Gaussian
+correlation in a nonlinear re-examination of financial contagion." Journal
+of Empirical Finance 25 (2014): 62-82.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+   # Run the test on some built-in stock data
+   data(EuStockMarkets)
+   x &lt;- apply(EuStockMarkets, 2, function(x) diff(log(x)))[, 1:2]
+
+   # Define the crisis and non-crisis periods (arbitrarily for this simple
+   # example)
+   non_crisis &lt;- x[1:100, ]
+   crisis     &lt;- x[101:200, ]
+
+   # Create the lg-objects, with parameters that match the applications in the
+   # original publication describibg the test
+   lg_object_nc &lt;- lg_main(non_crisis, est_method = "5par",
+                           transform_to_marginal_normality = FALSE)
+   lg_object_c  &lt;- lg_main(crisis, est_method = "5par",
+                           transform_to_marginal_normality = FALSE)
+
+   ## Not run: 
+   # Run the test (with very few resamples for illustration)
+   test_result &lt;- cont_test(lg_object_nc, lg_object_c,
+                            n_rep = 10)
+   
+## End(Not run)
+
+</code></pre>
+
+
+</div>

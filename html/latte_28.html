@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>latte-optim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solve an integer progam with LattE</h2>
+
+<h3>Description</h3>
+
+<p><code>latte_max</code> and <code>latte_min</code> use LattE's <code>latte-maximize</code> and
+<code>latte-minimize</code> functions to find the maximum or minimum of a linear
+objective function over the integers points in a polytope (i.e. satisfying
+linearity constraints). This makes use of the digging algorithm; see the
+LattE manual at <a href="http://www.math.ucdavis.edu/~latte">http://www.math.ucdavis.edu/~latte</a> for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">latte_optim(objective, constraints, type = c("max", "min"),
+  method = c("lp", "cones"), dir = tempdir(), opts = "",
+  quiet = TRUE, shell = FALSE)
+
+latte_max(objective, constraints, method = c("lp", "cones"),
+  dir = tempdir(), opts = "", quiet = TRUE)
+
+latte_min(objective, constraints, method = c("lp", "cones"),
+  dir = tempdir(), opts = "", quiet = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>A linear polynomial to pass to <code>mp()</code>, see examples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraints</code></td>
+<td>
+<p>A collection of linear polynomial (in)equalities that
+define the feasibility region, the integers in the polytope</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p><code>"max"</code> or <code>"min"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method <code>"LP"</code> or <code>"cones"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>Directory to place the files in, without an ending /</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opts</code></td>
+<td>
+<p>Options; see the LattE manual at
+<a href="http://www.math.ucdavis.edu/~latte">http://www.math.ucdavis.edu/~latte</a></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Show latte output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shell</code></td>
+<td>
+<p>Messages the shell code used to do the computation</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A named list with components <code>par</code>, a named-vector of optimizing
+arguments, and <code>value</code>, the value of the objective function at the
+optimial point.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+if (has_latte()) {
+
+latte_max(
+  "-2 x + 3 y", 
+  c("x + y &lt;= 10", "x &gt;= 0", "y &gt;= 0")
+)
+
+latte_max(
+  "-2 x + 3 y", 
+  c("x + y &lt;= 10", "x &gt;= 0", "y &gt;= 0"),
+  quiet = FALSE
+)
+
+
+df &lt;- expand.grid("x" = 0:10, "y" = 0:10)
+df &lt;- subset(df, x + y &lt;= 10L)
+df$objective &lt;- with(df, -2*x + 3*y)
+library("ggplot2")
+ggplot(df, aes(x, y, size = objective)) +
+  geom_point()
+
+latte_min(
+  "-2 x + 3 y",
+  c("x + y &lt;= 10", "x &gt;= 0", "y &gt;= 0"),
+  method = "cones"
+)
+
+
+
+latte_min("-2 x - 3 y - 4 z", c(
+  "3 x + 2 y + z &lt;= 10",
+  "2 x + 5 y + 3 z &lt;= 15",
+  "x &gt;= 0", "y &gt;= 0", "z &gt;= 0"
+), "cones", quiet = FALSE)
+
+
+
+
+
+}
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,212 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>textmodel_lss</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a Latent Semantic Scaling model</h2>
+
+<h3>Description</h3>
+
+<p>Latent Semantic Scaling (LSS) is a word embedding-based semisupervised algorithm
+for document scaling.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">textmodel_lss(x, ...)
+
+## S3 method for class 'dfm'
+textmodel_lss(
+  x,
+  seeds,
+  terms = NULL,
+  k = 300,
+  slice = NULL,
+  weight = "count",
+  cache = FALSE,
+  simil_method = "cosine",
+  engine = c("RSpectra", "irlba", "rsvd"),
+  auto_weight = FALSE,
+  include_data = FALSE,
+  group_data = FALSE,
+  verbose = FALSE,
+  ...
+)
+
+## S3 method for class 'fcm'
+textmodel_lss(
+  x,
+  seeds,
+  terms = NULL,
+  w = 50,
+  max_count = 10,
+  weight = "count",
+  cache = FALSE,
+  simil_method = "cosine",
+  engine = c("rsparse"),
+  auto_weight = FALSE,
+  verbose = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a dfm or fcm created by <code>quanteda::dfm()</code> or <code>quanteda::fcm()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to the underlying engine.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seeds</code></td>
+<td>
+<p>a character vector or named numeric vector that contains seed
+words. If seed words contain "*", they are interpreted as glob patterns.
+See quanteda::valuetype.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>a character vector or named numeric vector that specify words
+for which polarity scores will be computed; if a numeric vector, words' polarity
+scores will be weighted accordingly; if <code>NULL</code>, all the features of
+<code>quanteda::dfm()</code> or <code>quanteda::fcm()</code> will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of singular values requested to the SVD engine. Only used
+when <code>x</code> is a <code>dfm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slice</code></td>
+<td>
+<p>a number or indices of the components of word vectors used to
+compute similarity; <code>slice &lt; k</code> to further truncate word vectors; useful
+for diagnosys and simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>weighting scheme passed to <code>quanteda::dfm_weight()</code>. Ignored
+when <code>engine</code> is "rsparse".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cache</code></td>
+<td>
+<p>if <code>TRUE</code>, save result of SVD for next execution with identical
+<code>x</code> and settings. Use the <code>base::options(lss_cache_dir)</code> to change the
+location cache files to be save.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simil_method</code></td>
+<td>
+<p>specifies method to compute similarity between features.
+The value is passed to <code>quanteda.textstats::textstat_simil()</code>, "cosine" is
+used otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>engine</code></td>
+<td>
+<p>select the engine to factorize <code>x</code> to generate word vectors. Choose
+from <code>RSpectra::svds()</code>, <code>irlba::irlba()</code>, <code>rsvd::rsvd()</code>, and
+<code>rsparse::GloVe()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_weight</code></td>
+<td>
+<p>automatically determine weights to approximate the
+polarity of terms to seed words. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_data</code></td>
+<td>
+<p>if <code>TRUE</code>, fitted model includes the dfm supplied as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_data</code></td>
+<td>
+<p>if <code>TRUE</code>, apply <code>dfm_group(x)</code> before saving the dfm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>show messages if <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>the size of word vectors. Used only when <code>x</code> is a <code>fcm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_count</code></td>
+<td>
+<p>passed to <code>x_max</code> in <code>rsparse::GloVe$new()</code> where cooccurrence
+counts are ceiled to this threshold. It should be changed according to the
+size of the corpus. Used only when <code>x</code> is a <code>fcm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Latent Semantic Scaling (LSS) is a semisupervised document scaling
+method. <code>textmodel_lss()</code> constructs word vectors from use-provided
+documents (<code>x</code>) and weights words (<code>terms</code>) based on their semantic
+proximity to seed words (<code>seeds</code>). Seed words are any known polarity words
+(e.g. sentiment words) that users should manually choose. The required
+number of seed words are usually 5 to 10 for each end of the scale.
+</p>
+<p>If <code>seeds</code> is a named numeric vector with positive and negative values, a
+bipolar LSS model is construct; if <code>seeds</code> is a character vector, a
+unipolar LSS model. Usually bipolar models perform better in document
+scaling because both ends of the scale are defined by the user.
+</p>
+<p>A seed word's polarity score computed by <code>textmodel_lss()</code> tends to diverge
+from its original score given by the user because it's score is affected
+not only by its original score but also by the original scores of all other
+seed words. If <code>auto_weight = TRUE</code>, the original scores are weighted
+automatically using <code>stats::optim()</code> to minimize the squared difference
+between seed words' computed and original scores. Weighted scores are saved
+in <code>seed_weighted</code> in the object.
+</p>
+<p>Please visit the <a href="https://koheiw.github.io/LSX/">package website</a> for examples.
+</p>
+
+
+<h3>References</h3>
+
+<p>Watanabe, Kohei. 2020. "Latent Semantic Scaling: A Semisupervised
+Text Analysis Technique for New Domains and Languages", Communication
+Methods and Measures. <a href="https://doi.org/10.1080/19312458.2020.1832976">doi:10.1080/19312458.2020.1832976</a>.
+</p>
+<p>Watanabe, Kohei. 2017. "Measuring News Bias: Russia's Official News Agency
+ITAR-TASS' Coverage of the Ukraine Crisis" European Journal of
+Communication. <a href="https://doi.org/10.1177/0267323117695735">doi:10.1177/0267323117695735</a>.
+</p>
+
+
+</div>

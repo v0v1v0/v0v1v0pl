@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sleep_int2Brown</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Recode Sleep/Wake intervals to Brown state intervals</h2>
+
+<h3>Description</h3>
+
+<p>Takes a dataset with sleep/wake intervals and recodes them to Brown state
+intervals. Specifically, it recodes the <code>sleep</code> intervals to <code>night</code>, reduces
+<code>wake</code> intervals by a specified <code>evening.length</code> and recodes them to
+<code>evening</code> and <code>day</code> intervals. The <code>evening.length</code> is the time between <code>day</code>
+and <code>night</code>. The result can be used as input for <code>interval2state()</code> and might
+be used subsequently with <code>Brown2reference()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sleep_int2Brown(
+  dataset,
+  Interval.colname = Interval,
+  Sleep.colname = State,
+  wake.state = "wake",
+  sleep.state = "sleep",
+  Brown.day = "day",
+  Brown.evening = "evening",
+  Brown.night = "night",
+  evening.length = lubridate::dhours(3),
+  Brown.state.colname = State.Brown,
+  output.dataset = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A dataset with sleep/wake intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Interval.colname</code></td>
+<td>
+<p>The name of the column with the intervals. Defaults to <code>Interval</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sleep.colname</code></td>
+<td>
+<p>The name of the column with the sleep/wake states. Defaults to <code>State</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wake.state, sleep.state</code></td>
+<td>
+<p>The names of the wake and sleep states in the <code>Sleep.colname</code>. Default to <code>"wake"</code> and <code>"sleep"</code>. Expected to be a <code>character</code> scalar and must be an exact match.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Brown.day, Brown.evening, Brown.night</code></td>
+<td>
+<p>The names of the Brown states that will be used. Defaults to <code>"day"</code>, <code>"evening"</code> and <code>"night"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>evening.length</code></td>
+<td>
+<p>The length of the evening interval in seconds. Can also use <span class="pkg">lubridate</span> duration or period objects. Defaults to 3 hours.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Brown.state.colname</code></td>
+<td>
+<p>The name of the column with the newly created Brown states. Works as a simple renaming of the <code>Sleep.colname</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output.dataset</code></td>
+<td>
+<p>Whether to return the whole <code>dataset</code> or a <code>vector</code> with the Brown states.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function will filter out any non-sleep intervals that are shorter than the specified <code>evening.length</code>. This prevents problematic behaviour when the <code>evening.length</code> is longer than the <code>wake</code> intervals or, e.g., when the first state is sleep after midnight and there is a prior <code>NA</code> interval from midnight till sleep. This behavior might, however, result in problematic results for specialized experimental setups with ultra short wake/sleep cycles. The <code>sleep_int2Brown()</code> function would not be applicable in those cases anyways.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataset with the Brown states or a vector with the Brown states. The Brown states are created in a new column with the name specified in <code>Brown.state.colname</code>. The dataset will have more rows than the original dataset, because the <code>wake</code> intervals are split into <code>day</code> and <code>evening</code> intervals.
+</p>
+
+
+<h3>References</h3>
+
+<p>https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.3001571
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Brown: 
+<code>Brown2reference()</code>,
+<code>Brown_check()</code>,
+<code>Brown_rec()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#create a sample dataset
+sample &lt;- tibble::tibble(Datetime = c("2023-08-15 6:00:00",
+                                         "2023-08-15 23:00:00",
+                                         "2023-08-16 6:00:00",
+                                         "2023-08-16 22:00:00",
+                                         "2023-08-17 6:30:00",
+                                         "2023-08-18 1:00:00"),
+                         State = rep(c("wake", "sleep"), 3),
+                         Id = "Participant")
+#intervals from sample
+sc2interval(sample) 
+#recoded intervals                       
+sc2interval(sample) %&gt;% sleep_int2Brown()
+                                         
+</code></pre>
+
+
+</div>

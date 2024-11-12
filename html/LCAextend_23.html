@@ -1,0 +1,84 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>p.post.found</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> computes the posterior probability of observations of a founder </h2>
+
+<h3>Description</h3>
+
+<p>computes the posterior probability of measurements of a founder for each class and each symptom status of the founder. This is an internal function not meant to be called by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">p.post.found(found, status, probs, fyc)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>found</code></td>
+<td>
+<p> a founder in the pedigree (individual without parents in the pedigree), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p> the symptom status vector of the whole pedigree,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p> a list of all probability parameters of the model, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fyc</code></td>
+<td>
+<p> a matrix of <code>n</code> times <code>K+1</code> given the density of measurements of each individual if allocated to class <code>k</code>, where <code>n</code> is 
+the number of individuals and <code>K</code> is the total number of latent classes in the model, </p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>the function returns <code>p.found</code> a matrix of 2 times <code>K+1</code> entries: <code>p.found[s,k]</code> is the posterior probability of the observations <code>Y_found</code> 
+under status <code>S_found=s</code> and when he is assigned to class <code>k</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p> TAYEB et al.: Solving Genetic Heterogeneity in Extended
+Families by Identifying Sub-types of Complex Diseases. Computational Statistics, 2001, DOI: 10.1007/s00180-010-0224-2. </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#data
+data(ped.cont)
+fam &lt;- ped.cont[,1]
+dad &lt;- ped.cont[fam==1,3]
+status &lt;- ped.cont[fam==1,6]
+y &lt;- ped.cont[fam==1,7:ncol(ped.cont)]
+#a founder
+found &lt;- which(dad==0)[1]
+data(probs)
+data(param.cont)
+#densities of the observations
+fyc &lt;- matrix(1,nrow=nrow(y),ncol=length(probs$p)+1)
+fyc[status==2,1:length(probs$p)] &lt;- t(apply(y[status==2,],1,dens.norm,
+                                            param.cont,NULL))
+#the function
+p.post.found(found,status,probs,fyc)
+</code></pre>
+
+
+</div>

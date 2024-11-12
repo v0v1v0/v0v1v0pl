@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BMK.Diagnostic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>BMK Convergence Diagnostic</h2>
+
+<h3>Description</h3>
+
+<p>Given a matrix of posterior samples from MCMC, the
+<code>BMK.Diagnostic</code> function calculates Hellinger distances between
+consecutive batches for each chain. This is useful for monitoring
+convergence of MCMC chains.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BMK.Diagnostic(X, batches=10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>This required argument accepts a matrix of posterior
+samples or an object of class <code>demonoid</code>, in which case it uses
+the posterior samples in <code>X$Posterior1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batches</code></td>
+<td>
+<p>This is the number of batches on which the convergence
+diagnostic will be calculated. The <code>batches</code> argument defaults
+to 10.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Hellinger distance is used to quantify dissimilarity between two
+probability distributions. It is based on the Hellinger integral,
+introduced by Hellinger (1909). Traditionally, Hellinger distance is
+bound to the interval [0,1], though another popular form occurs in
+the interval [0,<code class="reqn">\sqrt{2}</code>]. A higher value of Hellinger
+distance is associated with more dissimilarity between the
+distributions.
+</p>
+<p>Convergence is assumed when Hellinger distances are below a threshold,
+indicating that posterior samples are similar between consecutive
+batches. If all Hellinger distances beyond a given batch of samples is
+below the threshold, then <code>burnin</code> is suggested to occur
+immediately before the first batch of satisfactory Hellinger
+distances.
+</p>
+<p>As an aid to interpretation, consider a matrix of 1,000 posterior
+samples from three chains: <code>beta[1]</code>, <code>beta[2]</code>, and
+<code>beta[3]</code>. With 10 batches, the column names are: 100, 200,
+..., 900. A Hellinger distance for the chain <code>beta[1]</code> at 100
+is the Hellinger distance between two batches: samples 1-100, and
+samples 101:200.
+</p>
+<p>A benefit to using <code>BMK.Diagnostic</code> is that the resulting
+Hellinger distances may easily be plotted with the <code>plotMatrix</code>
+function, allowing the user to see quickly which consecutive batches
+of which chains were dissimilar. This makes it easier to find
+problematic chains.
+</p>
+<p>The <code>BMK.Diagnostic</code> is calculated automatically in the
+<code>LaplacesDemon</code> function, and is one of the criteria in
+the <code>Consort</code> function regarding the recommendation of
+when to stop updating the Markov chain Monte Carlo (MCMC) sampler in
+<code>LaplacesDemon</code>.
+</p>
+<p>For more information on the related topics of burn-in and
+stationarity, see the <code>burnin</code> and <code>is.stationary</code>
+functions, and the accompanying vignettes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>BMK.Diagnostic</code> function returns an object of class
+<code>bmk</code> that is a <code class="reqn">J \times B</code> matrix of Hellinger
+distances between consecutive batches for <code class="reqn">J</code> parameters of
+posterior samples. The number of columns, <code class="reqn">B</code> is equal to the
+number of batches minus one.
+</p>
+<p>The <code>BMK.Diagnostic</code> function is similar to the
+<code>bmkconverge</code> function in package BMK.
+</p>
+
+
+<h3>References</h3>
+
+<p>Boone, E.L., Merrick, J.R. and Krachey, M.J. (2013). "A Hellinger
+Distance Approach to MCMC Diagnostics". <em>Journal of Statistical
+Computation and Simulation</em>, in press.
+</p>
+<p>Hellinger, E. (1909). "Neue Begrundung der Theorie quadratischer
+Formen von unendlichvielen Veranderlichen" (in German). <em>Journal
+fur die reine und angewandte Mathematik</em>, 136, p. 210–271.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>burnin</code>,
+<code>Consort</code>,
+<code>is.stationary</code>, and 
+<code>LaplacesDemon</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+N &lt;- 1000 #Number of posterior samples
+J &lt;- 10 #Number of parameters
+Theta &lt;- matrix(runif(N*J),N,J)
+colnames(Theta) &lt;- paste("beta[", 1:J, "]", sep="")
+for (i in 2:N) {Theta[i,1] &lt;- Theta[i-1,1] + rnorm(1)}
+HD &lt;- BMK.Diagnostic(Theta, batches=10)
+plot(HD, title="Hellinger distance between batches")
+</code></pre>
+
+
+</div>

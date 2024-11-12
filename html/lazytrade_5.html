@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aml_simulation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to simulate multiple input structures</h2>
+
+<h3>Description</h3>
+
+<p>Function is designed to evaluate several different inputs.
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="../help/figures/lifecycle-experimental.svg" alt="[Experimental]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">aml_simulation(
+  timeframe = 60,
+  path_sim_input,
+  path_sim_result,
+  par_simulate1 = 10,
+  par_simulate2 = 16,
+  demo_mode = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, Data timeframe e.g. 60 min. This will be equal to 1 bar</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_sim_input</code></td>
+<td>
+<p>String, Path to the folder where csv files will be placed, typically AI_RSIADXAUDCAD60.csv</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_sim_result</code></td>
+<td>
+<p>String, Path to the folder where all results from simulations shall be written</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_simulate1</code></td>
+<td>
+<p>Integer, Parameter that can be used in simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par_simulate2</code></td>
+<td>
+<p>Integer, Parameter that can be used in simulation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>demo_mode</code></td>
+<td>
+<p>Boolean, Simplify function test. When TRUE no simulation will be made</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function is using several other functions to perform sets of operations
+designed to test several inputs. Designed to validate model settings.
+</p>
+<p>Update: New function structure to allow quicker simulation of parameters to find best performing input
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function is writing file into Decision Support System folders
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+library(dplyr)
+library(magrittr)
+library(readr)
+library(h2o)
+library(lazytrade)
+library(lubridate)
+library(stats)
+
+path_input &lt;- normalizePath(tempdir(),winslash = "/")
+path_sim_input &lt;- file.path(path_input, "path_sim_input")
+dir.create(path_sim_input)
+path_sim_result &lt;- file.path(path_input, "path_sim_result")
+dir.create(path_sim_result)
+
+file.copy(from = system.file("extdata", "AI_RSIADXCADCHF60.csv", package = "lazytrade"),
+          to = file.path(path_sim_input, "AI_RSIADXCADCHF60.csv"), overwrite = TRUE)
+file.copy(from = system.file("extdata", "AI_RSIADXEURNZD60.csv", package = "lazytrade"),
+          to = file.path(path_sim_input, "AI_RSIADXEURNZD60.csv"), overwrite = TRUE)
+
+# start h2o engine
+h2o.init(nthreads = 2)
+
+# simulation of different epoch values
+aml_simulation(timeframe = 60,
+               path_sim_input = path_sim_input,
+               path_sim_result = path_sim_result,
+               par_simulate1 = 10,
+               par_simulate2 = 10,
+               demo_mode = FALSE)
+
+Sys.sleep(5)
+# stop h2o engine
+h2o.shutdown(prompt = FALSE)
+
+#set delay to insure h2o unit closes properly before the next test
+Sys.sleep(5)
+
+
+
+
+
+</code></pre>
+
+
+</div>

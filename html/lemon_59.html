@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reposition_legend</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reposition a legend onto a panel</h2>
+
+<h3>Description</h3>
+
+<p>Repositions a legend onto a panel, by either taking it from the same ggplot,
+or by using another. Works on both ggplot2 and gtable objects, and can accept
+any grob as legend.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reposition_legend(
+  aplot,
+  position = NULL,
+  legend = NULL,
+  panel = "panel",
+  x = NULL,
+  y = NULL,
+  just = NULL,
+  name = "guide-box",
+  clip = "on",
+  offset = c(0, 0),
+  z = Inf,
+  plot = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>aplot</code></td>
+<td>
+<p>a ggplot2 or gtable object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>position</code></td>
+<td>
+<p>Where to place the legend in the panel.
+Overrules  <code>just</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>The legend to place, if <code>NULL</code> (default),
+it is extracted from <code>aplot</code> if
+this is a ggplot2 object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>panel</code></td>
+<td>
+<p>Name of panel in gtable. See description.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>horisontal coordinate of legend, with 0 at left.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vertical coordiante of legend, with 0 at bottom.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>just</code></td>
+<td>
+<p>'Anchor point' of legend; it is this point of the legend that is
+placed at the <code>x</code> and <code>y</code> coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name, clip, z</code></td>
+<td>
+<p>Parameters forwarded to
+<code>gtable_add_grob</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>Numeric vector, sets distance from edge of panel.
+First element for horisontal distance, second for vertical.
+Not used by arguments <code>x</code> and <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Logical, when <code>TRUE</code> (default), draws plot with legend
+repositioned on a new page.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To modify the look of the legend, use themes and the natural ggplot functions
+found in <code>guide_legend</code>.
+</p>
+<p><em>Positioning</em> is done by argument <code>position</code> which places the panel
+relative in <code>panel</code> (see below).
+<code>position</code> resolves to three variables, <code>x</code>, <code>y</code>, and <code>just</code>.
+<code>x</code> and <code>y</code> is the coordinate in <code>panel</code>, where the anchorpoint of
+the legend (set via <code>just</code>) is placed.
+In other words, <code>just='bottom right'</code> places the bottom right corner of
+the legend at coordinates <code>(x,y)</code>.
+</p>
+<p>The positioning can be set by argument <code>position</code> alone, which can be
+further nudged by setting <code>position</code>, <code>x</code>, and <code>y</code>.
+Alternatively, manually positioning can be obtained by setting arguments.
+<code>x</code>, <code>y</code>, and <code>just</code>.
+</p>
+<p><em>Panel</em> name is by default <code>panel</code>, but when using facets it typically
+takes the form <code>panel-{col}-{row}</code>, but not for wrapped facets.
+Either print result from <code>ggplotGrob</code> or use
+<code>gtable_show_names</code> to display all the names of the gtable
+object.
+</p>
+<p><code>panel</code> takes multiple names, and will then use these components'
+extremes for placing the legend.
+</p>
+<p>If <code>panel</code> is an integer vector of length 2 or 4, these elements are
+used directly for top-left and bottom-right coordinates.
+</p>
+
+
+<h3>Value</h3>
+
+<p>gtable object, invisibly, with legend repositioned.
+Can be drawn with <code>grid.draw</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Stefan McKinnon Edwards &lt;sme@iysik.com&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>g_legend</code>, <code>grid_arrange_shared_legend</code>
+and <code>gtable_show_names</code> for displaying names of facet's panels.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+dsamp &lt;- diamonds[sample(nrow(diamonds), 1000), ]
+(d &lt;- ggplot(dsamp, aes(carat, price)) +
+ geom_point(aes(colour = clarity)))
+
+reposition_legend(d + theme(legend.position='bottom'), 'bottom right')
+
+# To change the orientation of the legend, use theme's descriptors.
+reposition_legend(d + theme(legend.position='bottom'), 'top left')
+
+# Use odd specifications, here offset the legend with half its height from the bottom.
+reposition_legend(d + theme(legend.position='bottom'), x=0.3, y=0, just=c(0, -0.5))
+
+# For using with facets:
+reposition_legend(d + facet_grid(.~cut), 'top left', panel = 'panel-1-5')
+</code></pre>
+
+
+</div>

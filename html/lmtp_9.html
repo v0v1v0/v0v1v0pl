@@ -1,0 +1,459 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmtp_sdr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LMTP Sequential Doubly Robust Estimator</h2>
+
+<h3>Description</h3>
+
+<p>Sequentially doubly robust estimator for the effects of traditional causal effects and
+modified treatment policies for both point treatment and longitudinal data with binary,
+continuous, or time-to-event outcomes. Supports binary, categorical, and continuous exposures.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmtp_sdr(
+  data,
+  trt,
+  outcome,
+  baseline = NULL,
+  time_vary = NULL,
+  cens = NULL,
+  shift = NULL,
+  shifted = NULL,
+  k = Inf,
+  mtp = FALSE,
+  outcome_type = c("binomial", "continuous", "survival"),
+  id = NULL,
+  bounds = NULL,
+  learners_outcome = "SL.glm",
+  learners_trt = "SL.glm",
+  folds = 10,
+  weights = NULL,
+  control = lmtp_control()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[<code>data.frame</code>]<br>
+A <code>data.frame</code> in wide format containing all necessary variables
+for the estimation problem. Must not be a <code>data.table</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trt</code></td>
+<td>
+<p>[<code>character</code>] or [<code>list</code>]<br>
+A vector containing the column names of treatment variables ordered by time.
+Or, a list of vectors, the same length as the number of time points of observation.
+Vectors should contain column names for the treatment variables at each time point. The list
+should be ordered following the time ordering of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>[<code>character</code>]<br>
+The column name of the outcome variable. In the case of time-to-event
+analysis, a vector containing the columns names of intermediate outcome variables and the final
+outcome variable ordered by time. Only numeric values are allowed. If the outcome type
+is binary, data should be coded as 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>baseline</code></td>
+<td>
+<p>[<code>character</code>]<br>
+An optional vector containing the column names of baseline covariates to be
+included for adjustment at every time point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_vary</code></td>
+<td>
+<p>[<code>list</code>]<br>
+A list the same length as the number of time points of observation with
+the column names for new time-varying covariates introduced at each time point. The list
+should be ordered following the time ordering of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cens</code></td>
+<td>
+<p>[<code>character</code>]<br>
+An optional vector of column names of censoring indicators the same
+length as the number of time points of observation. If missingness in the outcome is
+present or if time-to-event outcome, must be provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift</code></td>
+<td>
+<p>[<code>closure</code>]<br>
+A two argument function that specifies how treatment variables should be shifted.
+See examples for how to specify shift functions for continuous, binary, and categorical exposures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shifted</code></td>
+<td>
+<p>[<code>data.frame</code>]<br>
+An optional data frame, the same as in <code>data</code>, but modified according
+to the treatment policy of interest. If specified, <code>shift</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>[<code>integer(1)</code>]<br>
+An integer specifying how previous time points should be
+used for estimation at the given time point. Default is <code>Inf</code>,
+all time points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtp</code></td>
+<td>
+<p>[<code>logical(1)</code>]<br>
+Is the intervention of interest a modified treatment policy?
+Default is <code>FALSE</code>. If treatment variables are continuous this should be <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_type</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+Outcome variable type (i.e., continuous, binomial, survival).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+An optional column name containing cluster level identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>[<code>numeric(2)</code>]<br>
+An optional, ordered vector of the bounds for a continuous outcomes. If <code>NULL</code>,
+the bounds will be taken as the minimum and maximum of the observed data.
+Should be left as <code>NULL</code> if the outcome type is binary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>learners_outcome</code></td>
+<td>
+<p>[<code>character</code>]<br> A vector of <code>SuperLearner</code> algorithms for estimation
+of the outcome regression. Default is <code>"SL.glm"</code>, a main effects GLM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>learners_trt</code></td>
+<td>
+<p>[<code>character</code>]<br> A vector of <code>SuperLearner</code> algorithms for estimation
+of the exposure mechanism. Default is <code>"SL.glm"</code>, a main effects GLM.
+<b>Only include candidate learners capable of binary classification</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>[<code>integer(1)</code>]<br>
+The number of folds to be used for cross-fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>[<code>numeric(nrow(data))</code>]<br>
+An optional vector containing sampling weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>[<code>list()</code>]<br>
+Output of <code>lmtp_control()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Should <code>mtp = TRUE</code>?</h4>
+
+<p>A modified treatment policy (MTP) is an intervention that depends
+on the natural value of the exposure (the value that the treatment would have taken under no intervention).
+This differs from other causal effects,
+such as the average treatment effect (ATE), where an exposure would be increased (or decreased) deterministically.
+<b>If your intervention of interest adds, subtracts, or multiplies the observed treatment values
+by some amount, use <code>mtp = TRUE</code></b>.
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A list of class <code>lmtp</code> containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>estimator</code></td>
+<td>
+<p>The estimator used, in this case "SDR".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>The estimated population LMTP effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standard_error</code></td>
+<td>
+<p>The estimated standard error of the LMTP effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>low</code></td>
+<td>
+<p>Lower bound of the 95% confidence interval of the LMTP effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>high</code></td>
+<td>
+<p>Upper bound of the 95% confidence interval of the LMTP effect.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eif</code></td>
+<td>
+<p>The estimated, un-centered, influence function of the estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift</code></td>
+<td>
+<p>The shift function specifying the treatment policy of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_reg</code></td>
+<td>
+<p>An n x Tau + 1 matrix of outcome regression predictions.
+The mean of the first column is used for calculating theta.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density_ratios</code></td>
+<td>
+<p>An n x Tau matrix of the estimated, non-cumulative, density ratios.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fits_m</code></td>
+<td>
+<p>A list the same length as <code>folds</code>, containing the fits at each time-point
+for each fold for the outcome regression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fits_r</code></td>
+<td>
+<p>A list the same length as <code>folds</code>, containing the fits at each time-point
+for each fold of density ratio estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome_type</code></td>
+<td>
+<p>The outcome variable type.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+  set.seed(56)
+  n &lt;- 1000
+  W &lt;- rnorm(n, 10, 5)
+  A &lt;- 23 + 5*W + rnorm(n)
+  Y &lt;- 7.2*A + 3*W + rnorm(n)
+  ex1_dat &lt;- data.frame(W, A, Y)
+
+  # Example 1.1
+  # Point treatment, continuous exposure, continuous outcome, no loss-to-follow-up
+  # Interested in the effect of a modified treatment policy where A is decreased by 15
+  # units only among observations whose observed A was above 80.
+  # The true value under this intervention is about 513.
+  policy &lt;- function(data, x) {
+    (data[[x]] &gt; 80)*(data[[x]] - 15) + (data[[x]] &lt;= 80)*data[[x]]
+  }
+
+  lmtp_sdr(ex1_dat, "A", "Y", "W", shift = policy,
+           outcome_type = "continuous", folds = 2, mtp = TRUE)
+
+  # Example 2.1
+  # Longitudinal setting, time-varying continuous exposure bounded by 0,
+  # time-varying covariates, and a binary outcome with no loss-to-follow-up.
+  # Interested in the effect of a treatment policy where exposure decreases by
+  # one unit at every time point if an observations observed exposure is greater
+  # than or equal to 2. The true value under this intervention is about 0.305.
+  head(sim_t4)
+
+  A &lt;- c("A_1", "A_2", "A_3", "A_4")
+  L &lt;- list(c("L_1"), c("L_2"), c("L_3"), c("L_4"))
+
+  policy &lt;- function(data, trt) {
+    a &lt;- data[[trt]]
+    (a - 1) * (a - 1 &gt;= 1) + a * (a - 1 &lt; 1)
+  }
+
+  # BONUS: progressr progress bars!
+  progressr::handlers(global = TRUE)
+
+  lmtp_sdr(sim_t4, A, "Y", time_vary = L, shift = policy,
+           folds = 2, mtp = TRUE)
+
+  # Example 2.2
+  # The previous example assumed that the outcome (as well as the treatment variables)
+  # were directly affected by all other nodes in the past. In certain situations,
+  # domain specific knowledge may suggest otherwise.
+  # This can be controlled using the k argument.
+  lmtp_sdr(sim_t4, A, "Y", time_vary = L, shift = policy,
+           k = 0, folds = 2, mtp = TRUE)
+
+  # Example 2.3
+  # Using the same data as examples 2.1 and 2.2.
+  # Now estimating the effect of a dynamic modified treatment policy.
+  # creating a dynamic mtp that applies the shift function
+  # but also depends on history and the current time
+  policy &lt;- function(data, trt) {
+    mtp &lt;- function(data, trt) {
+      (data[[trt]] - 1) * (data[[trt]] - 1 &gt;= 1) + data[[trt]] * (data[[trt]] - 1 &lt; 1)
+    }
+
+    # if its the first time point, follow the same mtp as before
+    if (trt == "A_1") return(mtp(data, trt))
+
+    # otherwise check if the time varying covariate equals 1
+    ifelse(
+      data[[sub("A", "L", trt)]] == 1,
+      mtp(data, trt), # if yes continue with the policy
+      data[[trt]]     # otherwise do nothing
+    )
+  }
+
+  lmtp_sdr(sim_t4, A, "Y", time_vary = L, mtp = TRUE,
+           k = 0, shift = policy, folds = 2)
+
+  # Example 2.4
+  # Using the same data as examples 2.1, 2.2, and 2.3, but now treating the exposure
+  # as an ordered categorical variable. To account for the exposure being a
+  # factor we just need to modify the shift function (and the original data)
+  # so as to respect this.
+  tmp &lt;- sim_t4
+  for (i in A) {
+    tmp[[i]] &lt;- factor(tmp[[i]], levels = 0:5, ordered = TRUE)
+  }
+
+  policy &lt;- function(data, trt) {
+    out &lt;- list()
+    a &lt;- data[[trt]]
+    for (i in 1:length(a)) {
+      if (as.character(a[i]) %in% c("0", "1")) {
+        out[[i]] &lt;- as.character(a[i])
+      } else {
+        out[[i]] &lt;- as.numeric(as.character(a[i])) - 1
+      }
+    }
+    factor(unlist(out), levels = 0:5, ordered = TRUE)
+  }
+
+  lmtp_sdr(tmp, A, "Y", time_vary = L, shift = policy,
+           k = 0, folds = 2, mtp = TRUE)
+
+  # Example 3.1
+  # Longitudinal setting, time-varying binary treatment, time-varying covariates
+  # and baseline covariates with no loss-to-follow-up. Interested in a "traditional"
+  # causal effect where treatment is set to 1 at all time points for all observations.
+  if (require("twang")) {
+    data("iptwExWide", package = "twang")
+
+    A &lt;- paste0("tx", 1:3)
+    W &lt;- c("gender", "age")
+    L &lt;- list(c("use0"), c("use1"), c("use2"))
+
+    lmtp_sdr(
+      iptwExWide, A, "outcome", baseline = W, time_vary = L,
+      shift = static_binary_on, outcome_type = "continuous",
+      mtp = FALSE, folds = 2
+    )
+  }
+
+  # Example 4.1
+  # Longitudinal setting, time-varying continuous treatment, time-varying covariates,
+  # binary outcome with right censoring. Interested in the mean population outcome under
+  # the observed exposures in a hypothetical population with no loss-to-follow-up.
+  head(sim_cens)
+
+  A &lt;- c("A1", "A2")
+  L &lt;- list(c("L1"), c("L2"))
+  C &lt;- c("C1", "C2")
+  Y &lt;- "Y"
+
+  lmtp_sdr(sim_cens, A, Y, time_vary = L, cens = C, shift = NULL, folds = 2)
+
+  # Example 5.1
+  # Time-to-event analysis with a binary time-invariant exposure. Interested in
+  # the effect of treatment being given to all observations on the cumulative
+  # incidence of the outcome.
+  # For a survival problem, the outcome argument now takes a vector of outcomes
+  # if an observation experiences the event prior to the end of follow-up, all future
+  # outcome nodes should be set to 1 (i.e., last observation carried forward).
+  A &lt;- "trt"
+  Y &lt;- paste0("Y.", 1:6)
+  C &lt;- paste0("C.", 0:5)
+  W &lt;- c("W1", "W2")
+
+  lmtp_sdr(sim_point_surv, A, Y, W, cens = C, folds = 2,
+           shift = static_binary_on, outcome_type = "survival")
+
+  # Example 6.1
+  # Intervening on multiple exposures simultaneously. Interested in the effect of
+  # a modified treatment policy where variable D1 is decreased by 0.1 units and
+  # variable D2 is decreased by 0.5 units simultaneously.
+  A &lt;- list(c("D1", "D2"))
+  W &lt;- paste0("C", 1:3)
+  Y &lt;- "Y"
+
+  d &lt;- function(data, a) {
+    out = list(
+      data[[a[1]]] - 0.1,
+      data[[a[2]]] - 0.5
+    )
+    setNames(out, a)
+  }
+
+  lmtp_sdr(multivariate_data, A, Y, W, shift = d,
+           outcome_type = "continuous", folds = 1, mtp = TRUE)
+
+</code></pre>
+
+
+</div>

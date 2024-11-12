@@ -1,0 +1,190 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PosteriorChecks</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Posterior Checks</h2>
+
+<h3>Description</h3>
+
+<p>Not to be confused with posterior predictive checks, this function
+provides additional information about the marginal posterior
+distributions of continuous parameters, such as the probability that
+each posterior coefficient of the parameters (referred to generically
+as <code class="reqn">\theta</code>), is greater than zero
+[<code class="reqn">p(\theta &gt; 0)</code>], the estimated number of modes,
+the kurtosis and skewness of the posterior distributions, the burn-in
+of each chain (for MCMC only), integrated autocorrelation time,
+independent samples per minute, and acceptance rate. A posterior
+correlation matrix is provided only for objects of class
+<code>demonoid</code> or <code>pmc</code>.
+</p>
+<p>For discrete parameters, see the <code>Hangartner.Diagnostic</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PosteriorChecks(x, Parms)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument accepts an object of class
+<code>demonoid</code>, <code>iterquad</code>, <code>laplace</code>, <code>pmc</code>, or
+<code>vb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Parms</code></td>
+<td>
+<p>This argument accepts a vector of quoted strings to be
+matched for selecting parameters. This argument defaults to
+<code>NULL</code> and selects every parameter. Each quoted string is
+matched to one or more parameter names with the <code>grep</code>
+function. For example, if the user specifies <code>Parms=c("eta",
+      "tau")</code>, and if the parameter names are beta[1], beta[2], eta[1],
+eta[2], and tau, then all parameters will be selected, because the
+string <code>eta</code> is within <code>beta</code>. Since <code>grep</code> is used,
+string matching uses regular expressions, so beware of
+meta-characters, though these are acceptable: ".", "[", and "]".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>PosteriorChecks</code> is a supplemental function that returns
+a list with two components. Following is a summary of popular uses of
+the <code>PosteriorChecks</code> function.
+</p>
+<p>First (and only for MCMC users), the user may be considering the
+current MCMC algorithm versus others. In this case, the
+<code>PosteriorChecks</code> function is often used to find the two MCMC
+chains with the highest <code>IAT</code>, and these chains are
+studied for non-randomness with a joint trace plot, via the
+<code>joint.density.plot</code> function. The best algorithm has the
+chains with the highest independent samples per minute (ISM).
+</p>
+<p>Posterior correlation may be studied between model updates as well as
+after a model seems to have converged. While frequentists consider
+multicollinear predictor variables, Bayesians tend to consider
+posterior correlation of the parameters. Models with multicollinear
+parameters take more iterations to converge. Hierarchical models often
+have high posterior correlations. Posterior correlation often
+contributes to a lower effective sample size (<code>ESS</code>).
+Common remedies include transforming the predictors,
+re-parameterization to reduce posterior correlation, using WIPs
+(Weakly-Informative Priors), or selecting a different numerical
+approximation algorithm. An example of re-parameterization is to
+constrain related parameters to sum to zero. Another approach is to
+specify the parameters according to a multivariate distribution that
+is assisted by estimating a covariance matrix. Some algorithms are
+more robust to posterior correlation than others. For example,
+posterior correlation should generally be less problematic for twalk
+than AMWG in <code>LaplacesDemon</code>. Posterior correlation may be
+plotted with the <code>plotMatrix</code> function, and may be useful
+for blocking parameters. For more information on blockwise sampling,
+see the <code>Blocks</code> function.
+</p>
+<p>After a user is convinced of the applicability of the current MCMC
+algorithm, and that the chains have converged, <code>PosteriorChecks</code>
+is often used to identify multimodal marginal posterior distributions
+for further study or model re-specification.
+</p>
+<p>Although many marginal posterior distributions appear normally
+distributed, there is no such assumption. Nonetheless, a marginal
+posterior distribution tends to be distributed the same as its prior
+distribution. If a parameter has a prior specified with a Laplace
+distribution, then the marginal posterior distribution tends also to
+be Laplace-distributed. In the common case of normality, kurtosis
+and skewness may be used to identify discrepancies between the prior
+and posterior, and perhaps this should be called a 'prior-posterior
+check'.
+</p>
+<p>Lastly, parameter importance may be considered, in which case it is
+recommended to be considered simultaneously with variable importance
+from the <code>Importance</code> function.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>PosteriorChecks</code> returns an object of class
+<code>posteriorchecks</code> that is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Posterior.Correlation</code></td>
+<td>
+
+<p>This is a correlation matrix of the parameters selected with the
+<code>Parms</code> argument. This component is returned as <code>NA</code> for
+objects of classes <code>"laplace"</code> or <code>"vb"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Posterior.Summary</code></td>
+<td>
+<p>This is a matrix in which each row is a
+parameter and there are eight columns: p(theta &gt; 0), N.Modes,
+Kurtosis, Skewness, Burn-In, IAT, ISM, and AR. The first column,
+p(theta &gt; 0), indicates parameter importance by reporting how much
+of the distribution is greater than zero. An important parameter
+distribution will have a result at least as extreme as 0.025 or
+0.975, and an unimportant parameter distribution is centered at
+0.5. This is not the importance of the associated variable relative
+to how well the model fits the data. For variable importance, see
+the <code>Importance</code> function. The second column, N.Modes,
+is the number of modes, estimated with the <code>Modes</code>
+function. Kurtosis and skewness are useful posterior checks that may
+suggest that a posterior distribution is non-normal or does not fit
+well with a distributional assumption, assuming a distributional
+assumption exists, which it may not. The burn-in is estimated for
+each chain (only for objects of class <code>demonoid</code> with the
+<code>burnin</code> function. The integrated autocorrelation
+time is estimated with <code>IAT</code>. The number of independent
+samples per minute (ISM) is calculated for objects of class
+<code>"demonoid"</code> as <code>ESS</code> divided by minutes. Lastly,
+the local acceptance rate of each MCMC chain is calculated with the
+<code>AcceptanceRate</code> function, and is set to 1 for objects
+of class <code>iterquad</code>, <code>laplace</code>, <code>pmc</code>, or <code>vb</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>AcceptanceRate</code>,
+<code>Blocks</code>,
+<code>burnin</code>,
+<code>ESS</code>,
+<code>Hangartner.Diagnostic</code>,
+<code>joint.density.plot</code>,
+<code>IAT</code>,
+<code>Importance</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>,
+<code>Modes</code>,
+<code>plotMatrix</code>,
+<code>PMC</code>, and
+<code>VariationalBayes</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### See the LaplacesDemon function for an example.</code></pre>
+
+
+</div>

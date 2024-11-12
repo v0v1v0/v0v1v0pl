@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hmd.DA.mx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Model Life Table Discriminant Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Training and testing steps to perform a discriminant analysis for a partial or complete human mortality rate schedule with the Human Mortality Database as the training set. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hmd.DA.mx(data, age, sex="female")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Partial or complete human mortality rate schedule(s) to be classified. The set of age-specific mortality rates to be classified must match up with one of the age groups from the HMD data (standard 5-year age intervals 0, 1-4, 5-9, 10-14...110+) and be in the original scale (non-logged), i.e. one could classify mortality rates for ages 0, 1-5, 10-14, 20-24, 80-84, but cannot classify mortality rates for ages 0-5, 20-29, 30-39, etc. This argument can be either a single schedule or multiple schedules, but either way <code>data</code> must be a matrix with ages in columns.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>The ages of the mortality rates to be classified. This argument tells the function which mortality rates from the HMD should be used for the training models. <code>age</code> is a vector of length equal to the number of columns in <code>data</code> with the starting ages of the intervals to be classified. (e.g. if the user wants to classify mortality rates from ages 20-24, 25-29, 30-34, 35-39, 50-54, enter <code>age=c(seq(20,35,5),50)</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+
+<p>"male" or "female". The sex for the schedule to be classified.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>train</code></td>
+<td>
+<p>The output from the function <code>MclustDA</code>, the parameters and other summary information for the model best fitting each class according to BIC.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out.dens</code></td>
+<td>
+<p>The output from the function <code>predict(MclustDA model name)</code>, A matrix in which the [i,j]th entry is the density for observation i in the model for class j.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classification</code></td>
+<td>
+<p>The classification for the test data</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>David J. Sharrow
+</p>
+
+
+<h3>References</h3>
+
+<p>S. Clark and D. Sharrow (2011) "Contemporary Model Life Tables for Developed Countries: An Application of Model-Based Clustering." Paper presented at the annual meeting of the Population Association of America. <a href="http://paa2011.princeton.edu/abstracts/111808">http://paa2011.princeton.edu/abstracts/111808</a>
+</p>
+<p>C. Fraley and A. E. Raftery (2002) "Model-based clustering, discriminant analysis, and density estimation." <em>Journal of the American Statistical Association</em> <b>97</b>:611-631.
+</p>
+<p>C. Fraley, A. E. Raftery, T. B. Murphy, L. Scrucca (2012) "mclust Version 4 for R: Normal Mixture Modeling for Model-Based Clustering, Classification, and Density Estimation", Technical Report no. 597, Department of Statistics, University of Washington
+</p>
+<p><em>Human Mortality Database</em> University of California, Berkeley (USA), and Max Planck Institute for Demographic Research (Germany). Available at www.mortality.org or www.humanmortality.de (data downloaded February  2015).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>MclustDA</code>, <code>Mclust</code>, <code>MLTobs</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># some test data
+data(MLTobs)
+
+##48 Belgium 1860-64 (known class = 1)
+##180 England 1925-29 (known class = 2)
+##207 Estonia 2005-09 (known class = 7)
+##266 France 1960-64 (known class = 3)
+##410 Japan 2000-04 (known class = 5)
+##607 Russia 1980-84 (known class = 6)
+##798 USA 2000-04 (known class = 4)
+
+country.nums &lt;- c(48,180,207,266,410,607,798)
+test.mx &lt;- t(flt.mx[3:10,country.nums]) # mortality rates for ages 5-40
+test.age &lt;- seq(5,40,5)
+
+# classify the test data matrix
+examp.out &lt;- hmd.DA.mx(data=test.mx, age=test.age, sex="female")
+examp.out$classification
+
+# classify the test data single schedule as matrix
+examp.out2 &lt;- hmd.DA.mx(data=t(as.matrix(test.mx[4,])), age=test.age, sex="female")
+examp.out2$classification
+
+
+</code></pre>
+
+
+</div>

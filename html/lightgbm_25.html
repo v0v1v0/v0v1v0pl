@@ -1,0 +1,79 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.load</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Load LightGBM model</h2>
+
+<h3>Description</h3>
+
+<p>Load LightGBM takes in either a file path or model string.
+If both are provided, Load will default to loading from file
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.load(filename = NULL, model_str = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>path of model file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model_str</code></td>
+<td>
+<p>a str containing the model (as a <code>character</code> or <code>raw</code> vector)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>lgb.Booster
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+data(agaricus.train, package = "lightgbm")
+train &lt;- agaricus.train
+dtrain &lt;- lgb.Dataset(train$data, label = train$label)
+data(agaricus.test, package = "lightgbm")
+test &lt;- agaricus.test
+dtest &lt;- lgb.Dataset.create.valid(dtrain, test$data, label = test$label)
+params &lt;- list(
+  objective = "regression"
+  , metric = "l2"
+  , min_data = 1L
+  , learning_rate = 1.0
+  , num_threads = 2L
+)
+valids &lt;- list(test = dtest)
+model &lt;- lgb.train(
+  params = params
+  , data = dtrain
+  , nrounds = 5L
+  , valids = valids
+  , early_stopping_rounds = 3L
+)
+model_file &lt;- tempfile(fileext = ".txt")
+lgb.save(model, model_file)
+load_booster &lt;- lgb.load(filename = model_file)
+model_string &lt;- model$save_model_to_string(NULL) # saves best iteration
+load_booster_from_str &lt;- lgb.load(model_str = model_string)
+
+</code></pre>
+
+
+</div>

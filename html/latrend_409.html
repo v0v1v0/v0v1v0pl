@@ -1,0 +1,155 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictForCluster</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict trajectories conditional on cluster membership</h2>
+
+<h3>Description</h3>
+
+<p>Predicts the expected trajectory observations at the given time under the assumption that the trajectory belongs to the specified cluster.
+</p>
+<p>For <code>lcModel</code> objects, the same result can be obtained by calling <code>predict()</code> with the <code>newdata</code> <code>data.frame</code> having a <code>"Cluster"</code> assignment column.
+The main purpose of this function is to make it easier to implement the prediction computations for custom <code>lcModel</code> classes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predictForCluster(object, newdata = NULL, cluster, ...)
+
+## S4 method for signature 'lcModel'
+predictForCluster(object, newdata = NULL, cluster, ..., what = "mu")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>The model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>A <code>data.frame</code> of trajectory data for which to compute trajectory assignments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>The cluster name (as <code>character</code>) to predict for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments passed on to <code>predict.lcModel</code>
+</p>
+
+<dl>
+<dt><code>useCluster</code></dt>
+<dd>
+<p>Whether to use the "Cluster" column in the newdata argument for computing predictions conditional on the respective cluster.
+For <code>useCluster = NA</code> (the default), the feature is enabled if newdata contains the "Cluster" column.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>what</code></td>
+<td>
+<p>The distributional parameter to predict. By default, the mean response 'mu' is predicted. The cluster membership predictions can be obtained by specifying <code>what = 'mb'</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default <code>predictForCluster(lcModel)</code> method makes use of <code>predict.lcModel()</code>, and vice versa. For this to work, any extending <code>lcModel</code> classes, e.g., <code>lcModelExample</code>, should implement either <code>predictForCluster(lcModelExample)</code> or <code>predict.lcModelExample()</code>. When implementing new models, it is advisable to implement <code>predictForCluster</code> as the cluster-specific computation generally results in shorter and simpler code.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>vector</code> with the predictions per <code>newdata</code> observation, or a <code>data.frame</code> with the predictions and newdata alongside.
+</p>
+
+
+<h3>Implementation</h3>
+
+<p>Classes extending <code>lcModel</code> should override this method, unless <code>predict.lcModel()</code> is preferred.
+</p>
+<pre>
+setMethod("predictForCluster", "lcModelExt",
+ function(object, newdata = NULL, cluster, ..., what = "mu") {
+  # return model predictions for the given data under the
+  # assumption of the data belonging to the given cluster
+})
+</pre>
+
+
+<h3>See Also</h3>
+
+<p>predict.lcModel
+</p>
+<p>Other lcModel functions: 
+<code>clusterNames()</code>,
+<code>clusterProportions()</code>,
+<code>clusterSizes()</code>,
+<code>clusterTrajectories()</code>,
+<code>coef.lcModel()</code>,
+<code>converged()</code>,
+<code>deviance.lcModel()</code>,
+<code>df.residual.lcModel()</code>,
+<code>estimationTime()</code>,
+<code>externalMetric()</code>,
+<code>fitted.lcModel()</code>,
+<code>fittedTrajectories()</code>,
+<code>getCall.lcModel()</code>,
+<code>getLcMethod()</code>,
+<code>ids()</code>,
+<code>lcModel-class</code>,
+<code>metric()</code>,
+<code>model.frame.lcModel()</code>,
+<code>nClusters()</code>,
+<code>nIds()</code>,
+<code>nobs.lcModel()</code>,
+<code>plot-lcModel-method</code>,
+<code>plotClusterTrajectories()</code>,
+<code>plotFittedTrajectories()</code>,
+<code>postprob()</code>,
+<code>predict.lcModel()</code>,
+<code>predictAssignments()</code>,
+<code>predictPostprob()</code>,
+<code>qqPlot()</code>,
+<code>residuals.lcModel()</code>,
+<code>sigma.lcModel()</code>,
+<code>strip()</code>,
+<code>time.lcModel()</code>,
+<code>trajectoryAssignments()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(latrendData)
+method &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time")
+model &lt;- latrend(method, latrendData)
+
+predictForCluster(
+  model,
+  newdata = data.frame(Time = c(0, 1)),
+  cluster = "B"
+)
+
+# all fitted values under cluster B
+predictForCluster(model, cluster = "B")
+</code></pre>
+
+
+</div>

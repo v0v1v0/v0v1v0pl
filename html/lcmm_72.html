@@ -1,0 +1,396 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mpjlcmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimation of multivariate joint latent class mixed models</h2>
+
+<h3>Description</h3>
+
+<p>This function fits joint latent class models for multivariate longitudinal markers
+and competing causes of event. It is a multivariate
+extension of the Jointlcmm function. It defines each longitudinal dimension as a 
+latent process (mp in mpjlcmm is for multivariate processes), possibly
+measured by sereval continuous markers (Gaussian or curvilinear). For the moment, 
+theses processes are assumed independent given the latent classes. 
+The (optional) survival part handles competing risks, right censoring and left truncation.
+The specification of the function is similar to other estimating functions of the package.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mpjlcmm(
+  longitudinal,
+  subject,
+  classmb,
+  ng,
+  survival,
+  hazard = "Weibull",
+  hazardtype = "Specific",
+  hazardnodes = NULL,
+  TimeDepVar = NULL,
+  data,
+  B,
+  convB = 1e-04,
+  convL = 1e-04,
+  convG = 1e-04,
+  maxiter = 100,
+  nsim = 100,
+  prior,
+  logscale = FALSE,
+  subset = NULL,
+  na.action = 1,
+  posfix = NULL,
+  partialH = FALSE,
+  verbose = FALSE,
+  nproc = 1,
+  clustertype = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>longitudinal</code></td>
+<td>
+<p>list of longitudinal models of type hlme, lcmm or multlcmm. Each
+model defines the structure of one latent process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>name of the covariate representing the grouping structure
+(called subject identifier)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classmb</code></td>
+<td>
+<p>optional one-sided formula describing the covariates in the
+class-membership multinomial logistic model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>number of latent classes considered</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival</code></td>
+<td>
+<p>two-sided formula object specifying the survival part of the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazard</code></td>
+<td>
+<p>optional family of hazard function assumed for the survival model
+(Weibull, piecewise or splines)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardtype</code></td>
+<td>
+<p>optional indicator for the type of baseline risk function
+(Specific, PH or Common)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardnodes</code></td>
+<td>
+<p>optional vector containing interior nodes if
+<code>splines</code> or <code>piecewise</code> is specified for the baseline hazard
+function in <code>hazard</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TimeDepVar</code></td>
+<td>
+<p>optional vector specifying the name of the time-depending
+covariate in the survival model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data frame containing all the variables used in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>optional specification for the initial values of the parameters.
+Three options are allowed: (1) a vector of initial values is entered (the
+order in which the parameters are included is detailed in <code>details</code>
+section).  (2) nothing is specified. Initial values are extracted from the models
+specified in <code>longitudinal</code>, and default initial values are chosen for the
+survival part (3) when ng&gt;1, a mpjlcmm object is entered. It should correspond to
+the exact same structure of model but with ng=1. The program will
+automatically generate initial values from this model. Note that due to possible
+local maxima, the <code>B</code> vector should be specified and several different
+starting points should be tried. This can be done automatically using 
+gridsearch function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convB</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+parameter stability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convL</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+log-likelihood stability</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convG</code></td>
+<td>
+<p>optional threshold for the convergence criterion based on the
+derivatives</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>optional maximum number of iterations for the Marquardt
+iterative algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>optional number of points for the predicted survival curves and
+predicted baseline risk curves</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>optional name of a covariate containing a prior information
+about the latent class membership</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logscale</code></td>
+<td>
+<p>optional boolean indicating whether an exponential
+(logscale=TRUE) or a square (logscale=FALSE -by default) transformation is
+used to ensure positivity of parameters in the baseline risk functions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>a specification of the rows to be used: defaults to all rows.
+This can be any valid indexing vector for the rows of data or if that is not
+supplied, a data frame made up of the variable used in formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>Integer indicating how NAs are managed. The default is 1
+for 'na.omit'. The alternative is 2 for 'na.fail'. Other options such as
+'na.pass' or 'na.exclude' are not implemented in the current version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posfix</code></td>
+<td>
+<p>Optional vector specifying the indices in vector B of the
+parameters that should not be estimated. Default to NULL, all parameters are
+estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partialH</code></td>
+<td>
+<p>optional logical for Piecewise and Splines baseline risk
+functions and Splines link functions only. Indicates whether the parameters of the
+baseline risk or link functions can be dropped from the Hessian matrix to define
+convergence criteria (can solve non convergence due to estimates at the boundary 
+of the parameter space - usually 0).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating whether information about computation should be
+reported. Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nproc</code></td>
+<td>
+<p>the number cores for parallel computation.
+Default to 1 (sequential mode).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustertype</code></td>
+<td>
+<p>optional character indicating the type of cluster for parallel computation.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Cecile Proust Lima and Viviane Philipps
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+paquid$age65 &lt;- (paquid$age-65)/10
+
+##############################################################################
+###                          EXAMPLE 1 :                                   ###
+###two outcomes measuring the same latent process along with dementia onset###
+##############################################################################
+
+## multlcmm model for MMSE and BVRT for 1 class
+mult1 &lt;- multlcmm(MMSE+BVRT~age65+I(age65^2)+CEP+male,random=~age65+I(age65^2),
+subject="ID",link=c("5-quant-splines","4-quant-splines"),data=paquid)
+summary(mult1)
+
+## joint model for 1 class
+m1S &lt;- mpjlcmm(longitudinal=list(mult1),subject="ID",ng=1,data=paquid,
+survival=Surv(age_init,agedem,dem)~1)
+summary(m1S)
+
+
+##### joint model for 2 classes #####
+
+## specify longitudinal model for 2 classes, without estimation
+mult2 &lt;- multlcmm(MMSE+BVRT~age65+I(age65^2)+CEP+male,random=~age65+I(age65^2),
+subject="ID",link=c("5-quant-splines","4-quant-splines"),ng=2,
+mixture=~age65+I(age65^2),data=paquid,B=random(mult1),maxiter=0)
+
+## estimation of the associated joint model 
+m2S &lt;- mpjlcmm(longitudinal=list(mult2),subject="ID",ng=2,data=paquid,
+survival=Surv(age_init,agedem,dem)~1)
+
+## estimation by a grid search with 50 replicates, initial values
+## randomly generated from m1S
+m2S_b &lt;- gridsearch(mpjlcmm(longitudinal=list(mult2),subject="ID",ng=2,
+data=paquid,survival=Surv(age_init,agedem,dem)~1), minit=m1S, rep=50, maxiter=30)
+
+
+##### joint model for 3 classes #####
+mult3 &lt;- multlcmm(MMSE+BVRT~age65+I(age65^2)+CEP+male,random=~age65+I(age65^2),
+subject="ID",link=c("5-quant-splines","4-quant-splines"),ng=3,
+mixture=~age65+I(age65^2),data=paquid,B=random(mult1),maxiter=0)
+
+m3S &lt;- mpjlcmm(longitudinal=list(mult3),subject="ID",ng=3,data=paquid,
+survival=Surv(age_init,agedem,dem)~1)
+
+m3S_b &lt;- gridsearch(mpjlcmm(longitudinal=list(mult3),subject="ID",ng=3,
+data=paquid,survival=Surv(age_init,agedem,dem)~1), minit=m1S, rep=50, maxiter=30)
+
+
+##### summary of the models #####
+
+summarytable(m1S,m2S,m2S_b,m3S,m3S_b)
+
+
+
+##### post-fit #####
+
+## update longitudinal models :
+mod2 &lt;- update(m2S)
+
+mult2_post &lt;- mod2[[1]]
+## -&gt; use the available functions for multlcmm on the mult2_post object
+
+## fit of the longitudinal trajectories
+par(mfrow=c(2,2))
+plot(mult2_post,"fit","age65",marg=TRUE,shades=TRUE,outcome=1)
+plot(mult2_post,"fit","age65",marg=TRUE,shades=TRUE,outcome=2)
+
+plot(mult2_post,"fit","age65",marg=FALSE,shades=TRUE,outcome=1)
+plot(mult2_post,"fit","age65",marg=FALSE,shades=TRUE,outcome=2)
+
+
+## predicted trajectories
+dpred &lt;- data.frame(age65=seq(0,3,0.1),male=0,CEP=0)
+
+predL &lt;- predictL(mult2_post,newdata=dpred,var.time="age65",confint=TRUE)
+plot(predL,shades=TRUE) # in the latent process scale
+
+
+predY &lt;- predictY(mult2_post,newdata=dpred,var.time="age65",draws=TRUE)
+
+plot(predY,shades=TRUE,ylim=c(0,30),main="MMSE") #in the 0-30 scale for MMSE
+plot(predY,shades=TRUE,ylim=c(0,15),outcome=2,main="BVRT") #in 0-15 for BVRT
+
+## baseline hazard and survival curves :
+plot(m2S,"hazard")
+plot(m2S,"survival")
+
+## posteriori probabilities and classification :
+postprob(m2S)
+
+
+
+####################################################################################
+###                              EXAMPLE 2 :                                     ###
+### two latent processes measured each by one outcome along with dementia onset  ###
+####################################################################################
+
+## define the two longitudinal models
+
+mMMSE1 &lt;- lcmm(MMSE~age65+I(age65^2)+CEP,random=~age65+I(age65^2),subject="ID",
+link="5-quant-splines",data=paquid)
+
+mCESD1 &lt;- lcmm(CESD~age65+I(age65^2)+male,random=~age65+I(age65^2),subject="ID",
+link="5-quant-splines",data=paquid)
+
+
+## joint estimation
+
+mm1S &lt;- mpjlcmm(longitudinal=list(mMMSE1,mCESD1),subject="ID",ng=1,data=paquid,
+survival=Surv(age_init,agedem,dem)~CEP+male)
+
+
+## with 2 latent classes
+
+mMMSE2 &lt;- lcmm(MMSE~age65+I(age65^2)+CEP,random=~age65+I(age65^2),subject="ID",
+link="5-quant-splines",data=paquid,ng=2,mixture=~age65+I(age65^2),
+B=random(mMMSE1),maxiter=0)
+
+mCESD2 &lt;- lcmm(CESD~age65+I(age65^2)+male,random=~age65+I(age65^2),subject="ID",
+link="5-quant-splines",data=paquid,ng=2,mixture=~age65+I(age65^2),
+B=random(mCESD1),maxiter=0)
+
+mm2S &lt;- mpjlcmm(longitudinal=list(mMMSE2,mCESD2),subject="ID",ng=2,data=paquid,
+survival=Surv(age_init,agedem,dem)~CEP+mixture(male),classmb=~CEP+male)
+
+mm2S_b &lt;- gridsearch(mpjlcmm(longitudinal=list(mMMSE2,mCESD2),subject="ID",ng=2,
+data=paquid,survival=Surv(age_init,agedem,dem)~CEP+mixture(male),
+classmb=~CEP+male),minit=mm1S,rep=50,maxiter=50)
+
+summarytable(mm1S,mm2S,mm2S_b)
+
+
+mod1_biv &lt;- update(mm1S)
+mod2_biv &lt;- update(mm2S)
+
+## -&gt; use post-fit functions as in exemple 1
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

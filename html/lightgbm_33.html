@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.train</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Main training logic for LightGBM</h2>
+
+<h3>Description</h3>
+
+<p>Low-level R interface to train a LightGBM model. Unlike <code>lightgbm</code>,
+this function is focused on performance (e.g. speed, memory efficiency). It is also
+less likely to have breaking API changes in new releases than <code>lightgbm</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.train(
+  params = list(),
+  data,
+  nrounds = 100L,
+  valids = list(),
+  obj = NULL,
+  eval = NULL,
+  verbose = 1L,
+  record = TRUE,
+  eval_freq = 1L,
+  init_model = NULL,
+  colnames = NULL,
+  categorical_feature = NULL,
+  early_stopping_rounds = NULL,
+  callbacks = list(),
+  reset_data = FALSE,
+  serializable = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a list of parameters. See <a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html">
+the "Parameters" section of the documentation</a> for a list of parameters and valid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>lgb.Dataset</code> object, used for training. Some functions, such as <code>lgb.cv</code>,
+may allow you to pass other types of data like <code>matrix</code> and then separately supply
+<code>label</code> as a keyword argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrounds</code></td>
+<td>
+<p>number of training rounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>valids</code></td>
+<td>
+<p>a list of <code>lgb.Dataset</code> objects, used for validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>objective function, can be character or custom objective function. Examples include
+<code>regression</code>, <code>regression_l1</code>, <code>huber</code>,
+<code>binary</code>, <code>lambdarank</code>, <code>multiclass</code>, <code>multiclass</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>evaluation function(s). This can be a character vector, function, or list with a mixture of
+strings and functions.
+</p>
+
+<ul>
+<li>
+<p><b>a. character vector</b>:
+If you provide a character vector to this argument, it should contain strings with valid
+evaluation metrics.
+See <a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html#metric">
+The "metric" section of the documentation</a>
+for a list of valid metrics.
+
+</p>
+</li>
+<li>
+<p><b>b. function</b>:
+You can provide a custom evaluation function. This
+should accept the keyword arguments <code>preds</code> and <code>dtrain</code> and should return a named
+list with three elements:
+</p>
+
+<ul>
+<li>
+<p><code>name</code>: A string with the name of the metric, used for printing
+and storing results.
+
+</p>
+</li>
+<li>
+<p><code>value</code>: A single number indicating the value of the metric for the
+given predictions and true values
+
+</p>
+</li>
+<li>
+<p><code>higher_better</code>: A boolean indicating whether higher values indicate a better fit.
+For example, this would be <code>FALSE</code> for metrics like MAE or RMSE.
+
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p><b>c. list</b>:
+If a list is given, it should only contain character vectors and functions.
+These should follow the requirements from the descriptions above.
+
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>verbosity for output, if &lt;= 0 and <code>valids</code> has been provided, also will disable the
+printing of evaluation during training</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>record</code></td>
+<td>
+<p>Boolean, TRUE will record iteration message to <code>booster$record_evals</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_freq</code></td>
+<td>
+<p>evaluation output frequency, only effective when verbose &gt; 0 and <code>valids</code> has been provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_model</code></td>
+<td>
+<p>path of model file or <code>lgb.Booster</code> object, will continue training from this model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnames</code></td>
+<td>
+<p>Deprecated. See "Deprecated Arguments" section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorical_feature</code></td>
+<td>
+<p>Deprecated. See "Deprecated Arguments" section below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>early_stopping_rounds</code></td>
+<td>
+<p>int. Activates early stopping. When this parameter is non-null,
+training will stop if the evaluation of any metric on any validation set
+fails to improve for <code>early_stopping_rounds</code> consecutive boosting rounds.
+If training stops early, the returned model will have attribute <code>best_iter</code>
+set to the iteration number of the best iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>callbacks</code></td>
+<td>
+<p>List of callback functions that are applied at each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reset_data</code></td>
+<td>
+<p>Boolean, setting it to TRUE (not the default value) will transform the
+booster model into a predictor model which frees up memory and the
+original datasets</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>serializable</code></td>
+<td>
+<p>whether to make the resulting objects serializable through functions such as
+<code>save</code> or <code>saveRDS</code> (see section "Model serialization").</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a trained booster model <code>lgb.Booster</code>.
+</p>
+
+
+<h3>Deprecated Arguments</h3>
+
+<p>A future release of <code>lightgbm</code> will remove support for passing arguments
+<code>'categorical_feature'</code> and <code>'colnames'</code>. Pass those things to
+<code>lgb.Dataset</code> instead.
+</p>
+
+
+<h3>Early Stopping</h3>
+
+<p>"early stopping" refers to stopping the training process if the model's performance on a given
+validation set does not improve for several consecutive iterations.
+</p>
+<p>If multiple arguments are given to <code>eval</code>, their order will be preserved. If you enable
+early stopping by setting <code>early_stopping_rounds</code> in <code>params</code>, by default all
+metrics will be considered for early stopping.
+</p>
+<p>If you want to only consider the first metric for early stopping, pass
+<code>first_metric_only = TRUE</code> in <code>params</code>. Note that if you also specify <code>metric</code>
+in <code>params</code>, that metric will be considered the "first" one. If you omit <code>metric</code>,
+a default metric will be used based on your choice for the parameter <code>obj</code> (keyword argument)
+or <code>objective</code> (passed into <code>params</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+data(agaricus.train, package = "lightgbm")
+train &lt;- agaricus.train
+dtrain &lt;- lgb.Dataset(train$data, label = train$label)
+data(agaricus.test, package = "lightgbm")
+test &lt;- agaricus.test
+dtest &lt;- lgb.Dataset.create.valid(dtrain, test$data, label = test$label)
+params &lt;- list(
+  objective = "regression"
+  , metric = "l2"
+  , min_data = 1L
+  , learning_rate = 1.0
+  , num_threads = 2L
+)
+valids &lt;- list(test = dtest)
+model &lt;- lgb.train(
+  params = params
+  , data = dtrain
+  , nrounds = 5L
+  , valids = valids
+  , early_stopping_rounds = 3L
+)
+
+
+</code></pre>
+
+
+</div>

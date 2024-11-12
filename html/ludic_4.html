@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>atlas</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Association testing by combining several matching thresholds</h2>
+
+<h3>Description</h3>
+
+<p>Computes association test p-values from a generalized linear model for each considered 
+threshold, and computes a p-value for the combination of all the envisioned thresholds 
+through Fisher's method using perturbation resampling.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">atlas(
+  match_prob,
+  y,
+  x,
+  covar = NULL,
+  thresholds = seq(from = 0.1, to = 0.9, by = 0.2),
+  nb_perturb = 200,
+  dist_family = c("gaussian", "binomial"),
+  impute_strategy = c("weighted average", "best")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>match_prob</code></td>
+<td>
+<p>matching probabilities matrix (e.g. obtained through <code>recordLink</code>) of 
+dimensions <code>n1 x n2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>response variable of length <code>n1</code>. Only binary phenotypes are supported at the moment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a <code>matrix</code> or a <code>data.frame</code> of predictors of dimensions <code>n2 x p</code>. 
+An intercept is automatically added within the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covar</code></td>
+<td>
+<p>a <code>matrix</code> or a <code>data.frame</code> of variables to be adjusted on
+in the test of dimensions <code>n3 x p</code>. 
+Default is <code>NULL</code> in which case there is no adjustment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresholds</code></td>
+<td>
+<p>a vector (possibly of length <code>1</code>) containing the different threshold 
+to use to call a match. Default is <code>seq(from = 0.5, to = 0.95, by = 0.05)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nb_perturb</code></td>
+<td>
+<p>the number of perturbation used for the p-value combination.
+Default is 200.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist_family</code></td>
+<td>
+<p>a character string indicating the distribution family for the glm. 
+Currently, only <code>'gaussian'</code> and  <code>'binomial'</code> are supported. Default 
+is <code>'gaussian'</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute_strategy</code></td>
+<td>
+<p>a character string indicating which strategy to use to impute x 
+from the matching probabilities <code>match_prob</code>. Either <code>"best"</code> (in which 
+case the highest probable match above the threshold is imputed) or <code>"weighted average"</code>
+(in which case weighted mean is imputed for each individual who has at least
+one match with a posterior probability above the threshold). Default is 
+<code>"weighted average"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list containing the following:
+</p>
+
+<ul>
+<li> <p><code>influencefn_pvals</code> p-values obtained from influence function perturbations
+with the covariates as columns and the <code>thresholds</code> as rows, with an additional row 
+at the top for the combination 
+</p>
+</li>
+<li> <p><code>wald_pvals</code> a matrix containing the p-values obtained from the Wald 
+test with the covariates as columns and the <code>thresholds</code> as rows
+</p>
+</li>
+<li> <p><code>ptbed_pvals</code> a list containing, for each covariates, a matrix with
+the <code>nb_perturb</code> perturbed p-values with the different <code>thresholds</code>
+as rows
+</p>
+</li>
+<li> <p><code>theta_impute</code> a matrix of the estimated coefficients from the glm when imputing 
+the weighted average for covariates (as columns) with the <code>thresholds</code> as rows
+</p>
+</li>
+<li> <p><code>sd_theta</code> a matrix of the estimated SD (from the influence function) of the 
+coefficients from the glm when imputing the weighted average for covariates (as columns),
+with the <code>thresholds</code> as rows
+</p>
+</li>
+<li> <p><code>ptbed_theta_impute</code> a list containing, for each covariates, a matrix with
+the <code>nb_perturb</code> perturbed estimated coefficients from the glm when imputing 
+the weighted average for covariates, with the different <code>thresholds</code>
+as rows
+</p>
+</li>
+<li> <p><code>impute_strategy</code> a character string indicating which impute 
+strategy was used (either <code>"weighted average"</code> or <code>"best"</code>)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Zhang HG, Hejblum BP, Weber G, Palmer N, Churchill S, Szolovits P, 
+Murphy S, Liao KP, Kohane I and Cai T, ATLAS: An automated association test using 
+probabilistically linked health records with application to genetic studies, 
+<em>JAMIA</em>, in press (2021). 
+doi: <a href="https://doi.org/10.1101/2021.05.02.21256490">10.1101/2021.05.02.21256490</a>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#rm(list=ls())
+
+n_sims &lt;- 1#5000
+
+mysim &lt;- function(i){
+ x &lt;- matrix(ncol=2, nrow=99, stats::rnorm(n=99*2))
+ #plot(density(rbeta(n=1000, 1,2)))
+ match_prob &lt;- matrix(rbeta(n=103*99, 1, 2), nrow=103, ncol=99)
+
+ #y &lt;- rnorm(n=103, mean = 1, sd = 0.5)
+ #return(atlas(match_prob, y, x, dist_family="gaussian")$influencefn_pvals)
+ y &lt;- rbinom(n=103, size = 1, prob=0.5)
+ return(atlas(match_prob, y, x, dist_family="binomial")$influencefn_pvals)
+}
+#res &lt;- pbapply::pblapply(1:n_sims, mysim, cl = parallel::detectCores()-1)
+res &lt;- lapply(1:n_sims, mysim)
+
+size &lt;- sapply(1:(ncol(res[[1]])-2), 
+              FUN = function(i){
+           rowMeans(sapply(res, function(m){m[, i]&lt;0.05}), na.rm = TRUE)
+           }
+)
+rownames(size) &lt;- rownames(res[[1]])
+colnames(size) &lt;- colnames(res[[1]])[-(-1:0 + ncol(res[[1]]))]
+size
+</code></pre>
+
+
+</div>

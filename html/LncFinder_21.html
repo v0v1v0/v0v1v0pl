@@ -1,0 +1,176 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>svm_tune</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parameter Tuning of SVM</h2>
+
+<h3>Description</h3>
+
+<p>This function conduct the parameter tuning of SVM. Parameters
+gamma and cost can be tuned using grid search.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">svm_tune(
+  dataset,
+  label.col = 1,
+  positive.class = "NonCoding",
+  folds.num = 10,
+  seed = 1,
+  gamma.range = (2^seq(-5, 0, 1)),
+  cost.range = c(1, 4, 8, 16, 24, 32),
+  return.model = TRUE,
+  parallel.cores = 2,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>The dataset obtained from function <code>extract_features</code>.
+Or datasets used to build the classifier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label.col</code></td>
+<td>
+<p>integer specifying the column number of the label. (Default: <code>1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>positive.class</code></td>
+<td>
+<p>Character. Indicate the positive class of the dataset.
+(Default: <code>NonCoding</code>) The value of this parameter should be identical to
+one of the classes of the response vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds.num</code></td>
+<td>
+<p>Integer. Specify the number of folds for cross-validation.
+(Default: <code>10</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer. Used to set the seed for cross-validation. (Default: <code>1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma.range</code></td>
+<td>
+<p>The range of gamma. (Default: <code>2 ^ seq(-5, 0, 1)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost.range</code></td>
+<td>
+<p>The range of cost. (Default: <code>c(1, 4, 8, 16, 24, 32)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.model</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, the function will return the best
+model trained on the full dataset. If <code>FALSE</code>, this function will return
+the optimal parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>, users can set as <code>-1</code> to run
+this function with all cores. If the number of <code>parallel.cores</code> is more
+than the <code>folds.num</code> (number of the folds for cross-validation), the
+number of <code>parallel.cores</code> will be set as <code>folds.num</code> automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for function <code>svm</code>, except
+<code>scale</code>, <code>probability</code>, <code>kernel</code>, <code>gamma</code> and <code>cost</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>During the model tuning, the performance of each combination of
+parameters will output. Sensitivity, Specificity, Accuracy, F-Measure and Kappa
+Value are used to evaluate the performances. The best gamma and cost (or best
+model) are selected based on Accuracy.
+</p>
+<p>For the details of parameter gamma and cost, please refer to function
+<code>svm</code> of package "e1071".
+</p>
+<p>For the details of metrics, please refer to function
+<code>confusionMatrix</code> of package "caret".
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns the optimal parameters when <code>return.model = FALSE</code>.
+Or returns the best model when <code>return.model = TRUE</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>extract_features</code>, <code>svm_cv</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(demo_DNA.seq)
+Seqs &lt;- demo_DNA.seq
+
+positive_data &lt;- extract_features(Seqs[1:5], label = "NonCoding",
+                                  SS.features = FALSE, format = "DNA",
+                                  frequencies.file = "human",
+                                  parallel.cores = 2)
+
+negative_data &lt;- extract_features(Seqs[6:10], label = "Coding",
+                                  SS.features = FALSE, format = "DNA",
+                                  frequencies.file = "human",
+                                  parallel.cores = 2)
+
+my_dataset &lt;- rbind(positive_data, negative_data)
+
+### Or use our data "demo_dataset"
+data(demo_dataset)
+my_dataset &lt;- demo_dataset
+
+optimal_parameter &lt;- svm_tune(my_dataset, positive.class = "NonCoding",
+                              folds.num = 2, seed = 1,
+                              gamma.range = (2 ^ seq(-5, 0, 2)),
+                              cost.range = c(1, 8, 16),
+                              return.model = FALSE, parallel.core = 2)
+
+### Users can set return.model = TRUE to return the best model.
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,329 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Rvarlacf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Compute confidence intervals for localized autocovariance for
+locally stationary time series.
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute a localized autocovariance and associated
+confidence intervals for a locally stationary time
+series. The underlying theory assumes a locally stationary
+wavelet time series, but will work well for other time
+series that are not too far away.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Rvarlacf(x, nz, filter.number = 1, family = "DaubExPhase",
+    smooth.dev = var, AutoReflect = TRUE, lag.max = NULL,
+    WPsmooth.type = "RM", binwidth = 0, mkcoefOBJ, ThePsiJ,
+    Cverbose = 0, verbose = 0, OPLENGTH = 10^5, var.lag.max = 3,
+    ABB.tol = 0.1, ABB.plot.it = FALSE, ABB.verbose = 0,
+    ABB.maxits = 10, truedenom=FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>The time series you wish to analyze
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nz</code></td>
+<td>
+<p>The time point at which you wish to compute the
+localized autocovariance for.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.number</code></td>
+<td>
+<p>The analysis wavelet for many things, including
+smoothing. See <code>wd</code> for information on the various types.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The analysis wavelet family. See <code>wd</code> again.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth.dev</code></td>
+<td>
+<p>The deviance function used to perform smoothing of
+the evolutionary wavelet spectrum. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>AutoReflect</code></td>
+<td>
+<p>The internal wavelet transforms assume periodic
+boundary conditions. However, most time series are not
+periodic (in terms of their support, e.g. the series at time
+1 is not normally anywhere near the value of the series at
+time T). This argument, if <code>TRUE</code> mitigates this
+by reflecting the whole series by the right-hand end, computing
+the transform (for which periodic transforms are now valid)
+and then junking the second half of the estimate. Although this
+is slightly more computationally intensive, the results are better.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lag.max</code></td>
+<td>
+<p>The maximum number of lags to compute the localized
+autocovariance for. The default is the same as in the
+regular <code>acf</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>WPsmooth.type</code></td>
+<td>
+<p>The type of smoothing of the evolutionary
+wavelet spectrum and the localized autocovariance. See the
+arguments to <code>lacf</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binwidth</code></td>
+<td>
+<p>The smoothing bandwidth associated with the
+smoothing controlled by <code>WPsmooth.type</code>. If this value
+is zero then the <code>binwidth</code> is computed automatically
+by the routine. And if <code>verbose&gt;0</code> the value is also
+printed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mkcoefOBJ</code></td>
+<td>
+<p>Optionally, the appropriate discrete wavelet
+transform object can be supplied. If it is not supplied
+then the routine automatically computes it. There is a small
+saving in providing it, so for everyday use probably not worth
+it.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ThePsiJ</code></td>
+<td>
+<p>As for <code>mkcoefOBJ</code> but the autocorrelation
+wavelet object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Cverbose</code></td>
+<td>
+<p>If positive integer then the called C code produces
+verbose messages. Useful for debugging. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If positive integer &gt;0 then useful messages are printed.
+Higher values give more information.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OPLENGTH</code></td>
+<td>
+<p>Parameter that controls storage allocated to
+the <code>PsiJ</code> routine. It is possible, for large time series,
+you might be asked to increase this value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.lag.max</code></td>
+<td>
+<p>Number of lags that you want to compute confidence
+intervals for. Usually, it is quick to compute for more lags,
+so this could usually be set to be the value of <code>lag.max</code>
+above. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ABB.tol</code></td>
+<td>
+
+<p>The routine selects the automatic bandwidth via a golden section
+search. This argument controls the optimization tolerance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ABB.plot.it</code></td>
+<td>
+<p>Whether or not to plot the iterations of the
+automatic bandwidth golden section search. (<code>TRUE</code>/<code>FALSE</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ABB.verbose</code></td>
+<td>
+<p>Positive integer controlling the amount of
+detail from the automatic bandwidth golden section search
+algorithm. If zero nothing is produced.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ABB.maxits</code></td>
+<td>
+
+<p>The maximum number of iterations in the automatic bandwidth
+golden section search.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truedenom</code></td>
+<td>
+<p>If TRUE use the actual number of terms in the sum as
+the denominator in the formula for the calculation of the
+covariance of the smoothed periodogram. If FALSE use the
+eqn(2s+1)^-2 (this was the default in versions prior to
+1.7.4)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Other arguments
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>1. If <code>binwidth=0</code> the function first computes the
+‘best’ linear running mean binwidth (bandwidth)
+for the smooth of the localized autocovariance.
+2. The function computes the localized autocovariance
+smoothed with a running mean with the selected binwidth.
+Then, the variance of <code class="reqn">\hat{c}(z, \tau)</code> is
+computed for the selected value of time z=nz and for the
+lags specified (in <code>var.lag.max</code>). The results are
+returned in an object of class <code>lacfCI</code>.
+</p>
+<p>Note, this function
+computes and plots localized autocovariances for a particular
+and fixed time location. Various other plots, including
+perspective plots or the localized autocovariance function
+over all time can be found in the <code>costat</code> package.
+(Indeed, this function returns a <code>lacfCI</code> object that
+contains a <code>lacf</code> object, and interesting plots
+can be plotted using the <code>plot.lacf</code> function within
+<code>costast</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>lacfCI</code>. This is a list with
+the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lag</code></td>
+<td>
+<p>The lags for which the localized autocovariance variance is
+computed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvar</code></td>
+<td>
+<p>The variances associated with each localized autocovariance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>the.lacf</code></td>
+<td>
+<p>The <code>lacf</code> class object that contains the
+localized autocovariances themselves. This object
+can be handled/plotted/etc using the functions
+in the <code>costat</code> package although <code>plot.lacfCI</code>
+contains much of the functionality of <code>plot.lacf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Guy Nason.
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.lacfCI</code>, <code>print.lacfCI</code>,
+<code>summary.lacfCI</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#
+# Do localized autocovariance on a iid Gaussian sequence
+#
+tmp &lt;- Rvarlacf(rnorm(256), nz=125)
+#
+# Plot the localized autocovariances over time (default plot, doesn't
+# produce CIs)
+#
+## Not run: plot(tmp)
+#
+# You should get a plot where the lag 0 acs are all near 1 and all the
+# others are near zero, the acfs over time. 
+#
+## Not run: plot(tmp, plotcor=FALSE, type="acf")
+#
+# This plots the autocovariances (note: \code{plotcor=FALSE}) and the
+# type of plot is \code{"acf"} which means like a regular ACF plot, except
+# this is c(125, tau), ie the acf localized to time=125 The confidence
+# intervals are also plotted. 
+# The plot subtitle indicates that it is c(125, tau) that is being plotted
+#
+</code></pre>
+
+
+</div>

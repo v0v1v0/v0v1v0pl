@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addGlPolylines</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>add polylines to a leaflet map using Leaflet.glify</h2>
+
+<h3>Description</h3>
+
+<p>Leaflet.glify is a web gl renderer plugin for leaflet. See
+<a href="https://github.com/robertleeplummerjr/Leaflet.glify">https://github.com/robertleeplummerjr/Leaflet.glify</a> for details
+and documentation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addGlPolylines(
+  map,
+  data,
+  color = cbind(0, 0.2, 1),
+  opacity = 0.6,
+  group = "glpolylines",
+  popup = NULL,
+  weight = 1,
+  layerId = NULL,
+  src = FALSE,
+  ...
+)
+
+addGlPoints(
+  map,
+  data,
+  fillColor = "#0033ff",
+  fillOpacity = 0.8,
+  radius = 10,
+  group = "glpoints",
+  popup = NULL,
+  layerId = NULL,
+  src = FALSE,
+  ...
+)
+
+addGlPolygons(
+  map,
+  data,
+  color = cbind(0, 0.2, 1),
+  fillColor = color,
+  fillOpacity = 0.8,
+  group = "glpolygons",
+  popup = NULL,
+  layerId = NULL,
+  src = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>a leaflet map to add points/polygons to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>sf/sp point/polygon data to add to the map.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>Object representing the color. Can be of class integer, character with
+color names, HEX codes or random characters, factor, matrix, data.frame, list, json or formula.
+See the examples or makeColorMatrix for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opacity</code></td>
+<td>
+<p>feature opacity. Numeric between 0 and 1.
+Note: expect funny results if you set this to &lt; 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>a group name for the feature layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popup</code></td>
+<td>
+<p>Object representing the popup. Can be of type character with column names,
+formula, logical, data.frame or matrix, Spatial, list or JSON. If the lenght does not
+match the number of rows in the dataset, the popup vector is repeated to match the dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>line width/thicknes in pixels for <code>addGlPolylines</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layerId</code></td>
+<td>
+<p>the layer id</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>src</code></td>
+<td>
+<p>whether to pass data to the widget via file attachments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed to <code>to_json</code> for the data coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fillColor</code></td>
+<td>
+<p>fill color.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fillOpacity</code></td>
+<td>
+<p>fill opacity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>point size in pixels.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>MULTILINESTRINGs are currently not supported! Make sure you cast your data
+to LINETSRING first (e.g. using <code>sf::st_cast(data, "LINESTRING")</code>.
+</p>
+<p>MULTIPOLYGONs are currently not supported! Make sure you cast your data
+to POLYGON first (e.g. using <code>sf::st_cast(data, "POLYGON")</code>.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>addGlPolylines</code>: add polylines to a leaflet map using Leaflet.glify
+</p>
+</li>
+<li> <p><code>addGlPoints</code>: add points to a leaflet map using Leaflet.glify
+</p>
+</li>
+<li> <p><code>addGlPolygons</code>: add polygons to a leaflet map using Leaflet.glify
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (interactive()) {
+library(leaflet)
+library(leafgl)
+library(sf)
+
+storms = st_as_sf(atlStorms2005)
+
+cols = heat.colors(nrow(storms))
+
+leaflet() %&gt;%
+  addProviderTiles(provider = providers$CartoDB.Positron) %&gt;%
+  addGlPolylines(data = storms, color = cols, popup = TRUE, opacity = 1)
+}
+
+if (interactive()) {
+library(leaflet)
+library(leafgl)
+library(sf)
+
+n = 1e5
+
+df1 = data.frame(id = 1:n,
+                 x = rnorm(n, 10, 1),
+                 y = rnorm(n, 49, 0.8))
+pts = st_as_sf(df1, coords = c("x", "y"), crs = 4326)
+
+cols = topo.colors(nrow(pts))
+
+leaflet() %&gt;%
+  addProviderTiles(provider = providers$CartoDB.DarkMatter) %&gt;%
+  addGlPoints(data = pts, fillColor = cols, popup = TRUE)
+
+}
+
+if (interactive()) {
+library(leaflet)
+library(leafgl)
+library(sf)
+
+gadm = st_as_sf(gadmCHE)
+gadm = st_cast(gadm, "POLYGON")
+cols = grey.colors(nrow(gadm))
+
+leaflet() %&gt;%
+  addProviderTiles(provider = providers$CartoDB.DarkMatter) %&gt;%
+  addGlPolygons(data = gadm, color = cols, popup = TRUE)
+}
+
+</code></pre>
+
+
+</div>

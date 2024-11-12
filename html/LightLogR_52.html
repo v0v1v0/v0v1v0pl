@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nvRD_cumulative_response</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cumulative non-visual direct response</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates the cumulative non-visual direct response (nvRD). This is
+basically the integral of the nvRD over the provided time period in hours. The
+unit of the resulting value thus is "nvRD*h".
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nvRD_cumulative_response(
+  nvRD,
+  Time.vector,
+  epoch = "dominant.epoch",
+  as.df = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nvRD</code></td>
+<td>
+<p>Numeric vector containing the non-visual direct response.
+See <code>nvRD</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time.vector</code></td>
+<td>
+<p>Vector containing the time data. Can be POSIXct, hms,
+duration, or difftime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch at which the data was sampled. Can be either a
+duration or a string. If it is a string, it needs to be
+either <code>"dominant.epoch"</code> (the default) for a guess based on the data, or a valid
+duration string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.df</code></td>
+<td>
+<p>Logical. Should a data frame with be returned? If <code>TRUE</code>, a data
+frame with a single column named <code>nvRD_cumulative</code> will be returned.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A numeric value or single column data frame.
+</p>
+
+
+<h3>References</h3>
+
+<p>Amundadottir, M.L. (2016). Light-driven model for identifying
+indicators of non-visual health potential in the built environment
+[Doctoral dissertation, EPFL]. EPFL infoscience.
+<a href="https://doi.org/10.5075/epfl-thesis-7146">doi:10.5075/epfl-thesis-7146</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other metrics: 
+<code>bright_dark_period()</code>,
+<code>centroidLE()</code>,
+<code>disparity_index()</code>,
+<code>duration_above_threshold()</code>,
+<code>exponential_moving_average()</code>,
+<code>frequency_crossing_threshold()</code>,
+<code>interdaily_stability()</code>,
+<code>intradaily_variability()</code>,
+<code>midpointCE()</code>,
+<code>nvRC()</code>,
+<code>nvRD()</code>,
+<code>period_above_threshold()</code>,
+<code>pulses_above_threshold()</code>,
+<code>threshold_for_duration()</code>,
+<code>timing_above_threshold()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dataset1 &lt;-
+  tibble::tibble(
+    Id = rep("A", 60 * 24),
+    Datetime = lubridate::as_datetime(0) + lubridate::minutes(0:(60*24-1)),
+    Illuminance = c(rep(0, 60*8), rep(sample(1:1000, 14, replace = TRUE), each = 60), rep(0, 60*2)),
+    MEDI = Illuminance * rep(sample(0.5:1.5, 24, replace = TRUE), each = 60)
+  ) %&gt;%
+  dplyr::mutate(
+    nvRD = nvRD(MEDI, Illuminance, Datetime)
+  ) 
+dataset1 %&gt;% 
+  dplyr::summarise(
+    "cumulative nvRD" = nvRD_cumulative_response(nvRD, Datetime)
+  )
+
+</code></pre>
+
+
+</div>

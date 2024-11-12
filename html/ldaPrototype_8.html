@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dendTopics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Topic Dendrogram</h2>
+
+<h3>Description</h3>
+
+<p>Builds a dendrogram for topics based on their pairwise similarities using the
+cluster algorithm <code>hclust</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dendTopics(sims, ind, method = "complete")
+
+## S3 method for class 'TopicDendrogram'
+plot(x, pruning, pruning.par, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sims</code></td>
+<td>
+<p>[<code>TopicSimilarity</code> object
+or <code>lower triangular named matrix</code>]<br><code>TopicSimilarity</code> object or
+pairwise jaccard similarities of underlying topics as the <code>sims</code> element
+from <code>TopicSimilarity</code> objects. The topic names should be
+formatted as &lt;<em>Run X</em>&gt;.&lt;<em>Topic Y</em>&gt;, so that the name before the
+first dot identifies the LDA run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind</code></td>
+<td>
+<p>[<code>integer</code>, <code>logical</code> or <code>character</code>]<br>
+An integerish vector (or logical of the same length as the number of rows and columns)
+for specifying the topics taken into account. Alternatively
+a character vector can be passed. Then, all topics are taken for which the name
+contain at least one of the phrases in <code>ind</code> (see <code>grepl</code>).
+By default all topics are considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>[<code>character(1)</code>]<br>
+The agglomeration method. See <code>hclust</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an R object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pruning</code></td>
+<td>
+<p>[<code>list of dendrograms</code>]<br><code>PruningSCLOP</code> object specifying the best possible
+local pruning state.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pruning.par</code></td>
+<td>
+<p>[<code>list</code>]<br>
+List of parameters to mark the pruning. See section "Details" at <code>dendTopics</code>
+for default parameters. Types for marking the pruning state are <code>"abline"</code>,
+<code>"color"</code> and <code>"both"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The label´s colors are determined based on their Run belonging using
+<code>rainbow_hcl</code> by default. Colors can be manipulated
+using <code>labels_colors</code>. Analogously, the labels
+themself can be  manipulated using <code>labels</code>.
+For both the function <code>order.dendrogram</code> is useful.
+</p>
+<p>The resulting <code>dendrogram</code> can be plotted. In addition,
+it is possible to mark a pruning state in the plot, either by color or by
+separator lines (or both) setting <code>pruning.par</code>. For the default values
+of <code>pruning.par</code> call the corresponding function on any
+<code>PruningSCLOP</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p>[<code>dendrogram</code>] <code>TopicDendrogram</code> object
+(and <code>dendrogram</code> object) of all considered topics.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other plot functions: 
+<code>pruneSCLOP()</code>
+</p>
+<p>Other TopicSimilarity functions: 
+<code>cosineTopics()</code>,
+<code>getSimilarity()</code>,
+<code>jaccardTopics()</code>,
+<code>jsTopics()</code>,
+<code>rboTopics()</code>
+</p>
+<p>Other workflow functions: 
+<code>LDARep()</code>,
+<code>SCLOP()</code>,
+<code>getPrototype()</code>,
+<code>jaccardTopics()</code>,
+<code>mergeTopics()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">res = LDARep(docs = reuters_docs, vocab = reuters_vocab, n = 4, K = 10, num.iterations = 30)
+topics = mergeTopics(res, vocab = reuters_vocab)
+jacc = jaccardTopics(topics, atLeast = 2)
+sim = getSimilarity(jacc)
+
+dend = dendTopics(jacc)
+dend2 = dendTopics(sim)
+
+
+plot(dend)
+plot(dendTopics(jacc, ind = c("Rep2", "Rep3")))
+
+
+pruned = pruneSCLOP(dend)
+
+plot(dend, pruning = pruned)
+plot(dend, pruning = pruned, pruning.par = list(type = "color"))
+plot(dend, pruning = pruned, pruning.par = list(type = "both", lty = 1, lwd = 2, col = "red"))
+
+dend2 = dendTopics(jacc, ind = c("Rep2", "Rep3"))
+plot(dend2, pruning = pruneSCLOP(dend2), pruning.par = list(lwd = 2, col = "darkgrey"))
+
+
+</code></pre>
+
+
+</div>

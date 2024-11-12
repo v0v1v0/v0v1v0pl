@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>innerprod.im</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inner Product of Two Functions Represented as Images</h2>
+
+<h3>Description</h3>
+
+<p>Given two functions, f and g, that map from 2D space to 1D, and values of f and g represented as <code>im</code> objects
+then <code>innerprod.im</code> computes the (function space) inner product
+</p>
+<p style="text-align: center;"><code class="reqn">\int f(v) g(v) dv.</code>
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">innerprod.im(
+  A,
+  B,
+  outsideA = NA,
+  outsideB = NA,
+  na.replace = TRUE,
+  method = "cubature"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>An <code>im</code> object containing function values representing function <code class="reqn">f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>An <code>im</code> object containing function values representing function <code class="reqn">g</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outsideA</code></td>
+<td>
+<p>The value of <code class="reqn">f</code> outside the domain of <code>A</code>. Typically will be 0 or NA. Default is NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outsideB</code></td>
+<td>
+<p>The value of <code class="reqn">g</code> outside the domain of <code>B</code>. Typically will be <code>0</code> or <code>NA</code>. Default is <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.replace</code></td>
+<td>
+<p>Logical. If TRUE NA values in <code>A</code> and <code>B</code> are replaced by <code>outsideA</code> and <code>outsideB</code>, respectively. This allows the cubature integration to be performed (roughly) twice as quickly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Either "cubature" or "harmonisesum". The former uses <code>cubature::cubintegrate()</code>,
+the latter harmonises the images using <code>spatstat.geom::as.mask()</code> and sums the product of <code>A</code> and <code>B</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function uses the package <span class="pkg">cubature</span> to integrate the multiple of the two images. If <span class="pkg">cubature</span> is not available then it harmonises the two input images, multiplies them together and returns the
+integral of the resulting image.
+<code>outsideA</code> and <code>outsideB</code> are used to determine result if the inner product requires
+values outside the domain of A or B. For example if <code>outsideA=0</code> and the
+domain of <code>B</code> is larger than <code>A</code>'s domain then the inner product
+can still be computed. However if <code>A</code> is <code>NA</code> outside (e.g. not
+known/not provided) and the domain of <code>B</code> is larger than <code>A</code>'s
+domain then the inner product can not be computed and the returned value is <code>NA</code>
+</p>
+<p>The <code>harmonisesum</code> method appears to perform well when used by <code>gblcc()</code>, but produces numerical artefacts when used by <code>gblc()</code> and <code>gblg()</code>. The <code>cubature</code> method takes longer to compute and is more accurate for functions (A or B) that are non-zero for large vectors. This makes it suitable for use by <code>gblc()</code> and <code>gblg()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If the inner product can be computed then returns sum(<code>A</code> * <code>B</code>), otherwise returns <code>NA</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xi &lt;- heather$coarse
+covar &lt;- plugincvc(xi, Frame(xi))
+B &lt;- setcov(square(1))
+innerprod.im(covar, B, outsideB = 0)
+</code></pre>
+
+
+</div>

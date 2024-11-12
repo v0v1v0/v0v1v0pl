@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LSM_american_option</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Value American-style options through least-squares Monte Carlo (LSM) simulation</h2>
+
+<h3>Description</h3>
+
+<p>Given a set of state variables and associated payoffs simulated through Monte Carlo simulation, solve for the value of an American-style call or put option through
+the least-squares Monte Carlo simulation method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LSM_american_option(
+  state_variables,
+  payoff,
+  K,
+  dt,
+  rf,
+  call = FALSE,
+  orthogonal = "Power",
+  degree = 2,
+  cross_product = TRUE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>state_variables</code></td>
+<td>
+<p><code>matrix</code> or <code>array</code>. The simulated states of the underlying stochastic variables. The first dimension corresponds to the simulated values
+of the state variables at each discrete observation point. The second dimension corresponds to each individual simulation of the state variable. The third dimension
+corresponds to each state variable considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>payoff</code></td>
+<td>
+<p><code>matrix</code> The payoff at each observation point resulting from exercise into the underlying asset. The first dimension corresponds to the simulated values
+of the state variables at each discrete observation point. The second dimension corresponds to each individual simulation of the state variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>the exercise price of the American-style option</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt</code></td>
+<td>
+<p>Constant, discrete time step of simulated observations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf</code></td>
+<td>
+<p>The annual risk-free interest rate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p><code>logical</code> Is the American-style option a call or put option?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orthogonal</code></td>
+<td>
+<p><code>character</code>. The orthogonal polynomial used to develop basis functions that estimate the continuation value in the LSM simulation method.
+<code>orthogonal</code> arguments available are: "Power", "Laguerre", "Jacobi", "Legendre", "Chebyshev", "Hermite". See <b>details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>The number of orthogonal polynomials used in the least-squares fit. See <b>details</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cross_product</code></td>
+<td>
+<p><code>logical</code>. Should a cross product of state variables be considered? Relevant only when the number of state variables
+is greater than one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>logical</code>. Should additional information be output? See <b>values</b>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>LSM_american_option</code> function provides an implementation of the least-squares Monte Carlo (LSM) simulation approach to numerically approximate
+the value of American-style options (options with early exercise opportunities). The function provides flexibility in the stochastic process followed by the underlying asset, with simulated values
+of stochastic processes provided within the <code>state_variables</code> argument. It also provides flexibility in the payoffs of the option, allowing for vanilla as well as more exotic options to be considered.
+<code>LSM_american_option</code> also provides analysis into the exercise timing and probability of early exercise of the option.
+</p>
+<p><b>Least-Squares Monte Carlo Simulation:</b>
+</p>
+<p>The least-squares Monte Carlo (LSM) simulation method is a numeric approach first presented by Longstaff and Schwartz (2001) that
+approximates the value of options with early exercise opportunities. The LSM simulation method is considered one of the most efficient
+methods of valuing American-style options due to its flexibility and computational efficiency. The approach can feature multiple
+stochastically evolving underlying uncertainties, following both standard and exotic stochastic processes.
+</p>
+<p>The LSM method first approximates stochastic variables through a stochastic process to develop cross-sectional information,
+then directly estimates the continuation value of in-the-money simulation paths by "(regressing) the ex-post realized payoffs from
+continuation on functions of the values of the state variables" (Longstaff and Schwartz, 2001).
+</p>
+<p>The 'LSM_american_option' function at each discrete time period, for each simulated price path, compares the payoff that results from immediate exercise of
+the option with the expected value of continuing to hold the option for subsequent periods. The payoff of immediate exercise is provided in the <code>payoff</code> argument and
+could take several different meanings depending upon the type of American-style option being valued (e.g. the current stock price, the maximum price between multiple assets, etc.).
+</p>
+<p>The immediate profit resulting from exercise of the option is dependent upon the type of option being calculated. The profit of price path <code class="reqn">i</code> and time <code class="reqn">t</code>
+is given by:
+</p>
+<p>When <code>call = TRUE</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">profit_{(t,i)} = max(payoff_{(t,i)} - K, 0)</code>
+</p>
+
+<p>When <code>call = FALSE</code>:
+</p>
+<p style="text-align: center;"><code class="reqn">profit_{(t,i)} = max(K - payoff_{(t,i)}, 0)</code>
+</p>
+
+<p><b>Orthogonal Polynomials:</b>
+</p>
+<p>To improve the accuracy of estimation of continuation values, the economic values in each period are regressed on a linear
+combination of a set of basis functions of the stochastic variables. These estimated regression parameters and the simulated
+stochastic variables are then used to calculate the estimator for the expected economic values.
+</p>
+<p>Longstaff and Schwartz (2001) state that as the conditional expectation of the continuation value belongs to a Hilbert space,
+it can be represented by a combination of orthogonal basis functions. Increasing the number of stochastic state variables
+therefore increases the number of required basis functions exponentially. The orthogonal polynomials available in the
+<code>LSMRealOptions</code> package are: Laguerre, Jacobi, Legendre (spherical), Hermite (probabilistic), Chebyshev (of the first kind).
+The simple powers of state variables is further available. Explicit expressions of each of these orthogonal polynomials are
+available within the textbook of Abramowitz and Stegun (1965).
+</p>
+
+
+<h3>Value</h3>
+
+<p>The 'LSM_american_option' function by default returns a <code>numeric</code> object corresponding to the calculated value of the American-style option.
+</p>
+<p>When <code>verbose = T</code>, 6 objects are returned within a <code>list</code> class object. The objects returned are:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+
+<code>Value</code> </td>
+<td style="text-align: left;"> The calculated option value. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Standard Error</code> </td>
+<td style="text-align: left;"> The standard error of the option value. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Expected Timing</code> </td>
+<td style="text-align: left;"> The expected time of early exercise. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Expected Timing SE</code> </td>
+<td style="text-align: left;"> The standard error of the expected time of early exercise. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Exercise Probability</code> </td>
+<td style="text-align: left;"> The probability of early exercise of the option being exercised. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>Cumulative Exercise Probability</code> </td>
+<td style="text-align: left;"> <code>vector</code>. The cumulative probability of option exercise at each discrete observation point </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Abramowitz, M., and I. A. Stegun, (1965). Handbook of mathematical functions with formulas, graphs, and mathematical tables. Courier Corporation.
+</p>
+<p>Longstaff, F. A., and E. S. Schwartz, (2001). "Valuing American options by simulation: a simple least-squares approach." The review of financial
+studies, 14(1), 113-147.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Price a vanilla American put option on an asset that follows
+# Geometric Brownian Motion
+
+## Step 1 - simulate stock prices:
+stock_prices &lt;- GBM_simulate(n = 100, t = 1, mu = 0.05,
+                         sigma = 0.2, S0 = 100, dt = 1/2)
+
+## Step 2 - Value the American put option:
+option_value &lt;- LSM_american_option(state_variables = stock_prices,
+                                 payoff = stock_prices,
+                                 K = 100,
+                                 dt = 1/2,
+                                 rf = 0.05)
+</code></pre>
+
+
+</div>

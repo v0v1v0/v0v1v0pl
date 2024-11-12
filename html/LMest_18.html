@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>decoding</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform local and global decoding</h2>
+
+<h3>Description</h3>
+
+<p>Function that performs local and global decoding (Viterbi) from the output of <code>est_lm_basic</code>, <code>est_lm_cov_latent</code>, <code>est_lm_cov_manifest</code>, and <code>est_lm_mixed</code>.  <br><br><b>The function is no longer maintained. Please look at</b> <code>lmestDecoding</code> <b>function</b></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">decoding(est, Y, X1 = NULL, X2 = NULL, fort = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est </code></td>
+<td>
+<p>output from <code>est_lm_basic</code>, <code>est_lm_cov_latent</code>, <code>est_lm_cov_manifest</code>, or <code>est_lm_mixed</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y </code></td>
+<td>
+<p>single vector or matrix of responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X1 </code></td>
+<td>
+<p>matrix of covariates on the initial probabilities (<code>est_lm_cov_latent</code>) or on the responses (<code>est_lm_cov_manifest</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X2 </code></td>
+<td>
+<p>array of covariates on the transition probabilites</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort </code></td>
+<td>
+<p>to use Fortran routines</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Ul </code></td>
+<td>
+<p>matrix of local decoded states corresponding to each row of Y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ug </code></td>
+<td>
+<p>matrix of global decoded states corresponding to each row of Y</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci, Silvia Pandolfi, University of Perugia (IT), http://www.stat.unipg.it/bartolucci</p>
+
+
+<h3>References</h3>
+
+<p>Viterbi A. (1967) Error Bounds for Convolutional Codes and an Asymptotically Optimum Decoding Algorithm. <em>IEEE Transactions on Information Theory</em>, <b>13</b>, 260-269.
+</p>
+<p>Juan B., Rabiner L. (1991) Hidden Markov Models for Speech Recognition. <em>Technometrics</em>, <b>33</b>, 251-272.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# example for the output from est_lm_basic
+
+data(data_drug)
+data_drug &lt;- as.matrix(data_drug)
+S &lt;- data_drug[,1:5]-1
+yv &lt;- data_drug[,6]
+n &lt;- sum(yv)
+
+# fit the Basic LM model
+
+k &lt;- 3
+est &lt;- est_lm_basic(S, yv, k, mod = 1)
+
+# decoding for a single sequence
+
+out1 &lt;- decoding(est, S[1,])
+
+# decoding for all sequences
+
+out2 &lt;- decoding(est, S)
+
+
+# example for the output from est_lm_cov_latent with difflogit parametrization
+data(data_SRHS_long)
+dataSRHS &lt;- data_SRHS_long[1:1600,]
+
+TT &lt;- 8
+head(dataSRHS)
+res &lt;- long2matrices(dataSRHS$id, X = cbind(dataSRHS$gender-1,
+dataSRHS$race == 2 | dataSRHS$race == 3, dataSRHS$education == 4,
+dataSRHS$education == 5, dataSRHS$age-50,(dataSRHS$age-50)^2/100),
+Y= dataSRHS$srhs)
+
+# matrix of responses (with ordered categories from 0 to 4)
+S &lt;- 5-res$YY
+
+# matrix of covariates (for the first and the following occasions)
+# colums are: gender,race,educational level (2 columns),age,age^2)
+X1 &lt;- res$XX[,1,]
+X2 &lt;- res$XX[,2:TT,]
+
+# estimate the model
+est &lt;- est_lm_cov_latent(S, X1, X2, k = 2, output = TRUE, param = "difflogit")
+# decoding for a single sequence
+out1 &lt;- decoding(est, S[1,,], X1[1,], X2[1,,])
+# decoding for all sequences
+out2 &lt;- decoding(est, S, X1, X2)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

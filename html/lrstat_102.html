@@ -1,0 +1,447 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lrsim2e</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log-rank test simulation for two endpoints</h2>
+
+<h3>Description</h3>
+
+<p>Performs simulation for two-endpoint two-arm group
+sequential trials based on weighted log-rank test. The first
+<code>kMaxe1</code> looks are driven by the total number of PFS events in
+two arms combined, and the subsequent looks are driven by the total
+number of OS events in two arms combined. Alternatively,
+the analyses can be planned to occur at specified calendar times.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lrsim2e(
+  kMax = NA_integer_,
+  kMaxe1 = NA_integer_,
+  hazardRatioH0e1 = 1,
+  hazardRatioH0e2 = 1,
+  allocation1 = 1L,
+  allocation2 = 1L,
+  accrualTime = 0L,
+  accrualIntensity = NA_real_,
+  piecewiseSurvivalTime = 0L,
+  stratumFraction = 1L,
+  rho = 0,
+  lambda1e1 = NA_real_,
+  lambda2e1 = NA_real_,
+  lambda1e2 = NA_real_,
+  lambda2e2 = NA_real_,
+  gamma1e1 = 0L,
+  gamma2e1 = 0L,
+  gamma1e2 = 0L,
+  gamma2e2 = 0L,
+  accrualDuration = NA_real_,
+  followupTime = NA_real_,
+  fixedFollowup = 0L,
+  rho1 = 0,
+  rho2 = 0,
+  plannedEvents = NA_integer_,
+  plannedTime = NA_real_,
+  maxNumberOfIterations = 1000L,
+  maxNumberOfRawDatasetsPerStage = 0L,
+  seed = NA_integer_
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>kMax</code></td>
+<td>
+<p>The maximum number of stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kMaxe1</code></td>
+<td>
+<p>Number of stages with timing determined by PFS events.
+Ranges from 0 (none) to <code>kMax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardRatioH0e1</code></td>
+<td>
+<p>Hazard ratio under the null hypothesis for the
+active treatment vs control for endpoint 1 (PFS). Defaults to 1 for
+superiority test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hazardRatioH0e2</code></td>
+<td>
+<p>Hazard ratio under the null hypothesis for the
+active treatment vs control for endpoint 2 (OS). Defaults to 1 for
+superiority test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocation1</code></td>
+<td>
+<p>Number of subjects in the treatment group in
+a randomization block. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allocation2</code></td>
+<td>
+<p>Number of subjects in the control group in
+a randomization block. Defaults to 1 for equal randomization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise Poisson enrollment time intervals. Must start with 0, e.g.,
+<code>c(0, 3)</code> breaks the time axis into 2 accrual intervals:
+[0, 3) and [3, Inf).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualIntensity</code></td>
+<td>
+<p>A vector of accrual intensities. One for
+each accrual time interval.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>piecewiseSurvivalTime</code></td>
+<td>
+<p>A vector that specifies the starting time of
+piecewise exponential survival time intervals. Must start with 0, e.g.,
+<code>c(0, 6)</code> breaks the time axis into 2 event intervals:
+[0, 6) and [6, Inf).
+Defaults to 0 for exponential distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratumFraction</code></td>
+<td>
+<p>A vector of stratum fractions that sum to 1.
+Defaults to 1 for no stratification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>The correlation coefficient for the standard bivariate normal
+random variables used to generate time to disease progression and time
+to death using the inverse CDF method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda1e1</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the treatment group and endpoint 1 (PFS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda2e1</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the control group and endpoint 1 (PFS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda1e2</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the treatment group and endpoint 2 (OS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda2e2</code></td>
+<td>
+<p>A vector of hazard rates for the event in each analysis
+time interval by stratum for the control group and endpoint 2 (OS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1e1</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of
+hazard rates for piecewise exponential dropout applicable for all
+strata, or a vector of hazard rates for dropout in each analysis time
+interval by stratum for the treatment group and endpoint 1 (PFS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2e1</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of
+hazard rates for piecewise exponential dropout applicable for all
+strata, or a vector of hazard rates for dropout in each analysis time
+interval by stratum for the control group and endpoint 1 (PFS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma1e2</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of
+hazard rates for piecewise exponential dropout applicable for all
+strata, or a vector of hazard rates for dropout in each analysis time
+interval by stratum for the treatment group and endpoint 2 (OS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma2e2</code></td>
+<td>
+<p>The hazard rate for exponential dropout, a vector of
+hazard rates for piecewise exponential dropout applicable for all
+strata, or a vector of hazard rates for dropout in each analysis time
+interval by stratum for the control group and endpoint 2 (OS).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>accrualDuration</code></td>
+<td>
+<p>Duration of the enrollment period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>followupTime</code></td>
+<td>
+<p>Follow-up time for the last enrolled subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixedFollowup</code></td>
+<td>
+<p>Whether a fixed follow-up design is used.
+Defaults to 0 for variable follow-up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho1</code></td>
+<td>
+<p>The first parameter of the Fleming-Harrington family of
+weighted log-rank test. Defaults to 0 for conventional log-rank test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho2</code></td>
+<td>
+<p>The second parameter of the Fleming-Harrington family of
+weighted log-rank test. Defaults to 0 for conventional log-rank test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plannedEvents</code></td>
+<td>
+<p>The planned cumulative total number of PFS events at
+Look 1 to Look <code>kMaxe1</code> and the planned cumulative total number
+of OS events at Look <code>kMaxe1+1</code> to Look <code>kMax</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plannedTime</code></td>
+<td>
+<p>The calendar times for the analyses. To use calendar
+time to plan the analyses, <code>plannedEvents</code> should be missing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxNumberOfIterations</code></td>
+<td>
+<p>The number of simulation iterations.
+Defaults to 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxNumberOfRawDatasetsPerStage</code></td>
+<td>
+<p>The number of raw datasets per
+stage to extract.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>The seed to reproduce the simulation results.
+The seed from the environment will be used if left unspecified,</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with 2 components:
+</p>
+
+<ul>
+<li> <p><code>sumdata</code>: A data frame of summary data by iteration and stage:
+</p>
+
+<ul>
+<li> <p><code>iterationNumber</code>: The iteration number.
+</p>
+</li>
+<li> <p><code>eventsNotAchieved</code>: Whether the target number of events
+is not achieved for the iteration.
+</p>
+</li>
+<li> <p><code>stageNumber</code>: The stage number, covering all stages even if
+the trial stops at an interim look.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The time for the stage since trial start.
+</p>
+</li>
+<li> <p><code>accruals1</code>: The number of subjects enrolled at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>accruals2</code>: The number of subjects enrolled at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalAccruals</code>: The total number of subjects enrolled at
+the stage.
+</p>
+</li>
+<li> <p><code>endpoint</code>: The endpoint (1 or 2) under consideration.
+</p>
+</li>
+<li> <p><code>events1</code>: The number of events at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>events2</code>: The number of events at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalEvents</code>: The total number of events at the stage.
+</p>
+</li>
+<li> <p><code>dropouts1</code>: The number of dropouts at the stage for
+the treatment group.
+</p>
+</li>
+<li> <p><code>dropouts2</code>: The number of dropouts at the stage for
+the control group.
+</p>
+</li>
+<li> <p><code>totalDropouts</code>: The total number of dropouts at the stage.
+</p>
+</li>
+<li> <p><code>logRankStatistic</code>: The log-rank test Z-statistic for
+the endpoint.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>rawdata</code> (exists if <code>maxNumberOfRawDatasetsPerStage</code> is a
+positive integer): A data frame for subject-level data for selected
+replications, containing the following variables:
+</p>
+
+<ul>
+<li> <p><code>iterationNumber</code>: The iteration number.
+</p>
+</li>
+<li> <p><code>stageNumber</code>: The stage under consideration.
+</p>
+</li>
+<li> <p><code>analysisTime</code>: The time for the stage since trial start.
+</p>
+</li>
+<li> <p><code>subjectId</code>: The subject ID.
+</p>
+</li>
+<li> <p><code>arrivalTime</code>: The enrollment time for the subject.
+</p>
+</li>
+<li> <p><code>stratum</code>: The stratum for the subject.
+</p>
+</li>
+<li> <p><code>treatmentGroup</code>: The treatment group (1 or 2) for the
+subject.
+</p>
+</li>
+<li> <p><code>survivalTime1</code>: The underlying survival time for
+event endpoint 1 for the subject.
+</p>
+</li>
+<li> <p><code>dropoutTime1</code>: The underlying dropout time for
+event endpoint 1 for the subject.
+</p>
+</li>
+<li> <p><code>timeUnderObservation1</code>: The time under observation
+since randomization for event endpoint 1 for the subject.
+</p>
+</li>
+<li> <p><code>event1</code>: Whether the subject experienced event endpoint 1.
+</p>
+</li>
+<li> <p><code>dropoutEvent1</code>: Whether the subject dropped out for
+endpoint 1.
+</p>
+</li>
+<li> <p><code>survivalTime2</code>: The underlying survival time for
+event endpoint 2 for the subject.
+</p>
+</li>
+<li> <p><code>dropoutTime2</code>: The underlying dropout time for
+event endpoint 2 for the subject.
+</p>
+</li>
+<li> <p><code>timeUnderObservation2</code>: The time under observation
+since randomization for event endpoint 2 for the subject.
+</p>
+</li>
+<li> <p><code>event2</code>: Whether the subject experienced event endpoint 2.
+</p>
+</li>
+<li> <p><code>dropoutEvent2</code>: Whether the subject dropped out for
+endpoint 2.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+sim1 = lrsim2e(
+  kMax = 3,
+  kMaxe1 = 2,
+  allocation1 = 2,
+  allocation2 = 1,
+  accrualTime = c(0, 8),
+  accrualIntensity = c(10, 28),
+  piecewiseSurvivalTime = 0,
+  rho = 0,
+  lambda1e1 = log(2)/12*0.60,
+  lambda2e1 = log(2)/12,
+  lambda1e2 = log(2)/30*0.65,
+  lambda2e2 = log(2)/30,
+  accrualDuration = 20.143,
+  plannedEvents = c(186, 259, 183),
+  maxNumberOfIterations = 1000,
+  maxNumberOfRawDatasetsPerStage = 1,
+  seed = 314159)
+
+head(sim1$sumdata)
+head(sim1$rawdata)
+
+</code></pre>
+
+
+</div>

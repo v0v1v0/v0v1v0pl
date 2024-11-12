@@ -1,0 +1,292 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>estimate_lucid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit LUCID models with one or multiple omics layers</h2>
+
+<h3>Description</h3>
+
+<p>EM algorithm to estimate LUCID with one or multiple omics layers
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">estimate_lucid(
+  lucid_model = c("early", "parallel", "serial"),
+  G,
+  Z,
+  Y,
+  CoG = NULL,
+  CoY = NULL,
+  K,
+  init_omic.data.model = "EEV",
+  useY = TRUE,
+  tol = 0.001,
+  max_itr = 1000,
+  max_tot.itr = 10000,
+  Rho_G = 0,
+  Rho_Z_Mu = 0,
+  Rho_Z_Cov = 0,
+  family = c("normal", "binary"),
+  seed = 123,
+  init_impute = c("mix", "lod"),
+  init_par = c("mclust", "random"),
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lucid_model</code></td>
+<td>
+<p>Specifying LUCID model, "early" for early integration, "parallel" for lucid in parallel,
+"serial" for lucid in serial</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>an N by P matrix representing exposures</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>Omics data, if "early", an N by M matrix; If "parallel", a list, each element i is a matrix with N rows and P_i features;
+If "serial", a list, each element i is a matrix with N rows and p_i features or a list with two or more matrices with N rows and a certain number of features</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a length N vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoG</code></td>
+<td>
+<p>an N by V matrix representing covariates to be adjusted for G -&gt; X</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoY</code></td>
+<td>
+<p>an N by K matrix representing covariates to be adjusted for X -&gt; Y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>Number of latent clusters. If "early", an integer greater or equal to 2; If "parallel",an integer vector, same length as Z, with each element being an interger greater or equal to 2;
+If "serial", a list, each element is either an integer like that for "early" or an list of integers like that for "parallel", same length as Z</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_omic.data.model</code></td>
+<td>
+<p>a vector of strings specifies the geometric model of omics
+data. If NULL, See more in ?mclust::mclustModelNames</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useY</code></td>
+<td>
+<p>logical, if TRUE, EM algorithm fits a supervised LUCID; otherwise
+unsupervised LUCID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>stopping criterion for the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_itr</code></td>
+<td>
+<p>Maximum iterations of the EM algorithm. If the EM algorithm iterates
+more than max_itr without converging, the EM algorithm is forced to stop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_tot.itr</code></td>
+<td>
+<p>Max number of total iterations for <code>estimate_lucid</code> function.
+<code>estimate_lucid</code> may conduct EM algorithm for multiple times if the algorithm
+fails to converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rho_G</code></td>
+<td>
+<p>A scalar. This parameter is the LASSO penalty to regularize
+exposures. If user wants to tune the penalty, use the wrapper
+function <code>lucid</code>. Now only achieved for LUCID early integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rho_Z_Mu</code></td>
+<td>
+<p>A scalar. This parameter is the LASSO penalty to
+regularize cluster-specific means for omics data (Z). If user wants to tune the
+penalty, use the wrapper function <code>lucid</code>.Now only achieved for LUCID early integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rho_Z_Cov</code></td>
+<td>
+<p>A scalar. This parameter is the graphical LASSO
+penalty to estimate sparse cluster-specific variance-covariance matrices for omics
+data (Z). If user wants to tune the penalty, use the wrapper function <code>lucid</code>.
+Now only achieved for LUCID early integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>The distribution of the outcome</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Random seed to initialize the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_impute</code></td>
+<td>
+<p>Method to initialize the imputation of missing values in
+LUCID. <code>mix</code> will use <code>mclust:imputeData</code> to implement EM Algorithm
+for Unrestricted General Location Model by the mix package to impute the missing values in omics
+data; <code>lod</code> will initialize the imputation via replacing missing values by
+LOD / sqrt(2). LOD is determined by the minimum of each variable in omics data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_par</code></td>
+<td>
+<p>For "early", an interface to initialize EM algorithm, if mclust,
+initiate the parameters using the <code>mclust</code> package, if random, initiate the parameters
+by drawing from a uniform distribution;
+For "parallel", mclust is the default for quick convergence;
+For "serial", each sub-model follows the above depending on it is a "early" or "parallel"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A flag indicates whether detailed information for each iteration
+of EM algorithm is printed in console. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list contains the object below:
+</p>
+
+<ol>
+<li>
+<p> res_Beta: estimation for G-&gt;X associations
+</p>
+</li>
+<li>
+<p> res_Mu: estimation for the mu of the X-&gt;Z associations
+</p>
+</li>
+<li>
+<p> res_Sigma: estimation for the sigma of the X-&gt;Z associations
+</p>
+</li>
+<li>
+<p> res_Gamma: estimation for X-&gt;Y associations
+</p>
+</li>
+<li>
+<p> inclusion.p: inclusion probability of cluster assignment for each observation
+</p>
+</li>
+<li>
+<p> K: umber of latent clusters for "early"/list of numbers of latent clusters for "parallel" and "serial"
+</p>
+</li>
+<li>
+<p> var.names: names for the G, Z, Y variables
+</p>
+</li>
+<li>
+<p> init_omic.data.model: pre-specified geometric model of multi-omics data
+</p>
+</li>
+<li>
+<p> likelihood: converged LUCID model log likelihood
+</p>
+</li>
+<li>
+<p> family: the distribution of the outcome
+</p>
+</li>
+<li>
+<p> select: for LUCID early integration only, indicators of whether each exposure and omics feature is selected
+</p>
+</li>
+<li>
+<p> useY: whether this LUCID model is supervised
+</p>
+</li>
+<li>
+<p> Z: multi-omics data
+</p>
+</li>
+<li>
+<p> init_impute: pre-specified imputation method
+</p>
+</li>
+<li>
+<p> init_par: pre-specified parameter initialization method
+</p>
+</li>
+<li>
+<p> Rho: for LUCID early integration only, pre-specified regularity tuning parameter
+</p>
+</li>
+<li>
+<p> N: number of observations
+</p>
+</li>
+<li>
+<p> submodel: for LUCID in serial only, storing all the submodels
+</p>
+</li>
+</ol>
+<h3>Examples</h3>
+
+<pre><code class="language-R">i &lt;- 1008
+set.seed(i)
+G &lt;- matrix(rnorm(500), nrow = 100)
+Z1 &lt;- matrix(rnorm(1000),nrow = 100)
+Z2 &lt;- matrix(rnorm(1000), nrow = 100)
+Z3 &lt;- matrix(rnorm(1000), nrow = 100)
+Z4 &lt;- matrix(rnorm(1000), nrow = 100)
+Z5 &lt;- matrix(rnorm(1000), nrow = 100)
+Z &lt;- list(Z1 = Z1, Z2 = Z2, Z3 = Z3, Z4 = Z4, Z5 = Z5)
+Y &lt;- rnorm(100)
+CoY &lt;- matrix(rnorm(200), nrow = 100)
+CoG &lt;- matrix(rnorm(200), nrow = 100)
+fit1 &lt;- estimate_lucid(G = G, Z = Z, Y = Y, K = list(2,2,2,2,2),
+lucid_model = "serial",
+family = "normal",
+seed = i,
+CoG = CoG, CoY = CoY,
+useY = TRUE)
+</code></pre>
+
+
+</div>

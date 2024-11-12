@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>coord_flex_cart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cartesian coordinates with flexible options for drawing axes</h2>
+
+<h3>Description</h3>
+
+<p>Allows user to inject a function for drawing axes, such as
+<code>capped_horizontal</code> or <code>brackets_horizontal</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">coord_flex_cart(
+  xlim = NULL,
+  ylim = NULL,
+  expand = TRUE,
+  top = waiver(),
+  left = waiver(),
+  bottom = waiver(),
+  right = waiver()
+)
+
+coord_flex_flip(
+  xlim = NULL,
+  ylim = NULL,
+  expand = TRUE,
+  top = waiver(),
+  left = waiver(),
+  bottom = waiver(),
+  right = waiver()
+)
+
+coord_flex_fixed(
+  ratio = 1,
+  xlim = NULL,
+  ylim = NULL,
+  expand = TRUE,
+  top = waiver(),
+  left = waiver(),
+  bottom = waiver(),
+  right = waiver()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xlim, ylim</code></td>
+<td>
+<p>Limits for the x and y axes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand</code></td>
+<td>
+<p>If <code>TRUE</code>, the default, adds a small expansion factor to
+the limits to ensure that data and axes don't overlap. If <code>FALSE</code>,
+limits are taken exactly from the data or <code>xlim</code>/<code>ylim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top, left, bottom, right</code></td>
+<td>
+<p>Function for drawing axis lines, ticks, and labels,
+use e.g. <code>capped_horizontal</code> or <code>brackets_horizontal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio</code></td>
+<td>
+<p>aspect ratio, expressed as <code>y / x</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>NB! A panel-border is typically drawn on top such that it covers tick marks,
+grid lines, and axis lines.
+Many themes also do not draw axis lines.
+To ensure the modified axis lines are visible, use
+<code>theme(panel.border=element_blank(), axis.line=element_line())</code>.
+</p>
+
+
+<h3>User defined functions</h3>
+
+<p>The provided function in <code>top</code>, <code>right</code>, <code>bottom</code>, and <code>left</code>
+defaults to <code>render_axis</code> which is defined in ‘<span class="file">ggplot2/R/coord-.r</span>’, which in
+turns calls <code>guide_axis</code> (see ‘<span class="file">ggplot2/R/guides-axis.r</span>’).
+</p>
+<p>The provided function is with the arguments
+<code>scale_details</code>, <code>axis</code>, <code>scale</code>, <code>position</code>, and <code>theme</code>,
+and the function should return an <code>absoluteGrob</code> object.
+</p>
+<p>For examples of modifying the drawn object, see e.g.
+<code>capped_horizontal</code> or <code>brackets_horizontal</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+# A standard plot
+p &lt;- ggplot(mtcars, aes(disp, wt)) +
+ geom_point() +
+ geom_smooth() + theme(panel.border=element_blank(), axis.line=element_line())
+
+# We desire that left axis does not extend beyond '6'
+# and the x-axis is unaffected
+p + coord_capped_cart(left='top')
+
+# Specifying 'bottom' caps the axis with at most the length of 'gap'
+p + coord_capped_cart(left='top', bottom='none')
+
+# We can specify a ridiculus large 'gap', but the lines will always
+# protrude to the outer most ticks.
+p + coord_capped_cart(left='top', bottom='none', gap=2)
+
+# We can use 'capped_horizontal' and 'capped_vertical' to specify for
+# each axis individually.
+p + coord_capped_cart(left='top', bottom=capped_horizontal('none', gap=2))
+
+# At this point we might as well drop using the short-hand and go full on:
+p + coord_flex_cart(left=brackets_vertical(), bottom=capped_horizontal('left'))
+
+# Also works with secondary axes:
+p + scale_y_continuous(sec.axis=sec_axis(~5*., name='wt times 5')) +
+  coord_flex_cart(left=brackets_vertical(), bottom=capped_horizontal('right'),
+  right=capped_vertical('both', gap=0.02))
+
+
+# Supports the usual 'coord_fixed':
+p + coord_flex_fixed(ratio=1.2, bottom=capped_horizontal('right'))
+
+# and coord_flip:
+p + coord_flex_flip(ylim=c(2,5), bottom=capped_horizontal('right'))
+</code></pre>
+
+
+</div>

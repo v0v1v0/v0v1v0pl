@@ -1,0 +1,149 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cutoff.bootstrap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap critical value for the goodness-of-fit test statistic <code class="reqn">\hat{S}_n(h)</code> of Bagkavos, Patil and Wood (2021)</h2>
+
+<h3>Description</h3>
+
+<p>Implements a bootstrap critical value for testing the goodness-of-fit of a parametrically estimated density with the test statistic <code>S.n</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cutoff.bootstrap(xin, M,  sim, dist, h.use, kfun, p1, p2, sig.lev)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p> A vector of data points - the available sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>Number of bootstrap replications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim</code></td>
+<td>
+<p>A character string indicating the type of simulation required: "ordinary" (the default), "parametric", "balanced", "permutation", or "antithetic".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h.use</code></td>
+<td>
+<p>The test statistic bandwidth, best implemented with <code>hopt.be</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kfun</code></td>
+<td>
+<p>The kernel to use in the density estimates used in the bandwidth expression.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1</code></td>
+<td>
+<p>Parameter 1 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p2</code></td>
+<td>
+<p>Parameter 2 (vector or object) for the null distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.lev</code></td>
+<td>
+<p>Significance level of the hypothesis test.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Implements the bootstrap based finite sample critical value defined in Section 2.6, Bagkavos, Patil and Wood (2021), and calculated as follows:
+</p>
+<p>1.  Resample the observations <code class="reqn">\mathcal{X}=\{X_1, \dots, X_n\}</code> to obtain <code class="reqn">M</code> bootstrap samples, denoted by <code class="reqn">\mathcal{X}_m^\ast=\{ X_{1m}^\ast, \dots, X_{nm}^\ast\}</code>,  where for each <code class="reqn">m=1,\ldots , M</code>, <code class="reqn">\mathcal{X}_m^\ast</code> is sampled randomly, with replacement, from <code class="reqn">\mathcal{X}</code>.  Write <code class="reqn">\hat{\theta}=\theta(\mathcal{X})</code> for the estimator of <code class="reqn">\theta</code> based on the original sample <code class="reqn">\mathcal{X}</code> and, for each <code class="reqn">m</code>, define the bootstrap estimator of <code class="reqn">\theta</code> by <code class="reqn">\hat{\theta}_m^\ast = \theta(\mathcal{X}_m^\ast)</code>, where <code class="reqn">\theta(\cdot)</code> is the relevant functional for the parameter <code class="reqn">\theta</code>.
+</p>
+<p>2. For <code class="reqn">m=1, \ldots , M</code>, use <code class="reqn">\mathcal{X}_m^\ast =\{X_{1m}^\ast, \dots, X_{nm}^\ast\}</code> and <code class="reqn">\hat \theta_m^\ast</code>  from the previous step to calculate   <code class="reqn">n \Delta^{2d} h^{-d/2} \hat S_{n,m}^\ast(h\rho)</code>,<code class="reqn">m=1, \dots, M</code>.
+</p>
+<p>3. Calculate   <code class="reqn">\ell_\alpha^\ast</code>  as the <code class="reqn">1-\alpha</code> empirical quantile of the values <code class="reqn">n \Delta^{2d} h^{-d/2} \hat S_{n,m}^\ast(h\rho)</code>, <code class="reqn">m=1, \dots, M</code>. Then <code class="reqn">\ell_\alpha^\ast</code>   approximately   satisfies <code class="reqn">P^\ast [ n  \Delta^{2d} h^{-d/2}\hat S_{n,m}^\ast(h\rho)&gt; \ell_\alpha^\ast ]=1-\alpha</code>, where <code class="reqn">P^\ast</code> indicates the bootstrap probability measure conditional on <code class="reqn">\mathcal{X}</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A scalar, the estimate of the bootstrap critical value at the given significance level.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dimitrios Bagkavos
+</p>
+<p>R implementation and documentation: Dimitrios Bagkavos &lt;dimitrios.bagkavos@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Bagkavos, Patil and Wood: Nonparametric goodness-of-fit testing for a continuous multivariate parametric model, (2021), under review.
+</p>
+<p><a href="https://amstat.tandfonline.com/doi/abs/10.1198/016214508000000968#.XnfOq-ozbCM">Gao and Gijbels, Bandwidth selection in nonparametric kernel testing, pp. 1584-1594, JASA (2008)</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cutoff.asymptotic, cutoff.edgeworth </code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(nor1mix)
+library(boot)
+SampleSize&lt;-80
+M&lt;-1000
+dist&lt;- "normixt"
+kfun&lt;- Epanechnikov
+p1 &lt;-MW.nm2
+p2 &lt;-1
+sig.lev &lt;- 0.05
+
+sim&lt;-"ordinary"
+## Not run: 
+#Run the following to compare the asymptotic and bootstrap cut-off points on 4 occasions:
+for(i in 15:18)
+  {
+    set.seed(i)
+    xin&lt;-rnorMix(SampleSize, p1)
+    h.use &lt;- hopt.be(xin)
+    l.a.a&lt;-cutoff.asymptotic( dist,   p1, p2, sig.lev )
+    l.a.b&lt;- cutoff.bootstrap(xin,  M,  sim, dist, h.use,  kfun, p1, p2, sig.lev)
+    #print the result of each iteration:
+    cat("Asympt. cut.off= ", l.a.a, "Boot. cut.off= ", l.a.b,  "\n")
+   }
+
+## End(Not run)
+</code></pre>
+
+
+</div>

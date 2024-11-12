@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>update_class</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Classification update using the Bayes' Theorem</h2>
+
+<h3>Description</h3>
+
+<p>Function to update classifications (attribute profiles) using the Bayes' Theorem
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">update_class(cep, K, t, z_t1, z_t2, beta, gamma_01, gamma_10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cep</code></td>
+<td>
+<p>estimated classification error probabilities returned from <code>CEP_t</code>. The uncorrected attribute profile (EAP) is also stored in this object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>the number of attributes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t</code></td>
+<td>
+<p>the number of time points. This package can only handle two time points can for the time being.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z_t1</code></td>
+<td>
+<p>covariates at Time 1, which has already had the intercept column (1s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z_t2</code></td>
+<td>
+<p>covariates at Time 2, which has already had the intercept column (1s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>the estimated regression coefficients at Time 1 (initial state)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma_01</code></td>
+<td>
+<p>the estimated regression coefficients of transition from absence (0) to presence (1) at Time 2</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma_10</code></td>
+<td>
+<p>the estimated regression coefficients of transition from absence (0) to presence (1) at Time 2</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list with elements
+</p>
+
+<dl>
+<dt>post.prob</dt>
+<dd>
+<p>the corrected and updated posterior probability</p>
+</dd>
+<dt>att.prevalance</dt>
+<dd>
+<p>the corrected and updated attribute prevalance</p>
+</dd>
+<dt>cor.profile</dt>
+<dd>
+<p>the corrected and updated attribute profiles for different time points</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Liang, Q., de la Torre, J., &amp; Law, N. (2023). Latent transition cognitive diagnosis model with covariates: A three-step approach. <em>Journal of Educational and Behavioral Statistics</em>.<a href="https://doi.org/10.3102/10769986231163320">doi:10.3102/10769986231163320</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#The run is dependent on the output of the step3.est() function and CEP_t() function
+#It is not recommended for run it.
+t = 2 # the number of time points
+K = ncol(Q) # the number of attributes
+Z = dat1[, c(1,2)]
+z_t1 = cbind(1, Z$gender)  # Covariate at time 1
+z_t2 = cbind(1, Z$gender, Z$intervention, apply(Z,1,prod)) # Covariates at time 2
+beta = step3.output$beta
+gamma_01 = step3.output$gamma_01
+gamma_10 = step3.output$gamma_10
+
+# Update classifications using the Bayes' Theorem
+updated.class &lt;- update.class(cep = cep, K = K, t = t, z_t1 = z_t1, z_t2 = z_t2,
+                              beta = beta, gamma_01 = gamma_01, gamma_10 = gamma_10)
+
+# The corrected and updated attribute prevalance
+updated.class$att.prevalance
+
+# The corrected and updated posterior probability
+updated.class$post.prob
+
+## End(Not run)
+</code></pre>
+
+
+</div>

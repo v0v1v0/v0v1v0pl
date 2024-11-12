@@ -1,0 +1,322 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lolog</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fits a LOLOG model via Monte Carlo Generalized Method of Moments</h2>
+
+<h3>Description</h3>
+
+<p><code>lolog</code> is used to fit Latent Order Logistic Graph (LOLOG) models. LOLOG models are
+motivated by the idea of network growth where the network begins empty, and edge variables
+are sequentially 'added' to the network with an either unobserved, or partially observed
+order <code class="reqn">s</code>. Conditional upon the inclusion order, the probability of an edge has a
+logistic relationship with the change in network statistics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lolog(
+  formula,
+  auxFormula = NULL,
+  theta = NULL,
+  nsamp = 1000,
+  includeOrderIndependent = TRUE,
+  targetStats = NULL,
+  weights = "full",
+  tol = 0.1,
+  nHalfSteps = 10,
+  maxIter = 100,
+  minIter = 2,
+  startingStepSize = 0.1,
+  maxStepSize = 0.5,
+  cluster = NULL,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A lolog formula for the sufficient statistics (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxFormula</code></td>
+<td>
+<p>A lolog formula of statistics to use for moment matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>Initial parameters values. Estimated via <code>lologVariational</code> if NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsamp</code></td>
+<td>
+<p>The number of sample networks to draw at each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>includeOrderIndependent</code></td>
+<td>
+<p>If TRUE, all order independent terms in formula are used for 
+moment matching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetStats</code></td>
+<td>
+<p>A vector of network statistics to use as the target for the moment equations.
+If <code>NULL</code>, the observed statistics for the network are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>The type of weights to use in the GMM objective. Either 'full' for the inverse 
+of the full covariance matrix or 'diagonal' for the inverse of the diagonal of the covariance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>The Hotelling's T^2 p-value tolerance for convergence for the transformed moment conditions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nHalfSteps</code></td>
+<td>
+<p>The maximum number of half steps to take when the objective is not improved 
+in an iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>The maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minIter</code></td>
+<td>
+<p>The minimum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startingStepSize</code></td>
+<td>
+<p>The starting dampening of the parameter update.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxStepSize</code></td>
+<td>
+<p>The largest allowed value for dampening.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>A parallel cluster to use for graph simulation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Level of verbosity 0-3.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>LOLOG represents the probability of a tie, given the network grown up to a time point as
+</p>
+<p style="text-align: center;"><code class="reqn">
+  \textrm{logit}\big(p(y_{s_t}=1 | \eta, y^{t-1}, s_{ \leq t})\big) = \theta \cdot c(y_{s_t}=1 | y^{t-1}, s_{ \leq t})
+</code>
+</p>
+
+<p>where <code class="reqn">s_{\leq t}</code> is the growth order of the network up to time <code class="reqn">t</code>, <code class="reqn">y^{t-1}</code> is the
+state of the graph at time <code class="reqn">t-1</code>. <code class="reqn">c(y_{s_t} | y^{t-1}, s_{ \leq t})</code> is a vector
+representing the change in graph statistics from time <code class="reqn">t-1</code> to <code class="reqn">t</code> if an edge is present, and
+<code class="reqn">\theta</code> is a vector of parameters.
+</p>
+<p>The motivating growth order proceeds 'by vertex.' The network begins 'empty' and then vertices are 'added'
+to the network sequentially. The order of vertex inclusion may be random or fixed. When a vertex 'enters' the
+network, each of the edge variables connecting it and vertices already in the network are considered for
+edge creation in a completely random order.
+</p>
+<p>LOLOG formulas contain a network, DirectedNet or UndirectedNet object on the left hand side.
+the right hand side contains the model terms used. for example,
+</p>
+<p><code>net ~ edges</code>
+</p>
+<p>represents and Erdos-Renyi model and
+</p>
+<p><code>net ~ edges + preferentialAttachment()</code>
+</p>
+<p>represents a Barabasi-Albert model. See <code>lolog-terms</code> for a list of allowed model statistics
+</p>
+<p>Conditioning on (partial) vertex order can be done by
+placing an ordering variable on the right hand side of the '|' operator, as in
+</p>
+<p><code>net ~ edges + preferentialAttachment() | order</code>
+</p>
+<p>'order' should be a numeric vector with as many elements as there are vertices in the network.
+Ties are allowed. Vertices with higher order values will always be included later. Those with the same
+values will be included in a random order in each simulated network.
+</p>
+<p>offsets and constraints are specified by wrapping them with either <code>offset()</code> or <code>constraint()</code>,
+for example, the following specifies an Erdos-Renyi model with the constraint that degrees must be less
+that 10
+</p>
+<p><code>net ~ edges + constraint(boundedDegree(0L, 10L))</code>
+</p>
+<p>If the model contains any order dependent statistics, additional moment constraints
+must be specified in <code>auxFormula</code>. Ideally these should be chosen to capture
+the features modeled by the order dependent statistics. For example, <code>preferentialAttachment</code>
+models the degree structure, so we might choose two-stars as a moment constraint.
+</p>
+<p><code>lolog(net ~ edges + preferentialAttachment(), net ~ star(2))</code>
+</p>
+<p>will fit a Barabasi-Albert model with the number of edges and number of two-stars as moment constraints.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class 'lolog'. If the model is dyad independent, the returned object will
+also be of class "lologVariational" (see <code>lologVariational</code>, otherwise it will
+also be a "lologGmm" object.
+</p>
+<p>lologGmm objects contain:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"Method of Moments" for order independent models, otherwise "Generalized Method of Moments"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>The model formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxFormula</code></td>
+<td>
+<p>The formula containing additional moment conditions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>The parameter estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>The statistics for each network in the last iteration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estats</code></td>
+<td>
+<p>The expected stats (G(y,s)) for each network in the last iteration</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsStats</code></td>
+<td>
+<p>The observed h(y) network statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetStats</code></td>
+<td>
+<p>The target network statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsModelStats</code></td>
+<td>
+<p>The observed g(y,s) network statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>net</code></td>
+<td>
+<p>A network simulated from the fit model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grad</code></td>
+<td>
+<p>The gradient of the moment conditions (D)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>The asymptotic covariance matrix of the parameter estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likelihoodModel</code></td>
+<td>
+<p>An object of class *LatentOrderLikelihood at the fit parameters</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(network)
+set.seed(1)
+data(flo)
+flomarriage &lt;- network(flo,directed=FALSE)
+flomarriage %v% "wealth" &lt;- c(10,36,27,146,55,44,20,8,42,103,48,49,10,48,32,3)
+
+# A dyad independent model
+fit &lt;- lolog(flomarriage ~ edges + nodeCov("wealth"))
+summary(fit)
+
+# A dyad dependent model with 2-stars and triangles
+fit2 &lt;- lolog(flomarriage ~ edges + nodeCov("wealth") + star(2) + triangles, verbose=FALSE)
+summary(fit2)
+
+## Not run: 
+
+# An order dependent model
+fit3 &lt;- lolog(flomarriage ~ edges + nodeCov("wealth") + preferentialAttachment(),
+              flomarriage ~ star(2:3), verbose=FALSE)
+summary(fit3)
+
+# Try something a bit more real
+data(ukFaculty)
+
+# Delete vertices missing group
+delete.vertices(ukFaculty, which(is.na(ukFaculty %v% "Group")))
+
+fituk &lt;- lolog(ukFaculty ~ edges() + nodeMatch("GroupC") + nodeCov("GroupC") + triangles + star(2))
+summary(fituk)
+plot(fituk$net, vertex.col= ukFaculty %v% "Group" + 2)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

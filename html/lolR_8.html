@@ -1,0 +1,227 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lol.project.lol</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear Optimal Low-Rank Projection (LOL)</h2>
+
+<h3>Description</h3>
+
+<p>A function for implementing the Linear Optimal Low-Rank Projection (LOL) Algorithm. This algorithm allows users to find an optimal
+projection from 'd' to 'r' dimensions, where 'r &lt;&lt; d', by combining information from the first and second moments in thet data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lol.project.lol(
+  X,
+  Y,
+  r,
+  second.moment.xfm = FALSE,
+  second.moment.xfm.opts = list(),
+  first.moment = "delta",
+  second.moment = "linear",
+  orthogonalize = FALSE,
+  robust = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p><code>[n, d]</code> the data with <code>n</code> samples in <code>d</code> dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p><code>[n]</code> the labels of the samples with <code>K</code> unique labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>the rank of the projection. Note that <code>r &gt;= K</code>, and <code>r &lt; d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>second.moment.xfm</code></td>
+<td>
+<p>whether to use extraneous options in estimation of the second moment component. The transforms specified should be a numbered list of transforms you wish to apply, and will be applied in accordance with <code>second.moment</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>second.moment.xfm.opts</code></td>
+<td>
+<p>optional arguments to pass to the <code>second.moment.xfm</code> option specified. Should be a numbered list of lists, where <code>second.moment.xfm.opts[[i]]</code> corresponds to the optional arguments for <code>second.moment.xfm[[i]]</code>.
+Defaults to the default options for each transform scheme.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first.moment</code></td>
+<td>
+<p>the function to capture the first moment. Defaults to <code>'delta'</code>.
+</p>
+
+<ul>
+<li>
+<p><code>'delta'</code> capture the first moment with the hyperplane separating the per-class means.
+</p>
+</li>
+<li>
+<p><code>FALSE</code> do not capture the first moment.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>second.moment</code></td>
+<td>
+<p>the function to capture the second moment. Defaults to <code>'linear'</code>.
+</p>
+
+<ul>
+<li>
+<p><code>'linear'</code> performs PCA on the class-conditional data to capture the second moment, retaining the vectors with the top singular values.   Transform options for <code>second.moment.xfm</code> and arguments in <code>second.moment.opts</code> should be in accordance with the trailing arguments for lol.project.lrlda.
+</p>
+</li>
+<li>
+<p><code>'quadratic'</code> performs PCA on the data for each class separately to capture the second moment, retaining the vectors with the top singular values from each class's PCA. Transform options for <code>second.moment.xfm</code> and arguments in <code>second.moment.opts</code> should be in accordance with the trailing arguments for lol.project.pca.
+</p>
+</li>
+<li>
+<p><code>'pls'</code> performs PLS on the data to capture the second moment, retaining the vectors that maximize the correlation between the different classes. Transform options for <code>second.moment.xfm</code> and arguments in <code>second.moment.opts</code> should be in accordance with the trailing arguments for lol.project.pls.
+</p>
+</li>
+<li>
+<p><code>FALSE</code> do not capture the second moment.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orthogonalize</code></td>
+<td>
+<p>whether to orthogonalize the projection matrix. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>whether to perform PCA on a robust estimate of the covariance matrix or not. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>trailing args.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p><code>[d, r]</code> the projection matrix from <code>d</code> to <code>r</code> dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylabs</code></td>
+<td>
+<p><code>[K]</code> vector containing the <code>K</code> unique, ordered class labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centroids</code></td>
+<td>
+<p><code>[K, d]</code> centroid matrix of the <code>K</code> unique, ordered classes in native <code>d</code> dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priors</code></td>
+<td>
+<p><code>[K]</code> vector containing the <code>K</code> prior probabilities for the unique, ordered classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xr</code></td>
+<td>
+<p><code>[n, r]</code> the <code>n</code> data points in reduced dimensionality <code>r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cr</code></td>
+<td>
+<p><code>[K, r]</code> the <code>K</code> centroids in reduced dimensionality <code>r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>second.moment</code></td>
+<td>
+<p>the method used to estimate the second moment.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>first.moment</code></td>
+<td>
+<p>the method used to estimate the first moment.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For more details see the help vignette:
+<code>vignette("lol", package = "lolR")</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eric Bridgeford
+</p>
+
+
+<h3>References</h3>
+
+<p>Joshua T. Vogelstein, et al. "Supervised Dimensionality Reduction for Big Data" arXiv (2020).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lolR)
+data &lt;- lol.sims.rtrunk(n=200, d=30)  # 200 examples of 30 dimensions
+X &lt;- data$X; Y &lt;- data$Y
+model &lt;- lol.project.lol(X=X, Y=Y, r=5)  # use lol to project into 5 dimensions
+
+# use lol to project into 5 dimensions, and produce an orthogonal basis for the projection matrix
+model &lt;- lol.project.lol(X=X, Y=Y, r=5, orthogonalize=TRUE)
+
+# use LRQDA to estimate the second moment by performing PCA on each class
+model &lt;- lol.project.lol(X=X, Y=Y, r=5, second.moment='quadratic')
+
+
+# use PLS to estimate the second moment
+model &lt;- lol.project.lol(X=X, Y=Y, r=5, second.moment='pls')
+
+# use LRLDA to estimate the second moment, and apply a unit transformation
+# (according to scale function) with no centering
+model &lt;- lol.project.lol(X=X, Y=Y, r=5, second.moment='linear', second.moment.xfm='unit',
+                         second.moment.xfm.opts=list(center=FALSE))
+</code></pre>
+
+
+</div>

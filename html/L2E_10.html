@@ -1,0 +1,96 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>l2e_regression</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L2E multivariate regression - PG</h2>
+
+<h3>Description</h3>
+
+<p><code>l2e_regression</code> performs L2E multivariate regression via block coordinate descent
+with proximal gradient for updating both beta and tau.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">l2e_regression(y, X, b, tau, max_iter = 100, tol = 1e-04, Show.Time = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>Initial vector of regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Initial precision estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Relative tolerance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Show.Time</code></td>
+<td>
+<p>Report the computing time</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list object containing the estimates for beta (vector) and tau (scalar),
+the number of outer block descent iterations until convergence (scalar),
+and the number of inner iterations per outer iteration for updating beta and tau (vectors)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Bank data example
+y &lt;- bank$y
+X &lt;- as.matrix(bank[,1:13])
+X0 &lt;- as.matrix(cbind(rep(1,length(y)), X))
+tauinit &lt;- 1/mad(y)
+binit &lt;- matrix(0, 14, 1)
+
+sol &lt;- l2e_regression(y, X0, binit, tauinit)
+r &lt;- y - X0 %*% sol$beta
+ix &lt;- which(abs(r) &gt; 3/sol$tau)
+l2e_fit &lt;- X0 %*% sol$beta
+
+plot(y, l2e_fit, ylab='Predicted values', pch=16, cex=0.8)
+points(y[ix], l2e_fit[ix], pch=16, col='blue', cex=0.8)
+
+</code></pre>
+
+
+</div>

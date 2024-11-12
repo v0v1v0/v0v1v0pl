@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lsp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Lomb-Scargle Periodogram
+</h2>
+
+<h3>Description</h3>
+
+<p>Computes the Lomb-Scargle periodogram for a time series with irregular (or regular) sampling intervals.  Allows selecting a frequency range to be inspected, as well as the spacing of frequencies scanned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lsp(x, times = NULL, from = NULL, to = NULL, type = c("frequency", "period"),
+    ofac = 1, alpha = 0.01, normalize=c("standard","press"), plot = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>The data to be analysed.  x can be either a two-column numerical dataframe or matrix, with sampling times in column 1 and measurements in column 2, a single numerical vector containing measurements, or a single vector <code>ts</code> object (which will be converted to a numerical vector).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+
+<p>If x is a single vector, times can be provided as a numerical vector of equal length containing sampling times. If x is a vector and times is NULL, the data are assumed to be equally sampled and times is set to 1:length(x).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>from</code></td>
+<td>
+
+<p>The starting frequency (or period, depending on type) to begin scanning for periodic components.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to</code></td>
+<td>
+
+<p>The highest frequency (or period, depending on type) to scan.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+
+<p>Either “frequency” (the default) or “period”. Determines the type of the periodogram x-axis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ofac</code></td>
+<td>
+
+<p>The oversampling factor. Must be an integer&gt;=1. Larger values of ofac lead to finer scanning of frequencies but may be time-consuming for large datasets and/or large frequency ranges (from...to).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>The significance level. The periodogram plot shows a horizontal dashed line. Periodogram peaks exceeding this line can be considered significant at alpha. Defaults to 0.01. Only used if plot=TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+
+<p>The type of normalization used, either “standard” or “press”. If normalization is standard (the default) the periodogram is confined to the interval 0-1, and the statistical significance of the largest peak in the periodogram is computed according to Baluev (2008).if normalization is set to “press” the periodogram will be normalized using the factor  1/(2 * var(y)) and the p-value for the significance of the largest peak in the periodogram is computed from the exponential distribution, as outlined in Press et al. (1994), see below
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>Logical. If plot=TRUE the periodogram is plotted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further graphical parameters affecting the periodogram plot. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For a more robust - but potentially time-consuming estimation of p-values (when n is large) see <code>randlsp</code>.
+</p>
+<p>Significance levels in both lsp and <code>randlsp</code>  increase with the number of frequencies inspected.  Therefore, if the frequency-range of interest can be narrowed down <em>a priori</em>, use arguments “from” and “to” to do so.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>The type of normalization used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scanned</code></td>
+<td>
+<p>A vector containing the frequencies/periods scanned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>A vector containing the normalised power corresponding to scanned frequencies/periods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Names of the data vectors analysed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The length of the data vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The periodogram type used, either "frequency" or "period".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ofac</code></td>
+<td>
+<p>The oversampling factor used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.out</code></td>
+<td>
+<p>The length of the output (powers). This can be &gt;n if ofac &gt;1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The false alarm probability used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.level</code></td>
+<td>
+<p>Powers &gt; sig.level can be considered significant peaks at p=alpha.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peak</code></td>
+<td>
+<p>The maximum power in the frequency/period interval inspected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>peak.at</code></td>
+<td>
+<p>The frequency/period at which the maximum peak occurred.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>The probability that the maximum peak occurred by chance.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>For a description of the properties of the Lomb-Scargle Periodogram, its computation and comparison with other methods see Ruf, T. (1999).  Function lsp uses the algorithm given by Press et al (1994).  The Lomb-Scargle Periodogram was originally proposed by Lomb N.R. (1976) and further extended by Scargle J.D. (1982). An improved method for assessing the statistical significance of candidate periodicities by Baluev (2008), based on extreme value theory, is also implemented. This implementation uses code modified from the astropy.timeseries Python package (VanderPlas et al. 2012, 2015).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Thomas Ruf <a href="mailto:thomas.p.ruf@me.com">thomas.p.ruf@me.com</a> based on code by Press et al (1994).
+</p>
+
+
+<h3>References</h3>
+
+<p>Baluev, R. V. (2008). Assessing the statistical significance of periodogram peaks.<em> Monthly Notices of the Royal Astronomical Society</em>, <b>385(3)</b>, 1279-1285.
+</p>
+<p>Lomb N.R. (1976) Least-squares frequency analysis of unequally spaced data. <em>Astrophysics and Space Science</em> <b>39</b>:447–462
+</p>
+<p>Press W.H., Teukolsky S.A., Vetterling S.T., Flannery, B.P. (1994) <em>Numerical recipes in C: the art of scientific computing.</em>2nd edition. Cambridge University Press, Cambridge, 994pp.
+</p>
+<p>Ruf, T. (1999) The Lomb-Scargle Periodogram in Biological Rhythm Research: Analysis of Incomplete and Unequally Spaced Time-Series. <em>Biological Rhythm Research</em> <b>30</b>: 178–201. 
+</p>
+<p>Scargle J.D. (1982) Studies in astronomical time series. II. Statistical aspects of spectral analysis of unevenly spaced data. <em>The Astrophysical Journal</em> <b>302</b>: 757–763.
+</p>
+<p>VanderPlas, J., Connolly, A. Ivezic, Z. &amp; Gray, A. (2012) Introduction to astroML: Machine learning for astrophysics. <em>Proceedings of the Conference on Intelligent Data Understanding</em>
+</p>
+<p>VanderPlas, J. &amp; Ivezic, Z. (2015) Periodograms for Multiband Astronomical Time Series.<em>The Astrophysical Jounal</em> <b>812.1</b>:18
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>randlsp</code>
+<code>summary.lsp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# ibex contains an unevenly sampled time series
+data(ibex)
+lsp(ibex[,2:3],ofac=5)
+lsp(ibex$temp,times=ibex$hours,type='period',ofac=5)
+
+# lynx contains evenly sampled data
+lsp(lynx)
+lynx.spec &lt;- lsp(lynx,type='period',from=2,to=20,ofac=5)
+summary(lynx.spec)
+
+# generate unevenly sampled data
+time=(runif(200,1,1000))
+y=2*cos(time/6)+rnorm(200,0,4)
+lsp(y,times=time,ofac=10, to=0.3)
+
+</code></pre>
+
+
+</div>

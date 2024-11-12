@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smoothElasticNet</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>smoothElasticNet</h2>
+
+<h3>Description</h3>
+
+<p>This function allows for regularization of models built in lavaan with the
+smooth elastic net penalty. Its elements can be accessed
+with the "@" operator (see examples).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smoothElasticNet(
+  lavaanModel,
+  regularized,
+  lambdas = NULL,
+  nLambdas = NULL,
+  alphas,
+  epsilon,
+  tau,
+  modifyModel = lessSEM::modifyModel(),
+  control = lessSEM::controlBFGS()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lavaanModel</code></td>
+<td>
+<p>model of class lavaan</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>regularized</code></td>
+<td>
+<p>vector with names of parameters which are to be regularized.
+If you are unsure what these parameters are called, use
+getLavaanParameters(model) with your lavaan model object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>numeric vector: values for the tuning parameter lambda</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nLambdas</code></td>
+<td>
+<p>alternative to lambda: If alpha = 1, lessSEM can automatically
+compute the first lambda value which sets all regularized parameters to zero.
+It will then generate nLambda values between 0 and the computed lambda.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphas</code></td>
+<td>
+<p>numeric vector with values of the tuning parameter alpha. Must be
+between 0 and 1. 0 = ridge, 1 = lasso.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epsilon</code></td>
+<td>
+<p>epsilon &gt; 0; controls the smoothness of the approximation. Larger values = smoother</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>parameters below threshold tau will be seen as zeroed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modifyModel</code></td>
+<td>
+<p>used to modify the lavaanModel. See ?modifyModel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>used to control the optimizer. This element is generated with
+the controlBFGS function. See ?controlBFGS for more details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For more details, see:
+</p>
+
+<ol>
+<li>
+<p> Zou, H., &amp; Hastie, T. (2005). Regularization and variable selection via
+the elastic net. Journal of the Royal Statistical Society:
+Series B, 67(2), 301–320. https://doi.org/10.1111/j.1467-9868.2005.00503.x
+for the details of this regularization technique.
+</p>
+</li>
+<li>
+<p> Jacobucci, R., Grimm, K. J., &amp; McArdle, J. J. (2016).
+Regularized Structural Equation Modeling. Structural Equation Modeling:
+A Multidisciplinary Journal, 23(4), 555–566. https://doi.org/10.1080/10705511.2016.1154793
+</p>
+</li>
+<li>
+<p> Lee, S.-I., Lee, H., Abbeel, P., &amp; Ng, A. Y. (2006).
+Efficient L1 Regularized Logistic Regression. Proceedings of the
+Twenty-First National Conference on Artificial Intelligence (AAAI-06), 401–408.
+</p>
+</li>
+</ol>
+<h3>Value</h3>
+
+<p>Model of class regularizedSEM
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lessSEM)
+
+# Identical to regsem, lessSEM builds on the lavaan
+# package for model specification. The first step
+# therefore is to implement the model in lavaan.
+
+dataset &lt;- simulateExampleData()
+
+lavaanSyntax &lt;- "
+f =~ l1*y1 + l2*y2 + l3*y3 + l4*y4 + l5*y5 +
+     l6*y6 + l7*y7 + l8*y8 + l9*y9 + l10*y10 +
+     l11*y11 + l12*y12 + l13*y13 + l14*y14 + l15*y15
+f ~~ 1*f
+"
+
+lavaanModel &lt;- lavaan::sem(lavaanSyntax,
+                           data = dataset,
+                           meanstructure = TRUE,
+                           std.lv = TRUE)
+
+# Regularization:
+
+# names of the regularized parameters:
+regularized = paste0("l", 6:15)
+
+lsem &lt;- smoothElasticNet(
+  # pass the fitted lavaan model
+  lavaanModel = lavaanModel,
+  regularized = regularized,
+  epsilon = 1e-10,
+  tau = 1e-4,
+  lambdas = seq(0,1,length.out = 5),
+  alphas = seq(0,1,length.out = 3))
+
+# the coefficients can be accessed with:
+coef(lsem)
+
+# elements of lsem can be accessed with the @ operator:
+lsem@parameters[1,]
+</code></pre>
+
+
+</div>

@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>paired.boot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Paired Bootstrap in Linear Models
+</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the paired bootstrap in linear models as described by Efron (1979, ISBN:978-1-4612-4380-9).  
+Linear models  incorporating categorical and/or quantitative predictor variables with a quantitative response are allowed.  
+The function output creates the bootstrap sampling distribution for each coefficient.  
+Estimation is performed via least squares.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">paired.boot(formula, B = 1000, seed = NULL, data = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>input a linear model formula of the form <code>response</code>~<code>predictors</code> as you would in the <code>lm()</code> 
+function.  All variables must contain non-missing entries.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+
+<p>number of bootstrap samples.  This should be a large, positive integer value.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>optionally, set a value for the seed for the bootstrap sample generation.  The default <code>NULL</code> will
+pick a random value for the seed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>optionally, input the name of the dataset where variables appearing in the model are stored.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Currently, the user must manipulate the output of the function to conduct hypothesis tests and create 
+confidence intervals for the predictor coefficients.  More convenient/streamlined output is expected
+in future package versions.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>bootEstParam</code></td>
+<td>
+<p>matrix containing the bootstrap parameter estimates.  Each column corresponds to a 
+coefficient.  There are <code>B</code> rows, each corresponding to a bootstrap sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origEstParam</code></td>
+<td>
+<p>vector containing the least squares parameter estimates.  These are the same as
+estimates obtained from <code>lm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>numerical value set for the seed.  This is associated with the set of bootstrap parameter
+estimates and helps the process to be reproducible.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Megan Heyman, heyman@rose-hulman.edu
+</p>
+
+
+<h3>References</h3>
+
+<p>Efron, B.  (1979). "Bootstrap methods: Another look at the jackknife."  <em>Annals of Statistics</em>.  Vol. 7, pp.1-26.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Seed &lt;- 14
+set.seed(Seed)
+y &lt;- rnorm(20) #randomly generated response
+x &lt;- rnorm(20) #randomly generated predictor
+PairObj &lt;- paired.boot(y~x, B=100, seed=Seed) #perform the paired bootstrap
+
+#plot the sampling distribution of the slope coefficient
+hist(PairObj$bootEstParam[,2], main="Paired Bootstrap Sampling Distn.",
+     xlab="Slope Estimate") 
+
+#bootstrap 95% CI for slope parameter (percentile method)
+quantile(PairObj$bootEstParam[,2], probs=c(.025, .975))
+</code></pre>
+
+
+</div>

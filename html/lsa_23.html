@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lsa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a vector space with Latent Semantic Analysis (LSA)</h2>
+
+<h3>Description</h3>
+
+<p>Calculates a latent semantic space from a given document-term matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">   lsa( x, dims=dimcalc_share() )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a document-term matrix (recommeded to be of class textmatrix), containing documents in 
+colums, terms in rows and occurrence frequencies in the cells.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dims</code></td>
+<td>
+<p>either the number of dimensions or a configuring function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>LSA combines the classical vector space model — well known in 
+textmining — with a Singular Value Decomposition (SVD), a two-mode 
+factor analysis. Thereby, bag-of-words representations of texts can 
+be mapped into a modified vector space that is assumed to reflect 
+semantic structure.
+</p>
+<p>With <code>lsa()</code> a new latent semantic space can
+be constructed over a given document-term matrix. To ease
+comparisons of terms and documents with common
+correlation measures, the space can be converted into
+a textmatrix of the same format as <code>y</code> 
+by calling <code>as.textmatrix()</code>.
+</p>
+<p>To add more documents or queries to this latent semantic
+space in order to keep them from influencing the original 
+factor distribution (i.e., the latent semantic structure calculated
+from a primary text corpus), they can be ‘folded-in’ later on 
+(with the function <code>fold_in()</code>).
+</p>
+<p>Background information (see also Deerwester et al., 1990): 
+</p>
+<p>A document-term matrix <code class="reqn">M</code> is constructed 
+with <code>textmatrix()</code> from a given text base of <code class="reqn">n</code> documents 
+containing <code class="reqn">m</code> terms.
+This matrix <code class="reqn">M</code> of the size <code class="reqn">m \times n</code> is then decomposed via a
+singular value decomposition into: term vector matrix <code class="reqn">T</code> (constituting 
+left singular vectors), the document vector matrix <code class="reqn">D</code> (constituting 
+right singular vectors) being both orthonormal, and the diagonal matrix 
+<code class="reqn">S</code> (constituting singular values). 
+</p>
+<p><code class="reqn">M = TSD^T</code>
+</p>
+<p>These matrices are then reduced to the given number of dimensions <code class="reqn">k=dims</code>
+to result into truncated matrices <code class="reqn">T_{k}</code>, <code class="reqn">S_{k}</code> and <code class="reqn">D_{k}</code>
+— the latent semantic space. 
+</p>
+<p><code class="reqn">M_k = \sum\limits_{i=1}^k t_i \cdot s_i \cdot d_i^T</code>
+</p>
+<p>If these matrices <code class="reqn">T_k, S_k, D_k</code> were multiplied, they would give a new
+matrix <code class="reqn">M_k</code> (of the same format as <code class="reqn">M</code>, i.e., rows are the
+same terms, columns are the same documents), which is the least-squares best 
+fit approximation of <code class="reqn">M</code> with <code class="reqn">k</code> singular values.
+</p>
+<p>In the case of folding-in, i.e., multiplying new documents into a given
+latent semantic space, the matrices <code class="reqn">T_k</code> and <code class="reqn">S_k</code> remain unchanged
+and an additional <code class="reqn">D_k</code> is created (without replacing the old one).
+All three are multiplied together to return a (new and appendable)
+document-term matrix <code class="reqn">\hat{M}</code> in the term-order of <code class="reqn">M</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>LSAspace</code></td>
+<td>
+<p>a list with components (<code class="reqn">T_k, S_k, D_k</code>), representing the latent semantic space.</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p> Fridolin Wild <a href="mailto:fridolin.wild@wu-wien.ac.at">fridolin.wild@wu-wien.ac.at</a> </p>
+
+
+<h3>References</h3>
+
+<p>Deerwester, S., Dumais, S., Furnas, G., Landauer, T., and Harshman, R. (1990) <em>Indexing by Latent Semantic Analysis</em>. In: Journal of the American Society for Information Science 41(6), pp. 391–407.
+</p>
+<p>Landauer, T., Foltz, P., and Laham, D. (1998) <em>Introduction to Latent Semantic Analysis</em>. In: Discourse Processes 25, pp. 259–284.
+</p>
+
+
+<h3>See Also</h3>
+
+ 
+<p><code>as.textmatrix</code>, <code>fold_in</code>, <code>textmatrix</code>, <code>gw_idf</code>, <code>dimcalc_share</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# create some files
+td = tempfile()
+dir.create(td)
+write( c("dog", "cat", "mouse"), file=paste(td, "D1", sep="/") )
+write( c("ham", "mouse", "sushi"), file=paste(td, "D2", sep="/") )
+write( c("dog", "pet", "pet"), file=paste(td, "D3", sep="/") )
+
+# LSA
+data(stopwords_en)
+myMatrix = textmatrix(td, stopwords=stopwords_en)
+myMatrix = lw_logtf(myMatrix) * gw_idf(myMatrix)
+myLSAspace = lsa(myMatrix, dims=dimcalc_share())
+as.textmatrix(myLSAspace)
+
+# clean up
+unlink(td, recursive=TRUE)
+
+</code></pre>
+
+
+</div>

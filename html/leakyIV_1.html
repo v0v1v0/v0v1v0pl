@@ -1,0 +1,192 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>exclusion_test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Testing Exclusion</h2>
+
+<h3>Description</h3>
+
+<p>Performs a Monte Carlo test against the null hypothesis that minimum leakage
+is zero, a necessary but insufficient condition for exclusion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">exclusion_test(
+  dat,
+  normalize = TRUE,
+  method = "mle",
+  approx = TRUE,
+  n_sim = 1999L,
+  parallel = TRUE,
+  return_stats = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>Input data. Either (a) an <code class="reqn">n \times d</code> data frame or matrix of 
+observations with columns for treatment, outcome, and candidate instruments; 
+or (b) a <code class="reqn">d \times d</code> covariance matrix over such variables. Note that 
+in either case, the order of variables is presumed to be treatment 
+(<code class="reqn">X</code>), outcome (<code class="reqn">Y</code>), leaky instruments (<code class="reqn">Z</code>). 
+<code>exclusion_test</code> requires at least two candidate instruments <code class="reqn">Z</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>Scale candidate instruments to unit variance?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Estimator for the covariance matrix. Options include 
+(a) <code>"mle"</code>, the default; (b) <code>"shrink"</code>, an analytic empirical 
+Bayes solution; or (c) <code>"glasso"</code>, the graphical lasso. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>approx</code></td>
+<td>
+<p>Use nearest positive definite approximation if the estimated 
+covariance matrix is singular? See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_sim</code></td>
+<td>
+<p>Number of Monte Carlo replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Run Monte Carlo simulations in parallel? Must register 
+backend beforehand, e.g. via <code>doParallel</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_stats</code></td>
+<td>
+<p>Return observed statistic and simulated null distribution?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Extra arguments to be passed to graphical lasso estimator if
+<code>method = "glasso"</code>. Note that the regularization parameter <code>rho</code>
+is required as input, with no default.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The classic linear instrumental variable (IV) model relies on the 
+<em>exclusion criterion</em>, which states that instruments <code class="reqn">Z</code> have no 
+direct effect on the outcome <code class="reqn">Y</code>, but can only influence it through the
+treatment <code class="reqn">X</code>. This implies a series of tetrad constraints that can be
+directly tested, given a model for sampling data from the covariance matrix 
+of the observable variables (Watson et al., 2024). 
+</p>
+<p>We assume that data are multivariate normal and impose the null hypothesis
+by modifying the estimated covariance matrix to induce a linear dependence
+between the vectors for Cov(<code class="reqn">Z, X</code>) and Cov(<code class="reqn">Z, Y</code>). Our test 
+statistic is the determinant of the cross product of these vectors, which 
+equals zero if and only if the null hypothesis is true. We generate a null
+distribution by simulating from the null covariance matrix and compute a
+<em>p</em>-value by estimating the proportion of statistics that exceed the 
+observed value. Future releases will provide support for a wider range of 
+data generating processes.
+</p>
+<p>Numerous methods exist for estimating covariance matrices. <code>exclusion_test</code>
+provides support for maximum likelihood estimation (the default), as well as
+empirical Bayes shrinkage via <code>corpcor::cov.shrink</code> 
+(Schäfer &amp; Strimmer, 2005) and the graphical lasso via 
+<code>glasso::glasso</code> (Friedman et al., 2007). These latter 
+methods are preferable in high-dimensional settings where sample covariance 
+matrices may be unstable or singular. Alternatively, users can pass a 
+pre-computed covariance matrix directly as <code>dat</code>.
+</p>
+<p>Estimated covariance matrices may be singular for some datasets or Monte 
+Carlo samples. Behavior in this case is determined by the <code>approx</code> 
+argument. If <code>TRUE</code>, the test proceeds with the nearest positive 
+definite approximation, computed via Higham's (2002) algorithm (with a 
+warning). If <code>FALSE</code>, the sampler will attempt to use the singular 
+covariance matrix (also with a warning), but results may be invalid.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Either a scalar representing the Monte Carlo <em>p</em>-value of the exclusion 
+test (default) or, if <code>return_stats = TRUE</code>, a named list with three 
+entries: <code>psi</code>, the observed statistic; <code>psi0</code>, a vector of length 
+<code>n_sim</code> with simulated null statistics; and <code>p_value</code>, the 
+resulting <em>p</em>-value.
+</p>
+
+
+<h3>References</h3>
+
+<p>Watson, D., Penn, J., Gunderson, L., Bravo-Hermsdorff, G., Mastouri, A., and
+Silva, R. (2024). Bounding causal effects with leaky instruments. <em>arXiv</em>
+preprint, 2404.04446.
+</p>
+<p>Spirtes, P. Calculation of entailed rank constraints in partially 
+non-linear and cyclic models. In <em>Proceedings of the 29th Conference on 
+Uncertainty in Artificial Intelligence</em>, 606–615, 2013.
+</p>
+<p>Friedman, J., Hastie, T., and Tibshirani, R. (2007). Sparse inverse 
+covariance estimation with the lasso. <em>Biostatistics</em>, 9:432-441.
+</p>
+<p>Schäfer, J., and Strimmer, K. (2005). A shrinkage approach to large-scale 
+covariance estimation and implications for functional genomics. 
+<em>Statist. Appl. Genet. Mol. Biol.</em>, 4:32.
+</p>
+<p>Higham, N. (2002). Computing the nearest correlation matrix: A problem from 
+finance. <em>IMA J. Numer. Anal.</em>, 22:329–343.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> 
+set.seed(123)
+
+# Hyperparameters
+n &lt;- 200
+d_z &lt;- 4
+beta &lt;- rep(1, d_z)
+theta &lt;- 2
+rho &lt;- 0.5
+
+# Simulate correlated residuals
+S_eps &lt;- matrix(c(1, rho, rho, 1), ncol = 2)
+eps &lt;- matrix(rnorm(n * 2), ncol = 2)
+eps &lt;- eps %*% chol(S_eps)
+
+# Simulate observables from the linear IV model
+z &lt;- matrix(rnorm(n * d_z), ncol = d_z)
+x &lt;- z %*% beta + eps[, 1]
+y &lt;- x * theta + eps[, 2]
+obs &lt;- cbind(x, y, z)
+
+# Compute p-value of the test
+exclusion_test(obs, parallel = FALSE)
+
+</code></pre>
+
+
+</div>

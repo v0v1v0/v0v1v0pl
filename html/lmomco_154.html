@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lcomoment.Wk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Weighting Coefficient for Sample L-comoment </h2>
+
+<h3>Description</h3>
+
+<p>Compute the weight factors for computation of an L-comoment for order <code>k</code>, order statistic <code>r</code>, and sample size <code>n</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lcomoment.Wk(k,r,n)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Order of L-comoment being computed by parent calls to <code>Lcomoment.Wk</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Order statistic index involved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Sample size.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function computes the weight factors needed to calculation L-comoments and is interfaced or used by <code>Lcomoment.Lk12</code>. The weight factors are
+</p>
+<p style="text-align: center;"><code class="reqn"> w^{(k)}_{r:n} = \sum_{j=0}^{min\{r-1,k-1\}} (-1)^{k-1-j}
+                                    \frac{{k-1 \choose j}{k-1+j \choose j}
+          {r-1 \choose j}}
+         {{n-1 \choose j}}
+      \mbox{.}</code>
+</p>
+
+<p>The weight factor <code class="reqn">w^{(k)}_{r:n}</code> is the discrete Legendre polynomial. The weight factors are well illustrated in figure 6.1 of Asquith (2011). This function is not intended for end users.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A single L-comoment weight factor.</p>
+
+
+<h3>Note</h3>
+
+<p>The function begins with a capital letter. This is intentionally done so that lower case namespace is preserved.  By using a capital letter now, then <code>lcomoment.Wk</code> remains an available name in future releases.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+<p>Serfling, R., and Xiao, P., 2007, A contribution to multivariate L-moments—L-comoment matrices: Journal of Multivariate Analysis, v. 98, pp. 1765–1781.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lcomoment.Lk12</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Wk &lt;- Lcomoment.Wk(2,3,5)
+print(Wk)
+
+## Not run: 
+# To compute the weight factors for L-skew and L-coskew (k=3) computation
+# for a sample of size 20.
+Wk &lt;- matrix(nrow=20,ncol=1)
+for(r in seq(1,20)) Wk[r] &lt;- Lcomoment.Wk(3,r,20)
+plot(seq(1,20),Wk, type="b")
+
+## End(Not run)
+
+# The following shows the actual weights used for computation of
+# the first four L-moments. The sum of the each sample times the
+# corresponding weight equals the L-moment.
+fakedat &lt;- sort(c(-10, 20, 30, 40));  n &lt;- length(fakedat)
+Wk1 &lt;- Wk2 &lt;- Wk3 &lt;- Wk4 &lt;- vector(mode="numeric", length=n);
+for(i in 1:n) {
+   Wk1[i] &lt;- Lcomoment.Wk(1,i,n)/n
+   Wk2[i] &lt;- Lcomoment.Wk(2,i,n)/n
+   Wk3[i] &lt;- Lcomoment.Wk(3,i,n)/n
+   Wk4[i] &lt;- Lcomoment.Wk(4,i,n)/n
+}
+cat(c("Weights for mean",         round(Wk1, digits=4), "\n"))
+cat(c("Weights for L-scale",      round(Wk2, digits=4), "\n"))
+cat(c("Weights for 3rd L-moment", round(Wk3, digits=4), "\n"))
+cat(c("Weights for 4th L-moment", round(Wk4, digits=4), "\n"))
+my.lams &lt;- c(sum(fakedat*Wk1), sum(fakedat*Wk2),
+             sum(fakedat*Wk3), sum(fakedat*Wk4))
+cat(c("Manual L-moments:", my.lams, "\n"))
+cat(c("lmomco L-moments:", lmoms(fakedat, nmom=4)$lambdas,"\n"))
+# The last two lines of output should be the same---note that lmoms()
+# does not utilize Lcomoment.Wk(). So a double check is made.
+</code></pre>
+
+
+</div>

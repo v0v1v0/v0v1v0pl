@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_mature</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the proportion of mature individuals</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the proportion of individuals that are mature for each species and length class.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_mature(Lmat, nfish, mid, kappa, sc_Linf, eps = 1e-05, force_mature = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Lmat</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the length at which 50% of individuals are mature for each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfish</code></td>
+<td>
+<p>A numeric value representing the number of species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mid</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the mid-point of the length classes in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the rate of change from immaturity to maturity for each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sc_Linf</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the length class at which each species reaches its asymptotic length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>A numeric value specifying a numerical offset. The default is <code>1e-5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force_mature</code></td>
+<td>
+<p>A logical statement indicating whether to force all fish in the largest length class to be mature. The default is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The proportion of individuals in the <code>j</code>th length class of the <code>i</code>th species that are mature is described by a logistic model
+</p>
+<p><code>1/(1+exp(-kappa[i]*(mid[j]-Lmat[i])))</code>
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with dimensions <code>nsc</code> and <code>nfish</code> and elements in the range 0-1 representing the proportion of individuals that are mature for each species and length class.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hall, S. J., Collie, J. S., Duplisea, D. E., Jennings, S., Bravington, M., &amp; Link, J. (2006). A length-based multispecies model for evaluating community responses to fishing. <em>Canadian Journal of Fisheries and Aquatic Sciences</em>, 63(6):1344-1359.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up the inputs to the function - species-independent parameters
+nfish &lt;- nrow(NS_par)
+nsc &lt;- 32
+maxsize &lt;- max(NS_par$Linf)*1.01 # the biggest size is 1% bigger than the largest Linf
+l_bound &lt;- seq(0, maxsize, maxsize/nsc); l_bound &lt;- l_bound[-length(l_bound)]
+u_bound &lt;- seq(maxsize/nsc, maxsize, maxsize/nsc)
+mid &lt;- l_bound+(u_bound-l_bound)/2
+
+# Set up the inputs to the function - species-specific parameters
+Linf &lt;- NS_par$Linf # the von-Bertalanffy asymptotic length of each species (cm).
+W_a &lt;- NS_par$W_a # length-weight conversion parameter.
+W_b &lt;- NS_par$W_b # length-weight conversion parameter.
+k &lt;- NS_par$k # the von-Bertalnaffy growth parameter.
+Lmat &lt;- NS_par$Lmat # the length at which 50\% of individuals are mature (cm).
+
+# Get phi_min
+tmp &lt;- calc_phi(k, Linf, nsc, nfish, u_bound, l_bound, calc_phi_min=FALSE,
+                  phi_min=0.1) # fixed phi_min
+phi &lt;- tmp$phi
+phi_min &lt;- tmp$phi_min
+
+# Calculate growth increments
+tmp &lt;- calc_ration_growthfac(k, Linf, nsc, nfish, l_bound, u_bound, mid, W_a, W_b, phi_min)
+sc_Linf &lt;- tmp$sc_Linf
+
+# Calculate the proportion of mature individuals
+mature &lt;- calc_mature(Lmat, nfish, mid, kappa=rep(10, nfish), sc_Linf)
+</code></pre>
+
+
+</div>

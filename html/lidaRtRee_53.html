@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tree_detection</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tree detection</h2>
+
+<h3>Description</h3>
+
+<p>Performs tree detection by applying the functions <code>tree_segmentation</code>
+and <code>tree_extraction</code> to objects of class <code>SpatRaster-class</code>,
+<code>LAS-class</code> or <code>LAScatalog-class</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tree_detection(las, res = 1, ROI = NULL, normalize = FALSE, crown = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class <code>SpatRaster-class</code>,
+<code>LAS-class</code> or <code>LAScatalog-class</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric. The size of a grid cell in point cloud coordinates units,
+used to rasterize the point cloud. In case the <code>las</code> argument is a <code>SpatRaster</code>
+<code>res</code> is not used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ROI</code></td>
+<td>
+<p>spatial polygons in sf/sfc format, in the same CRS as argument <code>las</code>. geometric object that defines the
+region where tree detection has to be performed. In case the input is of class
+<code>LAScatalog-class</code>, the chunk buffer set with 
+<code>engine_options</code> is applied to the point cloud to prevent 
+border effects, but only treetops lying within the <code>ROI</code> are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>boolean. Should the point cloud be normalized before detection
+(not applicable if <code>las</code> argument is a <code>SpatRaster</code>) ?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crown</code></td>
+<td>
+<p>Parameter passed to <code>tree_extraction</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters passed to <code>tree_segmentation</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A sf collection of POINTs with 7 fields: tree id, local maximum stats
+(height, dominance radius), segment stats (surface and volume), coordinates 
+(x and y). In case argument <code>crown</code> is <code>TRUE</code>, a <code>crown</code> field 
+containing the WKT geometry of the 2D crown is also present.
+</p>
+
+
+<h3>References</h3>
+
+<p>Monnet, J.-M. 2011. Using airborne laser scanning for mountain 
+forests mapping: Support vector regression for stand parameters estimation 
+and unsupervised training for treetop detection. Ph.D. thesis. University of 
+Grenoble, France. Section 6.2 
+<a href="https://theses.hal.science/tel-00652698/document">https://theses.hal.science/tel-00652698/document</a>
+</p>
+<p>Monnet, J.-M., Mermin, E., Chanussot, J., Berger, F. 2010. Tree top detection 
+using local maxima filtering: a parameter sensitivity analysis. Silvilaser 2010, 
+the 10th International Conference on LiDAR Applications for Assessing Forest 
+Ecosystems, September 14-17, Freiburg, Germany, 9 p. 
+<a href="https://hal.science/hal-00523245/document">https://hal.science/hal-00523245/document</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tree_segmentation</code>, <code>tree_extraction</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load canopy height model
+data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+# create polygon of region of interest
+ROI &lt;- sf::st_polygon(list(cbind(
+ c(974360, 974360, 974380, 974380, 974360),
+ c(6581640, 6581680, 6581680, 6581640, 6581640)
+)))
+# convert to sfc and set projection
+ROI = sf::st_sfc(ROI)
+sf::st_crs(ROI) &lt;- terra::crs(chm_chablais3)
+#
+# tree detection
+trees &lt;- tree_detection(chm_chablais3)
+# plot results
+# canopy height model background
+terra::plot(chm_chablais3)
+# detected trees
+plot(trees["h"], add = TRUE, cex = trees$h/20, col = "black")
+#
+# tree detection in ROI and minimum tree height set to 10
+trees_ROI &lt;- tree_detection(chm_chablais3, ROI = ROI, hmin = 10, crown = TRUE)
+# create polygons from WKT field
+trees_ROI_crowns &lt;- sf::st_as_sf(sf::st_drop_geometry(trees_ROI), wkt = "crown")
+# plot results
+# canopy height model background 
+terra::plot(chm_chablais3)
+# detected trees
+plot(trees_ROI["h"], add = TRUE, cex = trees_ROI$h/20, col = "black")
+# corresponding crowns
+plot(sf::st_geometry(trees_ROI_crowns), add = TRUE, border = "black", col = NA)
+# add ROI
+plot(ROI, add = TRUE, border = "red", col = NA)
+</code></pre>
+
+
+</div>

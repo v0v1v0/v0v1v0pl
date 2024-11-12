@@ -1,0 +1,152 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createContrast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Contrast matrix</h2>
+
+<h3>Description</h3>
+
+<p>Returns a contrast matrix corresponding an object.
+The contrast matrix will contains the hypotheses in rows and the model coefficients in columns.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">createContrast(object, ...)
+
+## S3 method for class 'character'
+createContrast(object, ...)
+
+## S3 method for class 'lvmfit'
+createContrast(object, linfct, ...)
+
+## S3 method for class 'lvmfit2'
+createContrast(object, linfct, ...)
+
+## S3 method for class 'list'
+createContrast(object, linfct = NULL, ...)
+
+## S3 method for class 'mmm'
+createContrast(object, linfct = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvmfit</code> object or a list of  a <code>lvmfit</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Argument to be passed to <code>.createContrast</code>:
+</p>
+
+<ul>
+<li>
+<p> diff.first [logical] should the contrasts between the first and any of the other coefficients define the null hypotheses.
+</p>
+</li>
+<li>
+<p> add.rowname [logical] add rownames to the contrast matrix and names to the right-hand side.
+</p>
+</li>
+<li>
+<p> rowname.rhs [logical] when naming the hypotheses, add the right-hand side (i.e. "X1-X2=0" instead of "X1-X2").
+</p>
+</li>
+<li>
+<p> sep [character vector of length2] character surrounding the left part of the row names.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>linfct</code></td>
+<td>
+<p>[vector of characters] expression defining the linear hypotheses to be tested.
+Can also be a regular expression (of length 1) that is used to identify the coefficients to be tested using <code>grep</code>.
+See the examples section.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>One can initialize an empty contrast matrix setting the argument<code>linfct</code> to <code>character(0)</code>. <br><br></p>
+
+
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+
+<ul>
+<li>
+<p>contrast [matrix] a contrast matrix corresponding to the left hand side of the linear hypotheses.
+</p>
+</li>
+<li>
+<p>null [vector] the right hand side of the linear hypotheses.
+</p>
+</li>
+<li>
+<p>Q [integer] the rank of the contrast matrix.
+</p>
+</li>
+<li>
+<p>ls.contrast [list, optional] the contrast matrix corresponding to each submodel.
+Only present when the <code>argument</code> object is a list of models.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate data
+mSim &lt;- lvm(X ~ Age + Treatment,
+            Y ~ Gender + Treatment,
+            c(Z1,Z2,Z3) ~ eta, eta ~ treatment,
+            Age[40:5]~1)
+latent(mSim) &lt;- ~eta
+categorical(mSim, labels = c("placebo","SSRI")) &lt;- ~Treatment
+categorical(mSim, labels = c("male","female")) &lt;- ~Gender
+n &lt;- 1e2
+set.seed(10)
+df.data &lt;- lava::sim(mSim,n)
+
+## Estimate separate models
+lmX &lt;- lava::estimate(lvm(X ~ -1 + Age + Treatment), data = df.data)
+lmY &lt;- lava::estimate(lvm(Y ~ -1 + Gender + Treatment), data = df.data)
+lvmZ &lt;- lava::estimate(lvm(c(Z1,Z2,Z3) ~ -1 + 1*eta, eta ~ -1 + Treatment), 
+                 data = df.data)
+
+## Contrast matrix for a given model
+createContrast(lmX, linfct = "X~Age")
+createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"))
+createContrast(lmX, linfct = c("X~Age=0","X~Age+5*X~TreatmentSSRI=0"), sep = NULL)
+createContrast(lmX, linfct = character(0))
+
+## Contrast matrix for the join model
+ls.lvm &lt;- list(X = lmX, Y = lmY, Z = lvmZ)
+createContrast(ls.lvm, linfct = "TreatmentSSRI=0")
+createContrast(ls.lvm, linfct = "TreatmentSSRI=0", rowname.rhs = FALSE)
+createContrast(ls.lvm, linfct = character(0))
+
+## Contrast for multigroup models
+m &lt;- lava::lvm(Y~Age+Treatment)
+e &lt;- lava::estimate(list(m,m), data = split(df.data, df.data$Gender))
+print(coef(e))
+createContrast(e, linfct = "Y~TreatmentSSRI@1 - Y~TreatmentSSRI@2 = 0")
+createContrast(e, linfct = "Y~TreatmentSSRI@2 - Y~TreatmentSSRI@1 = 0")
+
+</code></pre>
+
+
+</div>

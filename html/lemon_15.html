@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>coord_capped_cart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cartesian coordinates with capped axis lines.</h2>
+
+<h3>Description</h3>
+
+<p>Caps the axis lines to the outer ticks to e.g. indicate range of values.
+Methods correspond to <code>coord_cartesian</code> and <code>coord_flip</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">coord_capped_cart(
+  xlim = NULL,
+  ylim = NULL,
+  expand = TRUE,
+  top = waiver(),
+  left = waiver(),
+  bottom = waiver(),
+  right = waiver(),
+  gap = 0.01
+)
+
+coord_capped_flip(
+  xlim = NULL,
+  ylim = NULL,
+  expand = TRUE,
+  top = waiver(),
+  left = waiver(),
+  bottom = waiver(),
+  right = waiver(),
+  gap = 0.01
+)
+
+capped_horizontal(capped = c("both", "left", "right", "none"), gap = 0.01)
+
+capped_vertical(capped = c("top", "bottom", "both", "none"), gap = 0.01)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xlim, ylim</code></td>
+<td>
+<p>Limits for the x and y axes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand</code></td>
+<td>
+<p>If <code>TRUE</code>, the default, adds a small expansion factor to
+the limits to ensure that data and axes don't overlap. If <code>FALSE</code>,
+limits are taken exactly from the data or <code>xlim</code>/<code>ylim</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top, left, bottom, right</code></td>
+<td>
+<p>Either a function returned from
+<code>capped_horizontal</code> or <code>brackets_horizontal</code>.
+If string, it is assumed to be shorthand for
+<code>capped_horizontal(capped)</code> or similar for vertical.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap</code></td>
+<td>
+<p>Both ends are <em>always</em> capped by this proportion.
+Usually a value between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>capped</code></td>
+<td>
+<p>Which end to cap the line. Can be one of (where relevant):
+<code>both</code>, <code>none</code>, <code>left</code>, <code>right</code>, <code>top</code>, <code>bottom</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is a simple override of <code>coord_flex_cart</code>
+and <code>coord_flex_flip</code>,
+which allows shorthand specification of what to cap.
+</p>
+<p>NB! A panel-border is typically drawn on top such that it covers tick marks,
+grid lines, and axis lines.
+Many themes also do not draw axis lines.
+To ensure the modified axis lines are visible, use
+<code>theme(panel.border=element_blank(), axis.lines=element_line())</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(ggplot2)
+# Notice how the axis lines of the following plot meet in the lower-left corner.
+p &lt;- ggplot(mtcars, aes(x = mpg)) + geom_dotplot() +
+  theme_bw() +
+  theme(panel.border=element_blank(), axis.line=element_line())
+p
+
+# We can introduce a gap by capping the ends:
+p + coord_capped_cart(bottom='none', left='none')
+
+# The lower limit on the y-axis is 0. We can cap the line to this value.
+# Notice how the x-axis line extends through the plot when we no long
+# define its capping.
+p + coord_capped_cart(left='both')
+
+# It it also works on the flipped.
+p + coord_capped_flip(bottom='both')
+
+# And on secondary axis, in conjuction with brackets:
+p +
+  scale_y_continuous(sec.axis = sec_axis(~.*100)) +
+  scale_x_continuous(sec.axis = sec_axis(~1/., name='Madness scale')) +
+  coord_capped_cart(bottom='none', left='none', right='both', top=brackets_horizontal())
+# Although we cannot recommend the above madness.
+</code></pre>
+
+
+</div>

@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>with_name_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Overlay Variable Name Labels Onto Arbitrary R Function Calls</h2>
+
+<h3>Description</h3>
+
+<p><code>with_name_labs</code> instructs R function calls to swap in variable name labels
+for column names in the objects they return or side effects they produce.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">with_name_labs(data, ...)
+
+wnl(data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame with name labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>an additional expression passed to dots (quotes and dollar signs
+are not needed or permitted).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: <code>wnl</code> is a compact alias for <code>with_name_labs</code>: they do the same thing,
+and the former is easier to type
+</p>
+<p><code>with_name_labs</code> is intended for interactive use. With it, you pass a
+name-labeled data.frame, followed by a comma, followed by an unquoted R
+expression (function call) to be evaluated within that data.frame, and name
+labels will be substituted for column names in any returned object or side
+effects. Your function call (expression) should refer to columns of the
+data.frame, NOT their name labels, as the intent is to allow you to pass
+functions in terms of the (typically much more concise and familiar) column
+names while having the results displayed / presented in terms of the more
+informative (but more verbose and typically non-standard) name labels.
+See examples.
+</p>
+<p>Caution: <code>with_name_labs</code> is a rudimentary function that leverages basic,
+fairly literal (and potentially brittle!) regular expressions and
+<code>eval(parse(text=))</code> to substitute name labels for variable names behind the
+scenes. It appears to be robust to a range of common commands and operators
+(e.g., ~ , * , +, :, ::, =, and |). However, it is intended strictly as a
+convenience for relatively simple, interactive, single-line-expression use
+cases, involving data exploration, description, or simple model-fitting. It
+is expressly NOT intended for: (1) multi-step workflows or pipes, (2)
+expressions that require or make  reference to objects existing outside the
+supplied data.frame, or (3) data management operations aimed at modifying
+(e.g., subsetting, merging, renaming) – as opposed to merely describing or
+analyzing – the supplied data.frame. Again, see the examples for the types
+of expressions/use cases envisioned.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the value of the evaluated <code>expr</code>, with name labels substituted for
+variable (column) names.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># assign mtcars to new data.frame mt2
+mt2 &lt;- mtcars
+
+# add name labs
+mt2 &lt;- add_name_labs(mt2,
+  name.labs = c(
+    "mpg" = "Miles/(US) gallon",
+    "cyl" = "Number of cylinders",
+    "disp" = "Displacement (cu.in.)",
+    "hp" = "Gross horsepower",
+    "drat" = "Rear axle ratio",
+    "wt" = "Weight (1000 lbs)",
+    "qsec" = "1/4 mile time",
+    "vs" = "Engine (0 = V-shaped, 1 = straight)",
+    "am" = "Transmission (0 = automatic, 1 = manual)",
+    "gear" = "Number of forward gears",
+    "carb" = "Number of carburetors"
+  )
+)
+
+
+with_name_labs(mt2, t.test(mpg ~ am))
+with_name_labs(mt2, lm(mpg ~ am))
+with_name_labs(mt2, summary(mt2))
+with_name_labs(mt2, cor(mt2, use = "pairwise.complete.obs"))
+with_name_labs(mt2, xtabs(~gear))
+xtabs(~ mt2$gear)
+with_name_labs(mt2, cor(mpg, carb))
+with_name_labs(mt2, hist(mpg))
+with_name_labs(mt2, plot(mpg, carb))
+with_name_labs(mt2, head(gear))
+with_name_labs(mt2, summary(mt2))
+</code></pre>
+
+
+</div>

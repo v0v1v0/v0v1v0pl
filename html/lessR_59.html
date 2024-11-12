@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Nest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Nest the Values of an Integer or Factor Variable</h2>
+
+<h3>Description</h3>
+
+<p>Abbreviation: <code>nt</code>
+</p>
+<p>A nested model has a subset of predictor variables from the corresponding full model. Compare a nested linear model with a full model to evaluate the effectiveness of the predictor variables deleted from the full model to define the nested model. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Nest(y, nested_model, full_model, method=c("lm", "logit"),
+         data=d, digits_d=NULL, ...)
+
+nt(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nested_model</code></td>
+<td>
+<p>Predictor variables in the nested model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full_model</code></td>
+<td>
+<p>Predictor variables in either the full model, or
+just those that added to the reduced model to derive the
+full model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Do a least squares analysis, <code>ls</code>, the default, or 
+set to <code>logit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The name of the data frame from which to create the subset, which
+is <code>d</code> by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits_d</code></td>
+<td>
+<p>Number of decimal digits, set by default to at least 2
+or the largest number of digits in the values of the response variable
+plus 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The specified arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Use the standard <code>R</code> function <code>anova</code> function to compare a nested model with a corresponding full model. By default, compare models estimated with ordinary least squares from the <code>R</code> function <code>lm</code>, or compare models estimated with logistic regression from the <code>R</code> function <code>glm</code> with <code>family="binomial"</code>. For the logistic analysis, the <code>anova</code> analysis is with <code>test="Chisq"</code>.
+</p>
+<p>To insure that the same data are analyzed for both models, the fit for the full model is first obtained. Then the data frame that is returned by this analysis is input into the analysis for the nested model. This guarantees that any cases with missing data values missing for the full analysis will have been deleted for the nested analysis.  Otherwise rows of data could be retained for the nested analysis that were dropped for the full analysis because of missing data values for the deleted predictor variables. This method also guarantees that cases are not deleted because data was missing on variables not included in full analysis. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output can optionally be returned and saved into an <code>R</code> object, otherwise it simply appears at the console. The components of this object are redesigned in <code>lessR</code> version 3.3 into (a) pieces of text that form the readable output and (b) a variety of statistics. The readable output are character strings such as tables amenable for viewing and interpretation. The statistics are numerical values amenable for further analysis, such as to be referenced in a subsequent R markdown document. The motivation of these three types of output is to facilitate R markdown documents, as the name of each piece, preceded by the name of the saved object followed by a dollar sign, can be inserted into the R markdown document (see <code>examples</code>).
+</p>
+<p>TEXT OUTPUT<br><code>out_models</code>: The specification of the two models compared<br><code>out_anova</code>: Analysis of variance or, for logit, analysis of deviance<br></p>
+<p>STATISTICS<br><code>fun_call</code>: Function call that generated the analysis<br><code>anova_tested</code>: Term that is tested<br><code>anova_residual</code>: Residual df, and either ss and ms or deviance for logit<br><code>anova_total</code>: For logit, total df and deviance<br></p>
+<p>Although not typically needed for analysis, if the output is assigned to an object named, for example, <code>n</code>, then the complete contents of the object can be viewed directly with the <code>unclass</code> function, here as <code>unclass(n)</code>. Invoking the <code>class</code> function on the saved object reveals a class of <code>out_all</code>. The class of each of the text pieces of output is <code>out</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)</p>
+
+
+<h3>References</h3>
+
+<p>Gerbing, D. W. (2023). <em>R Data Analysis without Programming: Explanation and Interpretation</em>, 2nd edition, Chapter 12, NY: Routledge.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>anova</code>, <code>lm</code>, <code>glm</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+d &lt;- Read("Reading")
+
+# compare least-squares models
+# can specify all the variables in the full model
+Nest(Reading, c(Absent), c(Verbal,Absent,Income))
+# or, can specify just the additional variables in the full model
+Nest(Reading, c(Absent), c(Verbal,Income))
+
+# compare logistic models, save results into an object
+# define the full model by adding just the variables
+#  not found in the reduced model
+d &lt;- Read("BodyMeas")
+n &lt;- Nest(Gender, c(Weight, Hips, Hand, Shoe),
+      c(Height, Waist, Chest), method="logit")
+# view the results
+n
+# see the names of the available output components
+names(n)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,280 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gg_day</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a simple Time-of-Day plot of light logger data, faceted by Date</h2>
+
+<h3>Description</h3>
+
+<p><code>gg_day()</code> will create a simple ggplot for every data in a dataset. The
+result can further be manipulated like any ggplot. This will be sensible to
+refine styling or guides.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gg_day(
+  dataset,
+  start.date = NULL,
+  end.date = NULL,
+  x.axis = Datetime,
+  y.axis = MEDI,
+  aes_col = NULL,
+  aes_fill = NULL,
+  group = Id,
+  geom = "point",
+  scales = c("fixed", "free_x", "free_y", "free"),
+  x.axis.breaks = hms::hms(hours = seq(0, 24, by = 3)),
+  y.axis.breaks = c(-10^(5:0), 0, 10^(0:5)),
+  y.scale = "symlog",
+  y.scale.sc = FALSE,
+  x.axis.label = "Time of Day",
+  y.axis.label = "Illuminance (lx, MEDI)",
+  format.day = "%d/%m",
+  title = NULL,
+  subtitle = NULL,
+  interactive = FALSE,
+  facetting = TRUE,
+  jco_color = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Expects a <code>dataframe</code>. If not imported
+by LightLogR, take care to choose a sensible variable for the <code>x.axis.</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.date, end.date</code></td>
+<td>
+<p>Choose an optional start or end date within your
+<code>dataset</code>. Expects a <code>date</code>, which can also be a <code>character</code> that is
+interpretable as a date, e.g., <code>"2023-06-03"</code>. If you need a Datetime or
+want to cut specific times of each day, use the <code>filter_Datetime()</code>
+function. Defaults to <code>NULL</code>, which means that the plot starts/ends with
+the earliest/latest date within the <code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis, y.axis</code></td>
+<td>
+<p>column name that contains the datetime (x, defaults to
+<code>"Datetime"</code> which is automatically correct for data imported with
+LightLogR) and the dependent variable (y, defaults to <code>"MEDI"</code>, or
+melanopic EDI, which is a standard measure of stimulus strength for the
+nonvisual effects of light). Expects a <code>symbol</code>. Needs to be part of the
+<code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aes_col, aes_fill</code></td>
+<td>
+<p>optional arguments that define separate sets and
+colors or fills them. Expects anything that works with the layer data
+<code>ggplot2::aes()</code>. The default color palette can be overwritten outside the
+function (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>Optional column name that defines separate sets. Useful for
+certain geoms like <code>boxplot</code>.Expects anything that works with the layer
+data <code>ggplot2::aes()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>What geom should be used for visualization? Expects a <code>character</code>
+</p>
+
+<ul>
+<li> <p><code>"point"</code> for <code>ggplot2::geom_point()</code>
+</p>
+</li>
+<li> <p><code>"line"</code>  for <code>ggplot2::geom_line()</code>
+</p>
+</li>
+<li> <p><code>"ribbon"</code> for <code>ggplot2::geom_ribbon()</code>
+</p>
+</li>
+<li>
+<p> as the value is just input into the <code>geom_</code> function from <span class="pkg">ggplot2</span>, other variants work as well, but are not extensively tested.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scales</code></td>
+<td>
+<p>For <code>ggplot2::facet_wrap()</code>, should scales be "fixed", "free"
+or free in one dimension ("free_y" is the default). Expects a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.breaks, y.axis.breaks</code></td>
+<td>
+<p>Where should breaks occur on the x and
+y.axis? Expects a <code style="white-space: pre;">⁠numeric vector⁠</code> with all the breaks. If you want to
+activate the default behaviour of <span class="pkg">ggplot2</span>, you need to put in
+<code>ggplot2::waiver()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.scale</code></td>
+<td>
+<p>How should the y-axis be scaled?
+</p>
+
+<ul>
+<li>
+<p> Defaults to <code>"symlog"</code>, which is a logarithmic scale that can also handle negative values.
+</p>
+</li>
+<li> <p><code>"log10"</code> would be a straight logarithmic scale, but cannot handle negative values.
+</p>
+</li>
+<li> <p><code>"identity"</code> does nothing (continuous scaling).
+</p>
+</li>
+<li>
+<p> a transforming function, such as <code>symlog_trans()</code> or <code>scales::identity_trans()</code>, which allow for more control.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y.scale.sc</code></td>
+<td>
+<p><code>logical</code> for whether scientific notation shall be used.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.axis.label, y.axis.label</code></td>
+<td>
+<p>labels for the x- and y-axis. Expects a
+<code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format.day</code></td>
+<td>
+<p>Label for each day. Default is <code style="white-space: pre;">⁠%d/%m⁠</code>, which shows the day
+and month. Expects a <code>character</code>. For an overview of sensible options look
+at <code>base::strptime()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>Plot title. Expects a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subtitle</code></td>
+<td>
+<p>Plot subtitle. Expects a <code>character</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interactive</code></td>
+<td>
+<p>Should the plot be interactive? Expects a <code>logical</code>.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>facetting</code></td>
+<td>
+<p>Should an automated facet by day be applied? Default is
+<code>TRUE</code> and uses the <code>Day.data</code> variable that the function also creates if
+not present.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jco_color</code></td>
+<td>
+<p>Should the <code>ggsci::scale_color_jco()</code> color palette be used?
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other options that get passed to the main geom function. Can be
+used to adjust to adjust size, linewidth, or linetype.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Besides plotting, the function creates two new variables from the given
+<code>Datetime</code>:
+</p>
+
+<ul>
+<li> <p><code>Day.data</code> is a factor that is used for facetting with <code>ggplot2::facet_wrap()</code>. Make sure to use this variable, if you change the faceting manually. Also, the function checks, whether this variable already exists. If it does, it will only convert it to a factor and do the faceting on that variable.
+</p>
+</li>
+<li> <p><code>Time.data</code> is an <code>hms</code> created with <code>hms::as_hms()</code> that is used for the x.axis
+</p>
+</li>
+</ul>
+<p>The default scaling of the y-axis is a <code>symlog</code> scale, which is a logarithmic
+scale that only starts scaling after a given threshold (default = 0). This
+enables values of 0 in the plot, which are common in light logger data, and
+even enables negative values, which might be sensible for non-light data. See
+<code>symlog_trans()</code> for details on tweaking this scale. The scale can also be
+changed to a normal or logarithmic scale - see the y.scale argument for more.
+</p>
+<p>The default scaling of the color and fill scales is discrete, with the
+<code>ggsci::scale_color_jco()</code> and <code>ggsci::scale_fill_jco()</code> scales. To use a
+continuous scale, use the <code>jco_color = FALSE</code> setting. Both <code>fill</code> and
+<code>color</code> aesthetics are set to <code>NULL</code> by default. For most geoms, this is not
+important, but geoms that automatically use those aesthetics (like
+geom_bin2d, where fill = stat(count)) are affected by this. Manually adding
+the required aesthetic (like <code>aes_fill = ggplot2::stat(count)</code> will fix
+this).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A ggplot object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#use `col`for separation of different sets
+plot &lt;- gg_day(
+sample.data.environment,
+scales = "fixed",
+end.date = "2023-08-16",
+y.axis.label = "mEDI (lx)",
+aes_col = Id)
+plot
+
+#you can easily overwrite the color scale afterwards
+plot + ggplot2::scale_color_discrete()
+
+#or change the facetting
+plot + ggplot2::facet_wrap(~Day.data + Id)
+</code></pre>
+
+
+</div>

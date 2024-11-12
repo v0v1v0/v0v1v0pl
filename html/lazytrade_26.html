@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mt_stat_evaluate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function to prepare and score data, finally predict current market type using pre-trained classification model</h2>
+
+<h3>Description</h3>
+
+<p>PURPOSE: Function that uses Deep Learning model and Time Series Column of the dataframe
+to find out specific market type of the financial asset
+it will also discard bad result outputting -1 if it is the case
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mt_stat_evaluate(x, path_model, num_bars, timeframe)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<ul><li>
+<p> dataframe with one column containing asset indicator in the time descending order,
+typically 64 or more values
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_model</code></td>
+<td>
+<p>String, path to the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_bars</code></td>
+<td>
+<p>Integer, Number of bars used to perform transformation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeframe</code></td>
+<td>
+<p>Integer, timeframe in Minutes.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>dataframe with predicted value of the market type
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>(C) 2021 Vladimir Zhbanko
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+library(h2o)
+library(magrittr)
+library(dplyr)
+library(readr)
+library(lazytrade)
+library(stats)
+
+path_model &lt;- normalizePath(tempdir(),winslash = "/")
+path_data &lt;- normalizePath(tempdir(),winslash = "/")
+
+
+# start h2o engine (using all CPU's by default)
+h2o.init(nthreads = 2)
+
+data(price_dataset_big)
+data &lt;- head(price_dataset_big, 500) #reduce computational time
+
+ai_class &lt;- mt_stat_transf(indicator_dataset = data,
+                      num_bars = 64,
+                      timeframe = 60,
+                      path_data = path_data,
+                      mt_classes = c('BUN', 'BEN', 'RAN'))
+
+# performing Deep Learning Classification using the custom function auto clustered data
+mt_make_model(indicator_dataset = ai_class,
+              num_bars = 64,
+              timeframe = 60,
+              path_model = path_model,
+              path_data = path_data,
+              activate_balance = TRUE,
+              num_nn_options = 3,
+              num_epoch = 10,
+              is_cluster = TRUE)
+
+
+# Use sample data
+data(price_dataset)
+
+# use one column for testing
+x &lt;- price_dataset[ ,2]
+
+
+mt_stat_evaluate(x = x,
+                 path_model = path_model,
+                 num_bars = 64,
+                 timeframe = 60)
+
+h2o.shutdown(prompt = FALSE)
+
+#set delay to insure h2o unit closes properly before the next test
+Sys.sleep(5)
+
+
+
+</code></pre>
+
+
+</div>

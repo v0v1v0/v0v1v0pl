@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cvm.test.lmomco</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cramér–von Mises Test for Goodness-of-Fit</h2>
+
+<h3>Description</h3>
+
+<p>The Cramér–von Mises test for goodness-of-fit is implemented for the order statistics <code class="reqn">x_{1:n} \le x_{i:n} \le x_{n:n}</code> of a sample of size <code class="reqn">n</code>. Define the test statistic (Csörgő and Faraway, 1996) as
+</p>
+<p style="text-align: center;"><code class="reqn">\omega^2 = \frac{1}{12n} + \sum_{i=1}^n \biggl[\frac{2i-1}{2n} - F_\theta(x_i)\biggr]\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">F_\theta(x)</code> is the cumulative distribution function (continuous) for some distribution having parameters <code class="reqn">\theta</code>. If the value for <code class="reqn">\omega^2</code> is larger than some critical value, reject the null hypothesis. The null hypothesis is that <code class="reqn">F</code> is the function specified by <code class="reqn">\theta</code>, while the alternative hypothesis is that <code class="reqn">F</code> is some other function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cvm.test.lmomco(x, para1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para1</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass to <code>par2cdf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The above definition for <code class="reqn">\omega^2</code> as the Cramér–von Mises test statistic is consistent with the notation in Csörgő and Faraway (1996) as well as that in package <span class="pkg">goftest</span>. Depending on how the null distribution is defined by other authors and attendant notation, the Cramér–von Mises statistic can be branded as <code class="reqn">T = n\omega^2</code>. The null distribution herein requires just <code class="reqn">\omega^2</code> and the sample size is delivered separately into the cumulative distribution function:
+</p>
+<pre>
+  goftest::pCvM(omega.sq, n=n, lower.tail=FALSE)
+</pre>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>null.dist</code></td>
+<td>
+<p>The null distribution, which is an echoing of the <code>para</code> argument, which recall for <span class="pkg">lmomco</span> that is contains the distribution abbreviation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>The string “Cramer–von Mises test of goodness-of-fit”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>statistic</code></td>
+<td>
+<p>The <code class="reqn">\omega^2</code> as defined above (see <b>Note</b>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>The p-value computed from the <code>pCvM()</code> function from the <span class="pkg">goftest</span> package for the null distribution of the test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the L-moments:<br> “cvm.test.lmomco”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>An example of coverage probabilities demonstrating the differences in what the p-values mean on whether the parent is known or the “parent” is coming from the sample. The p-values are quite different and inference has subtle differences. In ensemble, comparing the test statistic amongst distribution choices might be more informative than a focus on p-values being below a critical alpha.
+</p>
+<pre>
+  parent &lt;- vec2par(c(20, 120), type="gam"); nsim &lt;- 10000
+  pp &lt;- nn &lt;- ee &lt;- rep(NA,nsim)
+  for(i in 1:nsim) {
+    x &lt;- rlmomco(56, parent); lmr &lt;- lmoms(x)
+    pp[i] &lt;- cvm.test.lmomco(x,          parent          )$p.value
+    nn[i] &lt;- cvm.test.lmomco(x, lmom2par(lmr, type="nor"))$p.value
+    ee[i] &lt;- cvm.test.lmomco(x, lmom2par(lmr, type="exp"))$p.value
+  }
+  message("GAMMA PARENT KNOWN     'rejection rate'=", sum(pp &lt; 0.05)/nsim)
+  message("ESTIMATED NORMAL       'rejection rate'=", sum(nn &lt; 0.05)/nsim)
+  message("ESTIMATED EXPONENTIAL  'rejection rate'=", sum(ee &lt; 0.05)/nsim)
+</pre>
+<p>The rejection rate for the Gamma is about 5 percent, which matches the 0.05 specified in the conditional. The Normal is about zero, and the Exponential is about 21 percent. The fitted Normal almost always passes for the real parent, though Gamma, for the sample size and amount of L-skewness involved. The Exponential does not. This illustrates that the p-value can be misleading in the single-sample version of this test. Thus, when fit by parameters from the sample, the test statistic is nearly always smaller than the one for a prespecified set of parameters. The significance level will be smaller than intended.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Csörgő, S., and Faraway, J.J., 1996, The exact and asymptotic distributions of Cramér–von Mises statistics: Journal of the Royal Statistical Society, Series B, v. 58, pp. 221–234.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmrdia</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># An example in which the test is conducted on a sample but the parent is known.
+# This will lead to more precise inference than if the sample parameters are used.
+mu &lt;- 120; sd &lt;- 25; para &lt;- vec2par(c(120, 25), type="nor")
+x &lt;- rnorm(56, mean=mu, sd=sd)
+T1 &lt;- cvm.test.lmomco(x, para)$statistic
+T2 &lt;- goftest::cvm.test(x, null="pnorm", mean=mu, sd=sd)$statistic
+message("Cramer--von Mises: T1=", round(T1, digits=6), " and T2=", round(T2, digits=6))
+</code></pre>
+
+
+</div>

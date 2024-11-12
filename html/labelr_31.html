@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_quant1</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Associate Numerical Threshold-based Value Labels with a Single Numerical Variable</h2>
+
+<h3>Description</h3>
+
+<p>Add variable-specific value labels based on threshold cuts of a single
+numerical variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_quant1(data, var, qtiles = NULL, vals = NULL, labs = NULL)
+
+aql1(data, var, qtiles = NULL, vals = NULL, labs = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>the unquoted name of the variable to which value labels will be
+added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtiles</code></td>
+<td>
+<p>the number of quantile categories to employ (e.g., 4 would
+indicate quartiles, 5 would indicate quintiles, 10 for deciles, etc.). If
+NULL, vals must be non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vals</code></td>
+<td>
+<p>one more values of var that will define range cutpoints, such
+that all values at or below a given number and above the preceding val will
+be treated as part of the same numerical range for labeling purposes. If
+NULL, qtiles must be non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labs</code></td>
+<td>
+<p>a character vector of distinct labels to identify the
+quantiles. If left NULL, convention "q" + quantile (e.g., "q10") will be used
+for qtile-based labels (i.e., if qtiles arg is non-NULL), and convention
+"&lt;=" + val will be used for vals argument-based labels (i.e., if vals arg is
+non-NULL). Note that the labels "NA" and "Other" are (non-case-sensitively)
+reserved and may not be user-supplied.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>add_quant1</code> is a variant of <code>add_quant_labs</code> that allows you to specify only
+one var to label but allows you to pass its name without quoting it
+(compare <code>add_quant1</code>(mtcars, mpg) to <code>add_quant_labs</code>(mtcars, "mpg").
+</p>
+<p>Numerical variables that feature decimals or large numbers of distinct values
+are not eligible to receive conventional value labels. <code>add_quant1</code> allows
+one to label such variables according to user-supplied value thresholds
+(i.e., cutpoints) OR quantile membership, Thus, unlike value labels added
+with <code>add_val_labs</code> (and <code>add_val1</code>), <code>add_quant1</code> (and <code>add_quant_labs</code>)
+will apply the same value label to all values that fall within the numerical
+value range defined by each threshold (cutpoint). For still another
+value-labeling approach, see <code>add_m1_lab</code> (and <code>add1m1</code>).
+</p>
+<p>Note 1: Quantity labels cannot be added incrementally through repeated calls
+to <code>add_quant1</code>: each new call will overwrite all value labels applied to
+the specified vars in any previous <code>add_quant1</code> calls. This is in contrast to
+<code>add_val_labs</code> (which allows for incremental value-labeling) and <code>add_m1_lab</code>
+(which requires incremental value-labeling).
+</p>
+<p>Note 2: <code>aql1</code> is a compact alias for <code>add_quant1</code>: they do the same thing, and
+the former is easier to type
+</p>
+<p>Note 3: This command is intended exclusively for interactive use. In
+particular, the var argument must be the literal name of a single variable
+(column) found in the supplied data.frame and may NOT be, e.g., the name of a
+character vector that contains the variable (column name) of interest. If you
+wish to supply a character vector with the names of variables (columns) of
+interest, use <code>add_quant_labs()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame, with new variable value labels added (call
+<code>get_val_labs</code> to see them), other provisional/default labelr label
+information added, and previous user-added labelr label information
+preserved.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># mtcars demo
+df &lt;- mtcars
+# now, add value labels
+df &lt;- add_val_labs(
+  data = df,
+  vars = "am",
+  vals = c(0, 1),
+  labs = c("automatic", "manual")
+)
+
+# label variable "mpg" in terms of 5 quintiles
+df &lt;- add_quant1(data = df, mpg, qtiles = 5)
+
+# label variable "disp" in terms of "pretty" cutpoints
+vals2use &lt;- pretty(c(min(df$disp), max(df$disp)))[-1] # establish cutpoints
+df &lt;- add_quant1(data = df, disp, vals = vals2use)
+df_labson &lt;- use_val_labs(df)
+head(df_labson)
+</code></pre>
+
+
+</div>

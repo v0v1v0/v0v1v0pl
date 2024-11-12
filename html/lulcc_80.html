@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.PredictiveModelList</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict location suitability</h2>
+
+<h3>Description</h3>
+
+<p>Estimate location suitability with predictive models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'PredictiveModelList'
+predict(object, newdata, data.frame = FALSE,
+  ...)
+
+## S4 method for signature 'PredictiveModelList'
+predict(object, newdata, data.frame = FALSE,
+  ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a PredictiveModelList object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>data.frame containing new data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data.frame</code></td>
+<td>
+<p>logical indicating whether the function should return a
+matrix (default) or data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to <code>predict</code> methods</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is usually called from <code>allocate</code> to calculate land use
+suitability at each timestep. However, it may also be used to produce
+suitability maps (see examples).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Model fitting</code>, <code>allocate</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+## Sibuyan Island
+
+## load observed land use data
+obs &lt;- ObsLulcRasterStack(x=sibuyan$maps,
+                    pattern="lu",
+                    categories=c(1,2,3,4,5),
+                    labels=c("Forest","Coconut","Grass","Rice","Other"),
+                    t=c(0,14))
+
+## load explanatory variables
+ef &lt;- ExpVarRasterList(x=sibuyan$maps, pattern="ef")
+
+## separate data into training and testing partitions
+part &lt;- partition(x=obs[[1]], size=0.1, spatial=TRUE)
+train.data &lt;- getPredictiveModelInputData(obs=obs, ef=ef, cells=part[["train"]])
+all.data &lt;- getPredictiveModelInputData(obs=obs, ef=ef, cells=part[["all"]])
+
+## get glm.models from data
+forms &lt;- list(Forest ~ ef_001+ef_002+ef_003+ef_004+ef_005+ef_006+ef_007+ef_008+ef_010+ef_012,
+              Coconut ~ ef_001+ef_002+ef_005+ef_007+ef_008+ef_009+ef_010+ef_011+ef_012,
+              Grass~ef_001+ef_002+ef_004+ef_005+ef_007+ef_008+ef_009+ef_010+ef_011+ef_012+ef_013,
+              Rice~ef_009+ef_010+ef_011,
+              Other~1)
+
+glm.models &lt;- glmModels(formula=forms, family=binomial, data=train.data, obs=obs)
+
+## create suitability maps
+suitability.maps &lt;- predict(object=glm.models, newdata=all.data, data.frame=TRUE)
+points &lt;- rasterToPoints(obs[[1]], spatial=TRUE)
+suitability.maps &lt;- SpatialPointsDataFrame(coords=points, data=suitability.maps)
+r &lt;- stack(rasterize(x=suitability.maps, y=obs[[1]], field=names(suitability.maps)))
+plot(r)
+
+## library(rasterVis)
+## levelplot(r)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TreeModelsAllSteps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data Partition and Tree-based Model Training</h2>
+
+<h3>Description</h3>
+
+<p>Data Partition and Tree-based Model Training
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TreeModelsAllSteps(
+  data = NULL,
+  proportion = 0.7,
+  seed = 2022,
+  methodlist = c("dt", "rf", "gbm"),
+  iternumber = 10,
+  dt.gridsearch = NULL,
+  rf.gridsearch = NULL,
+  gbm.gridsearch = NULL,
+  checkprogress = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> that contains the study’s features and the outcome variable.
+Please name the outcome variable as "perf".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proportion</code></td>
+<td>
+<p>A numeric value for the proportion of data to be put into model training. Default is set to 0.7.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>A numeric value for set.seed. It is set to be 2022 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methodlist</code></td>
+<td>
+<p>A list of the tree-based methods to model. The default is methodlist = c("dt", "rf", "gbm").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iternumber</code></td>
+<td>
+<p>A numeric value for the number of resampling iterations/number of folds for the  cross-validation scheme.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dt.gridsearch</code></td>
+<td>
+<p>A <code>data.frame</code> of the tuning grid, which allows for specifying parameters for decision tree model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rf.gridsearch</code></td>
+<td>
+<p>A <code>data.frame</code> of the tuning grid, which allows for specifying parameters for random forest model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gbm.gridsearch</code></td>
+<td>
+<p>A <code>data.frame</code> of the tuning grid, which allows for specifying parameters for gradient boosting model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkprogress</code></td>
+<td>
+<p>Logical. Print the modeling progress if it is TRUE. The default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function performs all the steps of a predictive analysis. First, the data is partitioned in the training and testing datasets using a stratified selection by the outcome variable as performed by the createDataPartition function from the caret package. Then, the selected classifiers are used for modeling the training dataset under a cross-validation scheme. Users have the possibility to choose which model they want to compare by specifying it on the <code>methodlist</code> argument. The caretEnsemble package is used in the modeling process to ensure that all models follow the same resampling procedures. ROC is used to select the optimal model for each tree-based method using the largest value. Finally, a summary report is displayed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>This function returns three lists:
+</p>
+<p>DataPartition The partitioned datasets: training (cv_train) and testing (cv_test).
+</p>
+<p>ModelObject An object with results from selected models
+</p>
+<p>SummaryReport A <code>data.frame</code> with the summary of model parameters. The summary report is shown automatically in the output.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+cp025q01.wgt &lt;- cp025q01.wgt[,-14]
+colnames(cp025q01.wgt)[14] &lt;- "perf"
+
+ensemblist &lt;- TreeModelsAllSteps(data = cp025q01.wgt,
+checkprogress = TRUE)
+
+ensemblist &lt;- TreeModelsAllSteps(data = cp025q01.wgt,
+methodlist = c("dt", "gbm"), checkprogress = TRUE)
+
+ensemblist &lt;- TreeModelsAllSteps(data = cp025q01.wgt,
+methodlist = c("rf"),
+rf.gridsearch = data.frame(mtry = 2, splitrule = "gini", min.node.size = 1),
+checkprogress = TRUE)
+
+</code></pre>
+
+
+</div>

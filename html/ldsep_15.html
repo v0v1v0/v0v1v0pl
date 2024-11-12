@@ -1,0 +1,314 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mldest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate all pair-wise LD's in a collection of SNPs using genotypes or
+genotype likelihoods.</h2>
+
+<h3>Description</h3>
+
+<p>This function is a wrapper to run <code>ldest()</code> for many pairs of
+SNPs. This takes a maximum likelihood approach to LD estimation. See
+<code>ldfast()</code> for a method-of-moments approach to LD estimation.
+Support is provided for parallelization through the foreach and doParallel
+packages. See Gerard (2021) for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mldest(
+  geno,
+  K,
+  nc = 1,
+  type = c("hap", "comp"),
+  model = c("norm", "flex"),
+  pen = ifelse(type == "hap", 2, 1),
+  se = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>geno</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ul>
+<li>
+<p>A matrix of genotypes (allele dosages). The rows index the
+SNPs and the columns index the individuals. That is,
+<code>genomat[i, j]</code> is the allele dosage for individual
+<code>j</code> in SNP <code>i</code>. When <code>type = "comp"</code>, the
+dosages are allowed to be continuous (e.g. posterior
+mean genotypes).
+</p>
+</li>
+<li>
+<p>A three-way array of genotype <em>log</em>-likelihoods.
+The first dimension indexes the SNPs, the second dimension
+indexes the individuals, and the third dimension indexes
+the genotypes. That is, <code>genolike_array[i, j, k]</code>
+is the genotype log-likelihood at SNP <code>i</code> for
+individual <code>j</code> and dosage <code>k - 1</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The ploidy of the species. Assumed to be the same for all
+individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nc</code></td>
+<td>
+<p>The number of computing cores to use. This should never be
+more than the number of cores available in your computing environment.
+You can determine the maximum number of available cores by running
+<code>parallel::detectCores()</code> in R. This is probably fine for a
+personal computer, but some environments are only
+able to use fewer. Ask your admins if you are unsure.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of LD to calculate. The available types are
+haplotypic LD (<code>type = "hap"</code>) or composite LD
+(<code>type = "comp"</code>). Haplotypic LD is only appropriate for
+autopolyploids when the individuals are in Hardy-Weinberg
+equilibrium (HWE). The composite
+measures of LD are always applicable, and consistently estimate the
+usual measures of LD when HWE is fulfilled in autopolyploids.
+However, when HWE is not fulfilled, interpreting the
+composite measures of LD could be a little tricky.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>When <code>type = "comp"</code> and using genotype likelihoods,
+should we use the proportional
+bivariate normal model to estimate the genotype distribution
+(<code>model = "norm"</code>), or the general categorical distribution
+(<code>model = "flex"</code>)? Defaults to <code>"norm"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty to be applied to the likelihood. You can think about
+this as the prior sample size. Should be greater than 1. Does not
+apply if <code>model = "norm"</code>, <code>type = "comp"</code>, and using
+genotype likelihoods. Also does not apply when <code>type = "comp"</code>
+and using genotypes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>A logical. Should we calculate standard errors (<code>TRUE</code>) or
+not (<code>FALSE</code>). Calculating standard errors can be really slow
+when <code>type = "comp"</code>, <code>model = "flex"</code>, and when using
+genotype likelihoods. Otherwise, standard error calculations
+should be pretty fast.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>ldest()</code> for details on the different types of LD
+estimators supported.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame of class <code>c("lddf", "data.frame")</code>
+with some or all of the following elements:
+</p>
+
+<dl>
+<dt><code>i</code></dt>
+<dd>
+<p>The index of the first SNP.</p>
+</dd>
+<dt><code>j</code></dt>
+<dd>
+<p>The index of the second SNP.</p>
+</dd>
+<dt><code>snpi</code></dt>
+<dd>
+<p>The row name corresponding to SNP <code>i</code>, if
+row names are provided.</p>
+</dd>
+<dt><code>snpj</code></dt>
+<dd>
+<p>The row name corresponding to SNP <code>j</code>, if
+row names are provided.</p>
+</dd>
+<dt><code>D</code></dt>
+<dd>
+<p>The estimate of the LD coefficient.</p>
+</dd>
+<dt><code>D_se</code></dt>
+<dd>
+<p>The standard error of the estimate of
+the LD coefficient.</p>
+</dd>
+<dt><code>r2</code></dt>
+<dd>
+<p>The estimate of the squared Pearson correlation.</p>
+</dd>
+<dt><code>r2_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+squared Pearson correlation.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The estimate of the Pearson correlation.</p>
+</dd>
+<dt><code>r_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+Pearson correlation.</p>
+</dd>
+<dt><code>Dprime</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. When <code>type</code> = "comp", this corresponds
+to the standardization where we fix allele frequencies.</p>
+</dd>
+<dt><code>Dprime_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprime</code>.</p>
+</dd>
+<dt><code>Dprimeg</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. This corresponds to the standardization where
+we fix genotype frequencies.</p>
+</dd>
+<dt><code>Dprimeg_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprimeg</code>.</p>
+</dd>
+<dt><code>z</code></dt>
+<dd>
+<p>The Fisher-z transformation of <code>r</code>.</p>
+</dd>
+<dt><code>z_se</code></dt>
+<dd>
+<p>The standard error of the Fisher-z
+transformation of <code>r</code>.</p>
+</dd>
+<dt><code>p_ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_Ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of Ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_aB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of aB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_AB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of AB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>q_ij</code></dt>
+<dd>
+<p>The estimated frequency of genotype i at locus 1
+and genotype j at locus 2. Only returned if estimating the
+composite LD.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p>The number of individuals used to estimate pairwise LD.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>David Gerard
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p>Gerard, David. "Pairwise Linkage Disequilibrium Estimation
+for Polyploids." <em>Molecular Ecology Resources</em> 21,
+no. 4 (2021): 1230-1242. <a href="https://doi.org/10.1111/1755-0998.13349">doi:10.1111/1755-0998.13349</a>
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>ldfast()</code></dt>
+<dd>
+<p>Fast, moment-based approach to LD estimation
+that also accounts for genotype uncertainty.</p>
+</dd>
+<dt><code>ldest()</code></dt>
+<dd>
+<p>For the base function that estimates
+pairwise LD.</p>
+</dd>
+<dt><code>sldest()</code></dt>
+<dd>
+<p>For estimating pairwise LD along a
+sliding window.</p>
+</dd>
+<dt><code>format_lddf()</code></dt>
+<dd>
+<p>For formatting the output of
+<code>mldest()</code> as a matrix.</p>
+</dd>
+<dt><code>plot.lddf()</code></dt>
+<dd>
+<p>For plotting the output of
+<code>mldest()</code>.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+
+## Simulate genotypes when true correlation is 0
+nloci &lt;- 5
+nind  &lt;- 100
+K &lt;- 6
+nc &lt;- 1
+genomat &lt;- matrix(sample(0:K, nind * nloci, TRUE), nrow = nloci)
+
+## Composite LD estimates
+lddf &lt;- mldest(geno = genomat,
+               K = K,
+               nc = nc,
+               type = "comp")
+lddf[1:6, 1:6]
+
+
+</code></pre>
+
+
+</div>

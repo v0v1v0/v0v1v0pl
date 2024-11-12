@@ -1,0 +1,236 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>AppenderDt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Log to an in-memory data.table</h2>
+
+<h3>Description</h3>
+
+<p>An Appender that outputs to an in-memory <code>data.table</code>. It fulfill a similar
+purpose as the more flexible lgr::AppenderBuffer and is mainly included for
+historical reasons/backwards compatibility with older version of <strong>lgr</strong>.
+</p>
+<p><strong>NOTE</strong>: AppenderDt has been superseded by lgr::AppenderBuffer and is
+kept mainly for archival purposes.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code style="white-space: pre;">⁠$new()⁠</code> method returns an R6::R6 that inherits from
+lgr::Appender and can be uses as an appender by a lgr::Logger.
+</p>
+
+
+<h3>Custom Fields</h3>
+
+<p><code>AppenderDt</code> supports lgr::custom fields, but they have to be
+pre-allocated in the <code>prototype</code> argument. Custom fields that are not
+part of the prototype are inserted in the list-column <code>.fields</code> if it
+exists.
+</p>
+
+
+<h3>Creating a Data Table Appender</h3>
+
+<p>In addition to the usual fields, <code>AppenderDt$new()</code> requires that you supply
+a <code>buffer_size</code> and a <code>prototype</code>. These determine the structure of the
+<code>data.table</code> used to store the log this appender creates and cannot be
+modified anymore after the instantiation of the appender.
+</p>
+<p>The lgr::Layout for this Appender is used only to format console output of
+its <code style="white-space: pre;">⁠$show()⁠</code> method.
+</p>
+
+
+<h3>Comparison AppenderBuffer and AppenderDt</h3>
+
+<p>Both lgr::AppenderBuffer and AppenderDt do in memory buffering of events.
+AppenderBuffer retains a copies of the events it processes and has the
+ability to pass the buffered events on to other Appenders. AppenderDt
+converts the events to rows in a <code>data.table</code> and is a bit harder to
+configure. Used inside loops (several hundred iterations),
+AppenderDt has much less overhead than AppenderBuffer. For single logging
+calls and small loops, AppenderBuffer is more performant. This is related to
+how memory pre-allocation is handled by the appenders.
+</p>
+
+
+<h3>Super classes</h3>
+
+<p><code>lgr::Filterable</code> -&gt; <code>lgr::Appender</code> -&gt; <code>AppenderDt</code>
+</p>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-AppenderDt-new"><code>AppenderDt$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDt-append"><code>AppenderDt$append()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDt-show"><code>AppenderDt$show()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-AppenderDt-set_layout"><code>AppenderDt$set_layout()</code></a>
+</p>
+</li>
+</ul>
+<details><summary>Inherited methods</summary><ul>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="add_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-add_filter"><code>lgr::Filterable$add_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="filter"><a href="../../lgr/html/Filterable.html#method-Filterable-filter"><code>lgr::Filterable$filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="remove_filter"><a href="../../lgr/html/Filterable.html#method-Filterable-remove_filter"><code>lgr::Filterable$remove_filter()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Filterable" data-id="set_filters"><a href="../../lgr/html/Filterable.html#method-Filterable-set_filters"><code>lgr::Filterable$set_filters()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="format"><a href="../../lgr/html/Appender.html#method-Appender-format"><code>lgr::Appender$format()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="Appender" data-id="set_threshold"><a href="../../lgr/html/Appender.html#method-Appender-set_threshold"><code>lgr::Appender$set_threshold()</code></a></span></li>
+</ul></details><hr>
+<a id="method-AppenderDt-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+<p>Creating a new AppenderDt
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDt$new(
+  threshold = NA_integer_,
+  layout = LayoutFormat$new(fmt = "%L [%t] %m %f", timestamp_fmt = "%H:%M:%OS3",
+    colors = getOption("lgr.colors", list())),
+  prototype = data.table::data.table(.id = NA_integer_, level = NA_integer_, timestamp =
+    Sys.time(), logger = NA_character_, caller = NA_character_, msg = NA_character_,
+    .fields = list(list())),
+  buffer_size = 1e+05,
+  filters = NULL
+)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>prototype</code></dt>
+<dd>
+<p>A prototype <code>data.table</code>. The prototype must be a
+<code>data.table</code> with the same columns and column types as the data
+you want to log. The actual content of the columns is irrelevant.
+There are a few reserved column names that have special meaning:
+* <code>.id</code>: <code>integer</code> (mandatory). Must always be the first column
+and is used internally by the Appender
+* <code>.fields</code>: <code>list</code> (optional). If present all custom values of the
+event (that are not already part of the prototype) are stored in
+this list column.</p>
+</dd>
+<dt><code>buffer_size</code></dt>
+<dd>
+<p><code>integer</code> scalar. Number of rows of the in-memory <code>data.table</code></p>
+</dd>
+</dl>
+</div>
+
+
+<hr>
+<a id="method-AppenderDt-append"></a>
+
+
+
+<h4>Method <code>append()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDt$append(event)</pre></div>
+
+
+<hr>
+<a id="method-AppenderDt-show"></a>
+
+
+
+<h4>Method <code>show()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDt$show(threshold = NA_integer_, n = 20L)</pre></div>
+
+
+<hr>
+<a id="method-AppenderDt-set_layout"></a>
+
+
+
+<h4>Method <code>set_layout()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>AppenderDt$set_layout(layout)</pre></div>
+
+
+
+
+<h3>See Also</h3>
+
+<p>data.table::data.table
+</p>
+<p>Other Appenders: 
+<code>AppenderDbi</code>,
+<code>AppenderElasticSearch</code>,
+<code>AppenderGmail</code>,
+<code>AppenderPushbullet</code>,
+<code>AppenderSendmail</code>,
+<code>AppenderSyslog</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lg &lt;- lgr::get_logger("test")
+lg$config(list(
+  appenders = list(memory = AppenderDt$new()),
+  threshold = NA,
+  propagate = FALSE  # to prevent routing to root logger for this example
+))
+lg$debug("test")
+lg$error("test")
+
+# Displaying the log
+lg$appenders$memory$data
+lg$appenders$memory$show()
+lgr::show_log(target = lg$appenders$memory)
+
+# If you pass a Logger to show_log(), it looks for the first AppenderDt
+# that it can find.
+lgr::show_log(target = lg)
+
+# Custom fields are stored in the list column .fields by default
+lg$info("the iris data frame", caps = LETTERS[1:5])
+lg$appenders$memory$data
+lg$appenders$memory$data$.fields[[3]]$caps
+lg$config(NULL)
+</code></pre>
+
+
+</div>

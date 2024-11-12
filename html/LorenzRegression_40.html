@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lorenz.Reg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fits a Lorenz regression</h2>
+
+<h3>Description</h3>
+
+<p><code>Lorenz.Reg</code> fits the Lorenz regression of a response with respect to several covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lorenz.Reg(
+  formula,
+  data,
+  weights,
+  na.action,
+  penalty = c("none", "SCAD", "LASSO"),
+  grid.arg = c("h", "SCAD.nfwd", "eps", "kernel", "a", "gamma"),
+  grid.value = NULL,
+  lambda.list = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An object of class "<code>formula</code>" (or one that can be coerced to that class): a symbolic description of the model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional data frame, list or environment (or object coercible by <code>as.data.frame</code> to a data frame) containing the variables in the model. If not found in <code>data</code>, the variables are taken from <code>environment(formula)</code>, typically the environment from which <code>Lorenz.Reg</code> is called.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>An optional vector of sample weights to be used in the fitting process. Should be <code>NULL</code> or a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>A function which indicates what should happen when the data contain <code>NA</code>s. The default is set by the <code>na.action</code> setting of <code>options</code>, and is <code>na.fail</code> if that is unset. The 'factory-fresh' default is <code>na.omit</code>. Another possible value is <code>NULL</code>, no action. Value <code>na.exclude</code> can be useful.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty</code></td>
+<td>
+<p>A character string specifying the type of penalty on the size of the estimated coefficients of the single-index model.
+The default value is <code>"none"</code>, in which case a non-penalized Lorenz regression is fitted using <code>Lorenz.GA</code>.
+Other possible values are <code>"LASSO"</code> and <code>"SCAD"</code>, in which case a penalized Lorenz regression is fitted using <code>Lorenz.FABS</code> or <code>Lorenz.SCADFABS</code> respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid.arg</code></td>
+<td>
+<p>A character string specifying the tuning parameter for which a grid is to be constructed, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid.value</code></td>
+<td>
+<p>A numeric vector specifying the grid values, see Details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.list</code></td>
+<td>
+<p>Technical argument used inside the function <code>Lorenz.boot</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters corresponding to arguments passed in <code>Lorenz.GA</code>, <code>Lorenz.FABS</code> or <code>Lorenz.SCADFABS</code>, depending on the argument chosen in <code>penalty</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In the penalized case, the model is fitted for a grid of values of two parameters : the penalty parameter (lambda) and one tuning parameter specified by the arguments <code>grid.arg</code> and <code>grid.value</code>.
+The possibles values for <code>grid.arg</code> are tuning parameters of the functions <code>Lorenz.FABS</code> and <code>Lorenz.SCADFABS</code> : <code>''h''</code> (the default), <code>''SCAD.nfwd''</code>,<code>''eps''</code>, <code>''kernel''</code>, <code>''a''</code> and <code>''gamma''</code>.
+The values for the grid are specified with <code>grid.value</code>. The default is <code>NULL</code>, in which case no grid is constructed
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"LR"</code> for the non-penalized Lorenz regression or of class <code>"PLR"</code> for a penalized Lorenz regression.
+</p>
+<p>Several methods are available for both classes to facilitate model analysis.
+Use <code>summary.LR</code> or <code>summary.PLR</code> to summarize the model fits.
+Extract the coefficients of the single-index model using <code>coef.LR</code> or <code>coef.PLR</code>.
+Measures of explained inequality (Gini coefficient and Lorenz-<code class="reqn">R^2</code>) are retrieved using <code>ineqExplained.LR</code> or <code>ineqExplained.PLR</code>.
+Obtain predictions with <code>predict.LR</code> or <code>predict.PLR</code>, and fitted values with <code>fitted.LR</code> or <code>fitted.PLR</code>.
+For visual representations of explained inequality, use <code>autoplot.LR</code> and <code>plot.LR</code>, or <code>autoplot.PLR</code> and <code>plot.PLR</code>.
+</p>
+<p>The object of class <code>"LR"</code> is a list containing the following components:
+</p>
+
+<dl>
+<dt><code>theta</code></dt>
+<dd>
+<p>The estimated vector of parameters.</p>
+</dd>
+<dt><code>Gi.expl</code></dt>
+<dd>
+<p>The estimated explained Gini coefficient.</p>
+</dd>
+<dt><code>LR2</code></dt>
+<dd>
+<p>The Lorenz-<code class="reqn">R^2</code> of the regression.</p>
+</dd>
+</dl>
+<p>The object of class <code>"PLR"</code> is a list containing the following components:
+</p>
+
+<dl>
+<dt><code>path</code></dt>
+<dd>
+<p>A list where the different elements correspond to the values of the grid parameter. Each element is a matrix where the first line displays the vector of lambda values. The second and third lines display the evolution of the Lorenz-<code class="reqn">R^2</code> and explained Gini coefficient along that vector. The next lines display the evolution of the BIC score. The remaining lines display the evolution of the estimated coefficients of the single-index model.</p>
+</dd>
+<dt><code>lambda.idx</code></dt>
+<dd>
+<p>the index of the optimal lambda obtained by the BIC method</p>
+</dd>
+<dt><code>grid.idx</code></dt>
+<dd>
+<p>the index of the optimal grid parameter obtained by the BIC method.</p>
+</dd>
+</dl>
+<p>In both cases, the list also provides technical information, such as the specified <code>formula</code>, <code>weights</code> and <code>call</code>, as well as the design matrix <code>x</code> and the response vector <code>y</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Heuchenne, C. and A. Jacquemain (2022). Inference for monotone single-index conditional means: A Lorenz regression approach. <em>Computational Statistics &amp; Data Analysis 167(C)</em>.
+</p>
+<p>Jacquemain, A., C. Heuchenne, and E. Pircalabelu (2024). A penalised bootstrap estimation procedure for the explained Gini coefficient. <em>Electronic Journal of Statistics 18(1) 247-300</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lorenz.GA</code>, <code>Lorenz.SCADFABS</code>, <code>Lorenz.FABS</code>, <code>Lorenz.boot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Data.Incomes)
+set.seed(123)
+data &lt;- Data.Incomes[sample(1:200,40),]
+# 1. Non-penalized regression
+NPLR &lt;- Lorenz.Reg(Income ~ ., data = Data.Incomes, penalty = "none", popSize = 15)
+# 2. Penalized regression
+PLR &lt;- Lorenz.Reg(Income ~ ., data = Data.Incomes, penalty = "SCAD",
+                  eps = 0.06, grid.arg = "h",
+                  grid.value=c(0.5,1,2)*nrow(Data.Incomes)^(-1/5.5))
+# Print method
+print(NPLR)
+print(PLR)
+# Summary method
+summary(NPLR)
+summary(PLR)
+# Coef method
+coef(NPLR)
+coef(PLR)
+# ineqExplained method
+ineqExplained(NPLR)
+ineqExplained(PLR)
+# Predict method
+## One can predict either the index or the response
+predict(NPLR,type="response")
+predict(PLR,type="response")
+# Plot method
+plot(NPLR)
+plot(PLR)
+## Traceplot of the penalized coefficients
+plot(PLR,type="traceplot")
+
+</code></pre>
+
+
+</div>

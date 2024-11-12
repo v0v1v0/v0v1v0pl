@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  1</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 1: Testkonstruktion</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 1, <em>Testkonstruktion</em>, im 
+Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische Grundlagen der 
+österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Ursula Itzlinger-Bruneforth, Jörg-Tobias Kuhn, und Thomas Kiefer
+</p>
+
+
+<h3>References</h3>
+
+<p>Itzlinger-Bruneforth, U., Kuhn, J.-T. &amp; Kiefer, T. (2016). Testkonstruktion. 
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 21–50). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel01</code>, den im Kapitel verwendeten Daten.<br>
+
+Zurück zu <code>Kapitel 0</code>, Konzeption.<br>
+Zu <code>Kapitel 2</code>, Stichprobenziehung.<br>
+Zur <code>Übersicht</code>.
+
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(TAM)
+library(miceadds)
+library(irr)
+library(gtools)
+library(car)
+
+set.seed(1337)
+data(datenKapitel01)
+pilotScored &lt;- datenKapitel01$pilotScored
+pilotItems &lt;- datenKapitel01$pilotItems
+pilotRoh &lt;- datenKapitel01$pilotRoh
+pilotMM &lt;- datenKapitel01$pilotMM
+
+## -------------------------------------------------------------
+## Abschnitt 1.5.5: Aspekte empirischer Güteüberprüfung 
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 1: Vorbereitung
+#
+
+# Rekodierter Datensatz pilotScored
+dat &lt;- pilotScored
+items &lt;- grep("E8R", colnames(dat), value = TRUE)
+dat[items] &lt;- recode(dat[items], "9=0;8=0")
+# Itembank im Datensatz pilotItems
+dat.ib &lt;- pilotItems
+items.dich &lt;- dat.ib$item[dat.ib$maxScore == 1]
+
+# Berechne erreichbare Punkte je TH
+# aus Maximalscore je Item in Itembank
+ind &lt;- match(items, dat.ib$item)
+testlets.ind &lt;- ! items %in% items.dich
+ind[testlets.ind] &lt;- match(items[testlets.ind], dat.ib$testlet)
+maxscores &lt;- dat.ib$maxScore[ind]
+max.form &lt;- 1 * (!is.na(dat[, items])) %*% maxscores
+
+# Erzielter Score ist der Summenscore dividiert durch 
+# Maximalscore
+sumscore &lt;- rowSums(dat[, items], na.rm = TRUE)
+relscore &lt;- sumscore/max.form
+mean(relscore)
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 2: Omitted Response
+#
+
+library(TAM)
+# Bestimme absolute und relative Häufigkeit der Kategorie 9 (OR)
+ctt.omit &lt;- tam.ctt2(pilotScored[, items])
+ctt.omit &lt;- ctt.omit[ctt.omit$Categ == 9, ]
+# Übersicht der am häufigsten ausgelassenen Items
+tail(ctt.omit[order(ctt.omit$RelFreq), -(1:4)])
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 3: Not Reached
+#
+
+not.reached &lt;- rep(0, length(items))
+names(not.reached) &lt;- items
+
+# Führe die Bestimmung in jedem Testheft durch
+forms &lt;- sort(unique(dat$form))
+for(ff in forms){ 
+  # (1) Extrahiere Itempositionen
+  order.ff &lt;- order(dat.ib[, ff], na.last = NA, 
+                    decreasing = TRUE)
+  items.ff &lt;- dat.ib$item[order.ff]
+  testlets.ff &lt;- dat.ib$testlet[order.ff]
+  
+  # (2) Sortiere Items und Testlets nach den Positionen
+  testlets.ind &lt;- ! items.ff %in% items.dich
+  items.ff[testlets.ind] &lt;- testlets.ff[testlets.ind]
+  items.order.ff &lt;- unique(items.ff)
+  
+  # (3) Bringe Testhefte in Reihenfolge und
+  #     zähle von hinten aufeinanderfolgende Missings
+  ind.ff &lt;- pilotScored$form == ff
+  dat.order.ff &lt;- pilotScored[ind.ff, items.order.ff]  
+  dat.order.ff &lt;- dat.order.ff == 9
+  dat.order.ff &lt;- apply(dat.order.ff, 1, cumsum)
+  
+  # (4) Vergleiche letzteres mit theoretisch möglichem 
+  #     vollständigen NR
+  vergleich &lt;- cumsum(rep(1, length(items.order.ff)))
+  dat.order.ff[dat.order.ff != vergleich] &lt;- 0
+  
+  # (5) Erstes NR kann auch OR sein
+  erstes.NR &lt;- apply(dat.order.ff, 2, which.max)
+  ind &lt;- cbind(erstes.NR, 1:ncol(dat.order.ff))
+  dat.order.ff[ind] &lt;- 0
+  
+  # (6) Zähle, wie oft für ein Item NR gilt
+  not.reached.ff &lt;- rowSums(dat.order.ff &gt; 0)
+  not.reached[items.order.ff] &lt;- not.reached.ff[items.order.ff] + 
+    not.reached[items.order.ff]
+}
+
+tail(not.reached[order(not.reached)])
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 4: Itemschwierigkeit
+#
+
+# Statistik der relativen Lösungshäufigkeiten
+p &lt;- colMeans(dat[, items], na.rm = TRUE) / maxscores
+summary(p)
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 5: Trennschärfe
+#
+
+discrim &lt;- sapply(items, FUN = function(ii){ 
+  if(var(dat[, ii], na.rm = TRUE) == 0) 0 else
+    cor(dat[, ii], relscore, use = "pairwise.complete.obs") 
+}) 
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 6: Eindeutigkeit der Lösung
+#
+
+dat.roh &lt;- pilotRoh
+items &lt;- grep("E8R", colnames(dat.roh), value = TRUE)
+vars &lt;- c("item", "Categ", "AbsFreq", "RelFreq", "rpb.WLE")
+
+# Wähle nur geschlossene Items (d. h., nicht Open gap-fill)
+items.ogf &lt;- dat.ib$item[dat.ib$format == "Open gap-fill"]
+items &lt;- setdiff(items, items.ogf)
+
+# Bestimme absolute und relative Häufigkeit der Antwortoptionen 
+# und jeweilige punktbiseriale Korrelationen mit dem Gesamtscore
+ctt.roh &lt;- tam.ctt2(dat.roh[, items], wlescore = relscore)
+
+# Indikator der richtigen Antwort
+match.item &lt;- match(ctt.roh$item, dat.ib$item)
+rohscore &lt;- 1 * (ctt.roh$Categ == dat.ib$key[match.item])
+
+# Klassifikation der Antwortoptionen 
+ist.antwort.option &lt;- (!ctt.roh$Categ %in% c(8,9))
+ist.distraktor &lt;- rohscore == 0 &amp; ist.antwort.option
+ist.pos.korr &lt;- ctt.roh$rpb.WLE &gt; 0.05
+ist.bearb &lt;- ctt.roh$AbsFreq &gt;= 10
+
+# Ausgabe
+ctt.roh[ist.distraktor &amp; ist.pos.korr &amp; ist.bearb, vars]
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 7: Plausible Distraktoren
+#
+
+# Ausgabe
+head(ctt.roh[ist.distraktor &amp; ctt.roh$RelFreq &lt; 0.05, vars],4)
+
+# -------------------------------------------------------------
+# Abschnitt 1.5.5, Listing 8: Kodierbarkeit
+#
+
+library(irr)
+dat.mm &lt;- pilotMM
+
+# Bestimme Modus der Berechnung: bei 3 Kodierern
+# gibt es 3 paarweise Vergleiche
+vars &lt;- grep("Coder", colnames(dat.mm))
+n.vergleiche &lt;- choose(length(vars), 2)
+ind.vergleiche &lt;- upper.tri(diag(length(vars)))
+
+# Berechne Statistik für jedes Item
+coder &lt;- NULL
+for(ii in unique(dat.mm$item)){
+  dat.mm.ii &lt;- dat.mm[dat.mm$item == ii, vars]
+  
+  # Relative Häufigkeit der paarweisen Übereinstimmung
+  agreed &lt;- apply(dat.mm.ii, 1, function(dd){
+    sum(outer(dd, dd, "==")[ind.vergleiche]) / n.vergleiche
+  })
+  
+  # Fleiss Kappa
+  kappa &lt;- kappam.fleiss(dat.mm.ii)$value
+  
+  # Ausgabe
+  coderII &lt;- data.frame("item" = ii,
+                        "p_agreed" = mean(agreed),
+                        "kappa" = round(kappa, 4))
+  coder &lt;- rbind(coder, coderII)
+}
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

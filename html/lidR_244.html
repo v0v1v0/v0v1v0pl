@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>normalize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Normalize point cloud</h2>
+
+<h3>Description</h3>
+
+<p>Normalize elevation or intensity values using multiple methods.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">normalize_height(las, algorithm, use_class = c(2L, 9L), dtm = NULL, ...)
+
+unnormalize_height(las)
+
+## S4 method for signature 'LAS,ANY'
+e1 - e2
+
+normalize_intensity(las, algorithm)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>(1) An algorithm for spatial interpolation. <code>lidR</code> has tin,
+kriging, knnidw or a raster representing a digital terrain
+model. (2) An algorithm for intensity normalization. <code>lidR</code> currently has range_correction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_class</code></td>
+<td>
+<p>integer vector. By default the terrain is computed by using ground points
+(class 2) and water points (class 9). Relevant only for a normalization without a raster DTM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtm</code></td>
+<td>
+<p>raster. If <code>dtm</code> is provided, then the DTM is used in place of ground points. This is
+different than providing a DTM in <code>algorithm</code>. If <code>algorithm = dtm</code> the dtm is subtracted naively.
+If <code>algorithm = tin()</code> and <code>dtm = raster</code> the ground points are not used and the DTM is
+interpolated as if it were made of regularly-spaced ground points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p><code>normalized_height()</code> supports <code>add_lasattribute= TRUE</code> to add the elevation above
+see level as an extra byte attribute and <code> Wdegenerated = FALSE</code> to silence the warning about
+degenerated ground points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e1</code></td>
+<td>
+<p>a LAS object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>e2</code></td>
+<td>
+<p>A raster representing a digital terrain model in format from <code>raster</code>, <code>stars</code> or <code>terra</code>..</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt>normalize_height</dt>
+<dd>
+<p>Subtract digital terrain model (DTM) from a LiDAR point cloud to create a
+dataset normalized with the ground at 0. The DTM can be a raster, but it can also be computed
+on-the-fly. In this case the algorithm does not use rasterized data and each point is interpolated.
+There is no inaccuracy due to the discretization of the terrain and the resolution of the terrain
+is virtually infinite. A new attribute 'Zref' records the former elevation values, which enables
+the use of unnormalize_height to restore original point elevations.</p>
+</dd>
+<dt>normalize_intensity</dt>
+<dd>
+<p>Normalize intensity values using multiple methods. The attribute 'Intensity'
+records the normalized intensity. An extra attribute named 'RawIntensity' records the original
+intensities.</p>
+</dd>
+</dl>
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option <code>select</code> is not supported and not respected because it always preserves the file format
+and all the attributes. <code>select = "*"</code> is imposed internally.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile)
+
+# ====================
+# Normalize elevation
+# ====================
+
+# First option: use a raster as DTM
+# --------------------------------------
+
+dtm &lt;- rasterize_terrain(las, 1, knnidw(k = 6L, p = 2))
+nlas &lt;- normalize_height(las, dtm)
+
+# restore original elevations
+las &lt;- unnormalize_height(nlas)
+
+# operator - can be used. This is equivalent to the previous
+nlas &lt;- las - dtm
+
+# restore original elevations
+las &lt;- unnormalize_height(las)
+
+# Second option: interpolate each point (no discretization)
+# ---------------------------------------------------------
+
+nlas &lt;- normalize_height(las, tin())
+
+# operator - can be used. This is equivalent to the previous
+las &lt;- unnormalize_height(nlas)
+nlas &lt;- las - tin()
+
+## Not run: 
+# All the following syntaxes are correct
+las &lt;- normalize_height(las, knnidw())
+las &lt;- normalize_height(las, knnidw(k = 8, p = 2))
+las &lt;- las - knnidw()
+las &lt;- las - knnidw(k = 8)
+las &lt;- normalize_height(las, kriging())
+las &lt;- las - kriging(k = 8)
+
+## End(Not run)
+
+# ====================
+# Normalize intensity
+# ====================
+
+# pmin = 15 because it is an extremely small file
+# strongly decimated to reduce its size. There are
+# actually few multiple returns
+sensor &lt;- track_sensor(las, Roussel2020(pmin = 15))
+
+# Here the effect is virtually null because the size of
+# the sample is too small to notice any effect of range
+las &lt;- normalize_intensity(las, range_correction(sensor, Rs = 2000))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LKDist</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Find all  pairwise distances  within a 
+maximum distance.
+</h2>
+
+<h3>Description</h3>
+
+<p>These are the lower level functions to 
+compute the distances among two sets of locations but being limited to 
+distances less than a maximum threshold (see delta below ). These functions are useful for 
+generating a sparse matrix on distances and evaluating a compactly supported function (such as the Wendland). The location - location method supports the distance metrics:
+Euclidean, spherical, component-wise and Manhattan.
+<code>LKDistComponent</code> and  <code>LKDistComponentGrid</code> return the coordinate-wise distances and are
+useful for evaluating a tensor product basis functions. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LKDist(x1, x2, delta, max.points = NULL, mean.neighbor = 50,
+             distance.type = "Euclidean")
+LKDistComponents(x1, x2, delta, max.points = NULL, mean.neighbor = 50, 
+    distance.type = "Euclidean")
+    
+LKDistGrid(x1, gridList, delta, max.points = NULL, mean.neighbor = NULL,
+distance.type = "Euclidean", periodic)
+
+LKDistGridComponents(
+x1, gridList, delta,
+  max.points = NULL, mean.neighbor = NULL,
+  distance.type = "Euclidean") 
+
+LKGridCheck(distance.type, x1, gridList )
+
+LKGridFindNmax(n1, max.points, mean.neighbor, delta, gridList)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gridList</code></td>
+<td>
+<p>A list with each component vector that specifies the
+grid points for an equally spaced grid. Can have class
+gridList. (See also help on gridlist).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n1</code></td>
+<td>
+<p>Number of rows of x1.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+
+<p>A matrix with rows indexing locations and columns indexing coordinates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x2</code></td>
+<td>
+
+<p>A matrix with rows indexing locations and columns indexing coordinates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+
+<p>The maximum distance to find pairwise distances. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.points</code></td>
+<td>
+
+<p>Used for dynamically assigning matrix size this should be larger than  the total number of pairwise distances less than delta. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mean.neighbor</code></td>
+<td>
+
+<p>Used for dynamically assigning matrix size this is the average number of 
+points that are less that delta in distance to the <code>x1</code> locations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>periodic</code></td>
+<td>
+<p>A logical vector with length ncol( x1). If a 
+component is TRUE then that dimension is treated as periodic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distance.type</code></td>
+<td>
+
+<p>A text string either "Euclidean", "GreatCircle", "Chordal", "Manhattan".
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><strong>LKDist</strong> and <strong>LKDistGrid</strong> a list representing a sparse matrix in spind format.
+</p>
+<p><strong>LKDistComponent</strong> and<strong>LKDistGridComponent</strong> a list representing a sparse matrix  using the  spind format except the <code>ra</code> component is now a matrix.  The columns of ra 
+being the individual distances for each coordinate. 
+</p>
+<p><strong>directionCosine</strong> a matrix where rows index the different points and 
+columns index x,y,z.
+</p>
+<p><strong>LKGridFindNmax</strong> returns the maximum number of nonzero elements expected in a pairwise distance matrix. 
+</p>
+<p><strong>LKGridFindNmax</strong> checks that the calling arguments are 
+compatible with the  pairwise distance computation. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>spind2spam</code>, <code>spind2full</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed( 123)	
+x&lt;- matrix( runif(100*2), 100,2)
+
+DMatrix&lt;- LKDist( x,x, delta=.1)
+# coerce to spam matrix format
+DMatrix2&lt;- spind2spam( DMatrix)
+
+# a grid
+gridL&lt;- list( x1= seq(0,1,.2), x2= seq( 0,2,.2) , x3= seq( -1,1,.2))
+class(gridL)&lt;- "gridList"	
+x1&lt;- cbind( runif( 100), runif(100)*2, 2*(runif( 100) -.5) )
+look&lt;- LKDistGrid( x1, gridL, delta=.45)
+# check against rdist.
+# look2&lt;- rdist( x1, make.surface.grid(gridL))
+# look2[ look2 &gt;= .45] &lt;- 0
+# max( abs(look- look2)[look&gt;0] )
+
+# test of periodic option
+ gridL&lt;- structure(
+            list( x1= seq(0,1,.02),
+                  x2= seq( 0,1,.02)),
+            class="gridList")
+ look1&lt;- LKDistGrid( rbind(c(0,0)), gridL, delta=.35,
+                     periodic=c(TRUE,FALSE))
+ look2&lt;- spind2full(look1)
+ image.plot( as.surface( gridL, look2) )
+ 
+ look1&lt;- LKDistGrid( rbind(c(0,0)), gridL, delta=.35,
+                      periodic=c(TRUE,TRUE))
+ look2&lt;- spind2full(look1)
+ image.plot( as.surface( gridL, look2) )  
+</code></pre>
+
+
+</div>

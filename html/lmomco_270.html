@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfgpa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Generalized Pareto Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density of the Generalized Pareto distribution given parameters (<code class="reqn">\xi</code>, <code class="reqn">\alpha</code>, and <code class="reqn">\kappa</code>) computed by <code>pargpa</code>. The probability density function is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x) = \alpha^{-1} \exp(-(1-\kappa)Y) \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">Y</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">Y = -\kappa^{-1} \log\left(1 - \frac{\kappa(x - \xi)}{\alpha}\right)\mbox{,}</code>
+</p>
+
+<p>for <code class="reqn">\kappa \ne 0</code>, and
+</p>
+<p style="text-align: center;"><code class="reqn">Y = (x - \xi)/\alpha\mbox{,}</code>
+</p>
+
+<p>for <code class="reqn">\kappa = 0</code>, where <code class="reqn">f(x)</code> is the probability density for quantile <code class="reqn">x</code>, <code class="reqn">\xi</code> is a location parameter, <code class="reqn">\alpha</code> is a scale parameter, and <code class="reqn">\kappa</code> is a shape parameter. The range of <code class="reqn">x</code> is <code class="reqn">\xi \le x \le \xi + \alpha/\kappa</code> if <code class="reqn">k &gt; 0</code>; <code class="reqn">\xi \le x &lt; \infty</code> if <code class="reqn">\kappa \le 0</code>. Note that the shape parameter <code class="reqn">\kappa</code> parameterization of the distribution herein follows that in tradition by the greater L-moment community and others use a sign reversal on <code class="reqn">\kappa</code>. (The <span class="pkg">evd</span> package is one example.)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfgpa(x, para, paracheck=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>pargpa</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical switch as to whether the validity of the parameters should be checked.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124, <a href="https://doi.org/10.1111/j.2517-6161.1990.tb01775.x">doi:10.1111/j.2517-6161.1990.tb01775.x</a>.
+</p>
+<p>Hosking, J.R.M., 1996, FORTRAN routines for use with the method of L-moments: Version 3, IBM Research Report RC20525, T.J. Watson Research Center, Yorktown Heights, New York.
+</p>
+<p>Hosking, J.R.M. and Wallis, J.R., 1997, Regional frequency analysis—An approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfgpa</code>, <code>quagpa</code>, <code>lmomgpa</code>, <code>pargpa</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  lmr &lt;- lmoms(c(123, 34, 4, 654, 37, 78))
+  gpa &lt;- pargpa(lmr)
+  x   &lt;- quagpa(0.5, gpa)
+         pdfgpa(  x, gpa)
+
+## Not run: 
+  # We explore using maximum likelihood for GPA estimation on its density function
+  # with stress testing near the K &gt; -1 lower limit, K near zero, and then large K
+  # producing extreme densities. We check the convergence and check on parameters
+  # back estimating the mean. The experiment is designed that with repeated
+  # operations that convergence "failures" in stats::optim()
+  #   1  'indicates that the iteration limit maxit had been reached'
+  #   10 'indicates degeneracy of the Nelder-Mead simplex.'
+  # With the 10 being a bit more common and 1 but still for many runs convergence
+  # at K = 8 is still attainable. Also, note the care in the construction of the
+  # ptransf and pretransf for the honoring the GPA parameter space.
+  small &lt;- .Machine$double.eps; n &lt;- 1000 # samples
+  for(k in c(-1+small, -0.99, -1/2, -small, 0, 1/2, 8)) {
+    names(k) &lt;- "myKappa"
+    gpa &lt;- vec2par(c(2, 2, k), type="gpa")
+    x &lt;- rlmomco(n, gpa)
+    mu1 &lt;- mean(x); names(mu1) &lt;- "mean"
+    cv1 &lt;-      NA; names(cv1) &lt;- "converge"
+    mle &lt;- mle2par(x, type="gpa", init.para=pargpa(lmoms(x)),
+             ptransf=function(t) { c(t[1], log(t[2]), log(t[3] +1)) },
+           pretransf=function(t) { c(t[1], exp(t[2]), exp(t[3])-1)  },
+                      null.on.not.converge=FALSE)
+    mu2 &lt;- lmomgpa(mle)$lambdas[1]; names(mu2) &lt;- "backMean"
+    cv2 &lt;- mle$optim$convergence;   names(cv2) &lt;- "converge"
+    print(round(c(k, cv1, mu1, gpa$para), digits=5))
+    print(round(c(k, cv2, mu2, mle$para), digits=5))
+  } # 
+## End(Not run)
+</code></pre>
+
+
+</div>

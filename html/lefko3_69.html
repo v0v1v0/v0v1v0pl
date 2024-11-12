@@ -1,0 +1,607 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sf_create</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Stageframe for Population Matrix Projection Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>sf_create()</code> returns a data frame describing each ahistorical
+life history stage in the life history model. This data frame can be used as 
+input into MPM creation functions including <code>flefko3()</code>, 
+<code>flefko2()</code>, <code>aflefko2()</code>, <code>rlefko3()</code>,
+<code>rlefko2()</code>, and <code>arlefko2()</code>, in which it
+determines how each stage is treated during matrix estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sf_create(
+  sizes,
+  stagenames = NULL,
+  sizesb = NULL,
+  sizesc = NULL,
+  repstatus = NULL,
+  obsstatus = NULL,
+  propstatus = NULL,
+  matstatus = NULL,
+  immstatus = NULL,
+  minage = NULL,
+  maxage = NULL,
+  indataset = NULL,
+  sizemin = NULL,
+  sizebmin = NULL,
+  sizecmin = NULL,
+  sizemax = NULL,
+  sizebmax = NULL,
+  sizecmax = NULL,
+  binhalfwidth = NULL,
+  binhalfwidthb = NULL,
+  binhalfwidthc = NULL,
+  group = NULL,
+  comments = NULL,
+  roundsize = 5L,
+  roundsizeb = 5L,
+  roundsizec = 5L,
+  ipmbins = 100L,
+  ipmbinsb = NA_integer_,
+  ipmbinsc = NA_integer_
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sizes</code></td>
+<td>
+<p>A numeric vector of the typical or representative size of each
+life history stage. If making function-based MPMs, then this may be a
+vector composed of the midpoints of each size bin, or simply of sizes
+characteristic of the size bins. If denoting the boundary of an automated
+size classification group, then should denote the absolute minimum size of
+that group, or the absolute size of that group (see <code>Notes</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stagenames</code></td>
+<td>
+<p>A vector of stage names, in the same order as elements in
+sizes. Can also be set to <code>ipm</code> for automated size classification (see
+<code>Notes</code> section).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizesb</code></td>
+<td>
+<p>An optional numeric vector for a second size metric for each
+life history stage. Only to be used if stages are defined by at least two
+size metrics in all cases. Same issues apply as in <code>sizes</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizesc</code></td>
+<td>
+<p>An optional numeric vector for a third size metric for each
+life history stage. Only to be used if stages are defined by at least three
+size metrics in all cases. Same issues apply as in <code>sizes</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repstatus</code></td>
+<td>
+<p>A vector denoting the binomial reproductive status of each
+life history stage. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsstatus</code></td>
+<td>
+<p>A vector denoting the binomial observation status of each
+life history stage. Defaults to <code>1</code>, but may be changed for
+unobservable stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>propstatus</code></td>
+<td>
+<p>A vector denoting whether each life history stage is a 
+propagule. Such stages are generally only used in fecundity estimation. 
+Defaults to <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matstatus</code></td>
+<td>
+<p>A vector denoting whether each stage is mature. Must be
+composed of binomial values if given. Defaults to 1 for all stages defined 
+in <code>sizes</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>immstatus</code></td>
+<td>
+<p>A vector denoting whether each stage is immature. Must be
+composed of binomial values if given. Defaults to the complement of vector
+<code>matstatus</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minage</code></td>
+<td>
+<p>An optional vector denoting the minimum age at which a stage
+can occur. Only used in age x stage matrix development. Defaults to
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxage</code></td>
+<td>
+<p>An optional vector denoting the maximum age at which a stage
+should occur. Only used in age x stage matrix development. Defaults to
+<code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indataset</code></td>
+<td>
+<p>A vector designating which stages are found within the 
+dataset. While <code>rlefko2()</code> and <code>rlefko3()</code> can use
+all stages in the input dataset, <code>flefko3()</code> and
+<code>flefko2()</code> can only handle size-classified stages with
+non-overlapping combinations of size and status variables. Stages that do
+not actually exist within the dataset should be marked as <code>0</code> in this
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizemin</code></td>
+<td>
+<p>A vector giving the absolute minimum values corresponding to
+each size in the <code>sizes</code> vector. Requires associated values for
+<code>sizemax</code> if used. Only required if not using <code>binhalfwidth</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebmin</code></td>
+<td>
+<p>A vector giving the absolute minimum values corresponding to
+each size in the <code>sizesb</code> vector. Requires associated values for
+<code>sizebmax</code> if used. Only required if not using <code>binhalfwidthb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizecmin</code></td>
+<td>
+<p>A vector giving the absolute minimum values corresponding to
+each size in the <code>sizesc</code> vector. Requires associated values for
+<code>sizecmax</code> if used. Only required if not using <code>binhalfwidthc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizemax</code></td>
+<td>
+<p>A vector giving the absolute maximum values corresponding to
+each size in the <code>sizes</code> vector. Requires associated values for
+<code>sizemin</code> if used. Only required if not using <code>binhalfwidth</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebmax</code></td>
+<td>
+<p>A vector giving the absolute maximum values corresponding to
+each size in the <code>sizesb</code> vector. Requires associated values for
+<code>sizebmin</code> if used. Only required if not using <code>binhalfwidthb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizecmax</code></td>
+<td>
+<p>A vector giving the absolute maximum values corresponding to
+each size in the <code>sizesc</code> vector. Requires associated values for
+<code>sizecmin</code> if used. Only required if not using <code>binhalfwidthc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidth</code></td>
+<td>
+<p>A numeric vector giving the half-width of size bins.
+Required if <code>sizemin</code> and <code>sizemax</code> are not used. Defaults to
+<code>0.5</code> for all sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidthb</code></td>
+<td>
+<p>A numeric vector giving the half-width of size bins
+used for the optional second size metric. Required if <code>sizebmin</code> and
+<code>sizebmax</code> are not used but two or three size classes are used.
+Defaults to <code>0.5</code> for all sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidthc</code></td>
+<td>
+<p>A numeric vector giving the half-width of size bins
+used for the optional third size metric. Required if <code>sizecmin</code> and
+<code>sizecmax</code> are not used but three size classes are used. Defaults to
+<code>0.5</code> for all sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>An integer vector providing information on each respective
+stage's size classification group. If used, then function-based MPM creation
+functions <code>flefko2()</code>, <code>flefko3()</code>, and
+<code>aflefko2()</code> will estimate transitions only within these groups
+and for allowed cross-group transitions noted within the supplement table.
+Defaults to <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comments</code></td>
+<td>
+<p>An optional vector of text entries holding useful text
+descriptions of all stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roundsize</code></td>
+<td>
+<p>This parameter sets the precision of size classification,
+and equals the number of digits used in rounding sizes. Defaults to
+<code>5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roundsizeb</code></td>
+<td>
+<p>This parameter sets the precision of size classification
+in the optional second size metric, and equals the number of digits used in
+rounding sizes. Defaults to <code>5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roundsizec</code></td>
+<td>
+<p>This parameter sets the precision of size classification
+in the optional third size metric, and equals the number of digits used in
+rounding sizes. Defaults to <code>5</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipmbins</code></td>
+<td>
+<p>An integer giving the number of size bins to create using the
+primary size classification variable. This number is in addition to any
+stages that are not size classified. Defaults to <code>100</code>, and numbers
+greater than this yield a warning about the loss of statistical power and
+increasing chance of matrix over-parameterization resulting from increasing
+numbers of stages.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipmbinsb</code></td>
+<td>
+<p>An optional integer giving the number of size bins to create
+using the secondary size classification variable. This number is in addition
+to any stages that are not size classified, as well as in addition to any
+automated size classification using the primary and tertiary size variables.
+Defaults to <code>NA</code>, and must be set to a positive integer for automated
+size classification to progress.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipmbinsc</code></td>
+<td>
+<p>An optional integer giving the number of size bins to create
+using the tertiary size classification variable. This number is in addition
+to any stages that are not size classified, as well as in addition to any
+automated size classification using the primary and secondary size
+variables. Defaults to <code>NA</code>, and must be set to a positive integer for
+automated size classification to progress.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame of class <code>stageframe</code>, which includes information
+on the stage name, size, reproductive status, observation status, propagule 
+status, immaturity status, maturity status, presence within the core dataset, 
+stage group classification, raw bin half-width, and the minimum, 
+center, and maximum of each size bin, as well as its width. If minimum and
+maximum ages were specified, then these are also included. Also includes an 
+empty string variable that can be used to describe stages meaningfully. This
+object can be used as the <code>stageframe</code> input for <code>flefko3()</code> 
+<code>flefko2()</code>, <code>rlefko3()</code>, and <code>rlefko2()</code>.
+</p>
+<p>Variables in this data frame include the following:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>stage</code></td>
+<td>
+<p>The unique names of the stages to be analyzed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>The typical or representative size at which each stage occurs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size_b</code></td>
+<td>
+<p>Size at which each stage occurs in terms of a second size
+variable, if one exists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size_c</code></td>
+<td>
+<p>Size at which each stage occurs in terms of a third size
+variable, if one exists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_age</code></td>
+<td>
+<p>The minimum age at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_age</code></td>
+<td>
+<p>The maximum age at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repstatus</code></td>
+<td>
+<p>A binomial variable showing whether each stage is
+reproductive.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsstatus</code></td>
+<td>
+<p>A binomial variable showing whether each stage is
+observable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>propstatus</code></td>
+<td>
+<p>A binomial variable showing whether each stage is a
+propagule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>immstatus</code></td>
+<td>
+<p>A binomial variable showing whether each stage can occur as
+immature.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matstatus</code></td>
+<td>
+<p>A binomial variable showing whether each stage occurs in
+maturity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indataset</code></td>
+<td>
+<p>A binomial variable describing whether each stage occurs in
+the input dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidth_raw</code></td>
+<td>
+<p>The half-width of the size bin, as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebin_min</code></td>
+<td>
+<p>The minimum size at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebin_max</code></td>
+<td>
+<p>The maximum size at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebin_center</code></td>
+<td>
+<p>The midpoint of the size bin at which the stage may
+occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebin_width</code></td>
+<td>
+<p>The width of the size bin corresponding to the stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidthb_raw</code></td>
+<td>
+<p>The half-width of the size bin of a second size
+variable, as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinb_min</code></td>
+<td>
+<p>The minimum size at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinb_max</code></td>
+<td>
+<p>The maximum size at which the stage may occur.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinb_center</code></td>
+<td>
+<p>The midpoint of the size bin at which the stage may
+occur, in terms of a second size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinb_width</code></td>
+<td>
+<p>The width of the size bin corresponding to the stage,
+in terms of a second size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binhalfwidthc_raw</code></td>
+<td>
+<p>The half-width of the size bin of a third size
+variable, as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinc_min</code></td>
+<td>
+<p>The minimum size at which the stage may occur, in terms
+of a third size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinc_max</code></td>
+<td>
+<p>The maximum size at which the stage may occur, in terms
+of a third size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinc_center</code></td>
+<td>
+<p>The midpoint of the size bin at which the stage may
+occur, in terms of a third size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizebinc_width</code></td>
+<td>
+<p>The width of the size bin corresponding to the stage,
+in terms of a third size variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>An integer denoting the size classification group that the
+stage falls within.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comments</code></td>
+<td>
+<p>A text field for stage descriptions.</p>
+</td>
+</tr>
+</table>
+<h3>Notes</h3>
+
+<p>Vectors used to create a stageframe may not mix <code>NA</code> values with
+non-<code>NA</code> values.
+</p>
+<p>If an IPM or function-based matrix with automated size classification is
+desired, then two stages that occur within the dataset and represent the
+lower and upper size limits of the IPM must be marked with <code>ipm</code> in
+the stagenames vector. These stages should have all characteristics other
+than size equal, and the size input for whichever size will be classified
+automatically must include the minimum in one stage and the maximum in the
+other. The actual characteristics of the first stage encountered in the
+inputs will be used as the template for the creation of these sizes. Note
+that <code>ipm</code> refers to size classification with the primary size
+variable. To automate size classification with the secondary size variable,
+use <code>ipmb</code>, and to automate size classification with the tertiary size
+variable, use <code>ipmc</code>. To nest automated size classifications, use 
+<code>ipmab</code> for the primary and secondary size variables, <code>ipmac</code> for
+the primary and tertiary size variables, <code>ipmbc</code> for the secondary and
+tertiary size variables, and <code>ipmabc</code> for all three size variables.
+The primary size variable can also be set with <code>ipma</code>.
+</p>
+<p>If two or more groups of stages, each with its own characteristics, are to
+be developed for an IPM or function-based MPM, then an even number of stages
+with two stages marking the minimum and maximum size of each group should be
+marked with the same code as given above, with all other characteristics
+equal within each group.
+</p>
+<p>Stage classification groups set with the <code>group</code> variable create zones
+within function-based matrices in which survival transitions are estimated.
+These groups should not be set if transitions are possible between all
+stages regardless of group. To denote specific transitions as estimable
+between stage groups, use the <code>supplemental()</code> function.
+</p>
+<p>If importing an IPM rather than building one with <code>lefko3</code>: Using the
+<code>vrm_import</code> approach to building function-based MPMs with provided
+linear model slope coefficients requires careful attention to the
+stageframe. Although no hfv data frame needs to be entered in this instance,
+stages for which vital rates are to be estimated via linear models
+parameterized with coefficients provided via function
+<code>vrm_import()</code> should be marked as occurring within the dataset.
+Stages for which the provided coefficients should not be used should be
+marked as not occurring within the dataset.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Lathyrus example
+data(lathyrus)
+
+sizevector &lt;- c(0, 100, 13, 127, 3730, 3800, 0)
+stagevector &lt;- c("Sd", "Sdl", "VSm", "Sm", "VLa", "Flo", "Dorm")
+repvector &lt;- c(0, 0, 0, 0, 0, 1, 0)
+obsvector &lt;- c(0, 1, 1, 1, 1, 1, 0)
+matvector &lt;- c(0, 0, 1, 1, 1, 1, 1)
+immvector &lt;- c(1, 1, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0)
+indataset &lt;- c(0, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 100, 11, 103, 3500, 3800, 0.5)
+
+lathframe &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec,
+  propstatus = propvector)
+
+# Cypripedium example
+data(cypdata)
+
+sizevector &lt;- c(0, 0, 0, 0, 0, 0, 1, 2.5, 4.5, 8, 17.5)
+stagevector &lt;- c("SD", "P1", "P2", "P3", "SL", "D", "XSm", "Sm", "Md", "Lg",
+  "XLg")
+repvector &lt;- c(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+obsvector &lt;- c(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+matvector &lt;- c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+immvector &lt;- c(0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+indataset &lt;- c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 0, 0, 0, 0, 0.5, 0.5, 1, 1, 2.5, 7)
+
+cypframe_raw &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  propstatus = propvector, immstatus = immvector, indataset = indataset,
+  binhalfwidth = binvec)
+
+</code></pre>
+
+
+</div>

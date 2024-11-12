@@ -1,0 +1,235 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>qtree</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Properties of sample quantiles from a tree population described by the percentile-based diameter distribution. 
+</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>qtree.moments</code> finds the expected value and variance for <code class="reqn">X_{r:n}</code>;  
+the <code>r</code>:th smallest observation in an iid sample of size <code>n</code> from a population with a percentile-based distribution. 
+</p>
+<p>Function <code>qtree.jointdens</code> computes the bivariate pdf for two quantiles <code class="reqn">(X_{r1:n},X_{r2:n})</code> from the same sample, where <code class="reqn">r1&lt;r2</code>. 
+</p>
+<p>Function <code>qtree.exy</code> approximates expected value of the product  <code class="reqn">X_{r1:n}X_{r2:n}</code>, i.e. the  
+integral of function <code class="reqn">x_{r1:n}x_{r2:n}f_{r1:n,r2:n}(\bm x)</code> over the two-dimensional range of <code class="reqn">\bm x</code> 
+by computing for each percentile interval the function mean in a regular npts*npts grid and multiplying the mean by the area.
+</p>
+<p>Function <code>qtree.varcov</code> returns the expected valuers, cumulative percentage values and the variance-covariance matrices 
+that correspond to given sample quantiles and underlying percentile-based distribution of the population. 
+</p>
+<p>Function <code>interpolate.D</code> does a bilinear interpolation of the variance-covariance matrix of percentiles 
+that correspond to values <code>F</code> of the cdf to values that correspond to values  
+<code>ppi</code>. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">qtree.moments(r,n,xi,F)
+qtree.jointdens(x,r1,r2,n,xi,F)
+qtree.exy(r1,r2,n,xi,F,npts=100) 
+qtree.varcov(obs,xi,F)
+interpolate.D(D,ppi,F) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r, r1, r2</code></td>
+<td>
+<p>The ranks of the sample order statistics. <code>r=1</code> means the smallest, <code>r=n</code> the largest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The sample size</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>The percentiles that specify the cdf in increasing order. The first element should be the population minimum and the last element should be the population maximum. A vector of same length as <code>F</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>The values of the cdf that correspond to the percentiles of <code>xi</code>. The first elements should be 0 and the last 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix with two columns that gives the x-values for which the joint density is computed in <code>qtree.jointdens</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npts</code></td>
+<td>
+<p>The number of regularly placed points that is used in the integral approximation of <code class="reqn">E(X_{r1:n}X_{r2:n})</code> for each percentile interval in function <code>exy</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>A data frame of observed sample quantiles, possibly from several plots. The data frame should include 
+(at least) columns <code>r</code> (the ranks), <code>n</code> (sample size), <code>plot</code> (plot id) and <code>d</code> (observed diameter). 
+The rows should be ordered by <code>r</code> within each plot, and all observations from same plot should follow each other.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>The variance-covariance matrix of the residual errors (plot effects) of percentile models. The number of columns and rows should equal to the length of <code>F</code> and <code>xi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppi</code></td>
+<td>
+<p>The values of cdf for which the covariances needs to be interpolated in <code>interpolate.D</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Function <code>qtree.moments</code> returns a list with elements 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>The expected value of <code class="reqn">X_{r:n}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>The variance of <code class="reqn">X_{r:n}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x,y</code></td>
+<td>
+<p>y gives the values of the pdf of <code class="reqn">X_{r:n}</code> for values given in x for plotting purposes. Try <code>plot(sol$x,sol$y,type="l")</code>.</p>
+</td>
+</tr>
+</table>
+<p>Function <code>qtree.jointdens</code> returns a vector with length equal to the <code>nrow(x)</code>, including the values of the joint pdf of <code class="reqn">({X_{r1:n}},X_{r2:n})</code> in these points. 
+</p>
+<p>Function <code>qtree.exy</code> returns a scalar, the approximate of <code class="reqn">E(X_{r1:n}X_{r2:n})</code>. 
+</p>
+<p>Function <code>qtree.varcov</code> returns a list with elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>obs</code></td>
+<td>
+<p>The original input data frame, augmented with the expected values in column <code>Ed</code> and the corresponding values of the cdf of <code class="reqn">X</code> in column <code>pEd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>The variance-covariance matrix of the sample quantiles.</p>
+</td>
+</tr>
+</table>
+<p>Function <code>interpolate.D</code> returns a list with elements
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>The original variance-covariance matrix, augmented with the variances and covariances 
+that correspond to the cdf values <code>ppi</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>The values of cdf that correspond to the augmented matrix <code>D</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D1</code></td>
+<td>
+<p>The variance-covariance matrix of the percentiles that correspond to the cdf values given in <code>ppi</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D2</code></td>
+<td>
+<p>The covariance matrix between the percentiles that correspond to <code>ppi</code> and <code>F</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Lauri Mehtatalo &lt;<a href="mailto:lauri.mehtatalo@uef.fi">lauri.mehtatalo@uef.fi</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Mehtatalo, L. 2005. Localizing a predicted diameter distribution using sample information. Forest Science 51(4): 292–302. 
+</p>
+<p>Mehtatalo, Lauri and Lappi, Juha 2020a. Biometry for Forestry and Environmental Data: with examples in R. New York: Chapman and Hall/CRC. 426 p. <a href="https://doi.org/10.1201/9780429173462">doi:10.1201/9780429173462</a>
+</p>
+<p>Mehtatalo, Lauri and Lappi, Juha 2020b. Biometry for Forestry and Environmental Data: with examples in R. Full Versions of The Web Examples. Available at <a href="http://www.biombook.org">http://www.biombook.org</a>. 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">F&lt;-c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,1)
+
+# Predictions of logarithmic percentiles
+xi&lt;-c(1.638,2.352,2.646,2.792,2.91,2.996,3.079,3.151,3.234,3.349,3.417,3.593)
+
+# The variance of their prediction errors
+D&lt;-matrix(c(0.161652909,0.050118692,0.022268974,0.010707222,0.006888751,0,
+   0.000209963,-0.002739361,-0.005478838,-0.00655718,-0.006718843,-0.009819052,
+   0.050118692,0.074627668,0.03492943,0.01564454,0.008771398,0,
+   -0.002691651,-0.005102312,-0.007290366,-0.008136685,-0.00817717,-0.009026883,
+   0.022268974,0.03492943,0.029281808,0.014958206,0.009351904,0,
+   -0.002646641,-0.003949305,-0.00592412,-0.006556639,-0.006993025,-0.007742731,
+   0.010707222,0.01564454,0.014958206,0.014182608,0.009328299,0,
+   -0.001525745,-0.002448765,-0.003571811,-0.004470387,-0.004791053,-0.005410252,
+   0.006888751,0.008771398,0.009351904,0.009328299,0.009799233,0,
+   -0.000925308,-0.001331631,-0.002491679,-0.003277911,-0.003514961,-0.003663479,
+   rep(0,12),
+   0.000209963,-0.002691651,-0.002646641,-0.001525745,-0.000925308,0,
+   0.003186033,0.003014887,0.002961818,0.003112953,0.003050486,0.002810937,
+   -0.002739361,-0.005102312,-0.003949305,-0.002448765,-0.001331631,0,
+   0.003014887,0.00592428,0.005843888,0.005793879,0.005971638,0.006247869,
+   -0.005478838,-0.007290366,-0.00592412,-0.003571811,-0.002491679,0,
+   0.002961818,0.005843888,0.00868157,0.008348973,0.008368812,0.008633202,
+   -0.00655718,-0.008136685,-0.006556639,-0.004470387,-0.003277911,0,
+   0.003112953,0.005793879,0.008348973,0.011040791,0.010962609,0.010906917,
+   -0.006718843,-0.00817717,-0.006993025,-0.004791053,-0.003514961,0,
+   0.003050486,0.005971638,0.008368812,0.010962609,0.013546621,0.013753718,
+   -0.009819052,-0.009026883,-0.007742731,-0.005410252,-0.003663479,0,
+   0.002810937,0.006247869,0.008633202,0.010906917,0.013753718,0.02496596),ncol=12)
+
+# observed tree data, 5 trees from 2 plots
+obs&lt;-data.frame(r=c(1,3,6,1,2),n=c(7,7,7,9,9),plot=c(1,1,1,2,2),d=c(10,11,27,8,12))
+
+# See Example 11.33 in Mehtatalo and Lappi 2020b
+qtrees&lt;-qtree.varcov(obs,xi,F)
+obs&lt;-qtrees$obs
+mustar&lt;-obs$Ed
+ystar&lt;-log(obs$d)
+R&lt;-qtrees$R
+Dtayd&lt;-interpolate.D(D,obs$pEd)
+</code></pre>
+
+
+</div>

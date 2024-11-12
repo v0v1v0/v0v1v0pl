@@ -1,0 +1,189 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_metric</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates a new luz metric</h2>
+
+<h3>Description</h3>
+
+<p>Creates a new luz metric
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_metric(
+  name = NULL,
+  ...,
+  private = NULL,
+  active = NULL,
+  parent_env = parent.frame(),
+  inherit = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>string naming the new metric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>named list of public methods. You should implement at least
+<code>initialize</code>, <code>update</code> and <code>compute</code>. See the details section for more
+information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>private</code></td>
+<td>
+<p>An optional list of private members, which can be functions
+and non-functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>An optional list of active binding functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent_env</code></td>
+<td>
+<p>An environment to use as the parent of newly-created
+objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inherit</code></td>
+<td>
+<p>A R6ClassGenerator object to inherit from; in other words, a
+superclass. This is captured as an unevaluated expression which is
+evaluated in <code>parent_env</code> each time an object is instantiated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In order to implement a new <code>luz_metric</code> we need to implement 3 methods:
+</p>
+
+<ul>
+<li> <p><code>initialize</code>: defines the metric initial state. This function is
+called for each epoch for both training and validation loops.
+</p>
+</li>
+<li> <p><code>update</code>: updates the metric internal state. This function is called
+at every training and validation step with the predictions obtained by
+the model and the target values obtained from the dataloader.
+</p>
+</li>
+<li> <p><code>compute</code>: uses the internal state to compute metric values. This
+function is called whenever we need to obtain the current metric
+value. Eg, it’s called every training step for metrics displayed in
+the progress bar, but only called once per epoch to record it’s value
+when the progress bar is not displayed.
+</p>
+</li>
+</ul>
+<p>Optionally, you can implement an <code>abbrev</code> field that gives the metric an
+abbreviation that will be used when displaying metric information in the
+console or tracking record. If no <code>abbrev</code> is passed, the class name
+will be used.
+</p>
+<p>Let’s take a look at the implementation of <code>luz_metric_accuracy</code> so you
+can see how to implement a new one:
+</p>
+<div class="sourceCode r"><pre>luz_metric_accuracy &lt;- luz_metric(
+  # An abbreviation to be shown in progress bars, or 
+  # when printing progress
+  abbrev = "Acc", 
+  # Initial setup for the metric. Metrics are initialized
+  # every epoch, for both training and validation
+  initialize = function() {
+    self$correct &lt;- 0
+    self$total &lt;- 0
+  },
+  # Run at every training or validation step and updates
+  # the internal state. The update function takes `preds`
+  # and `target` as parameters.
+  update = function(preds, target) {
+    pred &lt;- torch::torch_argmax(preds, dim = 2)
+    self$correct &lt;- self$correct + (pred == target)$
+      to(dtype = torch::torch_float())$
+      sum()$
+      item()
+    self$total &lt;- self$total + pred$numel()
+  },
+  # Use the internal state to query the metric value
+  compute = function() {
+    self$correct/self$total
+  }
+)
+</pre></div>
+<p><strong>Note</strong>: It’s good practice that the <code>compute</code> metric returns regular R
+values instead of torch tensors and other parts of luz will expect that.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns new luz metric.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other luz_metrics: 
+<code>luz_metric_accuracy()</code>,
+<code>luz_metric_binary_accuracy_with_logits()</code>,
+<code>luz_metric_binary_accuracy()</code>,
+<code>luz_metric_binary_auroc()</code>,
+<code>luz_metric_mae()</code>,
+<code>luz_metric_mse()</code>,
+<code>luz_metric_multiclass_auroc()</code>,
+<code>luz_metric_rmse()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">luz_metric_accuracy &lt;- luz_metric(
+  # An abbreviation to be shown in progress bars, or
+  # when printing progress
+  abbrev = "Acc",
+  # Initial setup for the metric. Metrics are initialized
+  # every epoch, for both training and validation
+  initialize = function() {
+    self$correct &lt;- 0
+    self$total &lt;- 0
+  },
+  # Run at every training or validation step and updates
+  # the internal state. The update function takes `preds`
+  # and `target` as parameters.
+  update = function(preds, target) {
+    pred &lt;- torch::torch_argmax(preds, dim = 2)
+    self$correct &lt;- self$correct + (pred == target)$
+      to(dtype = torch::torch_float())$
+      sum()$
+      item()
+    self$total &lt;- self$total + pred$numel()
+  },
+  # Use the internal state to query the metric value
+  compute = function() {
+    self$correct/self$total
+  }
+)
+
+</code></pre>
+
+
+</div>

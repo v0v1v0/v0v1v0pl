@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pargam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Gamma Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Gamma distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. Both the two-parameter Gamma and three-parameter Generalized Gamma distributions are supported based on the desired choice of the user, and numerical-hybrid methods are required. The <code>pdfgam</code> documentation provides further details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pargam(lmom, p=c("2", "3"), checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>A L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The number of parameters to estimate for the 2-p Gamma or 3-p Generalized Gamma.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>gam</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “pargam”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The two-parameter Gamma is supported by Hosking's code-based approximations to avoid direct numerical techniques. The three-parameter version is based on a dual approach to parameter optimization. The <code class="reqn">\log(\sigma)</code> and <code class="reqn">\sqrt{\log(\lambda_1/\lambda_2)}</code> conveniently has a relatively narrow range of variation. A polynomial approximation to provide a first estimate of <code class="reqn">\sigma</code> (named <code class="reqn">\sigma'</code>) is used through the <code>optim()</code> function to isolated the best estimates of <code class="reqn">\mu'</code> and <code class="reqn">\nu'</code> of the distribution holding <code class="reqn">\sigma</code> constant at <code class="reqn">\sigma = \sigma'</code>—a 2D approach is thus involved. Then, the initial parameter for a second three-dimensional optimization is made using the initial parameter estimates as the tuple <code class="reqn">\mu', \sigma', \nu'</code>. This 2D approach seems more robust and effectively canvases more of the Generalized Gamma parameter domain, though a doubled-optimization is not quite as fast as a direct 3D optimization. The following code was used to derive the polynomial coefficients used for the first approximation of <code class="reqn">sigma'</code>:
+</p>
+<pre>
+  nsim &lt;- 10000; mu &lt;- sig &lt;- nu &lt;- l1 &lt;- l2 &lt;- t3 &lt;- t4 &lt;- rep(NA, nsim)
+  for(i in 1:nsim) {
+    m &lt;- exp(runif(1, min=-4, max=4)); s &lt;- exp(runif(1, min=-8, max=8))
+    n &lt;- runif(1, min=-14, max=14); mu[i] &lt;- m; sig[i] &lt;- s; nu[i] &lt;- n
+    para &lt;- vec2par(c(m,s,n), type="gam"); lmr &lt;- lmomgam(para)
+    if(is.null(lmr)) next
+    lam &lt;- lmr$lambdas[1:2]; rat &lt;- lmr$ratios[3:4]
+    l1[i]&lt;-lam[1]; l2[i]&lt;-lam[2];t3[i]&lt;-rat[1]; t4[i]&lt;-rat[2]
+  }
+  ZZ &lt;- data.frame(mu=mu, sig=sig, nu=nu, l1=l1, l2=l2, t3=t3, t4=t4)
+  ZZ$ETA &lt;- sqrt(log(ZZ$l1/ZZ$l2)); ZZ &lt;- ZZ[complete.cases(ZZ), ]
+  ix &lt;- 1:length(ZZ$ETA);  ix &lt;- ix[(ZZ$ETA &lt; 0.025 &amp; log(ZZ$sig) &lt; 1)]
+  ZZ &lt;- ZZ[-ix,]
+  with(ZZ, plot(ETA, log(sig), xlim=c(0,4), ylim=c(-8,8)))
+  LM &lt;- lm(log(sig)~
+           I(1/ETA^1)+I(1/ETA^2)+I(1/ETA^3)+I(1/ETA^4)+I(1/ETA^5)+
+               ETA   +I(  ETA^2)+I(  ETA^3)+I(  ETA^4)+I(  ETA^5), data=ZZ)
+  ETA &lt;- seq(0,4,by=0.002) # so the line of fit can be seen
+  lines(ETA, predict(LM, newdata=list(ETA=ETA)), col=2)
+  The.Coefficients.In.pargam.Function &lt;- LM$coefficients
+</pre>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+<p>Hosking, J.R.M., 1996, FORTRAN routines for use with the method of L-moments: Version 3, IBM Research Report RC20525, T.J. Watson Research Center, Yorktown Heights, New York.
+</p>
+<p>Hosking, J.R.M., and Wallis, J.R., 1997, Regional frequency analysis—An approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomgam</code>,
+<code>cdfgam</code>, <code>pdfgam</code>, <code>quagam</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">pargam(lmoms(abs(rnorm(20, mean=10))))
+
+## Not run: 
+pargam(lmomgam(vec2par(c(0.3,0.4,+1.2), type="gam")), p=3)$para
+pargam(lmomgam(vec2par(c(0.3,0.4,-1.2), type="gam")), p=3)$para
+#        mu      sigma         nu 
+# 0.2999994  0.3999990  1.1999696
+# 0.2999994  0.4000020 -1.2000567
+## End(Not run)
+</code></pre>
+
+
+</div>

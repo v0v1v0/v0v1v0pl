@@ -1,0 +1,371 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting Row-Column Association Models</h2>
+
+<h3>Description</h3>
+
+<p>Fit log-multiplicative row-column association models, also called RC(M) models or Goodman's (1979) Model II,
+with one or several dimensions. Supported variants (for square tables) include symmetric (homogeneous)
+row and column scores, possibly combined with separate diagonal parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rc(tab, nd = 1, symmetric = FALSE, diagonal = FALSE,
+   weighting = c("marginal", "uniform", "none"),
+   rowsup = NULL, colsup = NULL,
+   se = c("none", "jackknife", "bootstrap"),
+   nreplicates = 100, ncpus = getOption("boot.ncpus"),
+   family = poisson, weights = NULL,
+   start = NULL, etastart = NULL, tolerance = 1e-8,
+   iterMax = 5000, trace = FALSE, verbose = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p> a two-way table, or an object (such as a matrix) that can be coerced into a table;
+if present, dimensions above two will be collapsed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nd</code></td>
+<td>
+<p> the number of dimensions to include in the model. Cannot exceed
+<code>min(nrow(tab) - 1, ncol(tab) - 1)</code> if <code>symmetric</code> is <code>FALSE</code> (saturated model),
+and twice this threshold otherwise (quasi-symmetry model).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symmetric</code></td>
+<td>
+<p> should row and column scores be constrained to be equal? Valid only for square tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diagonal</code></td>
+<td>
+<p> should the model include parameters specific to each diagonal cell? This amounts to
+taking quasi-independence, rather than independence, as the baseline model. Valid only for square tables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p> what weights should be used when normalizing the scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rowsup</code></td>
+<td>
+<p> if present, a matrix with the same columns as <code>tab</code> giving supplementary (passive) rows.
+If <code>symmetric = TRUE</code>, <code>rowsup</code> and <code>colsup</code> must be specified together and
+rows of <code>rowsup</code> must correspond to columns of <code>colsup</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colsup</code></td>
+<td>
+<p> if present, a matrix with the same rows as <code>tab</code> giving supplementary (passive) columns.
+See <code>rowsup</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p> which method to use to compute standard errors for parameters (see <code>se.assoc</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nreplicates</code></td>
+<td>
+<p> the number of bootstrap replicates, if enabled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncpus</code></td>
+<td>
+<p> the number of processes to use for jackknife or bootstrap parallel computing. Defaults to
+the number of cores (see <code>detectCores</code>), with a maximum of 5, but falls back to 1
+(no parallelization) if package <code>parallel</code> is not available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p> a specification of the error distribution and link function
+to be used in the model. This can be a character string naming
+a family function; a family function, or the result of a call
+to a family function. See <code>family</code> details of family functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p> an optional vector of weights to be used in the fitting process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>either <code>NA</code> to use optimal starting values, <code>NULL</code> to use
+random starting values, or a vector of starting values for the parameters in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etastart</code></td>
+<td>
+<p> starting values for the linear predictor; set to <code>NULL</code> to use either default
+starting values (if <code>start = NA</code>), or random starting values (in all other cases).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tolerance</code></td>
+<td>
+<p> a positive numeric value specifying the tolerance level for
+convergence; higher values will speed up the fitting process, but beware of numerical
+instability of estimated scores!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterMax</code></td>
+<td>
+<p> a positive integer specifying the maximum number of main iterations to perform;
+consider raising this value if your model does not converge.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p> a logical value indicating whether the deviance
+should be printed after each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p> a logical value indicating whether progress indicators should be printed,
+including a diagnostic error message if the algorithm restarts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> more arguments to be passed to <code>gnm</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function fits log-multiplicative row-column association models, usually called (after
+Goodman) RC(M) models, typically following the equation:
+</p>
+<p style="text-align: center;"><code class="reqn"> log F_{ij} = \lambda + \lambda^I_i + \lambda^J_j + \sum_{m=1}^M { \phi_{m} \mu_{im} \nu_{jm} } </code>
+</p>
+
+<p>where <code class="reqn">F_{ij}</code> is the expected frequency for the cell at the intersection of row i and column j of
+<code>tab</code>, and M the number of dimensions. See references for detailed information about the
+variants of the model, the degrees of freedom and the identification constraints applied to the scores.
+</p>
+<p>Actual model fitting is performed using <code>gnm</code>, which implements the Newton-Raphson algorithm.
+This function simply ensures correct start values are used, in addition to allowing for identification
+of scores even with several dimensions, computation of their jackknife or bootstrap standard errors, and plotting.
+The default starting values for association parameters are computed using a singular/eigen value decomposition
+from the results of the model without association component (“base model”). In some complex cases, using
+<code>start = NULL</code> to start with random values can be more efficient, but it is also less stable and can converge
+to non-optimal solutions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>rc</code> object, with all the components of a <code>gnm</code> object, plus an
+<code>assoc.rc</code> component holding the most relevant association information:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>phi </code></td>
+<td>
+<p>The intrisic association parameters, one per dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row </code></td>
+<td>
+<p>Row scores, normalized so that their (weighted) sum is 0, their (weighted)
+sum of squares is 1, and their (weighted) cross-dimensional correlation is null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col </code></td>
+<td>
+<p>Column scores, normalized so that their (weighted) sum is 0, their (weighted)
+sum of squares is 1, and their (weighted) cross-dimensional correlation is null.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting </code></td>
+<td>
+<p>The name of the weighting method used, reflected by <code>row.weights</code>
+and <code>col.weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.weights </code></td>
+<td>
+<p>The row weights used for the identification of scores, as specified by the
+<code>weighting</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.weights </code></td>
+<td>
+<p>The column weights used for the identification of scores, as specified by the
+<code>weighting</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covmat </code></td>
+<td>
+<p>The variance-covariance matrix for phi coefficients and normalized row and column
+scores. Only present if <code>se</code> was not “none”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adj.covmats </code></td>
+<td>
+<p>An array stacking on its third dimension one variance-covariance matrix for
+the adjusted scores of each layer in the model (used for plotting). Only present if <code>se</code>
+was not “none”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covtype </code></td>
+<td>
+<p>The method used to compute the variance-covariance matrix (corresponding to the
+<code>se</code> argument.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>Goodman, L.A. (1979). Simple Models for the Analysis of Association in Cross-Classifications
+having Ordered Categories. <em>J. of the Am. Stat. Association</em> 74(367), 537-552.
+</p>
+<p>Becker, M.P., and Clogg, C.C. (1989). Analysis of Sets of Two-Way Contingency Tables Using
+Association Models. <em>Journal of the American Statistical Association</em> 84(405), 142-151.
+</p>
+<p>Goodman, L.A. (1985). The Analysis of Cross-Classified Data Having Ordered and/or Unordered
+Categories: Association Models, Correlation Models, and Asymmetry Models for Contingency
+Tables With or Without Missing Entries. <em>The Annals of Statistics</em> 13(1), 10-69.
+</p>
+<p>Goodman, L.A. (1991). Measures, Models, and Graphical Displays in the Analysis of
+Cross-Classified Data. <em>J. of the Am. Stat. Association</em> 86(416), 1085-1111.
+</p>
+<p>Clogg, C.C., and Shihadeh, E.S. (1994). Statistical Models for Ordinal Variables. Sage: Advanced
+Quantitative Techniques in the Social Sciences (4).
+</p>
+<p>Wong, R.S-K. (2010). Association models. SAGE: Quantitative Applications in the Social Sciences.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.rc</code>, <code>gnm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Goodman (1991), Table 17.1 (p. 1097)
+  data(criminal)
+  model &lt;- rc(criminal)
+
+  model$assoc # These are the phi (.07), mu and nu
+  model$assoc$row[,1,1] * model$assoc$phi[1,1] # These are the mu'
+  model$assoc$col[,1,1] * model$assoc$phi[1,1] # These are the nu'
+
+  ## Becker &amp; Clogg (1989), Table 5 (p. 145)
+  # See also ?rcL to run all models in one call
+  ## Not run: 
+  data(color)
+
+  # "Uniform weights" in the authors' terms mean "no weighting" for us
+  # See ?rcL for average marginals
+  caithness.unweighted &lt;- rc(color[,,1], nd=2, weighting="none",
+                             se="jackknife")
+  caithness.marginal &lt;- rc(color[,,1], nd=2, weighting="marginal",
+                           se="jackknife")
+  aberdeen.unweighted &lt;- rc(color[,,2], nd=2, weighting="none",
+                            se="jackknife")
+  aberdeen.marginal &lt;- rc(color[,,2], nd=2, weighting="marginal",
+                          se="jackknife")
+
+  caithness.unweighted
+  caithness.marginal
+  aberdeen.unweighted
+  aberdeen.marginal
+
+  # To see standard errors, either:
+  se(caithness.unweighted)
+
+  # and so on...
+  # (ours are much smaller for the marginal-weighted case)
+  # Or:
+  summary(caithness.unweighted)
+  
+## End(Not run)
+
+
+  ## Clogg &amp; Shihadeh (1994), Tables 3.5a and b (p. 55-61)
+  data(gss88)
+  model &lt;- rc(gss88)
+
+  # Unweighted scores
+  summary(model, weighting="none")
+  # Marginally weighted scores
+  summary(model, weighting="marginal")
+  # Uniformly weighted scores
+  summary(model, weighting="uniform")
+
+
+  ## Wong (2010), Table 2.7 (p. 48-49)
+  ## Not run: 
+  data(gss8590)
+
+  # The table used in Wong (2001) is not perfectly consistent
+  # with that of Wong (2010)
+  tab &lt;- margin.table(gss8590[,,c(2,4)], 1:2)
+  tab[2,4] &lt;- 49
+
+  model &lt;- rc(tab, nd=2, weighting="none", se="jackknife")
+
+  model
+  summary(model) # Jackknife standard errors are slightly different
+                 # from their asymptotic counterparts
+
+  # Compare with bootstrap standard errors
+  model2 &lt;- rc(tab, nd=2, weighting="none", se="bootstrap")
+  plot(model, conf.int=0.95)
+  summary(model2)
+  
+## End(Not run)
+</code></pre>
+
+
+</div>

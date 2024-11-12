@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lazysf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Delayed (lazy) read for GDAL vector</h2>
+
+<h3>Description</h3>
+
+<p>A lazy data frame for GDAL drawings ('vector data sources'). lazysf is DBI
+compatible and designed to work with dplyr. It should work with any data source
+(file, url, connection string) readable by the sf package function <code>sf_read</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lazysf(x, layer, ...)
+
+## S3 method for class 'character'
+lazysf(x, layer, ..., query = NA)
+
+## S3 method for class 'SFSQLConnection'
+lazysf(x, layer, ..., query = NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the data source name (file path, url, or database connection string
+</p>
+
+<ul><li>
+<p> analogous to <code>sf::read_sf()</code> 'dsn')
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layer</code></td>
+<td>
+<p>layer name (varies by driver, may be a file name without
+extension); in case <code>layer</code> is missing, <code>st_read</code> will read the
+first layer of <code>dsn</code>, give a warning and (unless <code>quiet = TRUE</code>)
+print a message when there are multiple layers, or give an error if there
+are no layers in <code>dsn</code>. If <code>dsn</code> is a database connection, then
+<code>layer</code> can be a table name or a database identifier (see
+<code>Id</code>). It is also possible to omit <code>layer</code> and rather
+use the <code>query</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>ignored</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>query</code></td>
+<td>
+<p>SQL query to pass in directly</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Lazy means that the usual behaviour of reading the entirety of a data source
+into memory is avoided. Printing the output results in a preview query being
+run and displayed (the top few rows of data).
+</p>
+<p>The output of <code>lazysf()</code> is a 'tbl_SFSQLConnection<code style="white-space: pre;">⁠that extends⁠</code>tbl_dbi' and
+may be used with functions and workflows in the normal DBI way, see <code>SFSQL()</code> for
+the lazysf DBI support.
+</p>
+<p>The kind of q uery that may be run will depend on the type of format, see the
+list on the GDAL vector drivers page. For some details see the
+<a href="https://mdsumner.github.io/lazysf/articles/GDAL-SQL.html">GDALSQL vignette</a>.
+</p>
+<p>When dplyr is attached the lazy data frame can be used with the usual verbs
+verbs (filter, select, distinct, mutate, transmute, arrange, left_join, pull,
+collect etc.). To see the result as a SQL query rather than a data frame
+preview use <code>dplyr::show_query()</code>.
+</p>
+<p>To obtain an in memory data frame use an explict <code>collect()</code> or <code>st_as_sf()</code>.
+A call to <code>collect()</code> is triggered by <code>st_as_sf()</code> and will add the sf class
+to the output. A result may not contain a geometry column, and so cannot be
+convert to an sf data frame. Using <code>collect()</code> on its own returns an
+unclassed data.frame and may include a classed <code>sfc</code> geometry column.
+</p>
+<p>As well as <code>collect()</code> it's also possible to use <code>tibble::as_tibble()</code> or
+<code>as.data.frame()</code> or <code>pull()</code> which all force computation and retrieve the
+result.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a 'tbl_SFSQLConnection', extending 'tbl_lazy' (something that works
+with dplyr verbs, and only shows a preview until you commit the result via
+<code>collect()</code>) see Details
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># online sources can work
+geojson &lt;- file.path("https://raw.githubusercontent.com/SymbolixAU",
+                     "geojsonsf/master/inst/examples/geo_melbourne.geojson")
+
+lazysf(geojson)
+
+
+## normal file stuff
+## (Geopackage is an actual database so with SELECT we must be explicit re geom-column)
+f &lt;- system.file("gpkg/nc.gpkg", package = "sf", mustWork = TRUE)
+lazysf(f)
+lazysf(f, query = "SELECT AREA, FIPS, geom FROM \"nc.gpkg\" WHERE AREA &lt; 0.1")
+lazysf(f, layer = "nc.gpkg") %&gt;% dplyr::select(AREA, FIPS, geom) %&gt;% dplyr::filter(AREA &lt; 0.1)
+
+## the famous ESRI Shapefile (not an actual database)
+## so if we SELECT we must be ex
+shp &lt;- lazysf(system.file("shape/nc.shp", package = "sf", mustWork = TRUE))
+library(dplyr)
+shp %&gt;%
+ filter(NAME %LIKE% 'A%') %&gt;%
+ mutate(abc = 1.3) %&gt;%
+ select(abc, NAME, `_ogr_geometry_`) %&gt;%
+ arrange(desc(NAME))  #%&gt;% show_query()
+
+ ## a multi-layer file
+ system.file("extdata/multi.gpkg", package = "lazysf", mustWork = TRUE)
+</code></pre>
+
+
+</div>

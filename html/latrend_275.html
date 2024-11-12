@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>latrendBatch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cluster longitudinal data for a list of method specifications</h2>
+
+<h3>Description</h3>
+
+<p>Fit a list of longitudinal cluster methods on one or more datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">latrendBatch(
+  methods,
+  data,
+  cartesian = TRUE,
+  seed = NULL,
+  parallel = FALSE,
+  errorHandling = "stop",
+  envir = NULL,
+  verbose = getOption("latrend.verbose")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>methods</code></td>
+<td>
+<p>A <code>list</code> of <code>lcMethod</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The dataset(s) to which to fit the respective <code>lcMethod</code> on.
+Either a <code>data.frame</code>, <code>matrix</code>, <code>list</code> or an expression evaluating to one of the supported types.
+Multiple datasets can be supplied by encapsulating the datasets using <code>data = .(df1, df2, ..., dfN)</code>.
+Doing this results in a more readable <code>call</code> associated with each fitted <code>lcModel</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cartesian</code></td>
+<td>
+<p>Whether to fit the provided methods on each of the datasets. If <code>cartesian=FALSE</code>, only a single dataset may be provided or a list of data matching the length of <code>methods</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Sets the seed for generating a seed number for the methods.
+Seeds are only set for methods without a seed argument or <code>NULL</code> seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Whether to enable parallel evaluation. See latrend-parallel. Method evaluation and dataset transformation is done on the calling thread.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>errorHandling</code></td>
+<td>
+<p>Whether to <code>"stop"</code> on an error, or to <code style="white-space: pre;">⁠"remove'⁠</code> evaluations that raised an error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>The <code>environment</code> in which to evaluate the <code>lcMethod</code> arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>The level of verbosity. Either an object of class <code>Verbose</code> (see R.utils::Verbose for details),
+a <code>logical</code> indicating whether to show basic computation information,
+a <code>numeric</code> indicating the verbosity level (see Verbose),
+or one of <code>c('info', 'fine', 'finest')</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Methods and datasets are evaluated and validated prior to any fitting. This ensures that the batch estimation fails as early as possible in case of errors.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>lcModels</code> object.
+In case of a model fit error under <code>errorHandling = pass</code>, a <code>list</code> is returned.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>lcMethods
+</p>
+<p>Other longitudinal cluster fit functions: 
+<code>latrend()</code>,
+<code>latrendBoot()</code>,
+<code>latrendCV()</code>,
+<code>latrendRep()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(latrendData)
+refMethod &lt;- lcMethodLMKM(Y ~ Time, id = "Id", time = "Time")
+methods &lt;- lcMethods(refMethod, nClusters = 1:2)
+models &lt;- latrendBatch(methods, data = latrendData)
+
+# different dataset per method
+models &lt;- latrendBatch(
+   methods,
+   data = .(
+     subset(latrendData, Time &gt; .5),
+     subset(latrendData, Time &lt; .5)
+   )
+)
+
+</code></pre>
+
+
+</div>

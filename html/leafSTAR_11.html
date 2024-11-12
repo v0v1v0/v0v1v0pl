@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simu.star.app</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate simulated silhouette to area ratios from 'Ahmes' 1.0</h2>
+
+<h3>Description</h3>
+
+<p>This is a version of simu.star function that only works with the output of 'Ahmes' 1.0. <code>simu.star.app()</code> re-calculates the percentage of potential exposure of flat, tilted surfaces to direct solar radiation with different custom settings of location and time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">simu.star.app(x, lat, long, tz, o.format = NULL, c.hour = NULL,
+  c.date = NULL, c.long = NULL, c.lat = NULL, c.tz = NULL, LA = NULL,
+  details = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Output of 'Ahmes' 1.0. A .csv file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>A vector with the latitude of each observation in decimal format. If all observations correspond to the same latitude, <code>lat</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>A vector with the longitude of each observation in decimal format. If all observations correspond to the same longitude, <code>long</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>A vector with the time zone of each observation. If all observations correspond to the same time zone, <code>tz</code> can be introduced directly as a single number (see examples). Time zones located at the West of Greenwich are negative, and at the East are positive; e.g., for Colombia, <code>tz</code> = -5; for Reunion Island, <code>tz</code> = 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>o.format</code></td>
+<td>
+<p>A character indicating the date format in the input data. It is similar to the argument <code>format</code> in the function <code>as.Date{base}</code>. Defaults to <code>NULL</code>. See details and examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.hour</code></td>
+<td>
+<p>A vector of custom hours of length equal to or greater than 1. Hours in decimal format, from 0 to 24. Minutes in decimal format, from 0 to 99. E.g., 12:30 should be written as 12.50. If available, seconds should also be specified in decimal format. See <code>fixhour</code>. If all observations correspond to the same local time, <code>local.time</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.date</code></td>
+<td>
+<p>A vector of custom dates of length equal to or greater than 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.long</code></td>
+<td>
+<p>A vector of custom longitude coordinates in decimal format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.lat</code></td>
+<td>
+<p>A vector of custom latitude coordinates in decimal format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.tz</code></td>
+<td>
+<p>A vector of custom time zone/s. Time zones located at the West of Greenwich are negative; e.g., for Colombia, <code>c.tz</code> = -5; for Reunion Island, <code>c.tz</code> = 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LA</code></td>
+<td>
+<p>Indicates whether leaf area data needs to be replicated to match the dimensions of the dataframe corresponding to the custom factors (see 'custom settings' in Details). When <code>LA</code> is specified, all the five custom factors (<code>c.hour</code>, <code>c.date</code>, <code>c.lat</code>, <code>c.long</code>, <code>c.tz</code>) need to be specified (i.e., they should be different from <code>NULL</code>). Defaults to <code>NULL</code>. <code>LA</code> does not affect the calculation of STAR. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>details</code></td>
+<td>
+<p>Logical. If (<code>details =FALSE</code>), the output of <code>simu.star.app()</code> is a vector with STAR values. If <code>details = TRUE</code> the output is the complete dataset plus a column with STAR values. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function calls <code>fixfile</code> internally before calculating STAR. However, it does not modify the original dataset. To have a permanent fixed version of the data, use <code>new.file&lt;-fixfile(your.data)</code>. If using <code>new.file</code> within the package, be aware that the argument <code>Ahmes</code> should be set to <code>FALSE</code>.
+</p>
+<p><code>o.format</code> Needs to be specified if <code>Ahmes = FALSE</code> AND input data format is other than Julian or the default formats handled by <code>as.Date{base}</code> ("%Y/%m/%d" and "%Y-%m-%d"). When <code>Ahmes = TRUE</code>, <code>o.format</code> is not needed because functions of the <code>Ahmes</code> family solve date issues internally.
+</p>
+<p>Custom settings. In the functions of the <code>simu</code> family, the original dataframe is repeated as a block times the number of levels of the custom arguments specified (<code>c.hour</code>, <code>c.date</code>, <code>c.lat</code>, <code>c.long</code>, and <code>c.tz</code>). E.g., if a dataset with 10 observations is to be recalculated at two days of the year, the function will create a new dataframe with 20 rows (10 observation X 2 days). For this reason, <code>LA</code> needs to be specified if the user intends to calculate SAL using the output of <code>simu.star</code>. In addition, the argument <code>details</code> allows the user to visualize the new dataframe created by the function.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Agustina Ventre-Lespiaucq and Silvia Santamaria Bueno.
+</p>
+
+
+<h3>References</h3>
+
+<p><strong>Escribano-Rocafort, A.G., Ventre-Lespiaucq, A.B., Granado-Yela, C., Lopez-Pintor, A., Delgado, J.A., Munoz, V., Dorado, G.A., Balaguer, L. (2014).</strong> Simplifying data acquisition in plant canopies- Measurements of leaf angles with a cell phone. Methods in Ecology and Evolution 5:132-140. doi:10.1111/2041-210X.12141.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fixfile</code>, <code>simu.star</code>, <code>star.app</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(olea)
+simustar_olea&lt;-simu.star.app(olea,lat=40,long=4,tz=2,
+ c.hour=c(8,12,18),c.date=c(1,60,120,180,240))
+
+#simu.star.app()
+</code></pre>
+
+
+</div>

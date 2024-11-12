@@ -1,0 +1,102 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>baselineAdjustment</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform Baseline Adjustment</h2>
+
+<h3>Description</h3>
+
+<p>Create a new variable based on a time variable and a group variable where groups are constrained to be equal at specific timepoints.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">baselineAdjustment(
+  object,
+  variable,
+  repetition,
+  constrain,
+  new.level = NULL,
+  collapse.time = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>[data.frame] dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>[character] Column in the dataset to be constrained at specific timepoints.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repetition</code></td>
+<td>
+<p>[formula] Time and cluster structure, typically <code>~time|id</code>. See examples below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrain</code></td>
+<td>
+<p>[vector] Levels of the time variable at which the variable is constained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new.level</code></td>
+<td>
+<p>[character or numeric] Level used at the constraint. If <code>NULL</code>, then the first level of the variable argument is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>collapse.time</code></td>
+<td>
+<p>[character] When not <code>NULL</code> character used to combine the time and argument variable into a new (interaction) variable.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of length the number of rows of the dataset.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(ncgsL, package = "LMMstar")
+ncgsL$group &lt;- relevel(ncgsL$group, "placebo")
+
+## baseline adjustment 1
+ncgsL$treat &lt;- baselineAdjustment(ncgsL, variable = "group",
+               repetition= ~ visit|id, constrain = 1)
+table(treat = ncgsL$treat, visit = ncgsL$visit, group = ncgsL$group)
+
+ncgsL$treattime &lt;- baselineAdjustment(ncgsL, variable = "group",
+                   repetition= ~ visit|id, constrain = 1, collapse.time = ".")
+table(treattime = ncgsL$treattime, visit = ncgsL$visit, group = ncgsL$group)
+
+## baseline adjustment 2
+ncgsL$treat2 &lt;- baselineAdjustment(ncgsL, variable = "group",
+                 new.level = "baseline",
+                 repetition= ~ visit|id, constrain = 1)
+table(treat = ncgsL$treat2, visit = ncgsL$visit, group = ncgsL$group)
+
+ncgsL$treattime2 &lt;- baselineAdjustment(ncgsL, variable = "group",
+                   new.level = "baseline",
+                   repetition= ~ visit|id, constrain = 1, collapse.time = ".")
+table(treattime = ncgsL$treattime2, visit = ncgsL$visit, group = ncgsL$group)
+
+</code></pre>
+
+
+</div>

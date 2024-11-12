@@ -1,0 +1,286 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>delta.land.obs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimates survival and treatment effect using landmark estimation
+</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the probability of survival past some specified time and the treatment effect, defined as the difference in survival at the specified time, using landmark estimation for an observational study setting
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">delta.land.obs(tl, dl, treat, tt, landmark, short = NULL, z.cov = NULL, 
+var = FALSE, conf.int = FALSE, ps.weights = NULL, weight.perturb = NULL, 
+perturb.ps = FALSE, cov.for.ps = NULL, bw = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tl</code></td>
+<td>
+
+<p>observed event time of primary outcome, equal to min(T, C) where T is the event time and C is the censoring time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dl</code></td>
+<td>
+
+<p>event indicator, equal to I(T&lt;C) where T is the event time and C is the censoring time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+
+<p>treatment indicator, should be 0/1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tt</code></td>
+<td>
+
+<p>the time of interest, function estimates the probability of survival past this time	
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>landmark</code></td>
+<td>
+
+<p>the landmark time
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>short</code></td>
+<td>
+
+<p>a matrix of intermediate event information, there should be two columns for each intermediate event, the first column contains the observed intermediate event time, equal to min(TS, C) where TS is the event time and C is the censoring time, and the second column contains the event indicator, equal to I(TS&lt;C)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.cov</code></td>
+<td>
+
+<p>matrix of baseline covariate information
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+
+<p>TRUE or FALSE; indicates whether variance estimates for the treatment effect and survival in each group are requested, default is FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int</code></td>
+<td>
+
+<p>TRUE or FALSE; indicates whether 95% confidence intervals for the treatment effect and survival in each group are requested, default is FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ps.weights</code></td>
+<td>
+
+<p>propensity score (or inverse probability of treatment) weights
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight.perturb</code></td>
+<td>
+
+<p>a (n1+n0) by x matrix of weights where n1 = length of tl for treatment group 1 and n0 =  length of tl for treatment group 0; used for perturbation-resampling, default is null. If var or conf.int is TRUE and weight.perturb is not provided, the function generates exponential(1) weights. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perturb.ps</code></td>
+<td>
+
+<p>TRUE or FALSE indicating whether the weight.perturb matrix includes the perturbed propensity score (or inverse probability of treatment) weights; if cov.for.ps is supplied instead of ps.weights, this is forced to be TRUE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.for.ps</code></td>
+<td>
+
+<p>matrix of covariates to be used to estimate propensity score (or inverse probability of treatment) weights; either ps.weights or cov.for.ps must be supplied. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+
+<p>bandwidth used for kernel estimation, default is NULL
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let  <code class="reqn">T_{Li}</code> denote the time of the primary event of interest for person <code class="reqn">i</code>, <code class="reqn">T_{Si}</code> denote the time of the available intermediate event(s), <code class="reqn">C_i</code> denote the censoring time, <code class="reqn">Z_{i}</code> denote the vector of baseline (pretreatment) covariates, and <code class="reqn">G_i</code> be the treatment group indicator such that <code class="reqn">G_i = 1</code> indicates treatment and <code class="reqn">G_i = 0</code> indicates control. Due to censoring, we observe <code class="reqn">X_{Li}= min(T_{Li}, C_{i})</code> and <code class="reqn">\delta_{Li} = I(T_{Li}\leq C_{i})</code> and <code class="reqn">X_{Si}= min(T_{Si}, C_{i})</code> and <code class="reqn">\delta_{Si} = I(T_{Si}\leq C_{i})</code>. This function estimates survival at time t within each treatment group, <code class="reqn">S_j(t) = P(T_{L} &gt; t | G = j)</code> for <code class="reqn">j = 1,0</code> and the treatment effect defined as <code class="reqn">\Delta(t) = S_1(t) - S_0(t)</code>.
+</p>
+<p>To derive these estimates using landmark estimation for an observational study setting, we first decompose the quantity into two components <code class="reqn">S_j (t)= S_j(t|t_0) S_j(t_0)</code> using a landmark time <code class="reqn">t_0</code> and estimate each component separately incorporating inverse probability of treatment weights (IPTW) to account for potential selection bias. Let <code class="reqn">W_j(Z_i) = {P(G_{i} = j | Z_i)}</code>, and <code class="reqn">\hat{W}_j(Z_i)</code> be the estimated propensity score (or probability of treatment, see ps.wgt.fun for more information). In this presentation, we assume <code class="reqn">Z_i</code> indicates the vector of baseline (pretreatment) covariates and that <code class="reqn">Z_i</code> is used to estimate the propensity scores and incorporated into the survival and treatment effect estimation. However, the function allows one to use different subsets of <code class="reqn">Z_i</code> for the propensity score estimation vs. survival estimation, as is appropriate in the setting of interest. Intermediate event information is used in estimation of the conditional component <code class="reqn">S_j(t|t_0)</code>, 
+</p>
+<p style="text-align: center;"><code class="reqn">S_j(t|t_0)= P(T_L&gt;t |T_L&gt; t_0,G=j)=E[E[I(T_L&gt;t | T_L&gt; t_0,G=j,H)]]=E[S_{j,H} (t|t_0)]</code>
+</p>
+
+<p>where <code class="reqn">S_{j,H}(t|t_0) = P(T_L&gt;t | T_L&gt; t_0,G=j,H)</code> and <code class="reqn">H = \{Z, I(T_S \leq t_0), min(T_S, t_0) \}.</code> Then <code class="reqn">S_{j,H}(t|t_0)</code> is estimated in two stages. The first stage involves fitting a weighted Cox proportional hazards model  among individuals with <code class="reqn">X_L&gt; t_0</code> to obtain an estimate of <code class="reqn">\beta</code>, denoted as <code class="reqn">\hat{\beta}</code>, </p>
+<p style="text-align: center;"><code class="reqn">S_{j,H}(t|t_0)=\exp \{-\Lambda_{j,0} (t|t_0) \exp(\beta^{T} H) \} </code>
+</p>
+
+<p>where <code class="reqn">\Lambda_{j,0} (t|t_0)</code> is the cumulative baseline hazard in group <code class="reqn">j</code>. Specifically,  <code class="reqn">\hat{\beta}</code> is the solution to the weighted Cox partial likelhoodand, with weights <code class="reqn">\hat{W}_j(Z_i)^{-1}</code>. The second stage uses a weighted nonparametric kernel Nelson-Aalen estimator to obtain a local constant estimator for the conditional hazard <code class="reqn">\Lambda_{j,u}(t|t_0) = -\log [S_{j,u}(t|t_0)]</code> as 
+</p>
+<p style="text-align: center;"><code class="reqn">\hat{\Lambda}_{j,u}(t|t_0) = \int_{t_0}^t \frac{\sum_i \hat{W}_j(Z_i)^{-1} K_h(\hat{U}_i - u) dN_i(z)}{\sum_i \hat{W}_j(Z_i)^{-1} K_h(\hat{U}_i - u) Y_i(z)}</code>
+</p>
+
+<p>where <code class="reqn">S_{j,u}(t|t_0)=P(T_L&gt;t | T_L&gt; t_0,G=j,\hat{U}=u), \hat{U} = \hat{\beta}^{T} H, Y_i(t)=I(T_L \geq t),N_i (t)=I(T_L\leq t)I(T_L&lt;C),K(\cdot)</code> is a smooth symmetric density function, <code class="reqn">K_h (x/h)/h</code>,  <code class="reqn">h=O(n^{-v})</code> is a bandwidth with <code class="reqn">1/2 &gt; v &gt; 1/4</code>, and the summation is over all individuals with <code class="reqn">G=j</code> and <code class="reqn">X_L&gt;t_0</code>.  The resulting estimate for <code class="reqn">S_{j,u}(t|t_0)</code> is <code class="reqn">\hat{S}_{j,u}(t|t_0) = \exp \{-\hat{\Lambda}_{j,u}(t|t_0)\}</code>, and the final estimate </p>
+<p style="text-align: center;"><code class="reqn">\hat{S}_j(t|t_0) = \frac{n^{-1} \sum_{i =1}^n   \hat{W}_j(Z_i)^{-1} \hat{S}_j(t|t_0, H_i) I(G_i=1)I(X_{Li} &gt; t_0)}{n^{-1} \sum_{i =1}^n  \hat{W}_j(Z_i)^{-1} I(G_i=1)I(X_{Li} &gt; t_0) }</code>
+</p>
+
+<p>is a consistent estimate of <code class="reqn">S_j(t|t_0)</code>.
+</p>
+<p>Estimation of <code class="reqn">S_j(t_0)</code> uses a similar two-stage approach but using only baseline covariates, to obtain  <code class="reqn">\hat{S}_j(t_0)</code>. The final overall estimate of survival at time <code class="reqn">t</code> is, <code class="reqn">\hat{S}_{LM,j} (t)=  \hat{S}_j(t|t_0) \hat{S}_j(t_0)</code>. The treatment effect in terms of the difference in survival at time <code class="reqn">t</code> is estimated as <code class="reqn">\hat{\Delta}_{LM}(t) = \hat{S}_{LM,1}(t) - \hat{S}_{LM,0}(t).</code>   To obtain an appropriate <code class="reqn">h</code> we first use the bandwidth selection procedure given by Scott(1992) to obtain <code class="reqn">h_{opt}</code>; and then we let <code class="reqn">h = h_{opt}n_j^{-0.10}</code>. 
+</p>
+<p>To obtain variance estimates and construct confidence intervals, we  use a perturbation-resampling method. Specifically, let <code class="reqn">\{V^{(b)}=(V_1^{(b)}, . . . ,V_n^{(b)})^{T}, b=1,...B\}</code> be 
+<code class="reqn">n\times B</code> independent copies of a positive random variable U from a known distribution with unit mean and unit variance such as an Exp(1) distribution.  To estimate the variance of our estimates, we appropriately weight the estimates using these perturbation weights to obtain perturbed values: <code class="reqn">\hat{S}_{LM,0} (t)^{(b)}</code>, <code class="reqn">\hat{S}_{LM,1} (t)^{(b)}</code>, and <code class="reqn">\hat{\Delta}_{LM} (t)^{(b)}, b=1,...B</code>. We then estimate the variance of each estimate as the empirical variance of the perturbed quantities. To construct confidence intervals, one can either use the empirical percentiles of the perturbed samples  or a normal approximation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>S.estimate.1</code></td>
+<td>
+<p>the estimate of survival at the time of interest for treatment group 1, <code class="reqn">\hat{S}_1(t) = P(T&gt;t | G=1)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.estimate.0</code></td>
+<td>
+<p>the estimate of survival at the time of interest for treatment group 0, <code class="reqn">\hat{S}_0(t) = P(T&gt;t | G=0)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.estimate</code></td>
+<td>
+<p>the estimate of treatment effect at the time of interest</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var.1 </code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{S}_1(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S.var.0 </code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{S}_0(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.var</code></td>
+<td>
+<p>the variance estimate of <code class="reqn">\hat{\Delta}(t)</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+<p>the p-value from testing <code class="reqn">\Delta(t) = 0</code>; if var = TRUE or conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.S.1</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_1(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.S.0</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_0(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.normal.delta</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{\Delta}(t)</code> based on a normal approximation; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.S.1</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_1(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.S.0</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{S}_0(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.int.quantile.delta</code></td>
+<td>
+<p>a vector of size 2; the 95% confidence interval for <code class="reqn">\hat{\Delta}(t)</code> based on sample quantiles of the perturbed values, described above; if conf.int = TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Layla Parast
+</p>
+
+
+<h3>References</h3>
+
+<p>Parast, L. &amp; Griffin B.A. (2017). Landmark Estimation of Survival and Treatment Effects in Observational Studies. Lifetime Data Analysis, 23:161-182.
+</p>
+<p>Rosenbaum, P. R., &amp; Rubin, D. B. (1983). The central role of the propensity score in observational studies for causal effects. Biometrika, 70(1), 41-55.
+</p>
+<p>Rosenbaum, P. R., &amp; Rubin, D. B. (1984). Reducing bias in observational studies using subclassification on the propensity score. Journal of the American Statistical Association, 79(387), 516-524.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(example_obs)
+W.weight = ps.wgt.fun(treat = example_obs$treat, cov.for.ps = as.matrix(example_obs$Z))	
+#executable but takes time
+#delta.land.obs(tl=example_obs$TL, dl = example_obs$DL, treat = example_obs$treat, tt=2, 
+#landmark = 1, short = cbind(example_obs$TS,example_obs$DS), z.cov = as.matrix(example_obs$Z),
+#ps.weights = W.weight)
+#delta.land.obs(tl=example_obs$TL, dl = example_obs$DL, treat = example_obs$treat, tt=2, 
+#landmark = 1, short = cbind(example_obs$TS,example_obs$DS), z.cov = as.matrix(example_obs$Z),
+#cov.for.ps = as.matrix(example_obs$Z))
+
+</code></pre>
+
+
+</div>

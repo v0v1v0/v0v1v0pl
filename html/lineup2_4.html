@@ -1,0 +1,138 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>corr_betw_matrices</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate correlations between columns of two matrices</h2>
+
+<h3>Description</h3>
+
+<p>For matrices x and y, calculate the correlation between columns of x and
+columns of y.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">corr_betw_matrices(
+  x,
+  y,
+  what = c("paired", "bestright", "bestpairs", "all"),
+  corr_threshold = 0.9,
+  align_rows = TRUE,
+  cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A numeric matrix with the same number of rows as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>what</code></td>
+<td>
+<p>Indicates which correlations to calculate and return.  See
+value, below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr_threshold</code></td>
+<td>
+<p>Threshold on correlations if <code>what="bestpairs"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>align_rows</code></td>
+<td>
+<p>If TRUE, align the rows in the two matrices by
+the row names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>Number of CPU cores to use, for parallel calculations.
+(If <code>0</code>, use <code>parallel::detectCores()</code>.)
+Alternatively, this can be links to a set of cluster sockets, as
+produced by <code>parallel::makeCluster()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Missing values (<code>NA</code>) are ignored, and we calculate the correlation
+using all complete pairs, as in <code>stats::cor()</code> with
+<code>use="pairwise.complete.obs"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>what="paired"</code>, the return value is a vector of
+correlations, between columns of <code>x</code> and the corresponding column of
+<code>y</code>.  <code>x</code> and <code>y</code> must have the same number of columns.
+</p>
+<p>If <code>what="bestright"</code>, we return a data frame of size <code>ncol(x)</code> by
+<code>3</code>, with the <code class="reqn">i</code>th row being the maximum correlation between
+column <code class="reqn">i</code> of <code>x</code> and a column of <code>y</code>, and then the
+<code>y</code>-column index and <code>y</code>-column name with that correlation.  (In
+case of ties, we give the first one.)
+</p>
+<p>If <code>what="bestpairs"</code>, we return a data frame with five columns,
+containing all pairs of columns (with one in <code>x</code> and one in <code>y</code>)
+with correlation <code class="reqn">\ge</code> <code>corr_threshold</code>.  Each row corresponds to a
+column pair, and contains the correlation and then the <code>x</code>- and
+<code>y</code>-column indices followed by the <code>x</code>- and <code>y</code>-column names.
+</p>
+<p>If <code>what="all"</code>, the output is a matrix of size <code>ncol(x)</code> by
+<code>ncol(y)</code>, with all correlations between columns of <code>x</code> and
+columns of <code>y</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dist_betw_matrices()</code>, <code>dist_betw_arrays()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># use the provided data, and first align the rows
+aligned &lt;- align_matrix_rows(lineup2ex$gastroc, lineup2ex$islet)
+
+# correlations for each column in x with each in y
+result_pairs &lt;- corr_betw_matrices(aligned[[1]], aligned[[2]], "paired")
+
+# subset columns to those with correlation &gt; 0.75
+gastroc &lt;- lineup2ex$gastroc[,result_pairs &gt; 0.75]
+islet &lt;- lineup2ex$islet[,result_pairs &gt; 0.75]
+
+# similarity matrix for the two sets of rows
+# (by transposing and using what="all")
+corr_betw_samples &lt;- corr_betw_matrices(t(gastroc), t(islet), "all")
+
+# for each column in x, find most correlated column in y
+# (max in each row of result_all)
+bestright &lt;- corr_betw_matrices(t(gastroc), t(islet), "bestright")
+
+# correlations that exceed a threshold
+bestpairs &lt;- corr_betw_matrices(t(gastroc), t(islet), "bestpairs", corr_threshold=0.8)
+
+</code></pre>
+
+
+</div>

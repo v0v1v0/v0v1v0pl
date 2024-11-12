@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>easyprintMap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>easyprintMap</h2>
+
+<h3>Description</h3>
+
+<p>Print or export a map programmatically (e.g. in a Shiny environment).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">easyprintMap(map, sizeModes = "A4Portrait", filename = "map")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>the map widget</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeModes</code></td>
+<td>
+<p>Must match one of the given <code>sizeMode</code> names in
+<code>easyprintOptions</code>. The options are:
+<code>CurrentSize</code>, <code>A4Portrait</code> or <code>A4Landscape</code>. If you want to
+print the map with a <code>Custom</code> sizeMode you need to pass the Custom className.
+Default is <code>A4Portrait</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename</code></td>
+<td>
+<p>Name of the file if <code>exportOnly</code> option is <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A leaflet map object
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other EasyPrint Functions: 
+<code>addEasyprint()</code>,
+<code>easyprintOptions()</code>,
+<code>removeEasyprint()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Only run examples in interactive R sessions
+if (interactive()) {
+library(shiny)
+library(leaflet)
+library(leaflet.extras2)
+
+ui &lt;- fluidPage(
+  leafletOutput("map"),
+  selectInput("scene", "Select Scene", choices = c("CurrentSize", "A4Landscape", "A4Portrait")),
+  actionButton("print", "Print Map")
+)
+
+server &lt;- function(input, output, session) {
+  output$map &lt;- renderLeaflet({
+    input$print
+    leaflet()  %&gt;%
+      addTiles() %&gt;%
+      setView(10, 50, 9) %&gt;%
+      addEasyprint(options = easyprintOptions(
+        exportOnly = TRUE
+      ))
+})
+  observeEvent(input$print, {
+    leafletProxy("map") %&gt;%
+      easyprintMap(sizeModes = input$scene)
+})
+}
+
+shinyApp(ui, server)
+}
+</code></pre>
+
+
+</div>

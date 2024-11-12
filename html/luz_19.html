@@ -1,0 +1,248 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_callback</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a new callback</h2>
+
+<h3>Description</h3>
+
+<p>Create a new callback
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_callback(
+  name = NULL,
+  ...,
+  private = NULL,
+  active = NULL,
+  parent_env = parent.frame(),
+  inherit = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>name of the callback</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Public methods of the callback. The name of the methods is used
+to know how they should be called. See the details section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>private</code></td>
+<td>
+<p>An optional list of private members, which can be functions
+and non-functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>active</code></td>
+<td>
+<p>An optional list of active binding functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent_env</code></td>
+<td>
+<p>An environment to use as the parent of newly-created
+objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inherit</code></td>
+<td>
+<p>A R6ClassGenerator object to inherit from; in other words, a
+superclass. This is captured as an unevaluated expression which is
+evaluated in <code>parent_env</code> each time an object is instantiated.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Let’s implement a callback that prints ‘Iteration <code>n</code>’ (where <code>n</code> is the
+iteration number) for every batch in the training set and ‘Done’ when an
+epoch is finished. For that task we use the <code>luz_callback</code> function:
+</p>
+<div class="sourceCode r"><pre>print_callback &lt;- luz_callback(
+  name = "print_callback",
+  initialize = function(message) {
+    self$message &lt;- message
+  },
+  on_train_batch_end = function() {
+    cat("Iteration ", ctx$iter, "\n")
+  },
+  on_epoch_end = function() {
+    cat(self$message, "\n")
+  }
+)
+</pre></div>
+<p><code>luz_callback()</code> takes named functions as <code>...</code> arguments, where the
+name indicates the moment at which the callback should be called. For
+instance <code>on_train_batch_end()</code> is called for every batch at the end of
+the training procedure, and <code>on_epoch_end()</code> is called at the end of
+every epoch.
+</p>
+<p>The returned value of <code>luz_callback()</code> is a function that initializes an
+instance of the callback. Callbacks can have initialization parameters,
+like the name of a file where you want to log the results. In that case,
+you can pass an <code>initialize</code> method when creating the callback
+definition, and save these parameters to the <code>self</code> object. In the above
+example, the callback has a <code>message</code> parameter that is printed at the
+end of each epoch.
+</p>
+<p>Once a callback is defined it can be passed to the <code>fit</code> function via
+the <code>callbacks</code> parameter:
+</p>
+<div class="sourceCode r"><pre>fitted &lt;- net %&gt;%
+  setup(...) %&gt;%
+  fit(..., callbacks = list(
+    print_callback(message = "Done!")
+  ))
+</pre></div>
+<p>Callbacks can be called in many different positions of the training
+loop, including combinations of them. Here’s an overview of possible
+callback <em>breakpoints</em>:
+</p>
+<div class="sourceCode"><pre>Start Fit
+   - on_fit_begin
+  Start Epoch Loop
+     - on_epoch_begin
+    Start Train
+       - on_train_begin
+      Start Batch Loop
+         - on_train_batch_begin
+          Start Default Training Step
+            - on_train_batch_after_pred
+            - on_train_batch_after_loss
+            - on_train_batch_before_backward
+            - on_train_batch_before_step
+            - on_train_batch_after_step
+          End Default Training Step:
+         - on_train_batch_end
+      End Batch Loop
+       - on_train_end
+    End Train
+    Start Valid
+       - on_valid_begin
+      Start Batch Loop
+         - on_valid_batch_begin
+          Start Default Validation Step
+            - on_valid_batch_after_pred
+            - on_valid_batch_after_loss
+          End Default Validation Step
+         - on_valid_batch_end
+      End Batch Loop
+       - on_valid_end
+    End Valid
+      - on_epoch_end
+  End Epoch Loop
+   - on_fit_end
+End Fit
+</pre></div>
+<p>Every step market with <code style="white-space: pre;">⁠on_*⁠</code> is a point in the training procedure that
+is available for callbacks to be called.
+</p>
+<p>The other important part of callbacks is the <code>ctx</code> (context) object. See
+<code>help("ctx")</code> for details.
+</p>
+<p>By default, callbacks are called in the same order as they were passed
+to <code>fit</code> (or <code>predict</code> or <code>evaluate</code>), but you can provide a <code>weight</code>
+attribute that will control the order in which it will be called. For
+example, if one callback has <code>weight = 10</code> and another has <code>weight = 1</code>,
+then the first one is called after the second one. Callbacks that don’t
+specify a <code>weight</code> attribute are considered <code>weight = 0</code>. A few built-in
+callbacks in luz already provide a weight value. For example, the
+<code>?luz_callback_early_stopping</code> has a weight of <code>Inf</code>, since in general
+we want to run it as the last thing in the loop.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>luz_callback</code> that can be passed to <code>fit.luz_module_generator()</code>.
+</p>
+
+
+<h3>Prediction callbacks</h3>
+
+<p>You can also use callbacks when using <code>predict()</code>. In this case the supported
+callback methods are detailed above.
+</p>
+<div class="sourceCode"><pre>Start predict
+ - on_predict_begin
+ Start prediction loop
+  - on_predict_batch_begin
+  - on_predict_batch_end
+ End prediction loop
+ - on_predict_end
+End predict
+</pre></div>
+
+
+<h3>Evaluate callbacks</h3>
+
+<p>Callbacks can also be used with <code>evaluate()</code>, in this case, the callbacks that
+are used are equivalent to those of the validation loop when using <code>fit()</code>:
+</p>
+<div class="sourceCode"><pre>Start Valid
+ - on_valid_begin
+ Start Batch Loop
+  - on_valid_batch_begin
+  Start Default Validation Step
+   - on_valid_batch_after_pred
+   - on_valid_batch_after_loss
+  End Default Validation Step
+  - on_valid_batch_end
+ End Batch Loop
+ - on_valid_end
+End Valid
+</pre></div>
+
+
+<h3>See Also</h3>
+
+<p>Other luz_callbacks: 
+<code>luz_callback_auto_resume()</code>,
+<code>luz_callback_csv_logger()</code>,
+<code>luz_callback_early_stopping()</code>,
+<code>luz_callback_interrupt()</code>,
+<code>luz_callback_keep_best_model()</code>,
+<code>luz_callback_lr_scheduler()</code>,
+<code>luz_callback_metrics()</code>,
+<code>luz_callback_mixup()</code>,
+<code>luz_callback_model_checkpoint()</code>,
+<code>luz_callback_profile()</code>,
+<code>luz_callback_progress()</code>,
+<code>luz_callback_resume_from_checkpoint()</code>,
+<code>luz_callback_train_valid()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">print_callback &lt;- luz_callback(
+ name = "print_callback",
+ on_train_batch_end = function() {
+   cat("Iteration ", ctx$iter, "\n")
+ },
+ on_epoch_end = function() {
+   cat("Done!\n")
+ }
+)
+</code></pre>
+
+
+</div>

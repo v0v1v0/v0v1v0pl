@@ -1,0 +1,76 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_clusters</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the cluster assignments</h2>
+
+<h3>Description</h3>
+
+<p>This functions extracts the cluster assignments from an <code>lcc</code> object.
+One can specify which for which number of clusters the assignments
+should be returned.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_clusters(cluster_solution, number_clusters = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cluster_solution</code></td>
+<td>
+<p>an <code>lcc</code> object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>number_clusters</code></td>
+<td>
+<p>default is <code>NULL</code> to return all assignments.
+Otherwise specify a numeric vector with the number of clusters for which the
+assignments should be returned, e.g. <code>2:4</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>data.frame</code> with an ID column (the name of the ID column
+was specified by the user when calling the
+<code>longitudinal_consensus_cluster</code>) function and one column with cluster
+assignments for every specified number of clusters. Only the assignments
+included in <code>number_clusters</code> are returned in the form of columns with
+the names <code>assignment_num_clus_x</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># not run
+set.seed(5)
+test_data &lt;- data.frame(patient_id = rep(1:10, each = 4),
+visit = rep(1:4, 10),
+var_1 = c(rnorm(20, -1), rnorm(20, 3)) +
+rep(seq(from = 0, to = 1.5, length.out = 4), 10),
+var_2 = c(rnorm(20, 0.5, 1.5), rnorm(20, -2, 0.3)) +
+rep(seq(from = 1.5, to = 0, length.out = 4), 10))
+model_list &lt;- list(flexmix::FLXMRmgcv(as.formula("var_1 ~ .")),
+flexmix::FLXMRmgcv(as.formula("var_2 ~ .")))
+clustering &lt;- longitudinal_consensus_cluster(
+data = test_data,
+id_column = "patient_id",
+max_k = 2,
+reps = 3,
+model_list = model_list,
+flexmix_formula = as.formula("~s(visit, k = 4) | patient_id"))
+cluster_assignments &lt;- get_clusters(clustering, number_clusters = 2)
+# end not run
+</code></pre>
+
+
+</div>

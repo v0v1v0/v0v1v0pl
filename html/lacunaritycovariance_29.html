@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gblemp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Empirical Gliding Box Lacunarity</h2>
+
+<h3>Description</h3>
+
+<p>Calculates empirical gliding box lacunarity of a binary map, which was proposed by Allain and Cloitre (1991).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gblemp(boxwidths, xiim, obswin = Frame(xiim))
+
+gbltrad(boxwidths, xiim, obswin = Frame(xiim))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>boxwidths</code></td>
+<td>
+<p>A list of suggested box widths in the same units as <code>xiim</code>.
+Note the actual box widths used by <code>gblemp</code> will be the closest multiple of an odd number of pixel widths.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xiim</code></td>
+<td>
+<p>An image of pixels valued either <code>0</code>, <code>1</code> or <code>NA</code>. <code>NA</code> valued pixels are assumed to be outside the observation window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obswin</code></td>
+<td>
+<p>Optional observation window. The observation window used for the estimator will be the intersection of <code>obswin</code> and the pixels that are not <code>NA</code> in <code>xiim</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calculates empirical gliding box lacunarity (Allain and Cloitre, 1991) for a given range of square box sizes,
+</p>
+<p style="text-align: center;"><code class="reqn">1 + Var(area(B . xi)) / E[area(B . xi)]^2, </code>
+</p>
+
+<p>where <code class="reqn">B</code> is a box that has a random location in the observation window and <code class="reqn">area(B . xi)</code> is the (random) area of the foreground in <code class="reqn">B</code>.
+This is an estimate of the gliding box lacunarity of a RACS (Hingee et al., 2017).
+</p>
+<p>The algorithm uses the pixel locations in <code>xiim</code> as an array of box centre locations to compute
+the mean and variance of the area in a random box of a given size.
+Locations where the box is not completely within the observation window are ignored.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <code>fv</code> object containing empirical GBL, variance of the area in the box and mean of the area in the box.
+The box widths (labelled <code>s</code>) are always odd multiples of the pixel width.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul><li> <p><code>gbltrad()</code>: An alias of <code>gblemp</code> used in past versions of this package. This alias may be removed in future versions.
+</p>
+</li></ul>
+<h3>WARNING</h3>
+
+<p>The box side lengths are rounded such that they are an odd number of pixels across.
+<code>gblemp</code> uses the <code>roll_sum</code> function in <span class="pkg">RcppRoll</span> to operate, so <span class="pkg">RcppRoll</span> must be installed to run <code>gblemp</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Allain, C. and Cloitre, M. (1991) Characterizing the lacunarity of random and deterministic fractal sets. <em>Physical Review A</em>, 44, 3552-3558.
+</p>
+<p>Hingee K, Baddeley A, Caccetta P, Nair G (2019). Computation of lacunarity from covariance of spatial binary maps. <em>Journal of Agricultural, Biological and Environmental Statistics</em>, 24, 264-288. DOI: 10.1007/s13253-019-00351-9.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xiim &lt;- as.im(heather$coarse, na.replace = 0)
+boxwidths &lt;- seq(0.2, 14, by = 0.2) #in units of xiim
+gblest &lt;- gblemp(boxwidths, xiim)
+
+</code></pre>
+
+
+</div>

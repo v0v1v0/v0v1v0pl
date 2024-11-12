@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>computeEffectiveNumObs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute the effective number of observations taking into account autocorrelation</h2>
+
+<h3>Description</h3>
+
+<p>Compute the effective number of observations taking into account autocorrelation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">computeEffectiveNumObs(
+  res,
+  effAcf = computeEffectiveAutoCorr(res),
+  na.rm = FALSE,
+  exact.na = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric of autocorrelated numbers, usually observation -
+model residuals</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effAcf</code></td>
+<td>
+<p>autocorrelation coefficients.
+The first entry is fixed at 1 for zero distance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>if not set to TRUE will return NA in there are missings
+in the series</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact.na</code></td>
+<td>
+<p>if set to FALSE then do not count and correct for missing
+in the sum of autocorrelation terms. This is faster, but results are
+increasingly biased high with increasing number of missings.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Assumes records of all times present. 
+DO NOT REMOVE OR FILTER NA records before. 
+The length of the time series is used.
+</p>
+<p>Handling of NA values: The formula from Zieba 2011 is extended
+to subtract the number of missing pairs in the count of correlation terms.
+If 'exact.na=false' the original formula is used (after trimming edge-NAs).
+</p>
+
+
+<h3>Value</h3>
+
+<p>integer scalar: effective number of observations
+</p>
+
+
+<h3>References</h3>
+
+<p><code>Zieba &amp; Ramza (2011) 
+Standard Deviation of the Mean of Autocorrelated 
+Observations Estimated with the Use of the Autocorrelation Function 
+Estimated From the Data. 
+Metrology and Measurement Systems, 
+Walter de Gruyter GmbH, 18 10.2478/v10178-011-0052-x</code>
+</p>
+<p><code>Bayley &amp; Hammersley (1946) 
+The "effective" number of independent observations in an autocorrelated 
+time series. 
+Supplement to the Journal of the Royal Statistical Society, JSTOR,8,184-197</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># generate autocorrelated time series
+res &lt;- stats::filter(rnorm(1000), filter = rep(1,5), circular = TRUE)
+res[100:120] &lt;- NA
+# plot the series of autocorrelated random variables
+plot(res)
+# plot their empirical autocorrelation function
+acf(res, na.action = na.pass)
+#effAcf &lt;- computeEffectiveAutoCorr(res)
+# the effective number of parameters is less than number of 1000 samples
+(nEff &lt;- computeEffectiveNumObs(res, na.rm = TRUE))
+</code></pre>
+
+
+</div>

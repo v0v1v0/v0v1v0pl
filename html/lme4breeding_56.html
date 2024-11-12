@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>stackTrait</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Stacking traits in a dataset</h2>
+
+<h3>Description</h3>
+
+<p><code>stackTrait</code> creates a dataset stacking traits in the long format to be used with the <code>lmebreed</code> solver for multi-trait models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  stackTrait(data, traits)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame with traits in wide format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>traits</code></td>
+<td>
+<p>variable names corresponding to the traits that should be in the long format.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+
+<dl>
+<dt>$res</dt>
+<dd>
+<p> a data frame with traits in long format.</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Giovanny Covarrubias-Pazaran
+</p>
+
+
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>The function for the <code>lmebreed</code> solver.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_cpdata)
+DT &lt;- DT_cpdata
+GT &lt;- GT_cpdata
+MP &lt;- MP_cpdata
+## create the variance-covariance matrix
+A &lt;- A.mat(GT) # additive relationship matrix
+A &lt;- A + diag(1e-4, ncol(A), ncol(A))
+## look at the data and fit the model
+head(DT)
+DT2 &lt;- stackTrait(data=DT, traits = c("Yield","color"))
+head(DT2$long)
+
+
+
+mix1 &lt;- lmebreed(valueS~ (0+trait|id),
+                 relmat=list(id=A),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT2$long)
+vc &lt;- VarCorr(mix1); print(vc,comp=c("Variance"))
+cov2cor(vc$id)
+
+
+
+</code></pre>
+
+
+</div>

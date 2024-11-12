@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>em_winkler</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Implementation of Winkler's EM algorithm for Fellegi-Sunter matching method</h2>
+
+<h3>Description</h3>
+
+<p><code>em_winkler_big</code> implements the same method when the data are too big to compute 
+the agreement matrix. Agreement is then recomputed on the fly each time it is needed. The EM steps 
+are completely done in C++. This decreases the RAM usage (still important though), at the cost of 
+increasing computational time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">em_winkler(
+  data1,
+  data2,
+  tol = 0.001,
+  maxit = 500,
+  do_plot = TRUE,
+  oneone = FALSE,
+  verbose = FALSE
+)
+
+em_winkler_big(
+  data1,
+  data2,
+  tol = 0.001,
+  maxit = 500,
+  do_plot = TRUE,
+  oneone = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data1</code></td>
+<td>
+<p>either a binary (<code>1</code> or <code>0</code> values only) matrix or binary 
+data frame of dimension <code>n1 x K</code> whose rownames are the observation identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data2</code></td>
+<td>
+<p>either a binary (<code>1</code> or <code>0</code> values only) matrix or a binary
+data frame of dimension <code>n2 x K</code> whose rownames are the observation identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance for the EM algorithm convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations for the EM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do_plot</code></td>
+<td>
+<p>a logical flag indicating whether a plot should be drawn for the EM convergence. 
+Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oneone</code></td>
+<td>
+<p>a logical flag indicating whether 1-1 matching should be enforced. 
+If <code>TRUE</code>, then returned <code>matchingScores</code> are only kept for the maximum 
+score per column while lower scores are replace by <code>threshold-1</code>. 
+Default is <code>FALSE</code> in which case original <code>matchingScores</code> are returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>a logical flag indicating whether intermediate values from the EM algorithm should 
+be printed. Useful for debugging. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list containing:
+</p>
+
+<ul>
+<li>
+<p><code>matchingScore</code> a matrix of size <code>n1 x n2</code> with the matching score for each <code>n1*n2</code> pair.
+</p>
+</li>
+<li>
+<p><code>threshold_ms</code> threshold value for the matching scores above which pairs are considered true matches.
+</p>
+</li>
+<li>
+<p><code>estim_nbmatch</code> an estimation of the number of true matches (<code>N</code> pairs 
+considered multiplied by <code>p</code> the estimated proportion of true matches from the EM algorithm) 
+</p>
+</li>
+<li>
+<p><code>convergence_status</code> a logical flag indicating whether the EM algorithm converged
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Winkler WE. Using the EM Algorithm for Weight Computation in the Fellegi-Sunter Model of Record Linkage. <em>Proc Sect Surv Res Methods</em>, Am Stat Assoc 1988: 667-71.
+</p>
+<p>Grannis SJ, Overhage JM, Hui S, <em>et al</em>. Analysis of a probabilistic record linkage technique without human review. <em>AMIA 2003 Symp Proc</em> 2003: 259-63.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mat1 &lt;- matrix(round(rnorm(n=1000, sd=1.2)), ncol=10, nrow=100)
+mat2 &lt;- rbind(mat1[1:10, ],
+             matrix(round(rnorm(n=900, sd=1.2)), ncol=10, nrow=90)
+             )
+rownames(mat1) &lt;- paste0("A", 1:nrow(mat1))
+rownames(mat1) &lt;- paste0("B", 1:nrow(mat1))
+mat1 &lt;- 1*(mat1&gt;1)
+mat2 &lt;- 1*(mat2&gt;1)
+em_winkler(mat1, mat2)
+
+</code></pre>
+
+
+</div>

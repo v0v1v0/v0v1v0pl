@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmn_prior</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conjugate prior specification for LMN models.</h2>
+
+<h3>Description</h3>
+
+<p>The conjugate prior for LMN models is the Matrix-Normal Inverse-Wishart (MNIW) distribution.  This convenience function converts a partial MNIW prior specification into a full one.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmn_prior(p, q, Lambda, Omega, Psi, nu)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Integer specifying row dimension of <code>Beta</code>.  <code>p = 0</code> corresponds to no <code>Beta</code> in the model, i.e., <code>X = 0</code> in <code>lmn_suff()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q</code></td>
+<td>
+<p>Integer specifying the dimension of <code>Sigma</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lambda</code></td>
+<td>
+<p>Mean parameter for <code>Beta</code>.  Either:
+</p>
+
+<ul>
+<li>
+<p> A <code style="white-space: pre;">⁠p x q⁠</code> matrix.
+</p>
+</li>
+<li>
+<p> A scalar, in which case <code>Lambda = matrix(Lambda, p, q)</code>.
+</p>
+</li>
+<li>
+<p> Missing, in which case <code>Lambda = matrix(0, p, q)</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Omega</code></td>
+<td>
+<p>Row-wise precision parameter for <code>Beta</code>.  Either:
+</p>
+
+<ul>
+<li>
+<p> A <code style="white-space: pre;">⁠p x p⁠</code> matrix.
+</p>
+</li>
+<li>
+<p> A scalar, in which case <code>Omega = diag(rep(Omega,p))</code>.
+</p>
+</li>
+<li>
+<p> Missing, in which case <code>Omega = matrix(0, p, p)</code>.
+</p>
+</li>
+<li> <p><code>NA</code>, which signifies that <code>Beta</code> is known, in which case the prior is purely Inverse-Wishart on <code>Sigma</code> (see <strong>Details</strong>).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psi</code></td>
+<td>
+<p>Scale parameter for <code>Sigma</code>.  Either:
+</p>
+
+<ul>
+<li>
+<p> A <code style="white-space: pre;">⁠q x q⁠</code> matrix.
+</p>
+</li>
+<li>
+<p> A scalar, in which case <code>Psi = diag(rep(Psi,q))</code>.
+</p>
+</li>
+<li>
+<p> Missing, in which case <code>Psi = matrix(0, q, q)</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nu</code></td>
+<td>
+<p>Degrees-of-freedom parameter for <code>Sigma</code>.  Either a scalar, missing (defaults to <code>nu = 0</code>), or <code>NA</code>, which signifies that <code>Sigma = diag(q)</code> is known, in which case the prior is purely Matrix-Normal on <code>Beta</code> (see <strong>Details</strong>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Matrix-Normal Inverse-Wishart (MNIW) distribution <code class="reqn">(\boldsymbol{B}, \boldsymbol{\Sigma}) \sim \textrm{MNIW}(\boldsymbol{\Lambda}, \boldsymbol{\Omega}, \boldsymbol{\Psi}, \nu)</code> on random matrices <code class="reqn">\boldsymbol{X}_{p \times q}</code> and symmetric positive-definite <code class="reqn">\boldsymbol{\Sigma}_{q \times q}</code> is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">
+\begin{array}{rcl}
+\boldsymbol{\Sigma} &amp; \sim &amp; \textrm{Inverse-Wishart}(\boldsymbol{\Psi}, \nu) \\
+\boldsymbol{B} \mid \boldsymbol{\Sigma} &amp; \sim &amp; \textrm{Matrix-Normal}(\boldsymbol{\Lambda}, \boldsymbol{\Omega}^{-1}, \boldsymbol{\Sigma}),
+\end{array}
+</code>
+</p>
+
+<p>where the Matrix-Normal distribution is defined in <code>lmn_suff()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with elements <code>Lambda</code>, <code>Omega</code>, <code>Psi</code>, <code>nu</code> with the proper dimensions specified above, except possibly <code>Omega = NA</code> or <code>nu = NA</code> (see <strong>Details</strong>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># problem dimensions
+p &lt;- 2
+q &lt;- 4
+
+# default noninformative prior pi(Beta, Sigma) ~ |Sigma|^(-(q+1)/2)
+lmn_prior(p, q)
+
+# pi(Sigma) ~ |Sigma|^(-(q+1)/2)
+# Beta | Sigma ~ Matrix-Normal(0, I, Sigma)
+lmn_prior(p, q, Lambda = 0, Omega = 1)
+
+# Sigma = diag(q)
+# Beta ~ Matrix-Normal(0, I, Sigma = diag(q))
+lmn_prior(p, q, Lambda = 0, Omega = 1, nu = NA)
+</code></pre>
+
+
+</div>

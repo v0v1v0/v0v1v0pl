@@ -1,0 +1,231 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LPS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Linear Predictor Score fitting
+</h2>
+
+<h3>Description</h3>
+
+<p>This function trains a Linear Predictor Score model, given pre-computed coefficients. It uses data with known classes to fit the model.
+</p>
+<p>It has numerous way to be called, and all the arguments are not mandatory. See the 'Examples' section.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  LPS(data, coeff, response, k, threshold, formula, method = "fdr", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>Continuous data used to retrieve classes, as a <code>data.frame</code> or <code>matrix</code>, with samples in rows and features (genes) in columns. Rows and columns should be named. <strong>Some precautions must be taken concerning data normalization, see the corresponding section below</strong>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+
+<p>Pre-computed coefficients for the model, as returned by <code>LPS.coeff</code> (see there for format details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+
+<p>Already known classes for the samples provided in <code>data</code>, preferably as a two-level <code>factor</code>. Can be missing if a <code>formula</code> with a response element is provided, but this argument precedes.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+
+<p>Single <code>integer</code> value, amount of features to include in the model, in decreasing order of coefficient. Can be missing if <code>threshold</code> or <code>formula</code> are provided, but this argument precedes other both of them.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>Single <code>numeric</code> value, p-value threshold to apply for feature selection. Can be missing if <code>k</code> or <code>formula</code> are provided, but <code>k</code> precedes on it and it precedes on <code>formula</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>A <code>formula</code> object, describing the model to fit (several templates are handled, see 'Examples'). The formula response element (before the "~" sign) can replace the <code>response</code> argument if it is not provided. The variables (after the "~" sign) can be a single integer (standing for the <code>k</code> argument), a single numeric (standing for the <code>threshold</code> argument) or a sum of feature names to use directly. "." is also handled in the usual way (all <code>data</code> columns), and "1" is a more efficient way to refer to all numeric columns of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Single character value, to be passed to <code>p.adjust</code> when <code>threshold</code> is provided.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Further arguments are passed to <code>model.frame</code> if <code>response</code> is missing (thus defined via <code>formula</code>). <code>subset</code> and <code>na.action</code> may be particularly useful for cross-validation schemes, see <code>model.frame.default</code> for details. <code>subset</code> is always handled but masked in "..." for compatibility reasons.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of (S3) class "LPS" :
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coeff</code></td>
+<td>
+<p>Named numeric vector, the coefficients used in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classes</code></td>
+<td>
+<p>Character vector, the labels of the two groups to be predicted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scores</code></td>
+<td>
+<p>List of two numeric vectors, training dataset scores sorted by group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>means</code></td>
+<td>
+<p>Numeric vector, score means of each group in the training dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sds</code></td>
+<td>
+<p>Numeric vector, score <code>sd</code> of each group in the training dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ovl</code></td>
+<td>
+<p>Numeric value, overlapping coefficient as returned by <code>OVL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Integer value, amount of features selected in the model (if relevant).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.threshold</code></td>
+<td>
+<p>Numeric value, threshold used for feature selection (if relevant).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.method</code></td>
+<td>
+<p>Character value, p-value correction used for feature selection (if relevant).</p>
+</td>
+</tr>
+</table>
+<h3>Normalization</h3>
+
+<p>As expression values are directly used in the score, gene centering and scaling are strongly recommended. For Affymetrix raw expression values (strictly positive, linear and absolute), Wright et al. suggests a multiplicative centering on a median of 1000 followed by a log2 transformation. For log-ratio, gene centering and scaling should not be necessary, as they are naturally 0-centered.
+</p>
+
+
+<h3>Time efficiency</h3>
+
+<p>Using a numeric matrix as <code>data</code> and a factor as <code>response</code> is the fastest way to compute coefficients, if time consumption matters (as in cross-validation schemes). <code>formula</code> is there only for consistency with R modeling functions, and to provide <code>response</code>, <code>k</code> or <code>threshold</code> in a single way.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>References</h3>
+
+<p>Radmacher MD, McShane LM, Simon R. <cite>A paradigm for class prediction using gene expression profiles.</cite> J Comput Biol. 2002;9(3):505-11.
+</p>
+<p>Wright G, Tan B, Rosenwald A, Hurt EH, Wiestner A, Staudt LM. <cite>A gene expression-based method to diagnose clinically distinct subgroups of diffuse large B cell lymphoma.</cite> Proc Natl Acad Sci U S A. 2003 Aug 19;100(17):9991-6.
+</p>
+<p>Bohers E, Mareschal S, Bouzelfen A, Marchand V, Ruminy P, Maingonnat C, Menard AL, Etancelin P, Bertrand P, Dubois S, Alcantara M, Bastard C, Tilly H, Jardin F. <cite>Targetable activating mutations are very frequent in GCB and ABC diffuse large B-cell lymphoma.</cite> Genes Chromosomes Cancer. 2014 Feb;53(2):144-53.  
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LPS.coeff</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Data with features in columns
+  data(rosenwald)
+  group &lt;- rosenwald.cli$group
+  expr &lt;- t(rosenwald.expr)
+  
+  # NA imputation (feature's mean to minimize impact)
+  f &lt;- function(x) { x[ is.na(x) ] &lt;- round(mean(x, na.rm=TRUE), 3); x }
+  expr &lt;- apply(expr, 2, f)
+  
+  # Coefficients
+  coeff &lt;- LPS.coeff(data=expr, response=group)
+  
+  
+  # 10 best features (straightforward)
+  m &lt;- LPS(data=expr, coeff=coeff, response=group, k=10)
+  
+  # 10 best features (formula)
+  ### 'k' MUST be an integer, or will be understood as a 'threshold'
+  ### Numbers are "numeric", enforce integer with "L" or "as.integer"
+  m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~10L)
+  k &lt;- as.integer(10)
+  m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~k)
+  
+  # FDR threshold
+  thr &lt;- 0.01
+  m &lt;- LPS(data=expr, coeff=coeff, response=group, threshold=thr)
+  m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~0.01)
+  m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~thr)
+  
+  # Custom model
+  m &lt;- LPS(data=expr, coeff=coeff[ c("27481","17013") ,], response=group, k=2)
+  m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~`27481`+`17013`)
+  ### Notice backticks in formula for syntactically invalid names
+  
+  # Complete model
+  m &lt;- LPS(data=expr, coeff=coeff, response=group, k=ncol(expr))
+  m &lt;- LPS(data=expr, coeff=coeff, response=group, threshold=1)
+  ### m &lt;- LPS(data=as.data.frame(expr), coeff=coeff, formula=group~.)
+  ### The last is correct but (really) slow on large datasets
+</code></pre>
+
+
+</div>

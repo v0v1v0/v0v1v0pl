@@ -1,0 +1,241 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kInflatedLogConDiscr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute a mixture of a point mass at 0 and a log-concave probability mass function from i.i.d. data</h2>
+
+<h3>Description</h3>
+
+<p>Using an EM algorithm, compute an estimate of a mixture of a point mass at <code class="reqn">k</code> and a 
+log-concave probability mass function from discrete i.i.d. data.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kInflatedLogConDiscr(x, k = 0, prec1 = 1e-10, prec2 = 1e-15, 
+    itermax = 200, output = TRUE, theta0 = 0.5, p0 = NA)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Vector of observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Point at which inflation should be assumed. Must be in <code class="reqn">x_1, x_1 + 1, \ldots, x_{n - 1}, x_n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prec1</code></td>
+<td>
+<p>Precision for stopping criterion.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prec2</code></td>
+<td>
+<p>Precision to remove ends of support in case weights <code class="reqn">&lt;</code><code>prec2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>itermax</code></td>
+<td>
+<p>Maximal number of iterations of EM algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>Logical, if <code>TRUE</code>, progress of EM algorithm is shown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta0</code></td>
+<td>
+<p>Optional initialization for <code class="reqn">\theta_0</code>, the point mass at <code class="reqn">k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p0</code></td>
+<td>
+<p>Optional initialization for the PMF.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given a vector of observations <code class="reqn">{\bold{x}_n} = (x_1, \ldots, x_n)</code> from a discrete PMF with a (potential)
+point mass at <code class="reqn">k</code> (typically <code class="reqn">k = 0</code>), <code>kInflatedLogConDiscr</code> computes a pmf that is a mixture between a point mass at <code class="reqn">k</code> and a log-concave PMF on <code class="reqn">x</code>. 
+To accomplish this, an EM algorithm is used.</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following elementes:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>The support.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>The estimated <code class="reqn">k</code>-inflated log-concave PMF.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E(L)</code></td>
+<td>
+<p>The value of the expected composite log-likelihood at the maximum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>The value of the composite log-likelihood at the maximum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>The estimated weight at <code class="reqn">k</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logconc.pmf</code></td>
+<td>
+<p>The log-concave part of the mixture.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logconc.z</code></td>
+<td>
+<p>The support of <code>logconc.pmf</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach (maintainer) <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a> <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a> <br>
+Fadoua Balabdaoui <a href="mailto:fadoua@ceremade.dauphine.fr">fadoua@ceremade.dauphine.fr</a> <br><a href="http://www.ceremade.dauphine.fr/~fadoua">http://www.ceremade.dauphine.fr/~fadoua</a>  <br>
+Hanna Jankowski <a href="mailto:hkj@mathstat.yorku.ca">hkj@mathstat.yorku.ca</a> <br><a href="http://www.math.yorku.ca/~hkj">http://www.math.yorku.ca/~hkj</a> <br>
+Kathrin Weyermann
+</p>
+
+
+<h3>References</h3>
+
+<p>Balabdaoui, F., Jankowski, H., Rufibach, K., and Pavlides, M. (2013).
+Maximum likelihood estimation and confidence bands for a discrete log-concave distribution.
+<em>J. R. Stat. Soc. Ser. B Stat. Methodol.</em>, <b>75</b>(4), 769–790. 
+</p>
+<p>Weyermann, K. (2007).
+An Active Set Algorithm for Log-Concave Discrete Distributions.
+<em>MSc thesis, University of Bern</em> (Supervisor: Lutz Duembgen).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## -----------------------------------------------
+## generate zero-inflated negative binomial sample
+## -----------------------------------------------
+set.seed(2011)
+n &lt;- 100
+theta &lt;- 0.05
+r &lt;- 6
+p &lt;- 0.3
+x &lt;- rnbinom(n, r, p)
+
+## inflate at 0
+x &lt;- ifelse(runif(n) &lt;= theta, 0, x)
+
+## estimate log-concave MLE
+fit1 &lt;- logConDiscrMLE(x, w = NA, psi_o = NA, prec = 1e-05, output = TRUE)
+
+## estimate zero-inflated log-concave MLE
+fit2 &lt;- kInflatedLogConDiscr(x, k = 0)
+
+## plot the results
+par(mfrow = c(1, 1), las = 1)
+plot(fit1$x, exp(fit1$psi), type = "b", col = 2, xlim = range(x), xlab = "x", 
+    ylim = c(0, max(exp(fit1$psi), fit2$f)), ylab = "PMF", 
+    main = "Estimate MLE from a zero-inflated negative-binomial", pch = 19)
+lines(fit2$z, fit2$f, type = "b", col = 4, pch = 15)
+
+## add the true PMF we sampled from
+z &lt;- fit2$z
+f.true &lt;- theta * c(1, rep(0, length(z) - 1)) + (1 - theta) * dnbinom(z, r, p)
+lines(z, f.true, col = 6, type = "b", pch = 17)
+
+legend("topright", c("log-concave MLE", "zero-inflated log-concave MLE", 
+    "true PMF"), col = c(2, 4, 6), lty = c(1, 1, 1), pch = c(19, 15, 17), 
+    bty = "n")
+    
+## Not run: 
+## -----------------------------------------------
+## generate seven-inflated negative binomial sample
+## -----------------------------------------------
+theta &lt;- 0.05
+r &lt;- 4
+p &lt;- 0.3
+n &lt;- 10000
+x &lt;- rnbinom(n, r, p)
+x &lt;- ifelse(runif(n) &lt;= theta, 7, x)
+x &lt;- c(x, rep(7, 10))
+
+## compute different estimates
+zero.mle &lt;- kInflatedLogConDiscr(x, k = 7)
+mle &lt;- logConDiscrMLE(x, output = FALSE)
+f.mle &lt;- exp(mle$psiSupp)
+z&lt;-	zero.mle$z
+f1 &lt;- theta * c(rep(0, 7 - min(x)), 1, rep(0, max(x) - 7))
+f2 &lt;- (1 - theta) * dnbinom(z, r, p)
+f.true &lt;- f1 + f2
+true &lt;- dnbinom(z, r, p)
+f.fit &lt;- zero.mle$f
+xx &lt;- sort(unique(x))
+emp &lt;- rep(0, length(z))
+emp[xx - min(x) + 1] &lt;- as.vector(table(x) / n)
+
+## plot results
+plot(z, f.true, type = "l", ylim = c(0, max(emp)), xlab = "x", 
+    ylab = "PMF", main = "Illustration k-inflated estimator")
+points(z, true, type = "l", lty = 2)
+points(z, f.fit, type = "l", col = "red")
+points(z, zero.mle$logconc.pmf, type = "l", col = "red", lty = 2)
+points(min(x):max(x), f.mle, type = "l", col = "green")
+points(z, emp, type = "l", col = "purple")
+points(z, emp, col = "purple")
+legend("topright", inset = 0.05, c("true", "true less seven", "seven-inflated", 
+    "recovered", "logconc", "empirical"), lty=c(1, 2, 1, 2, 1, 1), col = c("black", 
+    "black", "red", "red", "green", "purple"))
+
+## zoom in near mode
+subs &lt;- 4:12
+plot(z[subs], f.true[subs], type = "l", ylim = c(0, max(emp)), xlab = "x", 
+    ylab = "PMF", main = "Illustration k-inflated estimator")
+points(z[subs], true[subs], type = "l", lty = 2)
+points(z[subs], f.fit[subs], type = "l", col = "red")
+points(z[subs], zero.mle$logconc.pmf[subs], type = "l", col = "red", lty = 2)
+points((min(x):max(x))[subs], f.mle[subs], type = "l", col = "green")
+points(z[subs], emp[subs], type = "l", col = "purple")
+points(z[subs], emp[subs], col = "purple")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

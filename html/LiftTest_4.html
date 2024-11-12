@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>proportion.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A Bootstrap Proportion Test for Brand Lift Testing (Liu et al., 2023)</h2>
+
+<h3>Description</h3>
+
+<p>This function implements several proportion tests that can be applied
+to Brand Lift Testing, including
+</p>
+
+<ol>
+<li> <p><code class="reqn">\mathbf{clt}</code>: Absolute lift based Z-test and relative lift based Z-test. The limiting
+distribution of Z-statistics are derived from the central limit theorem.
+</p>
+</li>
+<li> <p><code class="reqn">\mathbf{bootstrap}</code>: Absolute lift based bootstrap test (BS-A) and relative lift based
+bootstrap test (BS-R), see Liu et al., (2023).
+</p>
+</li>
+<li> <p><code class="reqn">\mathbf{bootstrapmean}</code>: Absolute lift based bootstrap mean test and relative lift
+based bootstrap mean test. (Efron and Tibshirani 1994).
+</p>
+</li>
+<li> <p><code class="reqn">\mathbf{permutation}</code>: Absolute lift based permutation test and relative lift based
+permutation test. (Efron and Tibshirani 1994).
+</p>
+</li>
+</ol>
+<p>Learn more about the proportion tests in the section Details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">proportion.test(data, method, B)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A 2x2 matrix with first column being (control sample size, treatment sample size)
+and the 2nd column being (control positive response count, treatment positive response count).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method should be one of ("clt", "bootstrap",
+"bootstrapmean", "permutation")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of replications for bootstrap test or permutation test.
+Only required for methods "bootstrap", "bootstrapmean", "permutation".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code class="reqn">\mathbf{clt}</code>: the classic Z-test based on normal approximation. The absolute
+lift based Z-test is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">
+Z = \frac{\hat p_1 - \hat p_0}{\sqrt{{s_0^2}/{n_0} + {s_1^2}/{n_1}}},
+</code>
+</p>
+
+<p>and he relative lift based Z-test is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">
+Z_r = \frac{\hat p_1 / \hat p_0 - 1}{\sqrt{s_1^2/(n_1\hat p_0^2) + 
+\hat p_1^2s_0^2/(n_0 \hat p_0^4)}},
+</code>
+</p>
+
+<p>where <code class="reqn">s_0^2 = \hat p_0(1-\hat p_0)</code> and <code class="reqn">s_1^2 = \hat p_1(1-\hat p_1)</code>.
+</p>
+<p><code class="reqn">\mathbf{bootstrap}</code>: the bootstrap proportion tests proposed in Liu et al., (2023),
+see Algorithm 1 in their paper. There are two bootstrap tests: the absolute lift
+based bootstrap test BS-A and the relative lift based bootstrap test BS-R. Note that
+this type of bootstrap test is testing whether the distribution of the control group is
+the same as the distribution of the treatment group. In the binomial distribution case,
+it is equivalent to test whether the mean of the control group is
+the same as the mean of the treatment group.
+</p>
+<p><code class="reqn">\mathbf{bootstrapmean}</code> the bootstrap test to test whether the mean of the
+control group is the same as the mean of the treatment group. See Algorithm 16.2
+of Efron and Tibshirani (1994).
+</p>
+<p><code class="reqn">\mathbf{permutation}</code> the permutation test to test whether the distribution of the
+control group is the same as the distribution of the treatment group.
+See Algorithm 15.1 of Efron and Tibshirani (1994).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of absolute lift, relative lift, standardized absolute lift and their corresponding
+p-values. Standardized absolute lift equals absolute lift divided by its standard deviation.
+Only absolute lift and relative lift are available for method clt.
+</p>
+
+
+<h3>References</h3>
+
+<p>Wanjun Liu, Xiufan Yu, Jialiang Mao, Xiaoxu Wu, and Justin Dyer. 2023.
+Quantifying the Effectiveness of Advertising: A Bootstrap Proportion Test
+for Brand Lift Testing. <em>In Proceedings of the 32nd ACM International Conference
+on Information and Knowledge Management (CIKM ’23)</em>
+</p>
+<p>Efron, Bradley, and Robert J. Tibshirani.
+<em>An introduction to the bootstrap</em>. CRC press, 1994.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n1 &lt;- 100; n2 &lt;- 100; p1 &lt;- 0.1; p2 &lt;- 0.2
+set.seed(1)
+sim.data &lt;- gen.simu.data(n1, n2, p1, p2, summary = TRUE)
+result &lt;- proportion.test(sim.data, method = "bootstrap", B = 1000)
+relative.lift &lt;- result$lift$relative
+relative.lift.pval &lt;- result$pvalue$relative
+</code></pre>
+
+
+</div>

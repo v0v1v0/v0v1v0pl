@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maxDiffCDF</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute maximal difference between CDFs corresponding to log-concave estimates</h2>
+
+<h3>Description</h3>
+
+<p>Compute the maximal difference between two estimated log-concave distribution functions, either
+the MLEs or the smoothed versions. This function is used to set up a two-sample permutation test
+that assesses the null hypothesis of equality of distribution functions.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">maxDiffCDF(res1, res2, which = c("MLE", "smooth"), n.grid = 500)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>res1</code></td>
+<td>
+<p>An object of class <code>"dlc"</code>, usually a result of a call to <code>logConDens</code> for the first sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res2</code></td>
+<td>
+<p>An object of class <code>"dlc"</code>, usually a result of a call to <code>logConDens</code> for the second sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>Indicate for which type of estimate the maximal difference should be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.grid</code></td>
+<td>
+<p>Number of grid points used to find zeros of <code class="reqn">\hat f_{n_1}^* - \hat f_{n_2}^*</code> for the smooth estimate.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Given two i.i.d. samples <code class="reqn">x_1, \ldots, x_{n_1}</code> and <code class="reqn">y_1, \ldots, y_{n_2}</code> this function computes the
+maxima of 
+</p>
+<p style="text-align: center;"><code class="reqn">D_1(t) = \hat F_{n_1}(t) - \hat F_{n_2}(t)</code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">D_2(t) = \hat F^*_{n_1}(t) - \hat F^*_{n_2}(t).</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>test.stat</code></td>
+<td>
+<p>A two-dimensional vector containing the above maxima.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>location</code></td>
+<td>
+<p>A two-dimensional vector where the maxima occur.</p>
+</td>
+</tr>
+</table>
+<h3>Warning</h3>
+
+<p>Note that the algorithm that finds the maximal difference for the smoothed estimate is of approximative
+nature only. It may fail for very large sample sizes.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kaspar Rufibach, <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a>, <br><a href="http://www.kasparrufibach.ch">http://www.kasparrufibach.ch</a> 
+</p>
+<p>Lutz Duembgen, <a href="mailto:duembgen@stat.unibe.ch">duembgen@stat.unibe.ch</a>, <br><a href="https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html">https://www.imsv.unibe.ch/about_us/staff/prof_dr_duembgen_lutz/index_eng.html</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Duembgen, L. and Rufibach, K. (2009)
+Maximum likelihood estimation of a log–concave density and its distribution function: basic properties and uniform consistency. 
+<em>Bernoulli</em>, <b>15(1)</b>, 40–68.  
+</p>
+<p>Duembgen, L. and Rufibach, K. (2011)
+logcondens: Computations Related to Univariate Log-Concave Density Estimation. 
+<em>Journal of Statistical Software</em>, <b>39(6)</b>, 1–28. <a href="https://doi.org/10.18637/jss.v039.i06">doi:10.18637/jss.v039.i06</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n1 &lt;- 100
+n2 &lt;- 120
+x &lt;- sort(rgamma(n1, 2, 1))
+y &lt;- sort(rgamma(n2, 2, 1))
+res1 &lt;- logConDens(x, smoothed = TRUE)
+res2 &lt;- logConDens(y, smoothed = TRUE)
+d &lt;- maxDiffCDF(res1, res2, n.grid = 200)
+
+## log-concave estimate
+xs &lt;- seq(min(res1$xs, res2$xs), max(res1$xs, res2$xs), length = 200)
+F1 &lt;- matrix(NA, nrow = length(xs), ncol = 1); F2 &lt;- F1
+for (i in 1:length(xs)){
+    F1[i] &lt;- evaluateLogConDens(xs[i], res1, which = 3)[, "CDF"]
+    F2[i] &lt;- evaluateLogConDens(xs[i], res2, which = 3)[, "CDF"]
+    }
+par(mfrow = c(1, 2))
+plot(xs, abs(F1 - F2), type = "l")
+abline(v = d$location[1], lty = 2, col = 3)
+abline(h = d$test.stat[1], lty = 2, col = 3)
+
+## smooth estimate
+xs &lt;- seq(min(res1$xs, res2$xs), max(res1$xs, res2$xs), length = 200)
+F1smooth &lt;- matrix(NA, nrow = length(xs), ncol = 2); F2smooth &lt;- F1smooth
+for (i in 1:length(xs)){
+    F1smooth[i, ] &lt;- evaluateLogConDens(xs[i], res1, which = 4:5)[, 
+        c("smooth.density", "smooth.CDF")]
+    F2smooth[i, ] &lt;- evaluateLogConDens(xs[i], res2, which = 4:5)[, 
+        c("smooth.density", "smooth.CDF")]
+    }
+plot(xs, abs(F1smooth[, 2] - F2smooth[, 2]), type = "l")
+abline(h = 0)
+abline(v = d$location[2], lty = 2, col = c(3, 4))
+abline(h = d$test.stat[2], lty = 2, col = c(3, 4))
+</code></pre>
+
+
+</div>

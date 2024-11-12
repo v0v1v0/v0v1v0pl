@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crps</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Continuously ranked probability score</h2>
+
+<h3>Description</h3>
+
+<p>The <code>crps()</code> and <code>scrps()</code> functions and their <code style="white-space: pre;">⁠loo_*()⁠</code> counterparts can be
+used to compute the continuously ranked probability score (CRPS) and scaled
+CRPS (SCRPS) (see Bolin and Wallin, 2022). CRPS is a proper scoring rule, and
+strictly proper when the first moment of the predictive distribution is
+finite. Both can be expressed in terms of samples form the predictive
+distribution. See e.g. Gneiting and Raftery (2007) for a comprehensive
+discussion on CRPS.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">crps(x, ...)
+
+scrps(x, ...)
+
+loo_crps(x, ...)
+
+loo_scrps(x, ...)
+
+## S3 method for class 'matrix'
+crps(x, x2, y, ..., permutations = 1)
+
+## S3 method for class 'numeric'
+crps(x, x2, y, ..., permutations = 1)
+
+## S3 method for class 'matrix'
+loo_crps(
+  x,
+  x2,
+  y,
+  log_lik,
+  ...,
+  permutations = 1,
+  r_eff = 1,
+  cores = getOption("mc.cores", 1)
+)
+
+## S3 method for class 'matrix'
+scrps(x, x2, y, ..., permutations = 1)
+
+## S3 method for class 'numeric'
+scrps(x, x2, y, ..., permutations = 1)
+
+## S3 method for class 'matrix'
+loo_scrps(
+  x,
+  x2,
+  y,
+  log_lik,
+  ...,
+  permutations = 1,
+  r_eff = 1,
+  cores = getOption("mc.cores", 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>S</code> by <code>N</code> matrix (draws by observations), or a vector of length
+<code>S</code> when only single observation is provided in <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Passed on to <code>E_loo()</code> in the <code style="white-space: pre;">⁠loo_*()⁠</code> version of these
+functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x2</code></td>
+<td>
+<p>Independent draws from the same distribution as draws in <code>x</code>.
+Should be of the identical dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>A vector of observations or a single value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permutations</code></td>
+<td>
+<p>An integer, with default value of 1,  specifying how many
+times the expected value of  |X - X'| (<code style="white-space: pre;">⁠|x - x2|⁠</code>) is computed. The row
+order of <code>x2</code> is shuffled as elements <code>x</code> and <code>x2</code> are typically drawn
+given the same values of parameters. This happens, e.g., when one calls
+<code>posterior_predict()</code> twice for a fitted <span class="pkg">rstanarm</span> or <span class="pkg">brms</span>
+model. Generating more permutations is expected to decrease the variance of
+the computed expected value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_lik</code></td>
+<td>
+<p>A log-likelihood matrix the same size as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff</code></td>
+<td>
+<p>An optional vector of relative effective sample size estimates
+containing one element per observation. See <code>psis()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization of <code style="white-space: pre;">⁠[psis()]⁠</code>.
+See <code>psis()</code> for details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To compute (S)CRPS, the user needs to provide two sets of draws, <code>x</code> and
+<code>x2</code>, from the predictive distribution. This is due to the fact that formulas
+used to compute CRPS involve an expectation of the absolute difference of <code>x</code>
+and <code>x2</code>, both having the same distribution. See the <code>permutations</code> argument,
+as well as Gneiting and Raftery (2007) for details.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing two elements: <code>estimates</code> and <code>pointwise</code>.
+The former reports estimator and standard error and latter the pointwise
+values.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bolin, D., &amp; Wallin, J. (2022). Local scale invariance and robustness of
+proper scoring rules. arXiv. <a href="https://doi.org/10.48550/arXiv.1912.05642">doi:10.48550/arXiv.1912.05642</a>
+</p>
+<p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly Proper Scoring Rules,
+Prediction, and Estimation. Journal of the American Statistical Association,
+102(477), 359–378.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# An example using rstanarm
+library(rstanarm)
+data("kidiq")
+fit &lt;- stan_glm(kid_score ~ mom_hs + mom_iq, data = kidiq)
+ypred1 &lt;- posterior_predict(fit)
+ypred2 &lt;- posterior_predict(fit)
+crps(ypred1, ypred2, y = fit$y)
+loo_crps(ypred1, ypred2, y = fit$y, log_lik = log_lik(fit))
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

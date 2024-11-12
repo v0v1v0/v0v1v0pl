@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pluginBw</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Plugin Bandwidth selector. </h2>
+
+<h3>Description</h3>
+
+<p>Implements a plugin bandwidth selector for the regression function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pluginBw(x, y, deg, kernel, weig = rep(1,length(y)))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deg</code></td>
+<td>
+<p> degree of the local polynomial. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation, see <code>Kernels</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> Vector of weights for observations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computes the plug-in bandwidth selector as shown in Fan and Gijbels(1996) book using pilots estimates as given in page 110-112 (Rule of thumb for bandwidth selection).  Currently, only even values of p are can be used.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric value.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Currently, only even values of p are can be used.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> Jorge Luis Ojeda Cabrera.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fan, J. and Gijbels, I.
+<em> Local polynomial modelling and its applications\/</em>.
+Chapman &amp; Hall, London (1996).
+</p>
+<p>Wand, M.~P. and Jones, M.~C.
+<em> Kernel smoothing\/</em>.
+Chapman and Hall Ltd., London (1995).
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>thumbBw</code>, <code>regCVBwSelC</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	size &lt;- 200
+	sigma &lt;- 0.25
+	deg &lt;- 1
+	kernel &lt;- EpaK
+	xeval &lt;- 0:100/100
+	regFun &lt;- function(x) x^3
+	x &lt;- runif(size)
+	y &lt;- regFun(x) + rnorm(x, sd = sigma)
+	d &lt;- data.frame(x, y)
+	cvBwSel &lt;- regCVBwSelC(d$x,d$y, deg, kernel, interval = c(0, 0.25))
+	thBwSel &lt;- thumbBw(d$x, d$y, deg, kernel)
+	piBwSel &lt;- pluginBw(d$x, d$y, deg, kernel)
+	est &lt;- function(bw, dat, x) return(locPolSmootherC(dat$x,dat$y, x, bw, deg,
+					kernel)$beta0)
+	ise &lt;- function(val, est) return(sum((val - est)^2 * xeval[[2]]))
+	plot(d$x, d$y)
+	trueVal &lt;- regFun(xeval)
+	lines(xeval, trueVal, col = "red")
+	xevalRes &lt;- est(cvBwSel, d, xeval)
+	cvIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue")
+	xevalRes &lt;- est(thBwSel, d, xeval)
+	thIse &lt;- ise(trueVal, xevalRes)
+	xevalRes &lt;- est(piBwSel, d, xeval)
+	piIse &lt;- ise(trueVal, xevalRes)
+	lines(xeval, xevalRes, col = "blue", lty = "dashed")
+	res &lt;- rbind(	bw = c(cvBwSel, thBwSel, piBwSel),
+					ise = c(cvIse, thIse, piIse) )
+	colnames(res) &lt;- c("CV", "th", "PI")
+	res
+</code></pre>
+
+
+</div>

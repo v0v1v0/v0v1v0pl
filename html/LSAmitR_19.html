@@ -1,0 +1,854 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 3: Standard-Setting</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 3, <em>Standard-Setting</em>, im 
+Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische Grundlagen der 
+österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Details</h3>
+
+
+
+<h4>Übersicht über die verwendeten Daten</h4>
+
+<p>Für dieses Kapitel werden drei Datensätze verwendet. 
+Der Datensatz <code>ratings</code> ist das Ergebnis der IDM-Methode, darin enthalten 
+sind für alle Items die Einstufung jedes Raters auf eine der drei 
+Kompetenzstufen (1, 2, 3), sowie Item-Nummer und Schwierigkeit. 
+Der Datensatz <code>bookmarks</code> ist das Ergebnis der Bookmark-Methode, darin 
+enthalten sind pro Rater und pro Cut-Score jeweils die gewählte Bookmark als 
+Seitenzahl im OIB (die ein bestimmtes Item repräsentiert). 
+In <code>sdat</code> sind Personenparameter von 3500 Schülerinnen und Schülern 
+enthalten, diese dienen zur Schätzung von Impact Data. 
+Der Datensatz <code>productive</code> ist für die Illustration der 
+Contrasting-Groups-Methode gedacht: Dieser enthält die Ratings aus der 
+Contrasting-Groups-Methode, pro Rater die Information, ob der entsprechende 
+Text auf die Stufe unter- oder oberhalb des Cut-Scores eingeteilt wurde, sowie 
+Nummer des Textes und Personenfähigkeit. 
+</p>
+
+
+
+<h4>Abschnitt 3.2.2: Daten aus der IDM-Methode</h4>
+
+
+
+<h5>Listing 1: Feedback</h5>
+
+<p>Hier wird der Datensatz <code>ratings</code> verwendet. Er ist das Ergebnis der 
+IDM-Methode, darin enthalten sind für alle Items die Einstufung jedes Raters 
+auf eine der drei Kompetenzstufen (1, 2, 3). Zunächst werden die Rater und die 
+Items aus dem Datensatz ausgewählt, dann wird pro Item die prozentuelle 
+Verteilung der Ratings auf die drei Stufen berechnet. 
+</p>
+<p><code style="white-space: pre;">⁠raterID &lt;- grep("R", colnames(ratings), value = TRUE)
+nraters &lt;- length(raterID) 
+nitems &lt;- nrow(ratings) 
+itemID &lt;- ratings[, 1] 
+itemdiff &lt;- ratings[, 2]
+stufen &lt;- c(1, 2, 3) # Anzahl der Kompetenzstufen
+item.freq &lt;- data.frame() 
+# Berechne Prozentuelle Zuteilungen auf Stufen pro Item
+tabelle.ii &lt;- data.frame()
+for(ii in 1:nitems){   
+  tabelle.ii &lt;- round(table(factor(as.numeric(ratings[ii,
+    raterID]), levels = stufen)) / nraters * 100, digits = 2)      
+  item.freq &lt;- rbind(item.freq, tabelle.ii) }
+colnames(item.freq) &lt;- paste0("Level_", stufen)
+item.freq &lt;- data.frame(ratings[, 1:2], item.freq)
+head(item.freq, 3)
+# Anmerkung: Item 3 zu 100% auf Stufe 1, Item 2 aufgeteilt 
+# auf Stufe 1 und 2
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 1a: Ergänzung zum Buch</h5>
+
+<p>Hier wird eine Grafik erzeugt, in der das Rating-Verhalten sichtbar wird: Pro 
+Item wird angezeigt, wieviele Prozent der Raters es auf eine der drei Stufen 
+eingeteilt haben. 
+Zunächst werden drei verschiedene Farben definiert, anschließend werden drei 
+Barplots erstellt, die zusammen auf einer Seite dargestellt werden. 
+Die Grafik wird zur Orientierung bei Diskussionen verwendet, da so schnell 
+ersichtlich ist, bei welchen Items sich das Experten-Panel einig oder uneinig
+war. 
+Für die Grafik gibt es die Möglichkeit, diese in Schwarz-Weiss zu halten oder 
+in Farbe zu gestalten.
+</p>
+<p><code style="white-space: pre;">⁠# Farben für die Grafik definieren - falls eine bunte Grafik gewünscht ist, 
+# kann barcol &lt;- c(c1, c2, c3) definiert werden
+c1 &lt;- rgb(239/255, 214/255, 67/255)  
+c2 &lt;- rgb(207/255, 151/255, 49/255)  
+c3 &lt;- rgb(207/255, 109/255, 49/255)
+
+# Aufbereitung Tabelle für Grafik
+freq.dat &lt;- t(as.matrix(item.freq[1:nitems,(3:(2+length(stufen)))]))
+barcol &lt;- c("black", "gray", "white") 
+
+#Grafik wird erzeugt
+par(mfcol=c(3,1), oma=c(0,0,3,0)) # Angeben der Plot-Anzahl      
+perplot &lt;- round(nitems/3)    
+a &lt;- perplot + 1   
+b &lt;- perplot*2  
+c &lt;- b + 1     
+d &lt;- perplot*3
+barplot(freq.dat[,1 : perplot], col = barcol, beside = T, 
+        names.arg = seq(1 , perplot), xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", horiz = F, ylim = range(1:100))
+barplot(freq.dat[, a:b], col = barcol, beside = T, names.arg = seq(a, b), 
+        xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", 
+        horiz = F, ylim = range(1:100))
+barplot(freq.dat[, c:d], col = barcol, beside = T, names.arg = seq(c, d), 
+        xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", 
+        horiz = F, ylim = range(1:100))
+title("Feedback für das Experten-Panel aus der IDM-Methode", outer = T)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2: Cut-Score Berechnung</h5>
+
+<p>Hier wird der Cut-Score aus den Daten der IDM-Methode mithilfe logistischer 
+Regression für den ersten Rater im Experten-Panel berechnet. 
+Dafür wird der zweite Cut-Score herangezogen. Zunächst müssen die 
+entsprechenden Ratings für die logistische Regression umkodiert werden 
+(2 = 0, 3 = 1).
+Anschließend wird die logistische Regression berechnet, als unabhängige Variable 
+dient die Einstufung durch den jeweiligen Experten (0, 1), als abhängige 
+Variable die Itemschwierigkeit. 
+Anhand der erhaltenen Koeffizienten kann der Cut-Score berechnet werden.
+</p>
+<p><code style="white-space: pre;">⁠library(car)
+# Rekodieren
+rate.i &lt;- ratings[which(ratings$R01 %in% c(2, 3)), 
+                  c("MB_Norm_rp23", "R01")] 
+rate.i$R01 &lt;-  recode(rate.i$R01, "2=0; 3=1")
+coef(cut.i &lt;- glm(rate.i$R01  ~ rate.i$MB_Norm_rp23 , 
+              family = binomial(link="logit")))
+# Berechnung des Cut-Scores laut Formel
+cut.R01 &lt;- (-cut.i$coefficients[1])/ cut.i$coefficients[2]
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 3: Rater-Analysen</h5>
+
+<p>Als ersten Schritt in den Rater-Analysen wird das mittlere Cohen's Kappa eines 
+Raters mit allen anderen Raters berechnet. Dafür werden zunächst die Ratings 
+ausgewählt und dann für jeden Rater die Übereinstimmung mit jedem anderen Rater 
+paarweise berechnet. 
+Anschließend werden diese Werte gemittelt und auch die Standard-Abweichung 
+berechnet. 
+</p>
+<p><code style="white-space: pre;">⁠library(irr)
+# Auswahl der Ratings
+rater.dat &lt;- ratings[ ,grep("R", colnames(ratings))]
+# Kappa von jeder Person mit allen anderen Personen wird berechnet
+kappa.mat &lt;- matrix(NA, nraters, nraters) 
+for(ii in 1:nraters){  
+  rater.eins &lt;- rater.dat[, ii]      
+  for(kk in 1:nraters){    
+    rater.zwei &lt;- rater.dat[ ,kk]
+    dfr.ii &lt;- cbind(rater.eins, rater.zwei)
+    kappa.ik &lt;- kappa2(dfr.ii)       
+    kappa.mat[ii, kk] &lt;- kappa.ik$value   
+      }} 
+diag(kappa.mat) &lt;- NA 
+# Berechne Mittleres Kappa für jede Person
+MW_Kappa &lt;- round(colMeans(kappa.mat, na.rm=T), digits=2) 
+SD_Kappa &lt;- round(apply(kappa.mat, 2, sd, na.rm=T), digits=2) 
+(Kappa.Stat &lt;- data.frame("Person"= raterID, MW_Kappa, SD_Kappa))
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 4: Berechnung Fleiss' Kappa</h5>
+
+<p>Fleiss' Kappa gibt die Übereinstimmung innerhalb des gesamten Experten-Panels 
+an. 
+Wird das Standard-Setting über mehrere Runden durchgeführt, kann Fleiss' Kappa 
+auch für jede Runde berechnet werden. 
+</p>
+<p><code style="white-space: pre;">⁠kappam.fleiss(rater.dat)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 5: Modalwerte</h5>
+
+<p>Auch die Korrelation zwischen dem Modalwert jedes Items (d.h., ob es am 
+häufigsten auf Stufe 1, 2 oder 3 eingeteilt wurde) und der inviduellen 
+Zuordnung durch einen Rater kann zu Rater-Analysen herangezogen werden. 
+Zunächst wird der Modal-Wert eines jeden Items berechnet. 
+Hat ein Item zwei gleich häufige Werte, gibt es eine Warnmeldung und es wird 
+für dieses Item NA anstatt eines Wertes vergeben (für diese Analyse sind aber 
+nur Items von Interesse, die einen eindeutigen Modalwert haben). 
+Danach wird pro Rater die Korrelation zwischen dem Modalwert eines Items und 
+der entsprechenden Einteilung durch den Rater berechnet, und dann in 
+aufsteigender Höhe ausgegeben.
+</p>
+<p><code style="white-space: pre;">⁠library(prettyR)
+# Berechne Modalwert
+mode &lt;- as.numeric(apply(rater.dat, 1, Mode))
+# Korrelation für die Ratings jeder Person im Panel mit den 
+# Modalwerten der Items
+corr &lt;- data.frame()
+for(z in raterID){
+  rater.ii &lt;- rater.dat[, (grep(z, colnames(rater.dat)))]
+  cor.ii &lt;- round(cor(mode, rater.ii, use = "pairwise.complete.obs", 
+    method = "spearman"), digits = 2)
+  corr &lt;- rbind(corr, cor.ii)
+}
+corr[, 2] &lt;- raterID
+colnames(corr) &lt;- c("Korrelation", "Rater")
+# Aufsteigende Reihenfolge 
+(corr &lt;- corr[order(corr[, 1]),])
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 5a: Ergänzung zum Buch</h5>
+
+<p>Die Korrelation zwischen Modalwerten und individueller Zuordnung kann auch zur 
+besseren Übersicht graphisch gezeigt werden. 
+Dabei werden die Korrelationen der Raters aufsteigend dargestellt.
+</p>
+<p><code style="white-space: pre;">⁠# Grafik
+plot(corr$Korrelation, xlab = NA, ylab = "Korrelation",   
+     ylim = c(0.5, 1), xaxt = "n", main = "Korrelation zwischen 
+     Modalwert und individueller Zuordnung der Items pro Rater/in")
+text(seq(1:nraters), corr$Korrelation - 0.02, labels = corr[, 2], 
+     offset = 1, cex = 1)
+title(xlab = "Raters nach aufsteigender Korrelation gereiht")
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 6: ICC</h5>
+
+<p>Hier wird der ICC als Ausdruck der Übereinstimmung (d.h., Items werden auf 
+dieselbe Stufe eingeteilt) und der Konsistenz (d.h., Items werden in dieselbe 
+Reihenfolge gebracht) zwischen Raters berechnet. 
+Falls es mehrere Runden gibt, kann der ICC auch wiederholt berechnet und 
+verglichen werden.
+</p>
+<p><code style="white-space: pre;">⁠library(irr)
+(iccdat.agree &lt;- icc(rater.dat, model = "twoway", type = "agreement", 
+                     unit = "single", r0 = 0, conf.level=0.95))
+(iccdat.cons &lt;- icc(rater.dat, model = "twoway", type = "consistency", 
+                    unit = "single", r0 = 0, conf.level=0.95))
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Abschnitt 3.2.3: Daten aus der Bookmark-Methode</h4>
+
+
+
+<h5>Listing 1: Feedback</h5>
+
+<p>Auch in der Bookmark-Methode wird dem Experten-Panel Feedback angeboten, um die 
+Diskussion zu fördern. 
+Hier wird pro Cut-Score Median, Mittelwert und Standard-Abweichung der 
+Bookmarks (Seitenzahl im OIB) im Experten-Panel berechnet.
+</p>
+<p><code style="white-space: pre;">⁠head(bookmarks)
+statbookm &lt;- data.frame("Stats"=c("Md","Mean","SD"), 
+                        "Cut1"=0, "Cut2"=0)
+statbookm[1,2] &lt;- round(median(bookmarks$Cut1), digits=2)
+statbookm[1,3] &lt;- round(median(bookmarks$Cut2), digits=2)
+statbookm[2,2] &lt;- round(mean(bookmarks$Cut1), digits=2)
+statbookm[2,3] &lt;- round(mean(bookmarks$Cut2), digits=2)
+statbookm[3,2] &lt;- round(sd(bookmarks$Cut1), digits=2)
+statbookm[3,3] &lt;- round(sd(bookmarks$Cut2), digits=2)
+(statbookm)
+table(bookmarks$Cut1)
+table(bookmarks$Cut2)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2: Cut-Score Berechnung</h5>
+
+<p>Jede Bookmark repräsentiert ein Item, das eine bestimmte Itemschwierigkeit hat. 
+Die Cut-Scores lassen sich berechnen, in dem man die unterliegenden 
+Itemschwierigkeiten der Bookmarks mittelt.
+</p>
+<p><code style="white-space: pre;">⁠bm.cut &lt;- NULL 
+bm.cut$cut1 &lt;- mean(ratings$MB_Norm_rp23[bookmarks$Cut1]) 
+bm.cut$cut2 &lt;- mean(ratings$MB_Norm_rp23[bookmarks$Cut2]) 
+bm.cut$cut1sd &lt;- sd(ratings$MB_Norm_rp23[bookmarks$Cut1]) 
+bm.cut$cut2sd &lt;- sd(ratings$MB_Norm_rp23[bookmarks$Cut2]) 
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 3: Standardfehler des Cut-Scores</h5>
+
+<p>Der Standardfehler wird berechnet, um eine mögliche Streuung des Cut-Scores 
+zu berichten. 
+</p>
+<p><code style="white-space: pre;">⁠se.cut1 &lt;- bm.cut$cut1sd/sqrt(nraters)
+se.cut2 &lt;- bm.cut$cut2sd/sqrt(nraters)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 4: Impact Data</h5>
+
+<p>Mithilfe von Impact Data wird auf Basis von pilotierten Daten geschätzt, welche 
+Auswirkungen die Cut-Scores auf die Schülerpopulation hätten (d.h., wie sich die
+Schülerinnen und Schüler auf die Stufen verteilen würden).
+Für diese Schätzung werden die Personenparameter herangezogen.
+Anschließend wird die Verteilung der Personenparameter entsprechend der 
+Cut-Scores unterteilt. 
+Die Prozentangaben der Schülerinnen und Schüler, die eine bestimmte Stufe 
+erreichen, dienen dem Experten-Panel als Diskussionsgrundlage.
+</p>
+<p><code style="white-space: pre;">⁠Pers.Para &lt;- sdat[, "TPV1"]
+cuts &lt;- c(bm.cut$cut1, bm.cut$cut2)
+# Definiere Bereiche: Minimaler Personenparameter bis Cut-Score 1, 
+#   Cut-Score 1 bis Cut-Score 2, Cut-Score 2 bis maximaler 
+#   Personenparameter
+Cuts.Vec &lt;- c(min(Pers.Para)-1, cuts, max(Pers.Para)+1)
+# Teile Personenparameter in entsprechende Bereiche auf
+Kum.Cuts &lt;- cut(Pers.Para, breaks = Cuts.Vec)
+# Verteilung auf die einzelnen Bereiche
+Freq.Pers.Para &lt;- xtabs(~ Kum.Cuts)
+nstud &lt;- nrow(sdat)
+# Prozent-Berechnung
+prozent &lt;- round(as.numeric(Freq.Pers.Para / nstud * 100), 
+  digits = 2) 
+(Impact.Data &lt;- data.frame("Stufe" = c("A1", "A2", "B1"), 
+  "Prozent" = prozent))
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Abschnitt 3.3.3: Daten aus der Contrasting-Groups-Methode</h4>
+
+
+
+<h5>Listing 1: Cut-Scores</h5>
+
+<p>Hier wird der Cut-Score für den produktiven Bereich Schreiben berechnet, die 
+Basis ist dabei die Personenfähigkeeit. 
+Dabei wird pro Rater vorgegangen. Für jeden Rater werden dabei zwei Gruppen 
+gebildet - Texte, die auf die untere Stufe eingeteilt wurden und Texte, die auf 
+die obere Stufe eingeteilt wurden. 
+Von beiden Gruppen wird jeweils der Mittelwert der Personenfähigkeit berechnet 
+und anschließend der Mittelwert zwischen diesen beiden Gruppen. 
+Wurde das für alle Raters durchgeführt, können die individuell gesetzten 
+Cut-Scores wiederum gemittelt werden und die Standard-Abweichung sowie der 
+Standardfehler berechnet werden.
+</p>
+<p><code style="white-space: pre;">⁠raterID &lt;- grep("R", colnames(productive), value = TRUE) 
+nraters &lt;- length(raterID)  
+nscripts &lt;- nrow(productive) 
+# Berechne Cut-Score für jeden Rater
+cutscore &lt;- data.frame("rater"=raterID, "cut1.ges"=NA)
+for(ii in 1:length(raterID)){ 
+  rater &lt;- raterID[ii]   
+  rates.ii &lt;-  productive[ ,grep(rater, colnames(productive))]   
+  mean0.ii &lt;- mean(productive$Performance[rates.ii == 0], na.rm = T)   
+  mean1.ii &lt;- mean(productive$Performance[rates.ii == 1], na.rm = T)   
+  mean.ii &lt;- mean(c(mean1.ii, mean0.ii), na.rm = T)   
+  cutscore[ii, "cut1.ges"] &lt;- mean.ii }
+# Finaler Cut-Score
+cut1 &lt;- mean(cutscore$cut1.ges)
+sd.cut1 &lt;- sd(cutscore$cut1.ges)
+se.cut1 &lt;- sd.cut1/sqrt(nraters)
+⁠</code>
+
+</p>
+
+
+
+
+<h4>Appendix: Abbildungen im Buch</h4>
+
+<p>Hier ist der R-Code für die im Buch abgedruckten Grafiken zu finden.
+</p>
+
+
+<h5>Abbildung 3.1</h5>
+
+<p>In einem nächsten Schritt wird anhand des mittleren Kappa und der dazugehörigen 
+Standard-Abweichung eine Grafik erstellt, um die Übereinstimmung eines Raters 
+mit allen anderen Ratern dazustellen. 
+Dafür wird zunächst ein Boxplot des mittleren Kappa pro Rater erzeugt. 
+In einem zweiten Schritt werden die mittleren Kappas mit der dazugehörigen 
+Standard-Abweichung abgetragen. 
+Linien markieren 1.5 Standard-Abweichungen vom Mittelwert. 
+Raters, die über oder unter dieser Grenze liegen, werden gekennzeichnet.
+</p>
+<p><code style="white-space: pre;">⁠# GRAFIK
+# 1. Grafik
+par(fig=c(0, 1, 0, 0.35), oma=c(0,0,3,0), cex = 0.85) 
+boxplot(Kappa.Stat$MW_Kappa, horizontal = T, ylim=c(0.42,0.66), 
+        axes = F, xlab = "MW Kappa")
+# 2. Grafik wird hinzugefügt
+par(fig=c(0, 1, 0.2, 1), new=TRUE)
+sd.factor &lt;- 1.5 
+mmw &lt;- mean(Kappa.Stat$MW_Kappa)
+sdmw &lt;- sd(Kappa.Stat$MW_Kappa)
+#Grenzwerte für MW und SD werden festgelegt
+mwind &lt;- c(mmw-(sd.factor*sdmw), mmw+(sd.factor*sdmw))
+plot(Kappa.Stat$MW_Kappa, Kappa.Stat$SD_Kappa, xlab = "",
+     ylab = "SD Kappa", type = "n", xlim = c(0.42, 0.66), 
+     ylim = c(0, 0.2))
+abline(v = mwind, col="grey", lty = 2)
+# Rater mit 1.5 SD Abweichung vom MW werden grau markiert 
+abw.rater &lt;- which(Kappa.Stat$MW_Kappa &lt; mwind[1] | 
+                     Kappa.Stat$MW_Kappa &gt; mwind[2])
+points(Kappa.Stat$MW_Kappa[-abw.rater], 
+       Kappa.Stat$SD_Kappa[-abw.rater], 
+       pch = 19)
+points(Kappa.Stat$MW_Kappa[abw.rater], 
+       Kappa.Stat$SD_Kappa[abw.rater], 
+       pch = 25, bg = "grey")
+text(Kappa.Stat$MW_Kappa[abw.rater], 
+     Kappa.Stat$SD_Kappa[abw.rater], 
+     Kappa.Stat$Person[abw.rater], 
+     pos = 3) 
+title("Rater-Analysen: MW und SD Kappa aus der IDM-Methode", 
+      outer = TRUE)
+⁠</code>
+
+</p>
+
+
+
+<h5>Abbildung 3.2</h5>
+
+<p>Um das Feedback über die Setzung der Bookmarks an das Experten-Panel einfacher 
+zu gestalten, wird eine Grafik erstellt. 
+Darin sieht man pro Cut-Score, wo die Raters ihre Bookmarks (d.h. Seitenzahl 
+im OIB) gesetzt haben, sowie Info über den Mittelwert dieser Bookmarks. 
+Diese Grafik soll die Diskussion fördern.
+</p>
+<p><code style="white-space: pre;">⁠nitems &lt;- 60
+
+library(lattice)
+library(gridExtra)
+#Erster Plot mit Mittelwert
+plot.Cut1 &lt;- dotplot(bookmarks$Rater ~ bookmarks$Cut1, col = "black", 
+                     panel = function(...){
+                       panel.dotplot(...)
+                       panel.abline(v = mean(bookmarks$Cut1), lty = 5)
+                      }, 
+                     xlab = "Bookmarks für Cut-Score 1 (Seite im OIB)",
+                     ylab = "Raters", cex = 1.3)
+#Zweiter Plot mit Mittelwert
+plot.Cut2 &lt;- dotplot(bookmarks$Rater ~ bookmarks$Cut2, col = "black", 
+                     panel = function(...){
+                       panel.dotplot(...)
+                       panel.abline(v = mean(bookmarks$Cut2), lty = 5)
+                      }, 
+                     xlab = "Bookmarks für Cut-Score 2 (Seite im OIB)", 
+                     ylab = "Raters", cex = 1.3)
+#Plots nebeneinander anordnen
+grid.arrange(plot.Cut1, plot.Cut2, nrow = 1, top = "Bookmarks pro Rater/in")
+⁠</code>
+
+</p>
+
+
+
+
+<h3>Author(s)</h3>
+
+<p>Claudia Luger-Bazinger, Roman Freunberger, Ursula Itzlinger-Bruneforth
+</p>
+
+
+<h3>References</h3>
+
+<p>Luger-Bazinger, C., Freunberger, R. &amp; Itzlinger-Bruneforth, U. (2016). 
+Standard-Setting. 
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 83–110). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel03</code>, den im Kapitel verwendeten Daten.<br>
+
+Zurück zu <code>Kapitel 2</code>, Stichprobenziehung.<br>
+Zu <code>Kapitel 4</code>, Differenzielles Itemfunktionieren in Subgruppen.<br>
+Zur <code>Übersicht</code>.
+
+
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(car)
+library(irr)
+library(prettyR)
+library(lattice)
+library(gridExtra)
+
+data(datenKapitel03)
+ratings &lt;- datenKapitel03$ratings
+bookmarks &lt;- datenKapitel03$bookmarks
+sdat &lt;- datenKapitel03$sdat
+productive &lt;- datenKapitel03$productive
+
+## -------------------------------------------------------------
+## Abschnitt 3.2.2: Daten aus der IDM-Methode
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 1: Feedback
+#
+
+raterID &lt;- grep("R", colnames(ratings), value = TRUE)
+nraters &lt;- length(raterID) 
+nitems &lt;- nrow(ratings) 
+itemID &lt;- ratings[, 1] 
+itemdiff &lt;- ratings[, 2]
+stufen &lt;- c(1, 2, 3) # Anzahl der Kompetenzstufen
+item.freq &lt;- data.frame() 
+# Berechne Prozentuelle Zuteilungen auf Stufen pro Item
+tabelle.ii &lt;- data.frame()
+for(ii in 1:nitems){   
+  tabelle.ii &lt;- round(table(factor(as.numeric(ratings[ii, 
+    raterID]), levels = stufen)) / nraters * 100, digits = 2)      
+  item.freq &lt;- rbind(item.freq, tabelle.ii) }
+colnames(item.freq) &lt;- paste0("Level_", stufen)
+item.freq &lt;- data.frame(ratings[, 1:2], item.freq)
+head(item.freq, 3)
+# Anmerkung: Item 3 zu 100% auf Stufe 1, Item 2 aufgeteilt 
+# auf Stufe 1 und 2
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 1a: Ergänzung zum Buch
+# GRAFIK-Erzeugung
+#
+
+# Farben für die Grafik definieren
+c1 &lt;- rgb(239/255, 214/255, 67/255)  
+c2 &lt;- rgb(207/255, 151/255, 49/255)  
+c3 &lt;- rgb(207/255, 109/255, 49/255)
+
+# Aufbereitung Tabelle für Grafik
+freq.dat &lt;- t(as.matrix(item.freq[1:nitems,(3:(2+length(stufen)))]))
+barcol &lt;- c("black", "gray", "white") 
+
+#Grafik wird erzeugt
+par(mfcol=c(3,1), oma=c(0,0,3,0)) # Angeben der Plot-Anzahl      
+perplot &lt;- round(nitems/3)    
+a &lt;- perplot + 1   
+b &lt;- perplot*2  
+c &lt;- b + 1     
+d &lt;- perplot*3
+barplot(freq.dat[,1 : perplot], col = barcol, beside = T, 
+        names.arg = seq(1 , perplot), xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", horiz = F, ylim = range(1:100))
+barplot(freq.dat[, a:b], col = barcol, beside = T, names.arg = seq(a, b), 
+        xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", 
+        horiz = F, ylim = range(1:100))
+barplot(freq.dat[, c:d], col = barcol, beside = T, names.arg = seq(c, d), 
+        xlab = "Itemnummer (Seitenzahl im OIB)", 
+        ylab = "% Zuteilung auf Stufe", 
+        horiz = F, ylim = range(1:100))
+title("Feedback für das Experten-Panel aus der IDM-Methode", outer = T)
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 2: Cut-Score Berechnung
+#
+
+library(car)
+# Rekodieren
+rate.i &lt;- ratings[which(ratings$R01 %in% c(2, 3)), 
+                  c("Norm_rp23", "R01")] 
+rate.i$R01 &lt;-  recode(rate.i$R01, "2=0; 3=1")
+coef(cut.i &lt;- glm(rate.i$R01  ~ rate.i$Norm_rp23 , 
+                  family = binomial(link="logit")))
+# Berechnung des Cut-Scores laut Formel
+cut.R01 &lt;- (-cut.i$coefficients[1])/ cut.i$coefficients[2]
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 3: Rater-Analysen
+# 
+
+library(irr)
+# Auswahl der Ratings
+rater.dat &lt;- ratings[ ,grep("R", colnames(ratings))]
+# Berechne Kappa von jeder Person mit allen anderen Personen
+kappa.mat &lt;- matrix(NA, nraters, nraters) 
+for(ii in 1:nraters){  
+  rater.eins &lt;- rater.dat[, ii]      
+  for(kk in 1:nraters){    
+    rater.zwei &lt;- rater.dat[ ,kk]
+    dfr.ii &lt;- cbind(rater.eins, rater.zwei)
+    kappa.ik &lt;- kappa2(dfr.ii)       
+    kappa.mat[ii, kk] &lt;- kappa.ik$value }} 
+diag(kappa.mat) &lt;- NA 
+# Berechne Mittleres Kappa für jede Person
+MW_Kappa &lt;- round(colMeans(kappa.mat, na.rm=T), digits=2) 
+SD_Kappa &lt;- round(apply(kappa.mat, 2, sd, na.rm=T), digits=2) 
+(Kappa.Stat &lt;- data.frame("Person"= raterID, MW_Kappa, 
+  SD_Kappa))
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 4: Berechnung Fleiss' Kappa
+# 
+
+kappam.fleiss(rater.dat)
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 5: Modalwerte
+# 
+
+library(prettyR)
+# Berechne Modalwert
+mode &lt;- as.numeric(apply(rater.dat, 1, Mode))
+# Korrelation für die Ratings jeder Person im Panel mit den 
+# Modalwerten der Items
+corr &lt;- data.frame()
+for(z in raterID){
+  rater.ii &lt;- rater.dat[, (grep(z, colnames(rater.dat)))]
+  cor.ii &lt;- round(cor(mode, rater.ii, method = "spearman",
+    use = "pairwise.complete.obs"), digits = 2)
+  corr &lt;- rbind(corr, cor.ii)
+}
+corr[, 2] &lt;- raterID
+colnames(corr) &lt;- c("Korrelation", "Rater")
+# Aufsteigende Reihenfolge 
+(corr &lt;- corr[order(corr[, 1]),])
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 5: Ergänzung zum Buch
+# GRAFIK-Erzeugung und ICC
+#
+
+# Grafik
+plot(corr$Korrelation, xlab = NA, ylab = "Korrelation",   
+     ylim = c(0.5, 1), xaxt = "n", main = "Korrelation zwischen 
+     Modalwert und individueller Zuordnung der Items pro Rater/in")
+text(seq(1:nraters), corr$Korrelation - 0.02, labels = corr[, 2], 
+     offset = 1, cex = 1)
+title(xlab = "Raters nach aufsteigender Korrelation gereiht")
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.2, Listing 6: ICC
+# 
+
+library(irr)
+(iccdat.agree &lt;- icc(rater.dat, model = "twoway", 
+  type = "agreement", unit = "single", r0 = 0, conf.level=0.95))
+(iccdat.cons &lt;- icc(rater.dat, model = "twoway", 
+  type = "consistency", unit = "single", r0 = 0, conf.level=0.95))
+
+
+## -------------------------------------------------------------
+## Abschnitt 3.2.3: Daten aus der Bookmark-Methode
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.3, Listing 1: Feedback
+# 
+
+head(bookmarks)
+statbookm &lt;- data.frame("Stats"=c("Md","Mean","SD"), 
+                        "Cut1"=0, "Cut2"=0)
+statbookm[1,2] &lt;- round(median(bookmarks$Cut1), digits=2)
+statbookm[1,3] &lt;- round(median(bookmarks$Cut2), digits=2)
+statbookm[2,2] &lt;- round(mean(bookmarks$Cut1), digits=2)
+statbookm[2,3] &lt;- round(mean(bookmarks$Cut2), digits=2)
+statbookm[3,2] &lt;- round(sd(bookmarks$Cut1), digits=2)
+statbookm[3,3] &lt;- round(sd(bookmarks$Cut2), digits=2)
+(statbookm)
+table(bookmarks$Cut1)
+table(bookmarks$Cut2)
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.3, Listing 2: Cut-Score Berechnung
+# 
+
+bm.cut &lt;- NULL 
+bm.cut$cut1 &lt;- mean(ratings$Norm_rp23[bookmarks$Cut1]) 
+bm.cut$cut2 &lt;- mean(ratings$Norm_rp23[bookmarks$Cut2]) 
+bm.cut$cut1sd &lt;- sd(ratings$Norm_rp23[bookmarks$Cut1]) 
+bm.cut$cut2sd &lt;- sd(ratings$Norm_rp23[bookmarks$Cut2]) 
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.3, Listing 3: Standardfehler des Cut-Scores
+# 
+
+se.cut1 &lt;- bm.cut$cut1sd/sqrt(nraters)
+se.cut2 &lt;- bm.cut$cut2sd/sqrt(nraters)
+
+# -------------------------------------------------------------
+# Abschnitt 3.2.3, Listing 4: Impact Data
+#
+
+Pers.Para &lt;- sdat[, "TPV1"]
+cuts &lt;- c(bm.cut$cut1, bm.cut$cut2)
+# Definiere Bereiche: Minimaler Personenparameter bis Cut-Score 1, 
+#   Cut-Score 1 bis Cut-Score 2, Cut-Score 2 bis maximaler 
+#   Personenparameter
+Cuts.Vec &lt;- c(min(Pers.Para)-1, cuts, max(Pers.Para)+1)
+# Teile Personenparameter in entsprechende Bereiche auf
+Kum.Cuts &lt;- cut(Pers.Para, breaks = Cuts.Vec)
+# Verteilung auf die einzelnen Bereiche
+Freq.Pers.Para &lt;- xtabs(~ Kum.Cuts)
+nstud &lt;- nrow(sdat)
+# Prozent-Berechnung
+prozent &lt;- round(as.numeric(Freq.Pers.Para / nstud * 100), 
+                 digits = 2) 
+(Impact.Data &lt;- data.frame("Stufe" = c("A1", "A2", "B1"), 
+                           "Prozent" = prozent))
+
+
+## -------------------------------------------------------------
+## Abschnitt 3.3.2: Daten aus der Contrasting-Groups-Methode
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 3.3.2, Listing 1: Cut-Scores
+#
+
+raterID &lt;- grep("R", colnames(productive), value = TRUE) 
+nraters &lt;- length(raterID)  
+nscripts &lt;- nrow(productive) 
+# Berechne Cut-Score für jeden Rater
+cutscore &lt;- data.frame("rater"=raterID, "cut1.ges"=NA)
+for(ii in 1:length(raterID)){ 
+  rater &lt;- raterID[ii]   
+  rates.ii &lt;- productive[ ,grep(rater, colnames(productive))]   
+  mean0.ii &lt;- mean(productive$Performance[rates.ii == 0], 
+    na.rm = TRUE)   
+  mean1.ii &lt;- mean(productive$Performance[rates.ii == 1], 
+    na.rm = TRUE)   
+  mean.ii &lt;- mean(c(mean1.ii, mean0.ii), na.rm = TRUE)   
+  cutscore[ii, "cut1.ges"] &lt;- mean.ii }
+# Finaler Cut-Score
+cut1 &lt;- mean(cutscore$cut1.ges)
+sd.cut1 &lt;- sd(cutscore$cut1.ges)
+se.cut1 &lt;- sd.cut1/sqrt(nraters)
+
+
+## -------------------------------------------------------------
+## Appendix: Abbildungen
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abbildung 3.1
+#
+
+# 1. Grafik
+par(fig=c(0, 1, 0, 0.35), oma=c(0,0,3,0), cex = 0.85) 
+boxplot(Kappa.Stat$MW_Kappa, horizontal = T, ylim=c(0.42,0.66), 
+        axes = F, xlab = "MW Kappa")
+# 2. Grafik wird hinzugefügt
+par(fig=c(0, 1, 0.2, 1), new=TRUE)
+sd.factor &lt;- 1.5 
+mmw &lt;- mean(Kappa.Stat$MW_Kappa)
+sdmw &lt;- sd(Kappa.Stat$MW_Kappa)
+#Grenzwerte für MW und SD werden festgelegt
+mwind &lt;- c(mmw-(sd.factor*sdmw), mmw+(sd.factor*sdmw))
+plot(Kappa.Stat$MW_Kappa, Kappa.Stat$SD_Kappa, xlab = "",
+     ylab = "SD Kappa", type = "n", xlim = c(0.42, 0.66), 
+     ylim = c(0, 0.2))
+abline(v = mwind, col="grey", lty = 2)
+# Rater mit 1.5 SD Abweichung vom MW werden grau markiert 
+abw.rater &lt;- which(Kappa.Stat$MW_Kappa &lt; mwind[1] | 
+                     Kappa.Stat$MW_Kappa &gt; mwind[2])
+points(Kappa.Stat$MW_Kappa[-abw.rater], 
+       Kappa.Stat$SD_Kappa[-abw.rater], 
+       pch = 19)
+points(Kappa.Stat$MW_Kappa[abw.rater], 
+       Kappa.Stat$SD_Kappa[abw.rater], 
+       pch = 25, bg = "grey")
+text(Kappa.Stat$MW_Kappa[abw.rater], 
+     Kappa.Stat$SD_Kappa[abw.rater], 
+     Kappa.Stat$Person[abw.rater], 
+     pos = 3) 
+title("Rater-Analysen: MW und SD Kappa aus der IDM-Methode", 
+      outer = TRUE)
+
+# -------------------------------------------------------------
+# Abbildung 3.2
+#
+
+nitems &lt;- 60
+
+library(lattice)
+library(gridExtra)
+#Erster Plot mit Mittelwert
+plot.Cut1 &lt;- dotplot(bookmarks$Rater ~ bookmarks$Cut1, col = "black", 
+                     panel = function(...){
+                       panel.dotplot(...)
+                       panel.abline(v = mean(bookmarks$Cut1), lty = 5)
+                     }, 
+                     xlab = "Bookmarks für Cut-Score 1 (Seite im OIB)",
+                     ylab = "Raters", cex = 1.3)
+#Zweiter Plot mit Mittelwert
+plot.Cut2 &lt;- dotplot(bookmarks$Rater ~ bookmarks$Cut2, col = "black", 
+                     panel = function(...){
+                       panel.dotplot(...)
+                       panel.abline(v = mean(bookmarks$Cut2), lty = 5)
+                     }, 
+                     xlab = "Bookmarks für Cut-Score 2 (Seite im OIB)", 
+                     ylab = "Raters", cex = 1.3)
+#Plots nebeneinander anordnen
+grid.arrange(plot.Cut1, plot.Cut2, nrow = 1, top = "Bookmarks pro Rater/in")
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,231 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Gaussianize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gaussianize matrix-like objects</h2>
+
+<h3>Description</h3>
+
+<p><code>Gaussianize</code> is probably the most useful function in this package. It
+works the same way as <code>scale</code>, but instead of just
+centering and scaling the data, it actually <em>Gaussianizes</em> the data
+(works well for unimodal data).  See Goerg (2011, 2016) and Examples.
+</p>
+<p><strong>Important:</strong> For multivariate input <code>X</code> it performs a column-wise
+Gaussianization (by simply calling <code>apply(X, 2, Gaussianize)</code>),
+which is only a marginal Gaussianization.  This does <em>not</em> mean (and
+is in general definitely not the case) that the transformed data is then
+jointly Gaussian.
+</p>
+<p>By default <code>Gaussianize</code> returns the <code class="reqn">X \sim N(\mu_x, \sigma_x^2)</code>
+input, not the zero-mean, unit-variance <code class="reqn">U \sim N(0, 1)</code> input.  Use
+<code>return.u = TRUE</code> to obtain <code class="reqn">U</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Gaussianize(
+  data = NULL,
+  type = c("h", "hh", "s"),
+  method = c("IGMM", "MLE"),
+  return.tau.mat = FALSE,
+  inverse = FALSE,
+  tau.mat = NULL,
+  verbose = FALSE,
+  return.u = FALSE,
+  input.u = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a numeric matrix-like object; either the data that should be
+Gaussianized; or the data that should ”DeGaussianized” (<code>inverse =
+TRUE</code>), i.e., converted back to the original space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>what type of non-normality: symmetric heavy-tails <code>"h"</code>
+(default), skewed heavy-tails <code>"hh"</code>, or just skewed <code>"s"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>what estimator should be used: <code>"MLE"</code> or <code>"IGMM"</code>.
+<code>"IGMM"</code> gives exactly Gaussian characteristics (kurtosis
+<code class="reqn">\equiv</code> 3 for <code>"h"</code> or skewness <code class="reqn">\equiv</code> 0 for <code>"s"</code>),
+<code>"MLE"</code> comes close to this. Default: <code>"IGMM"</code> since it is much
+faster than <code>"MLE"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.tau.mat</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it also returns the estimated
+<code class="reqn">\tau</code> parameters as a matrix (same number of columns as
+<code>data</code>).  This matrix can then be used to <code>Gaussianize</code> new
+data with pre-estimated <code class="reqn">\tau</code>. It can also be used to
+“DeGaussianize” data by passing it as an argument (<code>tau.mat</code>) to
+<code>Gaussianize()</code> and set <code>inverse = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it performs the inverse transformation
+using <code>tau.mat</code> to "DeGaussianize" the data back to the original
+space again.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.mat</code></td>
+<td>
+<p>instead of estimating <code class="reqn">\tau</code> from the data you can pass it
+as a matrix (usually obtained via <code>Gaussianize(..., return.tau.mat =
+TRUE)</code>). If <code>inverse = TRUE</code> it uses this <code>tau</code> matrix to
+“DeGaussianize” the data again.  This is useful to back-transform new
+data in the Gaussianized space, e.g., predictions or fits, back to the
+original space.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, it prints out progress information in
+the console. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.u</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it returns the zero-mean, unit
+variance Gaussian input.  If <code>FALSE</code> (default) it returns the input
+<code class="reqn">X</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input.u</code></td>
+<td>
+<p>optional; if you used <code>return.u = TRUE</code> in a previous
+step, and now you want to convert the data back to original space, then
+you have to pass it as <code>input.u</code>.  If you pass numeric data as
+<code>data</code>, <code>Gaussianize</code> assumes that <code>data</code> is the input
+corresponding to <code class="reqn">X</code>, not <code class="reqn">U</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>numeric matrix-like object with same dimension/size as input <code>data</code>. 
+If <code>inverse = FALSE</code> it is the Gaussianize matrix / vector; 
+if <code>TRUE</code> it is the “DeGaussianized” matrix / vector.
+</p>
+<p>The numeric parameters of mean, scale, and skewness/heavy-tail parameters
+that were used in the Gaussianizing transformation are returned as
+attributes of the output matrix: <code>'Gaussianized:mu'</code>,
+<code>'Gaussianized:sigma'</code>, and for
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type = "h":</code></td>
+<td>
+<p><code>'Gaussianized:delta'</code> &amp; <code>'Gaussianized:alpha'</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type = "hh":</code></td>
+<td>
+<p><code>'Gaussianized:delta_l'</code> and <code>'Gaussianized:delta_r'</code> &amp; 
+<code>'Gaussianized:alpha_l'</code> and <code>'Gaussianized:alpha_r'</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type = "s":</code></td>
+<td>
+<p><code>'Gaussianized:gamma'</code>.</p>
+</td>
+</tr>
+</table>
+<p>They can also be returned as a separate matrix using <code>return.tau.mat =
+    TRUE</code>. In this case <code>Gaussianize</code> returns a list with elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Gaussianized input data <code class="reqn">\boldsymbol x</code> (or
+<code class="reqn">\boldsymbol u</code> if <code>return.u = TRUE</code>),</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau.mat</code></td>
+<td>
+<p>matrix
+with <code class="reqn">\tau</code> estimates that we used to get <code>x</code>; has same number
+of columns as <code>x</code>, and 3, 5, or 6 rows (depending on
+<code>type='s'</code>, <code>'h'</code>, or <code>'hh'</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Univariate example
+set.seed(20)
+y1 &lt;- rcauchy(n = 100)
+out &lt;- Gaussianize(y1, return.tau.mat = TRUE)
+x1 &lt;- get_input(y1, c(out$tau.mat[, 1]))  # same as out$input
+test_normality(out$input) # Gaussianized a Cauchy!
+
+kStartFrom &lt;- 20
+y.cum.avg &lt;- (cumsum(y1)/seq_along(y1))[-seq_len(kStartFrom)]
+x.cum.avg &lt;- (cumsum(x1)/seq_along(x1))[-seq_len(kStartFrom)]
+
+plot(c((kStartFrom + 1): length(y1)), y.cum.avg, type="l" , lwd = 2, 
+     main="CLT in practice", xlab = "n", 
+     ylab="Cumulative sample average", 
+     ylim = range(y.cum.avg, x.cum.avg))
+lines(c((kStartFrom+1): length(y1)), x.cum.avg, col=2, lwd=2)
+abline(h = 0)
+grid()
+legend("bottomright", c("Cauchy", "Gaussianize"), col = c(1, 2), 
+       box.lty = 0, lwd = 2, lty = 1)
+
+plot(x1, y1, xlab="Gaussian-like input", ylab = "Cauchy - output")
+grid()
+## Not run: 
+# multivariate example
+y2 &lt;- 0.5 * y1 + rnorm(length(y1))
+YY &lt;- cbind(y1, y2)
+plot(YY)
+
+XX &lt;- Gaussianize(YY, type = "hh")
+plot(XX)
+
+out &lt;- Gaussianize(YY, type = "h", return.tau.mat = TRUE, 
+                   verbose = TRUE, method = "IGMM")
+                   
+plot(out$input)
+out$tau.mat
+
+YY.hat &lt;- Gaussianize(data = out$input, tau.mat = out$tau.mat,
+                      inverse = TRUE)
+plot(YY.hat[, 1], YY[, 1])
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

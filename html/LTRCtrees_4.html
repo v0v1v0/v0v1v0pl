@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LTRCART</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a relative risk survival tree for LTRC data</h2>
+
+<h3>Description</h3>
+
+<p><code>LTRCART</code> returns an rpart object. This function extends
+the survival tree algorithm in <code>rpart</code> to fit left-truncated and
+right censored (LTRC) data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LTRCART(
+  formula,
+  data,
+  weights = NULL,
+  subset = NULL,
+  no.SE = 0,
+  control = rpart::rpart.control(cp = 0.001)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula object specifies the regression function, with the
+response be a Surv object, with form Surv(time1, time2, event)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An optional data frame which contains the variables
+named in the formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional case weights, same as in <code>rpart</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>Optional expression saying that only a subset of the rows of the data should be
+used in the fit, same as in <code>rpart</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>no.SE</code></td>
+<td>
+<p>Number of standard errors used in pruning, with default value 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A list of control values used to control the <code>rpart</code>
+algorithm, with default cp = 0.001. See rpart.control for details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class rpart. See rpart.object.
+</p>
+
+
+<h3>References</h3>
+
+<p>Fu, W. and Simonoff, J.S. (2017). Survival trees for left-truncated and right-censored data,
+with application to time-varying covariate data. Biostatistics 18 (2), 352-369.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## The Assay of serum free light chain data in survival package
+## Adjust data &amp; clean data
+library(survival)
+library(LTRCtrees)
+Data &lt;- flchain
+Data &lt;- Data[!is.na(Data$creatinine),]
+Data$End &lt;- Data$age + Data$futime/365
+DATA &lt;- Data[Data$End &gt; Data$age,]
+names(DATA)[6] &lt;- "FLC"
+
+## Setup training set and test set
+Train = DATA[1:500,]
+Test = DATA[1000:1020,]
+
+## Fit LTRCART survival tree
+## make sure to attach survival package (by library(survival) ) before using Surv function
+LTRCART.obj &lt;- LTRCART(Surv(age, End, death) ~ sex + FLC + creatinine, Train)
+
+## Putting Surv(End, death) in formula would result an error message
+## since LTRCART is expecting Surv(time1, time2, event)
+
+## Plot the fitted tree
+library(rpart.plot)
+rpart.plot(LTRCART.obj)
+
+## Plot as partykit::party object
+library(partykit)
+plot(as.party(LTRCART.obj))
+
+## Plot as partykit::party object with survival curves on terminal nodes
+LTRCART.obj.party &lt;- as.party(LTRCART.obj)
+LTRCART.obj.party$fitted[["(response)"]]&lt;- Surv(Train$age, Train$End, Train$death)
+plot(LTRCART.obj.party)
+
+## Predict relative risk on test set
+LTRCART.pred &lt;- predict(LTRCART.obj, newdata = Test)
+
+
+
+####################################################################
+####### Survival tree with time-varying covariates ##################
+####################################################################
+## The pbcseq dataset of survival package
+library(survival)
+## Create the start-stop-event triplet needed for coxph and LTRC trees
+first &lt;- with(pbcseq, c(TRUE, diff(id) !=0)) #first id for each subject
+last &lt;- c(first[-1], TRUE) #last id
+time1 &lt;- with(pbcseq, ifelse(first, 0, day))
+time2 &lt;- with(pbcseq, ifelse(last, futime, c(day[-1], 0)))
+event &lt;- with(pbcseq, ifelse(last, status, 0))
+event &lt;- 1*(event==2)
+
+pbcseq$time1 &lt;- time1
+pbcseq$time2 &lt;- time2
+pbcseq$event &lt;-  event
+## Fit the Cox model and LTRCART tree with time-varying covariates
+fit.cox &lt;- coxph(Surv(time1, time2, event) ~ age + sex + log(bili), pbcseq)
+LTRCART.fit &lt;- LTRCART(Surv(time1, time2, event) ~ age + sex + log(bili), pbcseq)
+rpart.plot(LTRCART.fit)
+
+### transform the wide format data into long format data using tmerge function
+### from survival function
+## Stanford Heart Transplant data
+jasa$subject &lt;- 1:nrow(jasa)
+
+tdata &lt;- with(jasa, data.frame(subject = subject,
+                              futime= pmax(.5, fu.date - accept.dt),
+                              txtime= ifelse(tx.date== fu.date,
+                                             (tx.date -accept.dt) -.5,
+                                             (tx.date - accept.dt)),
+                              fustat = fustat))
+
+sdata &lt;- tmerge(jasa, tdata, id=subject,death = event(futime, fustat),
+                 trt = tdc(txtime), options= list(idname="subject"))
+
+sdata$age &lt;- sdata$age - 48
+
+sdata$year &lt;- as.numeric(sdata$accept.dt - as.Date("1967-10-01"))/365.25
+
+Cox.fit &lt;- coxph(Surv(tstart, tstop, death) ~ age+ surgery, data= sdata)
+LTRCART.fit &lt;- LTRCART(Surv(tstart, tstop, death) ~ age + transplant, data = sdata)
+rpart.plot(LTRCART.fit)
+
+</code></pre>
+
+
+</div>

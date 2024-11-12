@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmmpar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parallel Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Embarrassingly Parallel Linear Mixed Model calculations spread across local cores which repeat until convergence.  All calculations are currently done locally, but theoretically, the calculations could be extended to multiple machines.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmmpar(Y, X, Z, subject, beta, R, D, sigma, maxiter = 500, cores = 8,
+  verbose = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>matrix of responses with observations/subjects on column and repeats for each observation/subject on rows. It is (m x n) dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>observed design matrices for fixed effects. It is (m*n x p) dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>observed design matrices for random effects. It is (m*n x q) dimensional.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>vector of positions that belong to each subject.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>fixed effect estimation vector with length p.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>variance-covariance matrix of residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p>variance-covariance matrix of random effects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>initial sigma value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>the maximum number of iterations that should be calculated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>the number of cores. Why not to use maximum?!</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>boolean that defaults to print iteration context</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Set up fake data
+n &lt;- 1000  # number of subjects
+m &lt;- 4      # number of repeats
+N &lt;- n * m  # true size of data
+p &lt;- 15     # number of betas
+q &lt;- 2      # width of random effects
+
+# Initial parameters
+# beta has a 1 for the first value.  all other values are ~N(10, 1)
+beta &lt;- rbind(1, matrix(rnorm(p, 10), p, 1))
+R &lt;- diag(m)
+D &lt;- matrix(c(16, 0, 0, 0.025), nrow = q)
+sigma &lt;- 1
+
+# Set up data
+subject &lt;- rep(1:n, each = m)
+repeats &lt;- rep(1:m, n)
+
+subj_x &lt;- lapply(1:n, function(i) cbind(1, matrix(rnorm(m * p), nrow = m)))
+X &lt;- do.call(rbind, subj_x)
+Z &lt;- X[, 1:q]
+subj_beta &lt;- lapply(1:n, function(i) mnormt::rmnorm(1, rep(0, q), D))
+subj_err &lt;- lapply(1:n, function(i) mnormt::rmnorm(1, rep(0, m), sigma * R))
+
+# create a known response
+subj_y &lt;- lapply(
+  seq_len(n),
+  function(i) {
+    (subj_x[[i]] %*% beta) +
+      (subj_x[[i]][, 1:q] %*% subj_beta[[i]]) +
+      subj_err[[i]]
+  }
+)
+Y &lt;- do.call(rbind, subj_y)
+
+# run the algorithm to recover the known betas
+ans &lt;- lmmpar(
+  Y,
+  X,
+  Z,
+  subject,
+  beta = beta,
+  R = R,
+  D = D,
+  cores = 1, # increase for faster computation
+  sigma = sigma,
+  verbose = TRUE
+)
+str(ans)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict_lfmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict polygenic scores from latent factor models</h2>
+
+<h3>Description</h3>
+
+<p>This function computes polygenic risk scores from the estimates of latent factor models.
+It uses the indirect' effect sizes for the regression of X (a single phenotype) on the matrix Y,
+for predicting phenotypic values for new genotype data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predict_lfmm(Y, X, lfmm.object, fdr.level = 0.1, newdata = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>a response variable matrix with n rows and p columns, typically containing genotypes.
+Each column is a response variable (numeric).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an explanatory variable with n rows and d = 1 column (numeric) representing a phenotype
+with zero mean across the sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lfmm.object</code></td>
+<td>
+<p>an object of class <code>lfmm</code> returned by the lfmm_lasso
+or lfmm_ridge function, computed for X and Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fdr.level</code></td>
+<td>
+<p>a numeric value for the FDR level in the lfmm test used to define
+candidate variables for predicting new phenotypes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>a matrix with n rows and p' columns, and similar to Y, on which
+predictions of X will be based. If NULL, Y is used as new data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The response variable matrix Y and the explanatory variable are centered.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list with the following attributes:
+</p>
+
+<ul>
+<li>
+<p> prediction: a vector of length n containing the predicted values for X. If newdata
+= NULL, the fitted values are returned.
+</p>
+</li>
+<li>
+<p> candidates: a vector of candidate columns of Y on which the predictions are built.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kevin Caye, Basile Jumentier, Olivier Francois
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lfmm)
+
+## Simulation of 1000 genotypes for 100 individuals (y)
+u &lt;- matrix(rnorm(300, sd = 1), nrow = 100, ncol = 3) 
+v &lt;- matrix(rnorm(3000, sd = 3), nrow = 3, ncol = 1000)
+w &lt;- u %*% v
+y &lt;- matrix(rbinom(100000, size = 2, 
+                  prob = 1/(1 + exp(-0.3 * (w 
+                  + rnorm(100000, sd = 2))))),
+                  nrow = 100,
+                  ncol = 1000)
+
+#PCA of genotypes, 2 main axes of variation (K = 2) 
+plot(prcomp(y))
+  
+## Simulation of 1000 phenotypes (x)
+## Only the last 10 genotypes have significant effect sizes (b)
+b &lt;- matrix(c(rep(0, 990), rep(6000, 10)))
+x &lt;- y%*%b + rnorm(100, sd = 100)
+
+## Compute effect sizes using lfmm_ridge
+mod &lt;- lfmm_ridge(Y = y, 
+                  X = x,
+                  K = 2)
+              
+x.pred &lt;- predict_lfmm(Y = y, 
+                       X = x,
+                       fdr.level = 0.25, 
+                       mod)
+                    
+x.pred$candidates
+
+##Compare simulated and predicted/fitted phenotypes
+plot(x - mean(x), x.pred$pred, 
+     pch = 19, col = "grey", 
+     xlab = "Observed phenotypes (centered)", 
+     ylab = "Predicted from PRS")
+abline(0,1)
+abline(lm(x.pred$pred ~ scale(x, scale = FALSE)), col = 2)
+</code></pre>
+
+
+</div>

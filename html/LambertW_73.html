@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MLE_LambertW</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Maximum Likelihood Estimation for Lambert W<code class="reqn"> \times</code> F distributions</h2>
+
+<h3>Description</h3>
+
+<p>Maximum Likelihood Estimation (MLE) for Lambert W <code class="reqn">\times F</code>
+distributions computes <code class="reqn">\widehat{\theta}_{MLE}</code>.
+</p>
+<p>For <code>type = "s"</code>, the skewness parameter <code class="reqn">\gamma</code> is estimated and
+<code class="reqn">\delta = 0</code> is held fixed; for <code>type = "h"</code> the one-dimensional
+<code class="reqn">\delta</code> is estimated and <code class="reqn">\gamma = 0</code> is held fixed; and for
+<code>type = "hh"</code> the 2-dimensional <code class="reqn">\delta</code> is estimated and
+<code class="reqn">\gamma = 0</code> is held fixed.
+</p>
+<p>By default <code class="reqn">\alpha = 1</code> is fixed for any <code>type</code>. If you want to
+also estimate <code class="reqn">\alpha</code> (for <code>type = "h"</code> or <code>"hh"</code>) 
+set <code>theta.fixed = list()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MLE_LambertW(
+  y,
+  distname,
+  type = c("h", "s", "hh"),
+  theta.fixed = list(alpha = 1),
+  use.mean.variance = TRUE,
+  theta.init = get_initial_theta(y, distname = distname, type = type, theta.fixed =
+    theta.fixed, use.mean.variance = use.mean.variance, method = "IGMM"),
+  hessian = TRUE,
+  return.estimate.only = FALSE,
+  optim.fct = c("optim", "nlm", "solnp"),
+  not.negative = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of real values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>character; name of input distribution; see
+<code>get_distnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of Lambert W <code class="reqn">\times</code> F distribution: skewed <code>"s"</code>;
+heavy-tail <code>"h"</code>; or skewed heavy-tail <code>"hh"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.fixed</code></td>
+<td>
+<p>a list of fixed parameters in the optimization; default
+only <code>alpha = 1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.mean.variance</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it uses mean and variance
+implied by <code class="reqn">\boldsymbol \beta</code> to do the transformation (Goerg 2011).
+If <code>FALSE</code>, it uses the alternative definition from Goerg (2016)
+with location and scale parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.init</code></td>
+<td>
+<p>a list containing the starting values of <code class="reqn">(\alpha,
+\boldsymbol \beta, \gamma, \delta)</code> for the numerical optimization;
+default: see <code>get_initial_theta</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>indicator for returning the (numerically obtained) Hessian at
+the optimum; default: <code>TRUE</code>. If the <span class="pkg">numDeriv</span> package is
+available it uses <code>numDeriv::hessian()</code>; otherwise
+<code>stats::optim(..., hessian = TRUE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return.estimate.only</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, only a named flattened
+vector of <code class="reqn">\widehat{\theta}_{MLE}</code> will be returned (only the
+estimated, non-fixed values). This is useful for simulations where it is
+usually not necessary to give a nicely organized output, but only the
+estimated parameter. Default: <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim.fct</code></td>
+<td>
+<p>character; which R optimization function should be
+used. Either <code>'optim'</code> (default), <code>'nlm'</code>, or <code>'solnp'</code>
+from the <span class="pkg">Rsolnp</span> package (if available).  Note that if <code>'nlm'</code>
+is used, then <code>not.negative = TRUE</code> will be set automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>not.negative</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, it restricts <code>delta</code> or
+<code>gamma</code> to the non-negative reals. See <code>theta2unbounded</code>
+for details.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of class <code>LambertW_fit</code>:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p> data <code>y</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>scalar; log-likelihood evaluated at the optimum
+<code class="reqn">\widehat{\theta}_{MLE}</code>,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta.init</code></td>
+<td>
+<p>list; starting values for numerical optimization,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p> estimated <code class="reqn">\boldsymbol \beta</code> vector of the input distribution via Lambert W MLE (In general this is not exactly identical to <code class="reqn">\widehat{\boldsymbol \beta}_{MLE}</code> for the input data), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>list; MLE for <code class="reqn">\theta</code>, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>see Arguments,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>Hessian matrix; used to calculate standard errors (only if <code>hessian = TRUE</code>, 
+otherwise <code>NULL</code>),</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>function call,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>see Arguments,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>message from the optimization method. What kind of convergence?,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>estimation method; here <code>"MLE"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# See ?LambertW-package
+
+</code></pre>
+
+
+</div>

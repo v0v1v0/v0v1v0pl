@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mcposthoc.fnc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Posthoc analyses for LMER models using parallel capabilities.</h2>
+
+<h3>Description</h3>
+
+<p>This function uses the <code>parallel</code> package. For each factor level, a slave process is sent to one of the computer's cores unsing function <code>mclapply</code> where the specified factor variables are re-leveled to each one of their levels, the <code>mer</code> model updated, and summaries returned. <em>MCMC p-value calculation is now implemented</em>. R will wait until all slave processes have finished running. See package <code>parallel</code> for more information about parallel computing. Note that tradional sequential computing can be achieved by specifying <code>mc.cores = 1</code>. Posthoc results can be viewed with function <code>summary.mcposthoc</code>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mcposthoc.fnc(model, var, two.tailed = TRUE, 
+mcmc = FALSE, nsim = 10000, ndigits = 4, mc.cores = 1, 
+verbosity = 1, ...)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A <code>mer</code> object (fitted by function <code>lmer</code>) or an <code>lm</code> object (fitted by function <code>lm</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>A named list of variable on which to perform the posthoc analysis. For example <code>list(ph1 = c("PronomOfTheme", "AnimacyOfRec", "DefinOfRec"), ph2 = c("SemanticClass"))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>two.tailed</code></td>
+<td>
+<p>Logical. Whether to perform one- or two-tailed <em>t</em>-tests. Defaults to <code>TRUE</code>, i.e., two-tailed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mcmc</code></td>
+<td>
+<p>Logical. Whether to calculate <em>p</em>-values using function <code>pamer.fnc</code> (the default) or using function <code>pvals.fnc</code> from package <code>languageR</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>An integer denoting the required number of Markov chain Monte Carlo samples. Defaults to 10000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndigits</code></td>
+<td>
+<p>Integer indicating the number of decimal places to be used in the <em>t</em> tables. Defaults to 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>The number of cores to use, i.e. how many processes will be spawned (at most).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbosity</code></td>
+<td>
+<p>Numeric. The amount of information printed to screen during the modeling process. The higher the number, the more information is printed. <code>0</code> turns this option off. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments to pass to "mclapply".</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>var = list(ph1 = c("PronomOfTheme", "AnimacyOfRec", "DefinOfRec"))</code>, for example, the function will re-level and update the model on each combination of the variable levels as follows:
+</p>
+<pre>
+(1) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "nonpronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "animate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "definite")
+
+(2) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "nonpronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "inanimate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "definite")
+
+(3) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "nonpronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "animate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "indefinite")
+
+(4) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "pronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "animate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "definite")
+
+(5) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "nonpronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "inanimate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "indefinite")
+
+(6) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "pronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "animate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "indefinite")
+
+(7) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "pronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "inanimate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "indefinite")
+
+(8) data$PronomOfTheme &lt;- relevel(data$PronomOfTheme = "pronominal")
+    data$AnimacyOfTheme &lt;- relevel(data$AnimacyOfTheme = "inanimate")
+    data$DefinOfTheme &lt;- relevel(data$DefinOfTheme = "definite")
+</pre>
+<p>On a cluster, instead of using <code>mcposthoc.fnc</code> it is better (faster and less complicated) to write a bash script that will create (1) <code>.R</code> files that will relevel the conditions and update the model, and (2) an associated <code>.sh</code> job submission script to submit the <code>.R</code> files. For example, let's consider two ERP analyses (regular past tense inflection and phrase structure) with three time windows each (300–400 ms, 550–700 ms, 750–850 in the regular past tense analysis, and 300–400 ms, 400–600 ms, and 750–850 ms in the phrase structure analysis). We investigated the effects of proficiency on ERP amplitudes. The initial models included a four-way interaction between Region of Interest (ROI) – with levels left anterior, left central, left posterior, midline anterior, midline central, midline posterior, right anterior, right central, and right posterior) – Group (with levels L1 and L2), Condition (wth levels control and violation), and Proficiency. After back-fitting the fixed effects, forward-fitting randomg effects, and reback-fitting the fixed effects as per <code>fitLMER.fnc</code>, the four-way interaction remained in every model. See Newman et al. (In preparation) for more details. The posthoc analysis script named <code>posthocs.sh</code> we used on the ACEnet cluster is as follows: 
+</p>
+<pre>
+      time=(Reg300400 Reg550700 Reg750850 PS300400 PS400600 PS750850)
+      condition=(Good Bad)
+      group=(L1 L2)
+      roi=(Lant Lcent Lpost Mant Mcent Mpost Rant Rcent Rpost)
+      
+      for t in ${time[*]}; do for i in ${condition[*]}; do for j in ${group[*]}; do for k in ${roi[*]}; do 
+          ### create .R file where the modell is updated on the data where 
+          ### re-leveld on each possible combination of variable levels
+          export CONDITION=$i;
+          export GROUP=$j;
+          export ROI=$k; 
+          echo 'condition&lt;-Sys.getenv("CONDITION")' &gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'group&lt;-Sys.getenv("GROUP")' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'roi&lt;-Sys.getenv("ROI")' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'load("models/m1'$t'.rda")' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'dat&lt;-m1@frame' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'dat$Condition&lt;-relevel(dat$Condition,'condition')' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'dat$Group&lt;-relevel(dat$Group,'group')' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'dat$ROI&lt;-relevel(dat$ROI,'roi')' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'm1&lt;-update(m1,.~.,data=dat)' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+          echo 'save(m1,file="ph'$t$CONDITION$GROUP$ROI'.rda")' &gt;&gt; "ph"$t$CONDITION$GROUP$ROI".R"
+      
+          ### create the job submission script for the .R file created above
+          echo '#$ -S /bin/bash' &gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -cwd' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -j y' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -l h_rt=48:00:00' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -l h_vmem=8G' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -R y' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo '#$ -N "ph'$t$CONDITION$GROUP$ROI'"' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+          echo 'R -q -f ph'$t$CONDITION$GROUP$ROI'.R' &gt;&gt; "job.ph"$t$CONDITION$GROUP$ROI".sh"
+      
+          ### submit the job
+          qsub  "job.ph"$t$CONDITION$GROUP$ROI".sh"
+      done; done; done; done
+
+</pre>
+<p>and then type in the console
+</p>
+<pre>
+      . posthocs.sh
+
+</pre>
+<p>On the ACEnet cluster, this results in 2 * 3 * 9 * 2 * 2 = 216 independent analyses, simultaneously using a total of 216 cores and 1728 GB of RAM. This posthoc analysis completes in about 3-6 hours.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "mcposthoc" with the following slots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>n </code></td>
+<td>
+<p>The number of data points in data frame <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var </code></td>
+<td>
+<p>A named list containing the names of the variables used in the posthoc.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>summaries </code></td>
+<td>
+<p>A named list containing the posthoc summaries for each factor re-leveling. If <code>mcmc = FALSE</code>, data frames with upper- and lower-bound (anti-conservative and conservative, respectively) <em>df</em>s, <em>p</em>-values, and deviance explained (%) for each model term. If <code>mcmc = TRUE</code>, data frames with the estimated coefficients, their MCMC mean, the HPD 95 and the probability based on the <em>t</em> distribution with the number of observations minus the number of fixed-effects coefficients as degrees of freedom.  This last <em>p</em>-value is anti-conservative, especially for small data sets.</p>
+</td>
+</tr>
+</table>
+<h3>warning</h3>
+
+<p>Parallel computing capabilities will not be available on Windows because <code>mclapply</code> relies on forking. Sequential computing, however, will work on Windows if <code>mc.cores = 1</code> (the default).</p>
+
+
+<h3>Note</h3>
+
+<p>It is not possible anymore to get p-values with function <code>pvals.fnc</code> of package <code>languageR</code>. Please see <code>http://stackoverflow.com/questions/19199713/lme4-and-languager-compatibility-error-input-model-is-not-a-mer-object</code> for other possible avenues to get p-values.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Antoine Tremblay, Statistics Canada, <a href="mailto:trea26@gmail.com">trea26@gmail.com</a>.</p>
+
+
+<h3>See Also</h3>
+
+<p><code>summary.mcposthoc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># see example in LMERConvenienceFunctions help page.
+</code></pre>
+
+
+</div>

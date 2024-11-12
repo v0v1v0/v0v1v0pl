@@ -1,0 +1,95 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot_result</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot the time series and change-points</h2>
+
+<h3>Description</h3>
+
+<p>Plot the time series and change-points
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plot_result(est_result, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>est_result</code></td>
+<td>
+<p>An S3 object of class 'result_no_nbd' or 'result_nbd' created by <code>get_breaks()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>hdchange()</code> for examples.
+</p>
+
+
+<h3>Value</h3>
+
+<p>No return value. Presents the plot of the data and breaks.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# generate data
+data_nbd &lt;- sim_hdchange_nbd(n = 300,
+p = 70,
+nbd_info =
+ list(
+   (1:9), (2:31), (32:41), (42:70),
+   (3:15), (16:35), (31:55)
+ ),
+sp_tp_break = rbind(c(2, 50), c(4, 150), c(2, 250)),
+dist_info =
+  list(dist = "t", dependence = "iid", param = 5),
+jump_max = 1)
+
+# construct nbd object
+ts_nbd &lt;- ts_hdchange(data_nbd,
+window_size = 30,
+m = 8,
+h = 1,
+N_rep = 999,
+alpha = 1e-5,
+quantiles = c(0.01, 0.05, 0.1),
+nbd_info =
+ list(
+   (1:9), (2:31), (32:41), (42:70),
+   (3:15), (16:35), (31:55)
+ ))
+
+# Estimate the time-stamps of the breaks
+est_result_nbd &lt;- hdchange(ts_nbd)
+
+# Plot the results
+plot_result(est_result_nbd, nbd_index = 2)
+pairs &lt;- est_result_nbd$nbd_and_stamps_pair
+time_stamps &lt;- pairs[pairs[, 1] == 2, 2]
+axis(1,
+  at = time_stamps,
+  labels = c("break 1", "break 2")
+)
+title(main = "Change-points estimation for neibourhood 2")
+
+</code></pre>
+
+
+</div>

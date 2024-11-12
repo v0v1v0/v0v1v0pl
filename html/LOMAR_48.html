@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wgmmreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>wgmmreg</h2>
+
+<h3>Description</h3>
+
+<p>Rigid registration of two point sets by minimizing the Wasserstein distance between GMMs
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wgmmreg(
+  X,
+  Y,
+  CX,
+  CY,
+  wx = NULL,
+  wy = NULL,
+  maxIter = 200,
+  subsample = NULL,
+  tol = 1e-08
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>reference point set, a N x D matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>point set to transform, a M x D matrix,</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CX</code></td>
+<td>
+<p>array of covariance matrices for each point in X</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CY</code></td>
+<td>
+<p>array of covariance matrices for each point in Y</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wx</code></td>
+<td>
+<p>(optional) vector of mixture weights for X.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wy</code></td>
+<td>
+<p>(optional) vector of mixture weights for Y.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p>maximum number of iterations to perform (default: 200)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subsample</code></td>
+<td>
+<p>if set, use this randomly selected fraction of the points</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance for determining convergence (default: 1e-8)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list of 
+</p>
+
+<ul>
+<li>
+<p> Y: transformed point set, 
+</p>
+</li>
+<li>
+<p> R: rotation matrix, 
+</p>
+</li>
+<li>
+<p> t: translation vector,
+</p>
+</li>
+<li>
+<p> c: final value of the cost function,
+</p>
+</li>
+<li>
+<p> converged: logical, whether the algorithm converged.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data.file1 &lt;- system.file("test_data", "parasaurolophusA.txt", package = "LOMAR",
+ mustWork = TRUE)
+PS1 &lt;- read.csv(data.file1, sep = '\t', header = FALSE)
+data.file2 &lt;- system.file("test_data", "parasaurolophusB.txt", package = "LOMAR",
+ mustWork = TRUE)
+C1 &lt;- diag(0.1, ncol(PS1)) + jitter(0.01, amount = 0.01)
+C1 &lt;- replicate(nrow(PS1),C1)
+PS2 &lt;- read.csv(data.file2, sep = '\t', header = FALSE)
+C2 &lt;- diag(0.1, ncol(PS2)) + jitter(0.01, amount = 0.01)
+C2 &lt;- replicate(nrow(PS2),C2)
+transformation &lt;- wgmmreg(PS1, PS2, C1, C2, subsample = 0.1, maxIter = 30, tol = 1e-4)
+## Not run: 
+# Visualize registration outcome
+library(rgl)
+plot3d(PS1, col = "blue")
+points3d(PS2, col = "green")
+points3d(transformation[['Y']], col = "magenta")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

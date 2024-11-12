@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>varranges</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculates ranges of inverse variables in a linear inverse problem
+</h2>
+
+<h3>Description</h3>
+
+<p>Given the linear constraints
+</p>
+<p style="text-align: center;"><code class="reqn">Ex=f</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Gx&gt;=h</code>
+</p>
+
+<p>and a set of "variables" described by the linear equations
+</p>
+<p style="text-align: center;"><code class="reqn">Var = EqA.x+EqB</code>
+</p>
+
+<p>finds the minimum and maximum values of the variables
+by successively minimising and maximising each variable equation
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">varranges(E=NULL, F=NULL, G=NULL, H=NULL, EqA, EqB=NULL, 
+  ispos=FALSE, tol=1e-8, verbose=TRUE, lower=NULL, upper=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>E </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the equalities
+<code class="reqn">Ex=F</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the
+equalities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the inequalities
+<code class="reqn">Gx&gt;=H</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the
+inequalities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EqA </code></td>
+<td>
+<p>numeric matrix containing the coefficients that define the
+variable equations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EqB </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the variable
+equations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ispos </code></td>
+<td>
+<p>if <code>TRUE</code>, it is imposed that unknowns are positive
+quantities.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol </code></td>
+<td>
+<p>tolerance for equality and inequality constraints.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose </code></td>
+<td>
+<p>logical to print warnings and messages.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper, lower </code></td>
+<td>
+<p>vector containing upper and lower bounds 
+on the unknowns. If one value, it is assumed to apply to all unknowns.
+If a vector, it should have a length equal to the number of unknowns; this
+vector can contain NA for unbounded variables. 
+The upper and lower bounds are added to the inequality conditions G*x&gt;=H.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a 2-column matrix with the minimum and maximum value of each equation
+(variable)
+</p>
+
+
+<h3>Note</h3>
+
+<p>uses linear programming function <code>lp</code> from package
+<code>lpSolve</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karline Soetaert &lt;karline.soetaert@nioz.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Michel Berkelaar and others (2010). lpSolve:
+Interface to Lp_solve v. 5.5 to solve linear/integer
+programs. R package version 5.6.5.
+http://CRAN.R-project.org/package=lpSolve
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Minkdiet</code>, for a description of the Mink diet example.
+</p>
+<p><code>xranges</code>, to estimate ranges of inverse unknowns.
+</p>
+<p><code>xsample</code>, to randomly sample the lsei problem
+</p>
+<p><code>lp</code>: linear programming function from package lpSolve.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Ranges in the contribution of food 3+4+5 in the diet of Mink (try ?Minkdiet)
+
+E     &lt;- rbind(Minkdiet$Prey, rep(1, 7))
+F     &lt;- c(Minkdiet$Mink, 1)
+EqA   &lt;- c(0, 0, 1, 1, 1, 0, 0)                    # sum of food 3,4,5
+(isoA &lt;- varranges(E, F, EqA = EqA, ispos = TRUE)) # ranges of part of food 3+4+5
+
+# The same, but explicitly imposing positivity
+varranges(E, F, EqA = EqA, G = diag(7), H = rep(0, 7)) 
+
+# The same, but shorter - using lower bound:
+varranges(E, F, EqA = EqA, lower=0) 
+
+</code></pre>
+
+
+</div>

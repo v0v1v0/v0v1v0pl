@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>compute_EucDistance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Euclidean Distance</h2>
+
+<h3>Description</h3>
+
+<p>This function can compute Euclidean Distance proposed by method LncFinder
+(Han et al. 2018). Euclidean Distance can be calculated on full sequence or the longest ORF
+region. The step and <em>k</em> of the sliding window can also be customized.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">compute_EucDistance(
+  Sequences,
+  label = NULL,
+  referFreq,
+  k = 6,
+  step = 1,
+  alphabet = c("a", "c", "g", "t"),
+  on.ORF = FALSE,
+  auto.full = FALSE,
+  parallel.cores = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sequences</code></td>
+<td>
+<p>A FASTA file loaded by function  <code>read.fasta</code> of
+<code>seqinr-package</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Optional. String. Indicate the label of the sequences such as
+"NonCoding", "Coding".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>referFreq</code></td>
+<td>
+<p>a list obtained from function <code>make_referFreq</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>An integer that indicates the sliding window size. (Default: <code>6</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>Integer defaulting to <code>1</code> for the window step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alphabet</code></td>
+<td>
+<p>A vector of single characters that specify the different character
+of the sequence. (Default: <code>alphabet = c("a", "c", "g", "t")</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>on.ORF</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, Euclidean Distance will be calculated on
+the longest ORF region. NOTE: If <code>TRUE</code>, the input has to be DNA sequences.
+(Default: <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto.full</code></td>
+<td>
+<p>Logical. When <code>on.ORF = TRUE</code> but no ORF can be found,
+if <code>auto.full = TRUE</code>, Euclidean Distance will be calculated on full sequences automatically;
+if <code>auto.full</code> is <code>FALSE</code>, the sequences that have no ORF will be discarded. Ignored when <code>on.ORF = FALSE</code>.
+(Default: <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>. Users can set as <code>-1</code> to run
+this function with all cores.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function can compute Euclidean Distance proposed by LncFinder (HAN et al. 2018).
+In LncFinder, two schemes are provided to calculate Euclidean Distance:
+1) <code>step = 3</code> and <code>k = 6</code> on the longest ORF region;
+2) <code>step = 1</code> and <code>k = 6</code> on full sequence.
+Using this function <code>compute_EucDistance</code>, both <code>step</code>, <code>k</code>,
+and calculated region (full sequence or ORF)
+can be customized to maximize its availability.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A dataframe.
+</p>
+
+
+<h3>References</h3>
+
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>make_referFreq</code>,
+<code>compute_LogDistance</code>,
+<code>compute_hexamerScore</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+Seqs &lt;- seqinr::read.fasta(file =
+"http://www.ncbi.nlm.nih.gov/WebSub/html/help/sample_files/nucleotide-sample.txt")
+
+referFreq &lt;- make_referFreq(cds.seq = Seqs, lncRNA.seq = Seqs, k = 6, step = 3,
+                            alphabet = c("a", "c", "g", "t"), on.orf = TRUE,
+                            ignore.illegal = TRUE)
+
+data(demo_DNA.seq)
+Sequences &lt;- demo_DNA.seq
+
+EucDistance &lt;- compute_EucDistance(Sequences, label = "NonCoding", referFreq = referFreq,
+                                   k = 6, step = 3, alphabet = c("a", "c", "g", "t"),
+                                   on.ORF = TRUE, auto.full = TRUE, parallel.cores = 2)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

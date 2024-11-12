@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nested_ifelse_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Block usage of nested <code>ifelse()</code> calls</h2>
+
+<h3>Description</h3>
+
+<p>Calling <code>ifelse()</code> in nested calls is problematic for two main reasons:
+</p>
+
+<ol>
+<li>
+<p> It can be hard to read – mapping the code to the expected output
+for such code can be a messy task/require a lot of mental bandwidth,
+especially for code that nests more than once
+</p>
+</li>
+<li>
+<p> It is inefficient – <code>ifelse()</code> can evaluate <em>all</em> of its arguments at
+both yes and no (see <a href="https://stackoverflow.com/q/16275149">https://stackoverflow.com/q/16275149</a>); this issue
+is exacerbated for nested calls
+</p>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">nested_ifelse_linter()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>Users can instead rely on a more readable alternative modeled after SQL
+CASE WHEN statements.
+</p>
+<p>Let's say this is our original code:
+</p>
+<div class="sourceCode r"><pre>ifelse(
+  x == "a",
+  2L,
+  ifelse(x == "b", 3L, 1L)
+)
+</pre></div>
+<p>Here are a few ways to avoid nesting and make the code more readable:
+</p>
+
+<ul>
+<li>
+<p> Use <code>data.table::fcase()</code>
+</p>
+<div class="sourceCode r"><pre>data.table::fcase(
+  x == "a", 2L,
+  x == "b", 3L,
+  default = 1L
+)
+</pre></div>
+</li>
+<li>
+<p> Use <code>dplyr::case_match()</code>
+</p>
+<div class="sourceCode r"><pre>dplyr::case_match(
+  x,
+  "a" ~ 2L,
+  "b" ~ 3L,
+  .default = 1L
+)
+</pre></div>
+</li>
+<li>
+<p> Use a look-up-and-merge approach (build a mapping table between values
+and outputs and merge this to the input)
+</p>
+<div class="sourceCode r"><pre>default &lt;- 1L
+values &lt;- data.frame(
+  a = 2L,
+  b = 3L
+)
+found_value &lt;- values[[x]]
+ifelse(is.null(found_value), default, found_value)
+</pre></div>
+</li>
+</ul>
+<h3>Tags</h3>
+
+<p>efficiency, readability
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = 'ifelse(x == "a", 1L, ifelse(x == "b", 2L, 3L))',
+  linters = nested_ifelse_linter()
+)
+
+# okay
+lint(
+  text = 'dplyr::case_when(x == "a" ~ 1L, x == "b" ~ 2L, TRUE ~ 3L)',
+  linters = nested_ifelse_linter()
+)
+
+lint(
+  text = 'data.table::fcase(x == "a", 1L, x == "b", 2L, default = 3L)',
+  linters = nested_ifelse_linter()
+)
+
+</code></pre>
+
+
+</div>

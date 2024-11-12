@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tree_extraction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Tree extraction</h2>
+
+<h3>Description</h3>
+
+<p>creates a data.frame with segment id, height and coordinates of maxima, surface and volume, computed from three images: 
+initial, local maxima and segmented, obtained with <code>tree_segmentation</code>. The 2D polygon associated to each crown 
+can be added as a WKT field
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tree_extraction(
+  r_dem_nl,
+  r_maxi = NULL,
+  r_dem_w = NULL,
+  r_mask = NULL,
+  crown = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r_dem_nl</code></td>
+<td>
+<p>SpatRaster object. Output raster of <code>tree_segmentation</code>. Otherwise a raster of canopy height model,
+preferably filtered to avoid effect of holes on volume and surface computation can be provided. In this case arguments 'r_maxi', 'r_dem_w' 
+have to be provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_maxi</code></td>
+<td>
+<p>SpatRaster object. raster with positive values at local maxima (in case 'r_dem_nl' does not contain it)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_dem_w</code></td>
+<td>
+<p>SpatRaster object. segmented raster  (in case 'r_dem_nl' does not contain it)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_mask</code></td>
+<td>
+<p>SpatRaster object. only segments which maxima are inside the mask are extracted. Values should be NA outside the mask, 1 inside.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crown</code></td>
+<td>
+<p>boolean. Should the 2D crown geometry be added in wkt format 
+to the output data.frame ?</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>sf</code> collection of POINTs with 7 fields: tree id, local maximum stats
+(height, dominance radius), segment stats (surface and volume), coordinates 
+(x and y). In case argument 'crown' is 'TRUE', a 'crown' field 
+containing the WKT geometry of the 2D crown is also present. Coordinates are 
+written with one decimal to the right of the order of magnitude of 
+the SpatRaster resolution (e.g. if resolution is 1/3 then 2 decimals are written).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tree_segmentation</code>, <code>tree_detection</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+
+# tree segmentation
+segments &lt;- tree_segmentation(chm_chablais3)
+
+# tree extraction
+trees &lt;- tree_extraction(segments, crown = TRUE)
+# create crown polygons from WKT field
+trees_crowns &lt;- sf::st_as_sf(sf::st_drop_geometry(trees), wkt = "crown")
+
+# summary of trees without wkt field
+summary(trees[, -which(names(trees) == "crown")])
+
+# plot initial image
+terra::plot(chm_chablais3, main = "CHM and extracted trees")
+
+# add treetop positions
+plot(trees["h"], add = TRUE, cex = trees$h/20, col = "black")
+# add crowns
+plot(sf::st_geometry(trees_crowns), add = TRUE, border = "black", col = NA)
+
+# plot segments
+terra::plot(segments$segments_id, main = "Segments")
+# add crowns
+plot(sf::st_geometry(trees_crowns), add = TRUE, border = "black", col = NA)
+
+</code></pre>
+
+
+</div>

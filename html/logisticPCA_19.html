@@ -1,0 +1,116 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.lsvd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict Logistic SVD left singular values or reconstruction on new data</h2>
+
+<h3>Description</h3>
+
+<p>Predict Logistic SVD left singular values or reconstruction on new data
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lsvd'
+predict(object, newdata, quiet = TRUE, max_iters = 1000,
+  conv_criteria = 1e-05, random_start = FALSE, start_A, type = c("PCs",
+  "link", "response"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>logistic SVD object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>matrix with all binary entries. If missing, will use the 
+data that <code>object</code> was fit on</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>logical; whether the calculation should give feedback</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iters</code></td>
+<td>
+<p>number of maximum iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conv_criteria</code></td>
+<td>
+<p>convergence criteria. The difference between average deviance
+in successive iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_start</code></td>
+<td>
+<p>logical; whether to randomly inititalize the parameters. If <code>FALSE</code>,
+algorithm implicitly starts <code>A</code> with 0 matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_A</code></td>
+<td>
+<p>starting value for the left singular vectors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>the type of fitting required. <code>type = "PCs"</code> gives the left singular vectors, 
+<code>type = "link"</code> gives matrix on the logit scale and <code>type = "response"</code> 
+gives matrix on the probability scale</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Minimizes binomial deviance for new data by finding the optimal left singular vector
+matrix (<code>A</code>), given <code>B</code> and <code>mu</code>. Assumes the columns of the right 
+singular vector matrix (<code>B</code>) are orthonormal.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># construct a low rank matrices in the logit scale
+rows = 100
+cols = 10
+set.seed(1)
+loadings = rnorm(cols)
+mat_logit = outer(rnorm(rows), loadings)
+mat_logit_new = outer(rnorm(rows), loadings)
+
+# convert to a binary matrix
+mat = (matrix(runif(rows * cols), rows, cols) &lt;= inv.logit.mat(mat_logit)) * 1.0
+mat_new = (matrix(runif(rows * cols), rows, cols) &lt;= inv.logit.mat(mat_logit_new)) * 1.0
+
+# run logistic PCA on it
+lsvd = logisticSVD(mat, k = 1, main_effects = FALSE, partial_decomp = FALSE)
+
+A_new = predict(lsvd, mat_new)
+</code></pre>
+
+
+</div>

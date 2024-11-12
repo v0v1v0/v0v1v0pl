@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>iid2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Influence Function With Small Sample Correction.</h2>
+
+<h3>Description</h3>
+
+<p>Extract the influence function from a latent variable model.
+It is similar to <code>lava::iid</code> but with small sample correction.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">iid2(object, ...)
+
+## S3 method for class 'lvmfit'
+iid2(
+  object,
+  robust = TRUE,
+  cluster = NULL,
+  as.lava = TRUE,
+  ssc = lava.options()$ssc,
+  ...
+)
+
+## S3 method for class 'lvmfit2'
+iid2(object, robust = TRUE, cluster = NULL, as.lava = TRUE, ...)
+
+## S3 method for class 'lvmfit2'
+iid(x, robust = TRUE, cluster = NULL, as.lava = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object, x</code></td>
+<td>
+<p>a <code>lvmfit</code> or <code>lvmfit2</code> object (i.e. output of <code>lava::estimate</code> or <code>lavaSearch2::estimate2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional argument passed to <code>estimate2</code> when using a <code>lvmfit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>[logical] if <code>FALSE</code>, the influence function is rescaled such its the squared sum equals the model-based standard error (instead of the robust standard error).
+Do not match the model-based correlation though.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>[integer vector] the grouping variable relative to which the observations are iid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.lava</code></td>
+<td>
+<p>[logical] if <code>TRUE</code>, uses the same names as when using <code>stats::coef</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ssc</code></td>
+<td>
+<p>[character] method used to correct the small sample bias of the variance coefficients (<code>"none"</code>, <code>"residual"</code>, <code>"cox"</code>). Only relevant when using a <code>lvmfit</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When argument object is a <code>lvmfit</code> object, the method first calls <code>estimate2</code> and then extract the variance-covariance matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix containing the 1st order influence function relative to each sample (in rows)
+and each model coefficient (in columns).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>estimate2</code> to obtain <code>lvmfit2</code> objects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### simulate data ####
+n &lt;- 5e1
+p &lt;- 3
+X.name &lt;- paste0("X",1:p)
+link.lvm &lt;- paste0("Y~",X.name)
+formula.lvm &lt;- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
+
+m &lt;- lvm(formula.lvm)
+distribution(m,~Id) &lt;- Sequence.lvm(0)
+set.seed(10)
+d &lt;- sim(m,n)
+
+#### latent variable model ####
+e.lvm &lt;- estimate(lvm(formula.lvm),data=d)
+iid.tempo &lt;- iid2(e.lvm)
+
+
+</code></pre>
+
+
+</div>

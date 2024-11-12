@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Ops.3vel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Arithmetic Ops Group Methods for 3vel objects</h2>
+
+<h3>Description</h3>
+
+<p>Arithmetic operations for three-velocities</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class '3vel'
+Ops(e1, e2)
+## S3 method for class '4vel'
+Ops(e1, e2)
+massage3(u,v)
+neg3(u)
+prod3(u,v=u)
+add3(u,v)
+dot3(v,r)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>e1,e2,u,v</code></td>
+<td>
+<p>Objects of class “<code>3vel</code>”,
+three-velocities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>Scalar value for circle-dot multiplication</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>Ops.3vel()</code> passes unary and binary arithmetic
+operators “<code>+</code>”, “<code>-</code>” and “<code>*</code>”
+to the appropriate specialist function.
+</p>
+<p>The most interesting operators are “<code>+</code>” and
+“<code>*</code>”, which are passed to <code>add3()</code> and <code>dot3()</code>
+respectively.  These are defined, following Ungar, as:
+</p>
+<p style="text-align: center;"><code class="reqn">
+    \mathbf{u}+\mathbf{v} = \frac{1}{1+\mathbf{u}\cdot\mathbf{b}/c^2}
+    \left\{
+    \mathbf{u} +
+    \frac{1}{\gamma_\mathbf{u}}\mathbf{v} +
+    \frac{1}{c^2}\frac{\gamma_\mathbf{u}}{1+\gamma_\mathbf{u}}
+    \left(\mathbf{u}\cdot\mathbf{v}\right)\mathbf{u}
+    \right\}
+  </code>
+</p>
+
+<p>and
+</p>
+<p style="text-align: center;"><code class="reqn">
+    r\odot\mathbf{v} =
+    c\tanh\left(
+    r\tanh^{-1}\frac{\left|\left|\mathbf{v}\right|\right|}{c}
+    \right)\frac{\mathbf{v}}{\left|\left|\mathbf{v}\right|\right|}
+  </code>
+</p>
+ 
+<p>where <code class="reqn">\mathbf{u}</code> and <code class="reqn">\mathbf{v}</code> are three-vectors
+and <code class="reqn">r</code> a scalar.  Function <code>dot3()</code> has special dispensation
+for zero velocity and does not treat <code>NA</code> entries entirely
+consistently.
+</p>
+<p>Arithmetic operations, executed via <code>Ops.4vel()</code>, are not defined
+on four-velocities.
+</p>
+<p>The package is designed so that natural <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> idiom may be used for three
+velocity addition, see the examples section.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>3vel</code>, except for <code>prod3()</code>
+which returns a numeric vector.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">u &lt;- as.3vel(c(-0.7, 0.1,-0.1))
+v &lt;- as.3vel(c( 0.1, 0.2, 0.3))
+w &lt;- as.3vel(c( 0.5, 0.2,-0.3))
+
+x &lt;- r3vel(10)   # random three velocities
+y &lt;- r3vel(10)   # random three velocities
+
+
+u+v   # add3(u,v)
+u-v   # add3(u,neg3(v))
+
+-v    # neg3(v)
+
+gyr(u,v,w)
+
+## package is vectorized:
+
+
+u+x
+x+y
+
+f &lt;- gyrfun(u,v)
+g &lt;- gyrfun(v,u)
+
+f(g(x)) - x    # should be zero by eqn10
+g(f(x)) - x
+
+
+(u+v) - f(v+u)                     # zero by eqn 10
+(u+(v+w)) - ((u+v)+f(w))           # zero by eqn 11
+((u+v)+w) - (u+(v+g(w)))           # zero by eqn 11
+
+
+## NB, R idiom is unambiguous.  But always always ALWAYS use brackets.
+
+## Ice report in lat 42.n to 41.25n Long 49w to long 50.30w saw much
+## heavy pack ice and great number large icebergs also field
+## ice.  Weather good clear
+
+## -u+v == (-u) + v == neg3(u) + v == add3(neg3(u),v)
+
+## u+v+w == (u+v)+w == add3(add3(u,v),w)
+
+</code></pre>
+
+
+</div>

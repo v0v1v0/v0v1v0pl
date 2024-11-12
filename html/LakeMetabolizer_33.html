@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>metab.ols</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Metabolism model based on a ordinary least squares parameter estimation framework.</h2>
+
+<h3>Description</h3>
+
+<p>This function runs the ordinary least squares metabolism model on the supplied gas concentration and other supporting data. This is a 
+common approach that allows for the concurrent estimation of metabolism paramters from a timeseries.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">metab.ols(do.obs, do.sat, k.gas, z.mix, irr, wtr, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>do.obs</code></td>
+<td>
+<p>Vector of dissolved oxygen concentration observations, mg L^-1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do.sat</code></td>
+<td>
+<p>Vector of dissolved oxygen saturation values based on water temperature. Calculate using o2.at.sat</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.gas</code></td>
+<td>
+<p>Vector of kGAS values calculated from any of the gas flux models 
+(e.g., k.cole) and converted to kGAS using k600.2.kGAS</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z.mix</code></td>
+<td>
+<p>Vector of mixed-layer depths in meters. To calculate, see ts.meta.depths</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>irr</code></td>
+<td>
+<p>Vector of photosynthetically active radiation in <code class="reqn">\mu mol\ m^{-2} s^{-1}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>wtr</code></td>
+<td>
+<p>Vector of water temperatures in <code class="reqn">^{\circ}C</code>. Used in scaling respiration with temperature</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments; currently "datetime" is the only recognized argument passed through <code>...</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.frame with columns corresponding to components of metabolism 
+</p>
+
+<dl>
+<dt>GPP</dt>
+<dd>
+<p>numeric estimate of Gross Primary Production, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+<dt>R</dt>
+<dd>
+<p>numeric estimate of Respiration, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+<dt>NEP</dt>
+<dd>
+<p>numeric estimate of Net Ecosystem production, <code class="reqn">mg O_2 L^{-1} d^{-1}</code></p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Luke A Winslow, Ryan Batt, GLEON Fellows
+</p>
+
+
+<h3>See Also</h3>
+
+<p>metab, metab.bookkeep, metab.mle, metab.kalman, metab.bayesian,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(rLakeAnalyzer)
+doobs = load.ts(system.file('extdata', 
+                           'sparkling.doobs', package="LakeMetabolizer"))
+wtr = load.ts(system.file('extdata', 
+                         'sparkling.wtr', package="LakeMetabolizer"))
+wnd = load.ts(system.file('extdata', 
+                         'sparkling.wnd', package="LakeMetabolizer"))
+irr = load.ts(system.file('extdata', 
+                         'sparkling.par', package="LakeMetabolizer"))
+
+#Subset a day
+mod.date = as.POSIXct('2009-07-08')
+doobs = doobs[trunc(doobs$datetime, 'day') == mod.date, ]
+wtr = wtr[trunc(wtr$datetime, 'day') == mod.date, ]
+wnd = wnd[trunc(wnd$datetime, 'day') == mod.date, ]
+irr = irr[trunc(irr$datetime, 'day') == mod.date, ]
+z.mix = ts.thermo.depth(wtr)
+
+k600 = k.cole.base(wnd[,2])
+k.gas = k600.2.kGAS.base(k600, wtr[,3], 'O2')
+do.sat = o2.at.sat.base(wtr[,3], altitude=300)
+
+metab.ols(doobs[,2], do.sat, k.gas, z.mix[,2], irr[,2], wtr[,3])
+</code></pre>
+
+
+</div>

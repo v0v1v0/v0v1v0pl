@@ -1,0 +1,160 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmoms.bernstein</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Numerically Integrated L-moments of Smoothed Quantiles from Bernstein or Kantorovich Polynomials </h2>
+
+<h3>Description</h3>
+
+<p>Compute the L-moment by numerical integration of the smoothed quantiles from Bernstein or Kantorovich polynomials (see <code>dat2bernqua</code>). Letting <code class="reqn">\tilde{X}_n(F)</code> be the smoothed quantile function for nonexceedance probability <code class="reqn">F</code> for a sample of size <code class="reqn">n</code>, from Asquith (2011) the first five L-moments in terms of quantile function integration are
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_1 = \int_0^1 \tilde{X}_n(F)\;\mathrm{d}F \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_2 = \int_0^1 \tilde{X}_n(F)\times(2F - 1)\;\mathrm{d}F\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_3 = \int_0^1 \tilde{X}_n(F)\times(6F^2 - 6F + 1)\;\mathrm{d}F\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_4 = \int_0^1 \tilde{X}_n(F)\times(20F^3 - 30F^2 + 12F - 1)\;\mathrm{d}F\mbox{, and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_5 = \int_0^1 \tilde{X}_n(F)\times(70F^4 - 140F^3 + 90F^2 - 20F + 1)\;\mathrm{d}F\mbox{.}</code>
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmoms.bernstein(x, bern.control=NULL,
+                   poly.type=c("Bernstein", "Kantorovich", "Cheng"),
+                   bound.type=c("none", "sd", "Carv", "either"),
+                   fix.lower=NULL, fix.upper=NULL, p=0.05)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bern.control</code></td>
+<td>
+<p>A <code>list</code> that holds <code>poly.type</code>, <code>bound.type</code>, <code>fix.lower</code>, and <code>fix.upper</code>. And this list will supersede the respective
+values provided as separate arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poly.type</code></td>
+<td>
+<p>Same argument as for <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.type</code></td>
+<td>
+<p>Same argument as for <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix.lower</code></td>
+<td>
+<p>Same argument as for <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix.upper</code></td>
+<td>
+<p>Same argument as for <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>The “p-factor” is the same argument as for <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>vector</code> is returned.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dat2bernqua</code>, <code>pfactor.bernstein</code>, <code>lmoms</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+X &lt;- exp(rnorm(100))
+lmoms.bernstein(X)$ratios
+lmoms.bernstein(X, fix.lower=0)$ratios
+lmoms.bernstein(X, fix.lower=0, bound.type="sd")$ratios
+lmoms.bernstein(X, fix.lower=0, bound.type="Carv")$ratios
+lmoms(X)$ratios
+
+lmoms.bernstein(X, poly.type="Kantorovich")$ratios
+lmoms.bernstein(X, fix.lower=0, poly.type="Kantorovich")$ratios
+lmoms.bernstein(X, fix.lower=0, bound.type="sd", poly.type="Kantorovich")$ratios
+lmoms.bernstein(X, fix.lower=0, bound.type="Carv", poly.type="Kantorovich")$ratios
+lmoms(X)$ratios
+
+## End(Not run)
+
+## Not run: 
+lmr &lt;- vec2lmom(c(1,.2,.3))
+par &lt;- lmom2par(lmr, type="gev")
+lmr &lt;- lmorph(par2lmom(par))
+lmT &lt;- c(lmr$lambdas[1:2], lmr$ratios[3:5])
+ns  &lt;- 200; nsim &lt;- 1000; empty &lt;- rep(NA, nsim)
+
+sink("ChengLmomentTest.txt")
+cat(c("N errmeanA  errlscaleA  errtau3A  errtau4A  errtau5A",
+        "errmeanB  errlscaleB  errtau3B  errtau4B  errtau5B\n"))
+for(n in 1:ns) {
+   message(n);
+   SIM &lt;- data.frame(errmeanA=empty, errlscaleA=empty,   errtau3A=empty, errtau4A=empty,
+                     errtau5A=empty,   errmeanB=empty, errlscaleB=empty, errtau3B=empty,
+                     errtau4B=empty,   errtau5B=empty)
+   for(i in 1:nsim) {
+      X &lt;- rlmomco(30, par)
+      lmrA &lt;- lmoms(X)
+      lmA &lt;- c(lmrA$lambdas[1:2], lmrA$ratios[3:5])
+      lmrB &lt;- lmoms.bernstein(X, poly.type="Cheng")
+      lmB &lt;- c(lmrB$lambdas[1:2], lmrB$ratios[3:5])
+      EA &lt;- lmA - lmT; EB &lt;- lmB - lmT
+      SIM[i,] &lt;- c(EA,EB)
+   }
+   MeanErr &lt;- sapply(1:length(SIM[1,]), function(x) { return(mean(SIM[,x])) })
+   line &lt;- paste(c(n, round(MeanErr, digits=6), "\n"), sep=" ")
+   cat(line)
+}
+sink()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

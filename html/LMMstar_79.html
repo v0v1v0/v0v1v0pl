@@ -1,0 +1,233 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>residuals</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract The Residuals From a Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Extract or compute the residuals of a linear mixed model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmm'
+residuals(
+  object,
+  type = "response",
+  variable = NULL,
+  at = NULL,
+  newdata = NULL,
+  p = NULL,
+  format = "long",
+  keep.data = FALSE,
+  fitted.ci = FALSE,
+  simplify = TRUE,
+  var,
+  ...
+)
+
+## S3 method for class 'clmm'
+residuals(object, ...)
+
+## S3 method for class 'mlmm'
+residuals(object, simplify = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>[character] type of residual to output such as raw residuals (<code>"response"</code>), normalized residuals (<code>"normalized"</code>, partial residuals (<code>"partial"</code>).
+Can also be <code>"all"</code> to output all except partial residuals. See detail section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>[character vector] name of the variable relative to which the partial residuals should be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>at</code></td>
+<td>
+<p>[data.frame] values for the covariates at which to evaluate the partial residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>[data.frame] dataset relative to which the residuals should be computed. Only relevant if differs from the dataset used to fit the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>[numeric vector] value of the model coefficients at which to evaluate the residuals. Only relevant if differs from the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>[character] Should the residuals be output
+in a matrix format with clusters in row and timepoints in columns (<code>"wide"</code>),
+or in a data.frame/vector with as many rows as observations (<code>"long"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep.data</code></td>
+<td>
+<p>[logical] Should the dataset relative to which the residuals are evaluated be output along side the residual values?
+Only possible in the long format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.ci</code></td>
+<td>
+<p>[logical] Should the confidence intervals relative to the fitted values be added to the output. Only relevant when argument <code>keep.data=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>[logical] Simplify the data format (vector instead of data.frame) and column names (no mention of the time variable) when possible.
+Otherwise, information about the call and reference values used for partial residuals be added as an attribute.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>[Deprecated] Not used anymore, replaced by argument variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used. For compatibility with the generic method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The argument <code>type</code> defines how the residuals are computed:
+</p>
+
+<ul>
+<li> <p><code>"response"</code>: raw residual, i.e. observed outcome minus fitted value <code class="reqn">\varepsilon_{ij} = Y_{ij} - X_{ij} \hat{\beta}</code>.
+</p>
+</li>
+<li> <p><code>"pearson"</code>: each raw residual is divided by its modeled standard deviation <code class="reqn">\varepsilon_{ij} = \frac{Y_{ij} - X_{ij} \hat{\beta}}{\sqrt{\hat{\omega}_{ij}}}</code>.
+</p>
+</li>
+<li> <p><code>"studentized"</code>: same as <code>"pearson"</code> but excluding the contribution of the cluster in the modeled standard deviation  <code class="reqn">\varepsilon_{ij} = \frac{Y_{ij} - X_{ij} \hat{\beta}}{\sqrt{\hat{\omega}_{ij}-\hat{q}_{ij}}}</code>.
+</p>
+</li>
+<li> <p><code>"normalized"</code>: raw residuals are multiplied, within clusters, by the inverse of the (upper) Cholesky factor of the modeled residual variance covariance matrix <code class="reqn">\varepsilon_{ij} = ( Y_{i} - X_{i} \hat{\beta} )\hat{C}^{-1}</code>.
+</p>
+</li>
+<li> <p><code>"normalized2"</code>: raw residuals are multiplied, within clusters, by the inverse of the modeled residual variance covariance matrix <code class="reqn">\varepsilon_{ij} = ( Y_{i} - X_{i} \hat{\beta} )\hat{Omega}^{-1}</code>.
+</p>
+</li>
+<li> <p><code>"scaled"</code>: scaled residuals (see PROC MIXED in SAS). Numerically identical to <code>"normalized"</code> but computed by sequentially scaling and centering the residuals, to make them conditionally independent of previous residuals from the same cluster at previous repetitions.
+</p>
+</li>
+<li> <p><code>"partial"</code>: partial residuals (<code class="reqn">\gamma E + \hat{\varepsilon}</code>). A reference level can be also be specified via the attribute <code>"reference"</code> to change the absolute level of the partial residuals.
+<code>"partial-center"</code>: partial residuals with centered continuous covariates (<code class="reqn">\gamma E + \hat{\varepsilon}</code> where <code class="reqn">E</code> has been centered, i.e., has 0-mean)
+</p>
+</li>
+</ul>
+<p>where
+</p>
+
+<ul>
+<li> <p><code class="reqn">X=(E,W)</code> the design matrix. For partial residuals, it is split according to the variable(s) in argument <code>variable</code> (<code class="reqn">E</code>) and the rest (<code class="reqn">W</code>).
+</p>
+</li>
+<li> <p><code class="reqn">Y</code> the outcome
+</p>
+</li>
+<li> <p><code class="reqn">\hat{\beta}=(\hat{\gamma},\hat{\delta})</code> the estimated mean coefficients relative to <code class="reqn">X=(E,W)</code>
+</p>
+</li>
+<li> <p><code class="reqn">\hat{\Omega}</code> the modeled variance-covariance of the residuals and <code class="reqn">\hat{\omega}</code> its diagonal elements
+</p>
+</li>
+<li> <p><code class="reqn">\hat{C}</code> the upper Cholesky factor of <code class="reqn">\hat{\Omega}</code>, i.e. upper triangular matrix satisfying <code class="reqn">\hat{C}^{t} \hat{C} = \hat{\Omega}</code>
+</p>
+</li>
+<li> <p><code class="reqn">\hat{Q}_i= X_i (X^{t}\hat{\Omega}X)^{-1}X_i^{t}</code> a cluster specific correction factor, approximating the contribution of cluster i to <code class="reqn">\hat{\Omega}</code>. Its diagonal elements are denoted <code class="reqn">\hat{q}_i</code>.
+</p>
+</li>
+<li> <p><code class="reqn">\hat{D}_i</code> the upper Cholesky factor of <code class="reqn">\hat{\Omega}-\hat{Q}_i</code>
+</p>
+</li>
+</ul>
+<p>Setting argument <code>fitted.ci</code> to <code>TRUE</code>, <code>simplify</code> to <code>FALSE</code>, <code>format</code> to <code>"long"</code> returns an attribute <code>"grad"</code> containing the first order partial derivatives of the residuals with respect to the model parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p><b>lmm</b>: a vector or a data.frame when <code>format="long"</code> (one line per observation, one column per type of residual),
+a matrix when <code>format="wide"</code>  (one line per cluster, one column per timepoint).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#### simulate data in the long format ####
+set.seed(10)
+dL &lt;- sampleRem(100, n.times = 3, format = "long")
+
+#### Linear Model ####
+e.lm &lt;- lmm(Y ~ visit + X1 + X2 + X6, data = dL)
+
+## partial residuals
+pRes &lt;- residuals(e.lm, type = "partial", variable = "X6")
+range(residuals(e.lm) + dL$X6 * coef(e.lm)["X6"] - pRes)
+e.reslm &lt;- residuals(e.lm, type = "partial", variable = "X6", keep.data = TRUE, simplify = FALSE)
+plot(e.reslm)
+
+## partial residuals with specific reference
+residuals(e.lm, type = "partial", variable = "X1",
+          at = data.frame(visit=factor(2,1:3),X2=0,X6=3))
+
+## partial residuals with centered covariates
+residuals(e.lm, type = "partial-center", variable = "X1")
+
+#### Linear Mixed Model ####
+eUN.lmm &lt;- lmm(Y ~ visit + X1 + X2 + X5 + X6,
+               repetition = ~visit|id, structure = "UN", data = dL)
+
+## residuals
+e.resL &lt;- residuals(eUN.lmm, type = "normalized",
+                    keep.data = TRUE, simplify = FALSE)
+plot(e.resL, type = "qqplot")
+plot(e.resL, type = "scatterplot", labeller = ggplot2::label_both)
+e.resW &lt;- residuals(eUN.lmm, format = "wide", type = "normalized",
+                    simplify = FALSE)
+plot(e.resW, type = "correlation")
+
+## residuals and predicted values
+residuals(eUN.lmm, type = "all")
+residuals(eUN.lmm, type = "all", keep.data = TRUE)
+
+## partial residuals
+residuals(eUN.lmm, type = "partial", variable = c("(Intercept)","visit","X6"))
+</code></pre>
+
+
+</div>

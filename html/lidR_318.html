@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rasterize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Rasterize a point cloud</h2>
+
+<h3>Description</h3>
+
+<p>Rasterize a point cloud in different ways to compute a DTM, a CHM or a density map. Most
+raster products can be computed with pixel_metrics but some are more complex and require
+dedicated and optimized functions. See Details and Examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rasterize_canopy(las, res = 1, algorithm = p2r(), ...)
+
+rasterize_density(las, res = 4, ...)
+
+rasterize_terrain(
+  las,
+  res = 1,
+  algorithm = tin(),
+  use_class = c(2L, 9L),
+  shape = "convex",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric. The size of a grid cell in point cloud coordinates units. Can also be
+<code>RasterLayer</code> or a <code>stars</code> or a <code>SpatRaster</code> used as layout.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>algorithm</code></td>
+<td>
+<p>function. A function that implements an algorithm to compute a digital surface model
+or a digital terrain model. <code>lidR</code> implements p2r, dsmtin, pitfree
+for digital surface models, and knnidw, tin, and kriging for digital terrain
+models (see respective documentation and examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Use <code>pkg = "terra|raster|stars"</code> to get an output in <code>SpatRaster</code>, <code>RasterLayer</code>
+or <code>stars</code> format. Default is <code>getOption("lidR.raster.default")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_class</code></td>
+<td>
+<p>integer vector. By default the terrain is computed by using ground points
+(class 2) and water points (class 9).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shape</code></td>
+<td>
+<p>By default the interpolation is made only within the <code>"convex"</code> hull of
+the point cloud to get a DTM with the shape of the point cloud. This prevents meaningless
+interpolations where there is no data. It can also be <code>"concave"</code> or <code>"bbox"</code>. It can also be an <code>sfc</code>
+to define a polygon in which to perform the interpolation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt><code>rasterize_terrain</code></dt>
+<dd>
+<p>Interpolates the ground points and creates a rasterized
+digital terrain model. The algorithm uses the points classified as "ground" and "water"
+(Classification = 2 and 9, respectively, according to
+<a href="https://www.asprs.org/wp-content/uploads/2019/07/LAS_1_4_r15.pdf">LAS file format specifications</a>)
+to compute the interpolation. How well the edges of the dataset are interpolated depends on the
+interpolation method used. A buffer around the region of interest is always recommended to avoid
+edge effects.</p>
+</dd>
+<dt><code>rasterize_canopy</code></dt>
+<dd>
+<p>Creates a digital surface model (DSM) using several
+possible algorithms. If the user provides a normalized point cloud, the output is indeed a canopy
+height model (CHM).</p>
+</dd>
+<dt><code>rasterize_density</code></dt>
+<dd>
+<p>Creates a map of the point density. If a "pulseID"
+attribute is found, also returns a map of the pulse density.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p><code>RasterLayer</code> or a <code>stars</code> or a <code>SpatRaster</code> depending on the settings.
+</p>
+
+
+<h3>Non-supported LAScatalog options</h3>
+
+<p>The option <code>select</code> is not supported and not respected in <code style="white-space: pre;">⁠rasterize_*⁠</code> because it is internally
+known what is best to select.<br>
+The option <code>chunk_buffer</code> is not supported and not respected in <code>rasterize_canopy</code> and
+<code>rasterize_density</code> because it is not necessary.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# =====================
+# Digital Terrain Model
+# =====================
+
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las = readLAS(LASfile, filter = "-inside 273450 5274350 273550 5274450")
+#plot(las)
+
+dtm1 = rasterize_terrain(las, algorithm = knnidw(k = 6L, p = 2))
+dtm2 = rasterize_terrain(las, algorithm = tin())
+
+## Not run: 
+dtm3 = rasterize_terrain(las, algorithm = kriging(k = 10L))
+
+plot(dtm1, col = gray(0:25/25))
+plot(dtm2, col = gray(0:25/25))
+plot(dtm3, col = gray(0:25/25))
+plot_dtm3d(dtm1)
+plot_dtm3d(dtm2)
+plot_dtm3d(dtm3)
+
+## End(Not run)
+
+# =====================
+# Digital Surface Model
+# =====================
+
+LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+las &lt;- readLAS(LASfile, filter = "-inside 481280 3812940 481330 3812990")
+col &lt;- height.colors(15)
+
+# Points-to-raster algorithm with a resolution of 1 meter
+chm &lt;- rasterize_canopy(las, res = 1, p2r())
+plot(chm, col = col)
+
+# Points-to-raster algorithm with a resolution of 0.5 meters replacing each
+# point by a 20-cm radius circle of 8 points
+chm &lt;- rasterize_canopy(las, res = 0.5, p2r(0.2))
+plot(chm, col = col)
+
+# Basic triangulation and rasterization of first returns
+chm &lt;- rasterize_canopy(las, res = 0.5, dsmtin())
+plot(chm, col = col)
+
+# Khosravipour et al. pitfree algorithm
+chm &lt;- rasterize_canopy(las, res = 0.5, pitfree(c(0,2,5,10,15), c(0, 1.5)))
+plot(chm, col = col)
+
+# ====================
+# Digital Density Map
+# ====================
+
+LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+las &lt;- readLAS(LASfile,  filter = "-inside 684800 5017800 684900 5017900")
+
+d &lt;- rasterize_density(las, 5)
+plot(d)
+
+las &lt;- retrieve_pulses(las)
+d &lt;- rasterize_density(las)
+plot(d)
+</code></pre>
+
+
+</div>

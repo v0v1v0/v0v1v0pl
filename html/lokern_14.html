@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>varNPreg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Nonparametric Variance Estimator</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the error variance <code class="reqn">\sigma^2</code> nonparametrically in the model
+</p>
+<p style="text-align: center;"><code class="reqn">Y_i = m(x_i) + E_i,</code>
+</p>
+<p> where
+<code class="reqn">E_i \sim (0,\sigma^2)</code>, i.i.d.
+</p>
+<p>Computes leave-one-out residuals (local linear approximation followed by
+reweighting) and their variance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">varNPreg(x, y)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>abscissae values, ordered increasingly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>observations at <code>y[i]</code> at <code>x[i]</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric; residuals at <code>x[]</code> of length <code>n</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snr</code></td>
+<td>
+<p>explained variance of the true curve, i.e., an <code class="reqn">R^2</code>,
+defined as <code class="reqn">1 - \hat{\sigma^2}/ \hat{\sigma_0^2}</code>, where
+<code class="reqn">\hat{\sigma^2} = </code><code>sigma2</code>, and
+<code class="reqn">\hat{\sigma_0^2} := var(Y) = E[Y^2] - (E[Y])^2</code>,
+see the example below.</p>
+</td>
+</tr>
+</table>
+<table><tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>estimation of residual variance, <code class="reqn">\hat{\sigma^2}</code>.</p>
+</td>
+</tr></table>
+<h3>Note</h3>
+
+<p>This is an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> interface to the <code>resest</code> Fortran subroutine, used
+in <code>lokerns</code> and <code>glkerns</code>, see the latter's help
+page for references and context.
+</p>
+<p>Earlier version of the <span class="pkg">lokern</span> package accidentally contained
+<code>varest()</code> which has been an identical copy of <code>varNPreg()</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Maechler</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lokerns</code>, <code>glkerns</code>.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n &lt;- 100
+x &lt;- sort(runif(n))
+y &lt;- sin(pi*x) + rnorm(n)/10
+str(ve &lt;- varNPreg(x,y))
+
+plot(x, y)
+## "fitted" = y - residuals:
+lines(x, y - ve$res, col=adjustcolor(2, 1/2), lwd=3)
+segments(x,y,x,y-ve$res, col=3:4, lty=2:3, lwd=1:2)
+
+## sigma2 :=  1/n  sum_i res_i^2  :
+          with(ve,         c(sigma2, sum(res^2)/n))
+stopifnot(with(ve, all.equal(sigma2, sum(res^2)/n)))
+
+## show how 'snr' is computed, given 'sigma2'  { in ../src/auxkerns.f }
+dx2 &lt;- diff(x, 2) # (x[i+1] - x[i-1]) i= 2..{n-1}
+dx.n &lt;- c(x[2]-x[1], dx2, x[n]-x[n-1])
+SY  &lt;- sum(dx.n * y)
+SY2 &lt;- sum(dx.n * y^2)
+rx &lt;- 2*(x[n]-x[1]) # 'dn'
+(sigm2.0 &lt;- SY2/rx - (SY/rx)^2)
+(R2 &lt;- 1 - ve$sigma2 / sigm2.0)
+stopifnot(all.equal(ve$snr, R2))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>downward.connect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> performs a downward step for a connector </h2>
+
+<h3>Description</h3>
+
+<p>computes the probability of the measurements above a connector and the
+connector latent class given the model parameters. This is an internal
+function not meant to be called by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">downward.connect(connect, parent1, parent2, bro.connect, status, 
+                 probs, fyc, p.ybarF.c, res.upward)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>connect</code></td>
+<td>
+<p> a connector in the pedigree (individual with parents and children in the pedigree), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent1</code></td>
+<td>
+<p> one of the connector parent who is also a connector, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parent2</code></td>
+<td>
+<p> the other parent of the connector (not a connector), </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bro.connect</code></td>
+<td>
+<p> siblings of the connector, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p> a vector of symptom status, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p> a list of all probability parameters of the model, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fyc</code></td>
+<td>
+<p> a matrix of <code>n</code> times <code>K+1</code> given the density of observations of each individual if allocated to class <code>k</code>, where <code>n</code> is the 
+number of individuals and <code>K</code> is the total number of latent classes in the model. the <code>K+1</code> corresponds to the unaffected class, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.ybarF.c</code></td>
+<td>
+<p> a array of dimension <code>n</code> times 2 times <code>K+1</code> giving the probability of observations above the individual, 
+depending on his status and his class and conditionally to his class, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res.upward</code></td>
+<td>
+<p> the result of the upward step of the peeling algorithm, see <code>upward</code>. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If <code>Y_above(i)</code> is the measurements above connector <code>i</code> and <code>S_i</code> and <code>C_i</code> are his status and his class respectively, the function computes 
+<code>P(Y_above(i),S_i,C_i)</code> by computing a downward step for the parent of connector <code>i</code> who is also a connector.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The function returns <code>p.ybarF.c</code> updated for connector <code>i</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p> TAYEB et al.: Solving Genetic Heterogeneity in Extended Families by Identifying Sub-types of Complex Diseases. Computational Statistics, 2011, DOI: 10.1007/s00180-010-0224-2. </p>
+
+
+<h3>See Also</h3>
+
+<p> See also <code>downward</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#data
+data(ped.cont)
+data(peel)
+fam &lt;- ped.cont[,1]
+id &lt;- ped.cont[fam==1,2]
+dad &lt;- ped.cont[fam==1,3]
+mom &lt;- ped.cont[fam==1,4]
+status &lt;- ped.cont[fam==1,6]
+y &lt;- ped.cont[fam==1,7:ncol(ped.cont)]
+peel &lt;- peel[[1]]
+#standardize id to be 1, 2, 3, ...
+id.origin &lt;- id
+standard &lt;- function(vec) ifelse(vec%in%id.origin,which(id.origin==vec),0)
+id &lt;- apply(t(id),2,standard)
+dad &lt;- apply(t(dad),2,standard)
+mom &lt;- apply(t(mom),2,standard)
+peel$couple &lt;- cbind(apply(t(peel$couple[,1]),2,standard),
+                     apply(t(peel$couple[,2]),2,standard))
+for(generat in 1:peel$generation) 
+peel$peel.connect[generat,] &lt;- apply(t(peel$peel.connect[generat,]),2,standard)
+#the 2nd connector
+generat &lt;- peel$generation-1
+connect &lt;- peel$peel.connect[generat,]
+connect &lt;- connect[connect&gt;0][1]
+parent1.connect &lt;- intersect(peel$peel.connect[generat+1,],c(dad[id==connect],
+                                                             mom[id==connect]))
+parent2.connect &lt;- setdiff(c(dad[id==connect],mom[id==connect]),parent1.connect)
+bro.connect &lt;- union(id[dad==parent1.connect],id[mom==parent1.connect])
+bro.connect &lt;- setdiff(bro.connect,connect)
+#probs and param
+data(probs)
+data(param.cont)
+#densities of the observations
+fyc &lt;- matrix(1,nrow=length(id),ncol=length(probs$p)+1)
+fyc[status==2,1:length(probs$p)] &lt;- t(apply(y[status==2,],1,dens.norm,param.cont,NULL))
+#probability of the observations below
+p.ybarF.c &lt;- array(1,dim=c(length(id),2,length(probs$p)+1))
+#the upward step
+res.upward &lt;- upward(id,dad,mom,status,probs,fyc,peel)
+#the function
+downward.connect(connect,parent1.connect,parent2.connect,bro.connect,status,
+                 probs,fyc,p.ybarF.c,res.upward)
+</code></pre>
+
+
+</div>

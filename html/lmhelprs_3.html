@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hierarchical_lm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Hierarchical Regression Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Do hierarchical
+regression analysis on two or more
+models fitted by 'lm()'.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hierarchical_lm(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The outputs of <code>lm()</code>,
+that is, one or more <code>lm</code>-class
+objects. The outputs of other model
+fitting functions may also be used,
+but should be used with cautions.
+Please refer to the "How it works"
+section in "Details."</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>It conducted hierarchical
+regression analysis on two or more
+models fitted by <code>stats::lm()</code>.
+The models must be able to be ordered
+from the simplest to the most complex,
+with each more complex model formed
+by adding one or more terms to the
+simpler model.
+</p>
+<p>ANOVA will be conducted to compare
+each model with the next more
+complex model in the order, with
+R-squared change computed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If the models can be ordered in a
+hierarchical way, the output is an
+ANOVA table with the R-squared
+estimate of each model, and the
+R-squared change of each model
+compared to the simpler model
+preceding this model in the order.
+The class of the output is
+<code>hierarchical_lm</code>, with a print
+method. If the models cannot be
+ordered this way, <code>NA</code> is returned.
+</p>
+
+
+<h4>How it works</h4>
+
+<p>It call <code>hierarchical()</code> firsts to
+order the outputs for <code>stats::lm()</code>,
+If they can be ordered in a
+hierarchical way, they will be passed
+to <code>stats::anova()</code>. R-squared and
+R-squared change will be computed
+if they are available in the
+<code>summary()</code> method applied to each
+model.
+</p>
+<p>Therefore, in principle, this
+function can also be used for the
+outputs of other model fitting
+functions if their outputs have
+<code>stats::anova()</code> and <code>summary()</code>
+methods.
+</p>
+
+
+
+<h4>Check Datasets Used</h4>
+
+<p>The comparison is meaningful only
+if all models are fitted to the
+same datasets. There is not way
+to guarantee this is the case, given
+only the output of <code>lm()</code>. However,
+there are necessary conditions to
+claim that the same datasets are used:
+the number of cases are the same,
+the means, variances, and covariances
+of numerical variables, and the
+frequency distributions of variables
+common to two models are identical.
+If at least one of these conditions
+is not met, then two models must have
+been fitted to two different datasets.
+</p>
+<p>The function will check these
+conditions and raise an error if
+any of these necessary conditions
+are not met.
+</p>
+
+
+
+<h3>Author(s)</h3>
+
+<p>Shu Fai Cheung <a href="https://orcid.org/0000-0002-9871-9448">https://orcid.org/0000-0002-9871-9448</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>stats::lm()</code>, <code>hierarchical()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+dat &lt;- data_test1
+lm1 &lt;- lm(y ~ x1 + x2, dat)
+lm2 &lt;- lm(y ~ x1 + x2 + x3 + x4, dat)
+lm3 &lt;- lm(y ~ x1 + cat1 + cat2 + x2 + x3 + x4, dat)
+lm4 &lt;- lm(y ~ x1 + x2*x3 + x4, dat)
+
+hierarchical_lm(lm1, lm3, lm2)
+hierarchical_lm(lm1, lm2, lm4)
+# The following models will yield an error message:
+tryCatch(hierarchical_lm(lm1, lm3, lm2, lm4), error = function(e) e)
+
+</code></pre>
+
+
+</div>

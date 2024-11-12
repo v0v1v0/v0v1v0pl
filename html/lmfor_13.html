@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>foto</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+CO2 exchange of transplanted Sphagnum fuscum moss in a chronosequence of mires.
+</h2>
+
+<h3>Description</h3>
+
+<p>The net carbon dioxide exchange of late successional moss species (Sphagnum fuscum) samples 
+under seven levels 
+of photosynthetic photon flux density in cronosequence of land uplift mires on the Finnish side 
+of Bothnia Bay in Siikajoki, Finland. 
+Moss samples were transplanted from the late succession site (Site 6) to all sites and photosynthetic activity 
+was measured one year later for those samples which had survived.  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">data(foto)</code></pre>
+
+
+<h3>Format</h3>
+
+<p>A data frame with 455 observations on the following 8 variables.
+</p>
+
+<dl>
+<dt><code>Site</code></dt>
+<dd>
+<p>a factor with levels <code>1</code>,...,6 from the earliest successional stage to the latest </p>
+</dd>
+<dt><code>Treatment</code></dt>
+<dd>
+<p>a factor with value <code>1</code> for samples with competitor removal treatment 
+and <code>0</code> for untreated control.</p>
+</dd>
+<dt><code>sample</code></dt>
+<dd>
+<p>a factor with unique value for each of the 72 survived samples</p>
+</dd>
+<dt><code>moisture</code></dt>
+<dd>
+<p>moisture of the sample</p>
+</dd>
+<dt><code>PARtop</code></dt>
+<dd>
+<p>Photosyntetically active radiation (photon flux density  <code class="reqn">\mu mol /m^2 /s^2</code>)</p>
+</dd>
+<dt><code>WT</code></dt>
+<dd>
+<p>water table, cm</p>
+</dd>
+<dt><code>A</code></dt>
+<dd>
+<p>Net CO2 exchange, <code class="reqn">\mu {mol} / g / h</code>, </p>
+</dd>
+<dt><code>subplot</code></dt>
+<dd>
+<p>a factor with unique value for each replicate</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>The number of transplanted 
+replicates per site was 12, with two samples per replicate. One of the samples was treated with 
+competing vegetation removal before transplanting whereas the other was left untreated. 
+The 12 replicates per site were planted in locations with 2 to 3 different ground water table levels. 
+A year after the transplanting, the photosynthetic activity (A) of the survived transplanted samples 
+was recorded using seven artifically created light conditions ranging 
+from complete darkness (PPFD=0) to extreme light conditions (PPFD=2000)  using an open, fully controlled flow-
+through gas exchange fluorescence measurement system (GFS-3000; Walz, Effeltrich, Germany).
+</p>
+
+
+<h3>References</h3>
+
+<p>Laine, A.M., Ehonen, S., Juurola, E., Mehtatalo, L., and Tuittila, E-S. 2015. 
+Performance of late succession species along a chronosequence: Environment does not exclude 
+Sphagnum fuscum from the early stages of mire development. 
+Journal of Vegetation Science 26(2): 291-301. <a href="https://doi.org/10.1111/jvs.12231">doi:10.1111/jvs.12231</a>
+</p>
+<p>Mehtatalo, Lauri and Lappi, Juha 2020. Biometry for Forestry and Environmental Data: with examples in R. 
+New York: Chapman and Hall/CRC. 426 p. <a href="https://doi.org/10.1201/9780429173462">doi:10.1201/9780429173462</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(foto)
+
+LightResp&lt;-function(PPFD,alpha=0.1,Pmax=10,A0=0) {
+	       A0+Pmax*PPFD/(alpha+PPFD)
+           }
+               
+library(nlme)
+
+model5&lt;-nlme(A~LightResp(PARtop,alpha,Pmax,A0),
+		fixed=list(alpha~Site+Treatment+moisture,Pmax~Site+Treatment,A0~Site),
+		random=list(sample=Pmax+alpha~1),
+		data=foto,
+		start=c(c(80,0,0,0,0,0,0,0),c(100,0,0,0,0,0,0),c(-20,0,0,0,0,0)),
+		verbose=TRUE)
+</code></pre>
+
+
+</div>

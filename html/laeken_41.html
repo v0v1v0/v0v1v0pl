@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reweightOut</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reweight outliers in the Pareto model</h2>
+
+<h3>Description</h3>
+
+<p>Reweight observations that are flagged as outliers in a Pareto model for the
+upper tail of the distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reweightOut(x, ...)
+
+## S3 method for class 'paretoTail'
+reweightOut(x, X, w = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>"paretoTail"</code> (see
+<code>paretoTail</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed down.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a matrix of binary calibration variables (see
+<code>calibVars</code>).  This is only used if <code>x</code> contains sample
+weights or if <code>w</code> is supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>a numeric vector of sample weights. This is only used if <code>x</code>
+does not contain sample weights, i.e., if sample weights were not considered
+in estimating the shape parameter of the Pareto distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the data contain sample weights, the weights of the outlying observations
+are set to <code class="reqn">1</code> and the weights of the remaining observations are
+calibrated according to auxiliary variables.  Otherwise, weight <code class="reqn">0</code> is
+assigned to outliers and weight <code class="reqn">1</code> to other observations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If the data contain sample weights, a numeric containing the
+recalibrated weights is returned, otherwise a numeric vector assigning weight
+<code class="reqn">0</code> to outliers and weight <code class="reqn">1</code> to other observations.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Andreas Alfons
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Alfons and M. Templ (2013) Estimation of Social Exclusion Indicators
+from Complex Surveys: The <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> Package <span class="pkg">laeken</span>.  <em>Journal of
+Statistical Software</em>, <b>54</b>(15), 1–25.  <a href="https://doi.org/10.18637/jss.v054.i15">doi:10.18637/jss.v054.i15</a>
+</p>
+<p>A. Alfons, M. Templ, P. Filzmoser (2013) Robust estimation of economic
+indicators from survey samples based on Pareto tail modeling. <em>Journal
+of the Royal Statistical Society, Series C</em>, <b>62</b>(2), 271–286.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>paretoTail</code>, <code>shrinkOut</code> ,
+<code>replaceOut</code>, <code>replaceTail</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(eusilc)
+
+## gini coefficient without Pareto tail modeling
+gini("eqIncome", weights = "rb050", data = eusilc)
+
+## gini coefficient with Pareto tail modeling
+# estimate threshold
+ts &lt;- paretoScale(eusilc$eqIncome, w = eusilc$db090,
+    groups = eusilc$db030)
+# estimate shape parameter
+fit &lt;- paretoTail(eusilc$eqIncome, k = ts$k,
+    w = eusilc$db090, groups = eusilc$db030)
+# calibration of outliers
+w &lt;- reweightOut(fit, calibVars(eusilc$db040))
+gini(eusilc$eqIncome, w)
+
+</code></pre>
+
+
+</div>

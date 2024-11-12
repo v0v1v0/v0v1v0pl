@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>as.data.frame.LogEvent</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Coerce LogEvents to Data Frames</h2>
+
+<h3>Description</h3>
+
+<p>Coerce LogEvents to <code>data.frames</code>, <code>data.tables</code>,
+or <code>tibbles</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'LogEvent'
+as.data.frame(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  stringsAsFactors = FALSE,
+  ...,
+  box_if = function(.) !(is.atomic(.) &amp;&amp; identical(length(.), 1L)),
+  cols_expand = NULL
+)
+
+as.data.table.LogEvent(
+  x,
+  ...,
+  box_if = function(.) !(is.atomic(.) &amp;&amp; identical(length(.), 1L)),
+  cols_expand = "msg"
+)
+
+as_tibble.LogEvent(
+  x,
+  ...,
+  box_if = function(.) !(is.atomic(.) &amp;&amp; identical(length(.), 1L)),
+  cols_expand = "msg"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>any <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.names</code></td>
+<td>
+<p><code>NULL</code> or a character vector giving the row
+names for the data frame.  Missing values are not allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optional</code></td>
+<td>
+<p>currently ignored and only included for compatibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stringsAsFactors</code></td>
+<td>
+<p><code>logical</code> scalar: should <code>character</code> vectors be
+converted to factors? Defaults to <code>FALSE</code> (as opposed to
+<code>base::as.data.frame()</code>) and is only included for compatibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>passed on to <code>data.frame()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>box_if</code></td>
+<td>
+<p>a <code>function</code> that returns <code>TRUE</code> or <code>FALSE</code> to determine
+which values are to be boxed (i.e. placed as single elements in a list
+column). See example</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols_expand</code></td>
+<td>
+<p><code>character</code> vector. Columns to <em>not</em> box (even if
+<code>box_if()</code> returns <code>TRUE</code>). Vectors in these columns will result in multiple
+rows in the result (rather than a single list-column row). This defaults to
+<code>"msg"</code> for vectorized logging over the log message.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>data.table::data.table, tibble::tibble
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lg &lt;- get_logger("test")
+lg$info("lorem ipsum")
+as.data.frame(lg$last_event)
+
+lg$info("LogEvents can store any custom log values", df = iris)
+as.data.frame(lg$last_event)
+head(as.data.frame(lg$last_event)$df[[1]])
+
+# how boxing works
+
+# by default non-scalars are boxed
+lg$info("letters", letters = letters)
+as.data.frame(lg$last_event)
+
+# this behaviour can be modified by supplying a custom boxing function
+as.data.frame(lg$last_event, box_if = function(.) FALSE)
+as.data.frame(lg$last_event, cols_expand = "letters")
+
+# The `msg` argument of a log event is always vectorized
+lg$info(c("a vectorized", "log message"))
+as.data.frame(lg$last_event)
+
+lg$config(NULL)
+</code></pre>
+
+
+</div>

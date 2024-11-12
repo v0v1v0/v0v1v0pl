@@ -1,0 +1,361 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>regsimq</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute error bounds for a fitted regional frequency distribution</h2>
+
+<h3>Description</h3>
+
+<p>Computes, using Monte Carlo simulation, relative error bounds
+for estimated quantiles of a regional frequency distribution
+fitted by <code>regfit</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">regsimq(qfunc, para, cor = 0, index = NULL, nrec, nrep = 10000,
+        fit = "gev", f = c(0.01, 0.1, 0.5, 0.9, 0.99, 0.999),
+        boundprob = c(0.05, 0.95), save = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>qfunc</code></td>
+<td>
+<p>List containing the quantile functions for each site.
+Can also be a single quantile function, which will be used for each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>Parameters of the quantile functions at each site.
+If <code>qfunc</code> is a list, <code>para</code> must be a list of the same length
+whose components are numeric vectors, the parameters of
+the corresponding component of <code>qfunc</code>.
+If <code>qfunc</code> is a single quantile function, <code>para</code> can be
+a single vector, containing a single set of parameter values
+that will be used for each site;
+a matrix or data frame whose rows each contain the
+parameter values for one site;
+or a list of length <code>length(nrec)</code> whose components are
+numeric vectors, each containing the parameter values for one site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cor</code></td>
+<td>
+<p>Specifies the correlation matrix of the frequency distribution of
+each site's data.  Can be a matrix (which will be rescaled to a
+correlation matrix if necessary) or a constant (which will be taken as
+the correlation between each pair of sites).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>Specifies the value of the site-specific scale factor
+(“index flood”) at each site.  Can be:
+a vector, containing the values at each site;
+a constant, which will be taken to be the index flood value at each site;
+or (the default) <code>NULL</code>, in which case the index floods at each site
+will be taken to be the means of the quantile functions implied by
+<code>qfunc</code> and <code>para</code>, and will be computed
+by numerical integration of those quantile functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrec</code></td>
+<td>
+<p>Numeric vector containing the record lengths at each site.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>Number of simulated regions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>Character string specifying the distribution to be fitted.
+See “Details” below.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Vector of probabilities corresponding to the quantiles
+whose accuracy is to be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundprob</code></td>
+<td>
+<p>Vector of probabilities for which error bounds will
+be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save</code></td>
+<td>
+<p>Logical. Should the simulated values of the ratio of
+the estimated to the true regional growth curve be saved?
+These values are needed when <code>sitequantbounds</code> is called with
+its argument <code>index</code> present, e.g. to compute error bounds for
+quantiles at sites other than those whose data were used to fit the
+regional frequency distribution (e.g., ungauged sites).
+If this computation is not required, storage can be saved
+by setting <code>save</code> to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A  realization of data from a region is generated as follows.
+The frequency distributions at sites (specified by
+arguments <code>qfunc</code> and <code>para</code>) are expressed
+as <code class="reqn">Q_i(F)=\mu_i q_i(F)</code> where <code class="reqn">\mu_i</code> is the site-specific scale factor
+(“index flood”) and <code class="reqn">q_i(F)</code> is the at-site growth curve.
+At each simulation run the at-site growth curves of each site
+are randomly permuted, and are scaled by the (unpermuted)
+index flood values for the sites.
+Data are simulated from these frequency distributions,
+with inter-site correlation specified by argument <code>cor</code>
+and record lengths at each site specified by argument <code>nrec</code>.
+The regional frequency distribution specified by argument <code>fit</code>
+is then fitted to the simulated data, as in function <code>regfit</code>.
+The procedure is as described in Hosking and Wallis (1997), Table 6.1,
+except that the permutation of at-site growth curves is a later
+modification, intended to give more realistic sets of simulated data.
+For more details, including exact definitions of quantities computed
+in the simulation and returned by functions <code>regsimq</code>,
+<code>regquantbounds</code>, and <code>regsitebounds</code>, see vignette <code>RegSim</code>.
+</p>
+<p>From each realization the sample mean values and estimates of the
+quantiles of the regional growth curve, for nonexceedance probabilities
+specified by argument <code>f</code>, are saved.
+</p>
+<p>From the simulated values, for each quantile specified by argument <code>f</code>
+the relative root mean square error (relative RMSE) is computed as in
+Hosking and Wallis (1997, eq. (6.15)).
+Error bounds are also computed, as in Hosking and Wallis (1997, eq. (6.18))
+but with bound probabilities specified by argument <code>boundprob</code>
+rather than the fixed values 0.05 and 0.95 considered by Hosking and Wallis.
+The error bounds are sample quantiles, across the <code>nrep</code> realizations,
+of the ratio of the estimated regional growth curve
+to the true at-site growth curve
+or of the ratio of the estimated to the true quantiles at individual sites.
+</p>
+<p>For distribution <code>fit</code> there should exist a function to estimate
+the parameters of the distribution given a set of <code class="reqn">L</code>-moments.
+The function should have a name that is the character string
+<code>"pel"</code> followed by the character string <code>fit</code>.
+It should accept a single argument, a vector containing <code class="reqn">L</code>-moments
+<code class="reqn">\ell_1</code>, <code class="reqn">\ell_2</code>, <code class="reqn">t_3</code>, <code class="reqn">t_4</code>, etc.,
+and return a vector of distribution parameters.
+</p>
+<p>For distribution <code>fit</code> there should also exist a quantile function,
+which should have a name that is the character string
+<code>"qua"</code> followed by the character string <code>fit</code>.
+It should accept two arguments: a vector of probabilities
+and a vector containing the parameters of the distribution.
+</p>
+<p>The search path used to find the <code>"pel"</code> and <code>"qua"</code> functions
+is the same as for arguments supplied to <code>regsimq</code>, i.e.
+the enclosing frames of the function, followed by the search path
+specified by <code>search()</code>.
+</p>
+<p>The estimation routines and quantile functions in package <span class="pkg">lmom</span>
+have the form described here.   For example, to use a
+generalized extreme value distribution set <code>fit</code> to be
+the string <code>"gev"</code>; then the fitting function <code>pelgev</code>
+and the quantile function <code>quagev</code> will be used
+(unless these functions have been masked by another object
+on the search path).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"regsimq"</code>.
+This is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Vector of probabilities corresponding to the quantiles
+whose accuracy is to be estimated.  A copy of argument <code>f</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boundprob</code></td>
+<td>
+<p>Vector of probabilities corresponding to the error bounds.
+A copy of argument <code>boundprob</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+<p>Number of simulated regions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relbounds.rgc</code></td>
+<td>
+<p>Data frame containing the relative RMSE and
+error bounds for the regional growth curve. It has columns
+<code>"f"</code>, probabilities corresponding to each quantile,
+<code>"rel.RMSE"</code>, relative RMSE of quantiles  of regional growth curve,
+and, for each bound probability in <code>boundprob</code>,
+a column giving the error bound (quantile of the empirical distribution
+of simulated values of the ratio of the estimated regional growth curve
+to the true at-site growth curve) for that bound probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>relbounds.by.site</code></td>
+<td>
+<p>List of <code>length(nrec)</code> data frames.
+Each data frame contains the relative RMSE and error bounds
+for quantiles at one site, and has the same structure
+as component <code>relbounds.rgc</code> of the return value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true.asgc</code></td>
+<td>
+<p>If <code>save</code> is <code>TRUE</code>, a matrix of dimension
+<code>length(f)</code> <code class="reqn">\times</code> <code>length(nrec)</code>, containing
+values of the at-site growth curves (quantile functions at each site,
+divided by the site-specific scale factors)
+for quantiles corresponding to probabilities in <code>f</code>.
+</p>
+<p>If <code>save</code> is <code>FALSE</code>, list element
+<code>true.asgc</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sim.rgc</code></td>
+<td>
+<p>If <code>save</code> is <code>TRUE</code>, a matrix of dimension
+<code>length(f)</code> <code class="reqn">\times</code> <code>nrep</code>, containing
+the simulated values of the estimated regional growth curve
+for quantiles corresponding to probabilities in <code>f</code>.
+</p>
+<p>If <code>save</code> is <code>FALSE</code>, list element
+<code>sim.rgc</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Error bounds for the regional growth curve apply to the
+regional growth curve regarded as an estimator of the
+growth curve for a randomly chosen site.
+The growth curve for site <code class="reqn">i</code> is defined to be
+<code class="reqn">q_i(\,.\,)=Q_i(\,.\,)/\mu_i</code>
+where <code class="reqn">Q_i(\,.\,)</code> is the site's quantile function
+and <code class="reqn">\mu_i</code> is the site-specific scale factor
+(“index flood”) for site <code class="reqn">i</code>.
+For each of the <code>nrep</code> simulated regions,
+and each probability <code class="reqn">F</code> in <code>f</code>,
+the regional growth curve <code class="reqn">\hat{q}(F)</code> is estimated
+and the ratios <code class="reqn">\hat{q}(F)/q_i(F)</code> are calculated.
+The relative error bounds are empirical quantiles,
+corresponding to the probabilities in <code>boundprob</code>,
+of the <code>nrep * length(nrec)</code> values of these ratios
+obtained from the simulations.
+</p>
+<p>This differs from the approach taken in Hosking and Wallis (1997),
+Table 6.2 and Fig. 6.2, in which error bounds are computed regarding
+the estimated regional growth curve as an estimator of the regional
+average growth curve <code class="reqn">q^{\rm R}(\,.\,)</code>, the harmonic mean
+of the sites' growth curves (Hosking and Wallis, 1997, p. 102).
+</p>
+<p>When the parent region is homogeneous, with identical frequency distributions
+at each site (apart from a site-specific scale factor), the two
+approaches give identical results.  For heterogeneous regions the
+“regard as estimator of randomly chosen site growth curve” approach
+yields error bounds that are wider, but are more realistic given that the
+ultimate aim of regional frequency analysis is estimation of quantiles
+at individual sites.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J. R. M., and Wallis, J. R. (1997).
+<em>Regional frequency analysis: an approach based on <code class="reqn">L</code>-moments</em>.
+Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>regfit</code>, for details of fitting a regional frequency distribution;
+<code>regquantbounds</code> and <code>sitequantbounds</code>, for
+converting the relative bounds returned by <code>regsimq</code> into absolute bounds
+for quantiles of the regional growth curve or of the
+frequency distributions at individual sites.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(Cascades)              # A regional data set
+
+rmom &lt;- regavlmom(Cascades) # Regional average L-moments
+
+# Fit generalized normal distribution to regional data
+rfit &lt;- regfit(Cascades, "gno")
+
+# Set up an artificial region to be simulated:
+# -- Same number of sites as Cascades
+# -- Same record lengths as Cascades
+# -- Same site means as Cascades
+# -- L-CV varies linearly across sites, with mean value equal
+#    to the regional average L-CV for the Cascades data.
+#    'LCVrange' specifies the  range of L-CV across the sites.
+# -- L-skewness the same at each site, and equal to the regional
+#    average L-skewness for the Cascades data
+nsites &lt;- nrow(Cascades)
+means &lt;- Cascades$mean
+LCVrange &lt;- 0.025
+LCVs &lt;- seq(rmom[2]-LCVrange/2, rmom[2]+LCVrange/2, len=nsites)
+Lskews&lt;-rep(rmom[3], nsites)
+
+# Each site will have a generalized normal distribution:
+# get the parameter values for each site
+pp &lt;- t(apply(cbind(means, means*LCVs ,Lskews), 1, pelgno))
+
+# Set correlation between each pair of sites to 0.64, the
+# average inter-site correlation for the Cascades data
+avcor &lt;- 0.64
+
+# Run the simulation.  To save time, use only 100 replications.
+simq &lt;- regsimq(qfunc=quagno, para=pp, cor=avcor, nrec=Cascades$n,
+  nrep=100, fit="gno")
+
+# Relative RMSE and error bounds for the regional growth curve
+simq$relbounds.rgc
+
+# Relative RMSE and error bounds for quantiles at site 3
+simq$relbounds.by.site[[3]]
+</code></pre>
+
+
+</div>

@@ -1,0 +1,433 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pairwise LD estimation in polyploids.</h2>
+
+<h3>Description</h3>
+
+<p>Estimates either haplotypic or composite measures of LD using either
+genotypes are genotype likelihoods via maximum likelihood.
+The usual measures of LD are estimated (D, D', and r) along with
+the Fisher-z transformation of r (called "z"). All estimates
+are returned with standard errors. See Gerard (2021) for details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldest(
+  ga,
+  gb,
+  K,
+  se = TRUE,
+  type = c("hap", "comp"),
+  model = c("norm", "flex"),
+  pen = ifelse(type == "hap", 2, 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ga</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the first locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the first locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>ga[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gb</code></td>
+<td>
+<p>One of two possible inputs:
+</p>
+
+<ol>
+<li>
+<p>A vector of counts, containing the genotypes for each
+individual at the second locus. When <code>type = "comp"</code>,
+the vector of genotypes may be continuous (e.g. the
+posterior mean genotype).
+</p>
+</li>
+<li>
+<p>A matrix of genotype log-likelihoods at the second locus.
+The rows index the individuals and the columns index
+the genotypes. That is <code>gb[i, j]</code> is the genotype
+likelihood of individual <code>i</code> for genotype <code>j-1</code>.
+</p>
+</li>
+</ol>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p>The ploidy of the species. Assumed to be the same for all
+individuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>A logical. Should we calculate standard errors (<code>TRUE</code>) or
+not (<code>FALSE</code>). Calculating standard errors can be really slow
+when <code>type = "comp"</code>, <code>model = "flex"</code>, and when using
+genotype likelihoods. Otherwise, standard error calculations
+should be pretty fast.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of LD to calculate. The available types are
+haplotypic LD (<code>type = "hap"</code>) or composite LD
+(<code>type = "comp"</code>). Haplotypic LD is only appropriate for
+autopolyploids when the individuals are in Hardy-Weinberg
+equilibrium (HWE). The composite
+measures of LD are always applicable, and consistently estimate the
+usual measures of LD when HWE is fulfilled in autopolyploids.
+However, when HWE is not fulfilled, interpreting the
+composite measures of LD could be a little tricky.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>When <code>type = "comp"</code> and using genotype likelihoods,
+should we use the proportional
+bivariate normal model to estimate the genotype distribution
+(<code>model = "norm"</code>), or the general categorical distribution
+(<code>model = "flex"</code>)? Defaults to <code>"norm"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty to be applied to the likelihood. You can think about
+this as the prior sample size. Should be greater than 1. Does not
+apply if <code>model = "norm"</code>, <code>type = "comp"</code>, and using
+genotype likelihoods. Also does not apply when <code>type = "comp"</code>
+and using genotypes.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector with some or all of the following elements:
+</p>
+
+<dl>
+<dt><code>D</code></dt>
+<dd>
+<p>The estimate of the LD coefficient.</p>
+</dd>
+<dt><code>D_se</code></dt>
+<dd>
+<p>The standard error of the estimate of
+the LD coefficient.</p>
+</dd>
+<dt><code>r2</code></dt>
+<dd>
+<p>The estimate of the squared Pearson correlation.</p>
+</dd>
+<dt><code>r2_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+squared Pearson correlation.</p>
+</dd>
+<dt><code>r</code></dt>
+<dd>
+<p>The estimate of the Pearson correlation.</p>
+</dd>
+<dt><code>r_se</code></dt>
+<dd>
+<p>The standard error of the estimate of the
+Pearson correlation.</p>
+</dd>
+<dt><code>Dprime</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. When <code>type</code> = "comp", this corresponds
+to the standardization where we fix allele frequencies.</p>
+</dd>
+<dt><code>Dprime_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprime</code>.</p>
+</dd>
+<dt><code>Dprimeg</code></dt>
+<dd>
+<p>The estimate of the standardized LD
+coefficient. This corresponds to the standardization where
+we fix genotype frequencies.</p>
+</dd>
+<dt><code>Dprimeg_se</code></dt>
+<dd>
+<p>The standard error of <code>Dprimeg</code>.</p>
+</dd>
+<dt><code>z</code></dt>
+<dd>
+<p>The Fisher-z transformation of <code>r</code>.</p>
+</dd>
+<dt><code>z_se</code></dt>
+<dd>
+<p>The standard error of the Fisher-z
+transformation of <code>r</code>.</p>
+</dd>
+<dt><code>p_ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_Ab</code></dt>
+<dd>
+<p>The estimated haplotype frequency of Ab.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_aB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of aB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>p_AB</code></dt>
+<dd>
+<p>The estimated haplotype frequency of AB.
+Only returned if estimating the haplotypic LD.</p>
+</dd>
+<dt><code>q_ij</code></dt>
+<dd>
+<p>The estimated frequency of genotype i at locus 1
+and genotype j at locus 2. Only returned if estimating the
+composite LD.</p>
+</dd>
+<dt><code>n</code></dt>
+<dd>
+<p>The number of individuals used to estimate pairwise LD.</p>
+</dd>
+</dl>
+<h3>Haplotypic LD</h3>
+
+<p>This section describes the methods used when <code>type = "hap"</code> is
+selected.
+</p>
+<p>Haplotypic LD measures the association
+between two loci on the same haplotype. When haplotypes are known, estimating
+haplotypic LD is simple using just the haplotypic frequencies.
+</p>
+<p>When haplotypes are not known, we can still estimate haplotypic frequencies
+using the genotypes or genotype likelihoods
+<em>in autopolyploids as long as Hardy-Weinberg equilibrium (HWE) is satisfied</em>. We do
+this via maximum likelihood using gradient ascent. Gradient ascent is
+performed over the unconstrained parameterization of the 3-simplex from
+Betancourt (2012). The estimated haplotype frequencies are then used to
+estimate haplotypic LD.
+</p>
+<p>Standard errors are provided using standard maximum likelihood theory.
+In brief, the Hessian matrix of the log-likelihood is calculated at
+the MLE's of the haplotype frequencies. The negative inverse of this
+Hessian matrix is approximately the covariance matrix of the MLE's of the
+haplotype frequencies. Since all haplotypic LD measures are functions
+of the haplotype frequencies, we use the delta-method to obtain
+the standard errors for each LD estimate.
+</p>
+<p>A Dirichlet(2,2,2,2) prior is placed over the frequencies of
+haplotypes 00, 01, 10, and 11. This corresponds to the "add two" rule
+of Agresti (1998). You can change this prior via the <code>pen</code> argument.
+</p>
+<p>When you either do not have autopolyploids or when HWE is <em>not</em>
+satisfied, then the estimates using <code>type = "hap"</code>
+are nonsensical. However, the composite measures of LD are still
+applicable (see below).
+</p>
+
+
+<h3>Composite LD</h3>
+
+<p>This section describes the methods used when <code>type = "comp"</code> is
+selected.
+</p>
+<p>When HWE is not satisfied, haplotype frequencies are not estimable. However,
+measures of association between two loci are still estimable. These
+associations may be caused by LD either on the same haplotype or between
+different haplotypes. Cockerham and Weir (1977) thus called such measures
+"composite" measures of LD.
+</p>
+<p>When the genotypes are known, these composite measures have simple
+correspondences to well-known statistical measures of association.
+D is the covariance of genotypes between loci divided by the ploidy.
+r is the Pearson correlation of genotypes. D' is D divided by a
+term that involves only mean genotypes.
+</p>
+<p>When genotypes are not known, we estimate the joint genotype frequencies
+and use these to estimate the composite measures of LD using
+genotype likelihoods. The distribution of genotypes is assumed to
+either follow a proportional bivariate normal model (by default) or
+a general categorical model.
+</p>
+<p>These estimates of composite measures of LD estimate the haplotypic
+measures of LD when HWE is fulfilled, but are still applicable when HWE
+is not fulfilled.
+</p>
+<p>When genotypes are known, standard errors are calculated using standard
+moment-based approaches. When genotypes are not known, standard
+errors are calculated using standard maximum likelihood theory,
+same as for the haplotypic LD estimates (see above), or using
+a bootstrap.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Gerard
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Agresti, Alan, and Brent A. Coull. "Approximate is better than
+"exact" for interval estimation of binomial proportions."
+<em>The American Statistician</em> 52, no. 2 (1998): 119-126.
+<a href="https://doi.org/10.1080/00031305.1998.10480550">doi:10.1080/00031305.1998.10480550</a>
+</p>
+</li>
+<li>
+<p>Betancourt, Michael. "Cruising the simplex: Hamiltonian Monte
+Carlo and the Dirichlet distribution." In
+<em>AIP Conference Proceedings 31st</em>, vol. 1443, no. 1,
+pp. 157-164. American Institute of Physics, 2012.
+<a href="https://doi.org/10.1063/1.3703631">doi:10.1063/1.3703631</a>
+</p>
+</li>
+<li>
+<p>Cockerham, C. Clark, and B. S. Weir. "Digenic descent measures
+for finite populations." <em>Genetics Research</em> 30, no. 2 (1977):
+121-147. <a href="https://doi.org/10.1017/S0016672300017547">doi:10.1017/S0016672300017547</a>
+</p>
+</li>
+<li>
+<p>Gerard, David. "Pairwise Linkage Disequilibrium Estimation
+for Polyploids." <em>Molecular Ecology Resources</em> 21,
+no. 4 (2021): 1230-1242. <a href="https://doi.org/10.1111/1755-0998.13349">doi:10.1111/1755-0998.13349</a>
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>ldfast()</code></dt>
+<dd>
+<p>Fast, moment-based approach to LD estimation
+that also accounts for genotype uncertainty.</p>
+</dd>
+<dt><code>mldest()</code></dt>
+<dd>
+<p>For calculating pairwise LD among all
+pairs of a collection of SNPs.</p>
+</dd>
+<dt><code>sldest()</code></dt>
+<dd>
+<p>For calculating pairwise LD along a
+sliding window of SNPs.</p>
+</dd>
+<dt><code>ldest_hap()</code></dt>
+<dd>
+<p>For the function that directly estimates
+haplotypic LD when HWE is fulfilled.</p>
+</dd>
+<dt><code>ldest_comp()</code></dt>
+<dd>
+<p>For the function that directly
+estimates composite LD.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">set.seed(1)
+n &lt;- 100 # sample size
+K &lt;- 6 # ploidy
+
+## generate some fake genotypes when LD = 0.
+ga &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+gb &lt;- stats::rbinom(n = n, size = K, prob = 0.5)
+head(ga)
+head(gb)
+
+## generate some fake genotype likelihoods when LD = 0.
+gamat &lt;- t(sapply(ga, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+gbmat &lt;- t(sapply(gb, stats::dnorm, x = 0:K, sd = 1, log = TRUE))
+head(gamat)
+head(gbmat)
+
+## Haplotypic LD with genotypes
+ldout1 &lt;- ldest(ga = ga,
+                gb = gb,
+                K = K,
+                type = "hap")
+head(ldout1)
+
+## Haplotypic LD with genotype likelihoods
+ldout2 &lt;- ldest(ga = gamat,
+                gb = gbmat,
+                K = K,
+                type = "hap")
+head(ldout2)
+
+## Composite LD with genotypes
+ldout3 &lt;- ldest(ga = ga,
+                gb = gb,
+                K = K,
+                type = "comp")
+head(ldout3)
+
+## Composite LD with genotype likelihoods and normal model
+ldout4 &lt;- ldest(ga = gamat,
+                gb = gbmat,
+                K = K,
+                type = "comp",
+                model = "norm")
+head(ldout4)
+
+## Composite LD with genotype likelihoods and general categorical model
+ldout5 &lt;- ldest(ga = gamat,
+                gb = gbmat,
+                K = K,
+                type = "comp",
+                model = "flex",
+                se = FALSE)
+head(ldout5)
+
+ldout1[["D"]]
+ldout2[["D"]]
+ldout3[["D"]]
+ldout4[["D"]]
+ldout5[["D"]]
+
+</code></pre>
+
+
+</div>

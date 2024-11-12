@@ -1,0 +1,144 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multinom_TS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a multinomial change point Time Series model</h2>
+
+<h3>Description</h3>
+
+<p>Fit a set of multinomial regression models (via
+<code>multinom</code>, Venables and Ripley 2002) to a time series
+of data divided into multiple segments (a.k.a. chunks) based on given 
+locations for a set of change points. <br><br><code>check_multinom_TS_inputs</code> checks that the inputs to 
+<code>multinom_TS</code> are of proper classes for an analysis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multinom_TS(
+  data,
+  formula,
+  changepoints = NULL,
+  timename = "time",
+  weights = NULL,
+  control = list()
+)
+
+check_multinom_TS_inputs(
+  data,
+  formula = gamma ~ 1,
+  changepoints = NULL,
+  timename = "time",
+  weights = NULL,
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p><code>data.frame</code> including [1] the time variable (indicated 
+in <code>timename</code>), [2] the predictor variables (required by
+<code>formula</code>) and [3], the multinomial response variable (indicated in
+<code>formula</code>) as verified by <code>check_timename</code> and 
+<code>check_formula</code>. Note that the response variables should be
+formatted as a <code>data.frame</code> object named as indicated by the 
+<code>response</code> entry in the <code>control</code> list, such as <code>gamma</code> 
+for a standard TS analysis on LDA output. See <code>Examples</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p><code>formula</code> defining the regression between
+relationship the change points. Any 
+predictor variable included must also be a column in 
+<code>data</code> and any (multinomial) response variable must be a set of
+columns in <code>data</code>, as verified by <code>check_formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>changepoints</code></td>
+<td>
+<p>Numeric vector indicating locations of the change 
+points. Must be conformable to <code>integer</code> values. Validity 
+checked by <code>check_changepoints</code> and
+<code>verify_changepoint_locations</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timename</code></td>
+<td>
+<p><code>character</code> element indicating the time variable
+used in the time series. Defaults to <code>"time"</code>. The variable must be
+integer-conformable or a <code>Date</code>. If the variable named
+is a <code>Date</code>, the input is converted to an integer, resulting in the
+timestep being 1 day, which is often not desired behavior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional class <code>numeric</code> vector of weights for each 
+document. Defaults to <code>NULL</code>, translating to an equal weight for
+each document. When using <code>multinom_TS</code> in a standard LDATS 
+analysis, it is advisable to weight the documents by their total size,
+as the result of <code>LDA</code> is a matrix of 
+proportions, which does not account for size differences among documents.
+For most models, a scaling of the weights (so that the average is 1) is
+most appropriate, and this is accomplished using 
+<code>document_weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A <code>list</code> of parameters to control the fitting of the
+Time Series model including the parallel tempering Markov Chain 
+Monte Carlo (ptMCMC) controls. Values not input assume defaults set by 
+<code>TS_control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>multinom_TS</code>: Object of class <code>multinom_TS_fit</code>, 
+which is a list of [1]
+chunk-level model fits (<code>"chunk models"</code>), [2] the total log 
+likelihood combined across all chunks (<code>"logLik"</code>), and [3] a 
+<code>data.frame</code> of chunk beginning and ending times (<code>"logLik"</code>
+with columns <code>"start"</code> and <code>"end"</code>). <br><br><code>check_multinom_TS_inputs</code>: an error message is thrown if any 
+input is improper, otherwise <code>NULL</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Venables, W. N. and B. D. Ripley. 2002. <em>Modern and Applied
+Statistics with S</em>. Fourth Edition. Springer, New York, NY, USA.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(rodents)
+  dtt &lt;- rodents$document_term_table
+  lda &lt;- LDA_set(dtt, 2, 1, list(quiet = TRUE))
+  dct &lt;- rodents$document_covariate_table
+  dct$gamma &lt;- lda[[1]]@gamma
+  weights &lt;- document_weights(dtt)
+  check_multinom_TS_inputs(dct, timename = "newmoon")
+  mts &lt;- multinom_TS(dct, formula = gamma ~ 1, changepoints = c(20,50),
+                     timename = "newmoon", weights = weights) 
+
+</code></pre>
+
+
+</div>

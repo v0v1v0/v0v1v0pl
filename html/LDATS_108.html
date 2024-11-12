@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>prep_ids</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Initialize and update the chain ids throughout the ptMCMC algorithm</h2>
+
+<h3>Description</h3>
+
+<p><code>prep_ids</code> creates and <code>update_ids</code> updates 
+the active vector of identities (ids) for each of the chains in the 
+ptMCMC algorithm. These ids are used to track trips of the particles
+among chains.
+<br><br>
+These functions were designed to work within <code>TS</code> and 
+specifically <code>est_changepoints</code>, but have been generalized
+and would work within any general ptMCMC as long as <code>control</code>,
+<code>ids</code>, and <code>swaps</code> are formatted properly.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">prep_ids(control = list())
+
+update_ids(ids, swaps)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A <code>list</code> of parameters to control the fitting of the
+Time Series model including the parallel tempering Markov Chain 
+Monte Carlo (ptMCMC) controls. Values not input assume defaults set by 
+<code>TS_control</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ids</code></td>
+<td>
+<p>The existing vector of chain ids.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>swaps</code></td>
+<td>
+<p>Chain configuration after among-temperature swaps.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The vector of chain ids.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  prep_ids()
+
+  data(rodents)
+  document_term_table &lt;- rodents$document_term_table
+  document_covariate_table &lt;- rodents$document_covariate_table
+  LDA_models &lt;- LDA_set(document_term_table, topics = 2)[[1]]
+  data &lt;- document_covariate_table
+  data$gamma &lt;- LDA_models@gamma
+  weights &lt;- document_weights(document_term_table)
+  data &lt;- data[order(data[,"newmoon"]), ]
+  saves &lt;- prep_saves(1, TS_control())
+  inputs &lt;- prep_ptMCMC_inputs(data, gamma ~ 1, 1, "newmoon", weights,
+                               TS_control())
+  cpts &lt;- prep_cpts(data, gamma ~ 1, 1, "newmoon", weights, TS_control())
+  ids &lt;- prep_ids(TS_control())
+  for(i in 1:TS_control()$nit){
+    steps &lt;- step_chains(i, cpts, inputs)
+    swaps &lt;- swap_chains(steps, inputs, ids)
+    saves &lt;- update_saves(i, saves, steps, swaps)
+    cpts &lt;- update_cpts(cpts, swaps)
+    ids &lt;- update_ids(ids, swaps)
+  }
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LKrigSetupAlpha</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Creates the alpha parameter list in LatticeKrig covariance.
+
+</h2>
+
+<h3>Description</h3>
+
+<p>This function is called by <code>LKrigSetup</code> and
+creates the list for the alpha parameters based on the information 
+from the call to <code>LKrigSetup</code> and additional information and 
+conditions related to the geometry. 
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LKrigSetupAlpha(object, ...)
+## Default S3 method:
+LKrigSetupAlpha(object, ...)
+
+LKFindAlphaVarianceWeights(x1, LKinfo, level) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+<p>Locations to evaluate the  alpha weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LKinfo</code></td>
+<td>
+<p> An LKinfo object that is usually created by LKrigSetup.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Level of the multiresolution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>The partial LKinfo object created within <code>LKrigSetup</code>
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Any additional arguments to this method
+
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The main function of this method is to fill in the sequence of alpha values
+for a parametric model and convert those values to a list instead of a  vector. In the case that the scalar <code>nu</code> is supplied it 	is used to create the list according to:
+</p>
+<pre>	
+	alpha &lt;- 2**(-2 * (1:nlevel) * nu)
+    alpha &lt;- alpha/sum(alpha)
+    as.list( alpha)
+</pre>    
+
+
+
+<h3>Value</h3>
+
+<p>A list with <code>nlevel</code> components each  representing the alpha values
+at that level. In the simplest case a vector of alpha values is converted to 
+a list.  
+</p>
+<pre>
+  LKinfo&lt;- LKrigSetup( x, alpha=c( 1,.2,.01),
+                   nlevel=3, a.wght=4.5, NC= 3)
+  LKrigSetupAlpha( LKinfo)
+[[1]]
+[1] 1
+[[2]]
+[1] 0.2
+[[3]]
+[1] 0.01
+</pre>
+<p>The lower level function <code>LKFindAlphaVarianceWeights</code>
+is used to supply weights as in the default model but also evaluate the weights at arbitrary locations. This second role is part of specifying a nonstationary model where the weights vary over the spatial domain. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LKrigSetup</code>, 	<code>LKrigSetupAwght</code>,
+<code>LKrigSAR</code>,  <code>LKrig</code>
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># an x that is just the limits of the domain	
+  x&lt;- cbind( c(0,1), c(0,1))
+  
+  LKinfo&lt;- LKrigSetup( x, alpha=c( 1,.2,.01),
+                   nlevel=3, a.wght=4.5, NC= 3)
+  alphaList&lt;- LKrigSetupAlpha( LKinfo)
+
+  LKinfo&lt;- LKrigSetup( x, nu=1, nlevel=4, a.wght=4.5, NC= 4)
+  alphaList&lt;- LKrigSetupAlpha( LKinfo)
+</code></pre>
+
+
+</div>

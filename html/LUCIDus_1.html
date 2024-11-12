@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boot_lucid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inference of LUCID model based on bootstrap resampling</h2>
+
+<h3>Description</h3>
+
+<p>Generate <code>R</code> bootstrap replicates of LUCID parameters and
+derive confidence interval (CI) base on bootstrap. Bootstrap replicates are
+generated based on nonparameteric resampling, implemented by <code>ordinary</code>
+method of <code>boot::boot</code> function. Now only achieved for LUCID early integration.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">boot_lucid(
+  G,
+  Z,
+  Y,
+  lucid_model = c("early", "parallel", "serial"),
+  CoG = NULL,
+  CoY = NULL,
+  model,
+  conf = 0.95,
+  R = 100,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>Exposures, a numeric vector, matrix, or data frame. Categorical variable
+should be transformed into dummy variables. If a matrix or data frame, rows
+represent observations and columns correspond to variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>Omics data for LUCID early integration, a numeric matrix or data frame. Rows correspond to observations
+and columns correspond to variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Outcome, a numeric vector. Categorical variable is not allowed. Binary
+outcome should be coded as 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lucid_model</code></td>
+<td>
+<p>Specifying LUCID model, "early" for early integration, "parallel" for lucid in parallel,
+"serial" for LUCID in serial.Now only work for LUCID early.
+If "parallel" or "serial", the function will do nothing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoG</code></td>
+<td>
+<p>Optional, covariates to be adjusted for estimating the latent cluster.
+A numeric vector, matrix or data frame. Categorical variable should be transformed
+into dummy variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CoY</code></td>
+<td>
+<p>Optional, covariates to be adjusted for estimating the association
+between latent cluster and the outcome. A numeric vector, matrix or data frame.
+Categorical variable should be transformed into dummy variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A LUCID model fitted by <code>estimate_lucid</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf</code></td>
+<td>
+<p>A numeric scalar between 0 and 1 to specify confidence level(s)
+of the required interval(s).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>An integer to specify number of bootstrap replicates for LUCID model.
+If feasible, it is recommended to set R &gt;= 1000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A flag indicates whether detailed information
+is printed in console. Default is FALSE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list, containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>effect estimate for each exposure</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu</code></td>
+<td>
+<p>cluster-specific mean for each omics feature</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>effect estiamte for the association btween latent cluster and
+outcome</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>The <code>boot</code> object returned by <code>boot:boot</code></p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# use simulated data
+G &lt;- sim_data$G
+Z &lt;- sim_data$Z
+Y_normal &lt;- sim_data$Y_normal
+
+# fit lucid model
+fit1 &lt;- estimate_lucid(G = G, Z = Z, Y = Y_normal, lucid_model = "early", 
+family = "normal", K = 2,
+seed = 1008)
+
+# conduct bootstrap resampling
+boot1 &lt;- boot_lucid(G = G, Z = Z, Y = Y_normal, 
+lucid_model = "early",model = fit1, R = 100)
+
+# use 90% CI
+boot2 &lt;- boot_lucid(G = G, Z = Z, Y = Y_normal, lucid_model = "early", 
+model = fit1, R = 100, conf = 0.9)
+
+</code></pre>
+
+
+</div>

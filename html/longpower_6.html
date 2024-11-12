@@ -1,0 +1,255 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>liu.liang.linear.power</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear mixed model sample size calculations from Liu &amp; Liang (1997).</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the sample size calculation for a linear mixed model.
+See Liu and Liang (1997) for parameter definitions and other details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">liu.liang.linear.power(
+  N = NULL,
+  delta = NULL,
+  u = NULL,
+  v = NULL,
+  sigma2 = 1,
+  R = NULL,
+  R.list = NULL,
+  sig.level = 0.05,
+  power = NULL,
+  Pi = rep(1/length(u), length(u)),
+  alternative = c("two.sided", "one.sided"),
+  tol = .Machine$double.eps^2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>The total sample size. This formula can accommodate unbalanced
+group allocation via <code>Pi</code>. See Liu and Liang (1997) for more details</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>group difference (possibly a vector of differences)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>a list of covariate vectors or matrices associated with the
+parameter of interest</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>a respective list of covariate vectors or matrices associated with
+the nuisance parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+<p>the error variance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>the variance-covariance matrix for the repeated measures</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R.list</code></td>
+<td>
+<p>a list of variance-covariance matrices for the repeated
+measures, if assumed different in two groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig.level</code></td>
+<td>
+<p>type one error</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>power</code></td>
+<td>
+<p>power</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Pi</code></td>
+<td>
+<p>the proportion of covariates of each type</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alternative</code></td>
+<td>
+<p>one- or two-sided test</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>numerical tolerance used in root finding.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parameters <code>u</code>, <code>v</code>, and <code>Pi</code> are expected to be the same
+length and sorted with respect to each other. See Liu and Liang (1997) and
+package vignette for more details.
+</p>
+
+
+<h3>References</h3>
+
+<p>Liu, G. and Liang, K. Y. (1997) Sample size calculations for
+studies with correlated observations. <em>Biometrics</em>, 53(3), 937-47.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmmpower</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+browseVignettes(package = "longpower")
+
+## End(Not run)
+
+# Reproduces the table on page 29 of Diggle et al for
+# difference in slopes between groups
+
+n &lt;- 3
+t &lt;- c(0,2,5)
+u &lt;- list(u1 = t, u2 = rep(0,n))
+v &lt;- list(v1 = cbind(1,1,t),
+         v2 = cbind(1,0,t))         
+rho &lt;- c(0.2, 0.5, 0.8)
+sigma2 &lt;- c(100, 200, 300)
+tab &lt;- outer(rho, sigma2, 
+      Vectorize(function(rho, sigma2){
+        ceiling(liu.liang.linear.power(
+          delta=0.5, u=u, v=v,
+          sigma2=sigma2,
+          R=rho, alternative="one.sided",
+          power=0.80)$N/2)}))
+colnames(tab) &lt;- paste("sigma2 =", sigma2)
+rownames(tab) &lt;- paste("rho =", rho)
+tab
+
+# Reproduces the table on page 30 of Diggle et al for 
+# difference in average response between groups.
+
+n &lt;- 3
+u &lt;- list(u1 = rep(1,n), u2 = rep(0,n))
+v &lt;- list(v1 = rep(1,n),
+         v2 = rep(1,n))
+rho &lt;- c(0.2, 0.5, 0.8)
+delta &lt;- c(20, 30, 40, 50)/100
+tab &lt;- outer(rho, delta, 
+     Vectorize(function(rho, delta){
+       ceiling(liu.liang.linear.power(
+         delta=delta, u=u, v=v,
+         sigma2=1,
+         R=rho, alternative="one.sided",
+         power=0.80)$n[1])}))
+colnames(tab) &lt;- paste("delta =", delta)
+rownames(tab) &lt;- paste("rho =", rho)
+tab
+
+# An Alzheimer's Disease example using ADAS-cog pilot estimates
+# var of random intercept
+sig2.i &lt;- 55
+# var of random slope
+sig2.s &lt;- 24
+# residual var
+sig2.e &lt;- 10
+# covariance of slope and intercep
+cov.s.i &lt;- 0.8*sqrt(sig2.i)*sqrt(sig2.s)
+
+cov.t &lt;- function(t1, t2, sig2.i, sig2.s, cov.s.i){
+        sig2.i + t1*t2*sig2.s + (t1+t2)*cov.s.i 
+}
+
+t &lt;- seq(0,1.5,0.25)
+n &lt;- length(t)
+R &lt;- outer(t, t, function(x,y){cov.t(x,y, sig2.i, sig2.s, cov.s.i)})
+R &lt;- R + diag(sig2.e, n, n)
+u &lt;- list(u1 = t, u2 = rep(0,n))
+v &lt;- list(v1 = cbind(1,1,t),
+         v2 = cbind(1,0,t))         
+
+liu.liang.linear.power(delta=1.5, u=u, v=v, R=R, sig.level=0.05, power=0.80)
+liu.liang.linear.power(N=416, u=u, v=v, R=R, sig.level=0.05, power=0.80)
+liu.liang.linear.power(N=416, delta = 1.5, u=u, v=v, R=R, sig.level=0.05)
+liu.liang.linear.power(N=416, delta = 1.5, u=u, v=v, R=R, power=0.80, sig.level = NULL)
+
+# Reproduces total sample sizes, m, of Table 1 of Liu and Liang 1997
+tab1 &lt;- data.frame(cbind(
+  n = c(rep(4, 4), rep(2, 4), 1),
+  rho = c(0.0, 0.3, 0.5, 0.8)))
+m &lt;- c()
+for(i in 1:nrow(tab1)){
+  R &lt;- matrix(tab1$rho[i], nrow = tab1$n[i], ncol = tab1$n[i])
+  diag(R) &lt;- 1
+  m &lt;- c(m, ceiling(liu.liang.linear.power(
+    delta=0.5,
+    u = list(u1 = rep(1, tab1$n[i]), # treatment
+             u2 = rep(0, tab1$n[i])), # control       
+    v = list(v1 = rep(1, tab1$n[i]), v2 = rep(1, tab1$n[i])), # intercept
+    sigma2=1,
+    R=R, alternative="two.sided",
+    power=0.90)$N))
+}
+cbind(tab1, m)
+
+# Reproduces total sample sizes, m, of Table 3.a. of Liu and Liang 1997
+# with unbalanced design
+tab3 &lt;- data.frame(cbind(
+  rho = rep(c(0.0, 0.3, 0.5, 0.8), 2),
+  pi1 = c(rep(0.8, 4), rep(0.2, 4))))
+m &lt;- c()
+for(i in 1:nrow(tab3)){
+  R &lt;- matrix(tab3$rho[i], nrow = 4, ncol = 4)
+  diag(R) &lt;- 1
+  m &lt;- c(m, ceiling(liu.liang.linear.power(
+    delta=0.5,
+    u = list(u1 = rep(1, 4), # treatment
+             u2 = rep(0, 4)), # control       
+    v = list(v1 = rep(1, 4), v2 = rep(1, 4)), # intercept
+    sigma2=1,
+    Pi = c(tab3$pi1[i], 1-tab3$pi1[i]),
+    R=R, alternative="two.sided",
+    power=0.90)$N))
+}
+cbind(tab3, m)
+
+</code></pre>
+
+
+</div>

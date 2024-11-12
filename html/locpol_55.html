@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>simpleSmoothers</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Simple smoother </h2>
+
+<h3>Description</h3>
+
+<p>Computes simple kernel smoothing  
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  simpleSmootherC(x, y, xeval, bw, kernel, weig = rep(1, length(y)))
+  simpleSqSmootherC(x, y, xeval, bw, kernel)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p> x covariate data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p> y response data values. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xeval</code></td>
+<td>
+<p> Vector with evaluation points. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p> Smoothing parameter, bandwidth. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p> Kernel used to perform the estimation, see <code>Kernels</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weig</code></td>
+<td>
+<p> weights if they are required. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computes simple smoothing, that is to say: it averages <code>y</code> 
+values times kernel evaluated on <code>x</code> values. <code>simpleSqSmootherC</code>
+does the average with the square of such values.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Both functions returns a <code>data.frame</code> with
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code> x </code></td>
+<td>
+ <p><code class="reqn">x</code> evaluation points. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code> reg </code></td>
+<td>
+<p> the smoothed values at <code>x</code> points. </p>
+</td>
+</tr>
+</table>
+<p>...
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jorge Luis Ojeda Cabrera. 
+</p>
+
+
+<h3>See Also</h3>
+
+ 
+<p><code>PRDenEstC</code>, <code>Kernel characteristics</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">	size &lt;- 1000
+	x &lt;- runif(100)
+	bw &lt;- 0.125
+	kernel &lt;- EpaK
+	xeval &lt;- 1:9/10
+	y &lt;- rep(1,100)	
+	##	x kern. aver. should give density f(x)
+	prDen &lt;- PRDenEstC(x,xeval,bw,kernel)$den
+	ssDen &lt;- simpleSmootherC(x,y,xeval,bw,kernel)$reg
+	all(abs(prDen-ssDen)&lt;1e-15)
+	##	x kern. aver. should be f(x)*R2(K) aprox.
+	s2Den &lt;- simpleSqSmootherC(x,y,xeval,bw,kernel)$reg
+	summary( abs(prDen*RK(kernel)-s2Den) )
+	summary( abs(1*RK(kernel)-s2Den) )
+	##	x kern. aver. should be f(x)*R2(K) aprox.
+	for(n in c(1000,1e4,1e5))
+	{
+		s2D &lt;- simpleSqSmootherC(runif(n),rep(1,n),xeval,bw,kernel)$reg
+		cat("\n",n,"\n")
+		print( summary( abs(1*RK(kernel)-s2D) ) )
+	}
+</code></pre>
+
+
+</div>

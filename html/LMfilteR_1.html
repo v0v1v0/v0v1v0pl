@@ -1,0 +1,167 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>EPF_logist_compl</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parameter Estimation Of Logistic Linear Models Using Evolutionary Particle Filters (EPF) Method</h2>
+
+<h3>Description</h3>
+
+<p>Estimation of the parameters of a logistic regression using a particle filter method that includes
+two evolutionary algorithm-based steps. See <em>Details</em>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">EPF_logist_compl(
+  Data,
+  Y,
+  nPart = 1000L,
+  p_mut = 0.01,
+  p_cross = 0.5,
+  thr = 0.5,
+  lmbd = 3,
+  count = 10,
+  initDisPar,
+  resample_met = syst_rsmpl
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Data, </code></td>
+<td>
+<p>matrix. The matrix containing the independent variables of the linear model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>numeric. The dependent variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nPart</code></td>
+<td>
+<p>integer. The number of particles, by default 1000L</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_mut</code></td>
+<td>
+<p>numeric. The mutation probability in EPF, by default 0.01</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p_cross</code></td>
+<td>
+<p>numeric. The cross-over probability in EPF, by default 0.5</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thr</code></td>
+<td>
+<p>numeric. The threshold after which the estimated Y is classified as 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lmbd</code></td>
+<td>
+<p>numeric. A number to be added and subtracted from the priors when <code>initDisPar</code> is not provided, by default 3</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>count</code></td>
+<td>
+<p>numeric. The number of replications within EPF, by default 10</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initDisPar</code></td>
+<td>
+<p>matrix. Values a, b of the uniform distribution (via <code>runif</code>) for each parameter to be estimated, see more in <em>Details</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resample_met</code></td>
+<td>
+<p>function. The resampling method used in EPF, by default <code>syst_rsmpl</code>, see <em>Details</em></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Estimation of the coefficients of a logistic linear regression using the  evolutionary particle filter.
+EPF includes evolutionary algorithms (mutation and cross-over) within PF-base algorithm to avoid degeneracy of particles and prevent the curse of dimensionality.
+In mutation, <code>p_mut * nPart</code> particles are selected at random from the set of particles obtained in <code>k-1</code> PF-iteration.
+This particles will be replaced by fresh new particles taken from a uniform distribution.
+In cross-over, a pair of random particles is selected from the <code>k-1</code> propagated particles. The pair is combined into one particle (using the mean) and the result replaces a particle selected at random from the <code>k-1</code> propagated particles.
+This cross-over process is replicated <code>prob_cross * N</code> times on each iteration.
+<code>EPF_logist_compl</code> uses all the information to estimate the parameters.
+</p>
+<p>The state-space equations of the logistic regression model are:
+</p>
+<p><code class="reqn">(Eq. 1) X_{k} = a_0 + a_1 * X1_{k-1} + ... + a_n * Xn_{k-1}</code>
+</p>
+<p><code class="reqn">(Eq. 2) Y_{k} =  1/(1 + exp(- X_{k}))</code>
+</p>
+<p><code class="reqn">(Eq. 3) Z_{k} \sim  Ber(Y_{k})</code>
+</p>
+<p>where, k = 1, ... , number of observations; <code class="reqn">a_0, ... , a_n</code> are the parameters to be estimated (coefficients), and <code class="reqn">Ber(\cdot)</code> is the Bernoulli distribution.
+</p>
+<p>The priors of the parameters are assumed uniformly distributed. In <code>initDisPar</code>, the number of rows is the number of independent variables plus one since the constant term of the regression is also estimated.
+The first and second column of <code>initDisPar</code> are the corresponding arguments <code>a</code> and <code>b</code> of the uniform distribution (<code>stats::runif</code>) for each parameter prior.
+The first row of <code>initDisPar</code> is the prior guess of the constant term. The following rows are the prior guesses of the coefficients.
+If <code>initDisPar</code> is missing, the initial priors are taken using <code>glm()</code> and <code>coeff()</code> plus-minus <code>lmbd</code> as a reference.
+</p>
+<p>For <code>resample_met</code>, several resampling methods are used following Li, T., Bolic, M., &amp; Djuric, P. M. (2015). Resampling methods for particle filtering: classification, implementation, and strategies. IEEE Signal processing magazine, 32(3), 70-86.
+Currently available resampling methods are: <code>syst_rsmpl</code> - systematic resampling (default), <code>multin_rsmpl</code> - multinomial resampling,
+<code>strat_rsmpl</code> - stratified resampling, and <code>simp_rsmpl</code> - simple resampling (similar to PF_lm_ss)
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following elements:
+<code>smmry</code>: A summary matrix of the estimated parameters; first column is the GLM estimation, and second column is the EPF estimation.
+<code>AIC</code>:  Akaike information criteria of the EPF estimation.
+<code>Yhat</code>: Estimation of the observation Y.
+<code>sttp</code>: A matrix with the last iteration parameters-particles.
+<code>estm</code>: A vector with the final parameter EPF estimation.
+<code>c_time</code>: The time in seconds it takes to complete EPF.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Christian Llano Robayo, Nazrul Shaikh.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+#Simulating logistic regression model
+val_coef &lt;- c(2, -1.25, 2.6, -0.7, -1.8)
+Data1 &lt;-  MASS::mvrnorm(100, mu = rep(0, 4),
+                       Sigma = diag(4),
+                       empirical = TRUE)
+Y1 &lt;- colSums(t(cbind(1,Data1))*val_coef)
+prb &lt;- 1 / (1 + exp(-Y1))
+Y_ &lt;- rbinom(100, size = 1, prob = prb) ##
+#Run EPF
+Res &lt;- EPF_logist_compl(Data = Data1, Y = Y_)
+#Summary EPF estimation
+Res$smmry
+
+## End(Not run)
+</code></pre>
+
+
+</div>

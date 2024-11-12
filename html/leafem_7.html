@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addGeotiff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add a GeoTIFF file to a leaflet map using optimised rendering.</h2>
+
+<h3>Description</h3>
+
+<p>Add a GeoTIFF file to a leaflet map using optimised rendering.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addGeotiff(
+  map,
+  file = NULL,
+  url = NULL,
+  group = NULL,
+  layerId = NULL,
+  resolution = 96,
+  bands = NULL,
+  arith = NULL,
+  project = TRUE,
+  method = NULL,
+  opacity = 0.8,
+  options = leaflet::tileOptions(),
+  colorOptions = NULL,
+  rgb = FALSE,
+  pixelValuesToColorFn = NULL,
+  autozoom = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>the map to add the raster data to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+<p>path to the GeoTIFF file to render.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>url</code></td>
+<td>
+<p>url to the GeoTIFF file to render. Ignored if <code>file</code> is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>he name of the group this raster image should belong to.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layerId</code></td>
+<td>
+<p>the layerId.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resolution</code></td>
+<td>
+<p>the target resolution for the simple nearest neighbor interpolation.
+Larger values will result in more detailed rendering, but may impact performance.
+Default is 96 (pixels).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bands</code></td>
+<td>
+<p>which bands to use in case of multi-band Geotiff.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arith</code></td>
+<td>
+<p>an optional function to be applied to a multi-layer object.
+Will be computed on-the-fly in the browser.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>project</code></td>
+<td>
+<p>if TRUE (default), automatically project x to the map projection
+expected by georaster-layer-for-leaflet (EPSG:4326);
+if FALSE, it's the caller's responsibility to ensure that <code>file</code> is already projected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>character defining the resampling method to be used when
+<code>project</code> is <code>TRUE</code>.
+See <a href="https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r">https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r</a> for
+possible values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opacity</code></td>
+<td>
+<p>opacity of the rendered layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>options to be passed to the layer.
+See <code>tileOptions</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colorOptions</code></td>
+<td>
+<p>list defining the palette, breaks and na.color to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rgb</code></td>
+<td>
+<p>logical, whether to render Geotiff as RGB.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pixelValuesToColorFn</code></td>
+<td>
+<p>optional JS function to be passed to the browser.
+Can be used to fine tune and manipulate the color mapping.
+See examples &amp; <a href="https://github.com/r-spatial/leafem/issues/25">https://github.com/r-spatial/leafem/issues/25</a> for
+some examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>autozoom</code></td>
+<td>
+<p>whether to automatically zoom to the full extent of the layer.
+Default is <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This uses the leaflet plugin 'georaster-layer-for-leaflet' to render GeoTIFF data.
+See <a href="https://github.com/GeoTIFF/georaster-layer-for-leaflet">https://github.com/GeoTIFF/georaster-layer-for-leaflet</a> for details.
+The GeoTIFF file is read directly in the browser using geotiffjs
+(<a href="https://geotiffjs.github.io/">https://geotiffjs.github.io/</a>), so there's no need to read data into
+the current R session. GeoTIFF files can be read from the file system or via url.
+The clue is that rendering uses simple nearest neighbor interpolation on-the-fly
+to ensure smooth rendering. This enables handling of larger rasters than with
+the standard <code>addRasterImage</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A leaflet map object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (interactive()) {
+  library(leaflet)
+  library(leafem)
+  library(stars)
+
+  tif = system.file("tif/L7_ETMs.tif", package = "stars")
+  x1 = read_stars(tif)
+  x1 = x1[, , , 3] # band 3
+
+  tmpfl = tempfile(fileext = ".tif")
+
+  write_stars(st_warp(x1, crs = 4326), tmpfl)
+
+  leaflet() %&gt;%
+    addTiles() %&gt;%
+    addGeotiff(
+      file = tmpfl
+      , opacity = 0.9
+      , colorOptions = colorOptions(
+        palette = hcl.colors(256, palette = "inferno")
+        , na.color = "transparent"
+      )
+    )
+
+}
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rlsbclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulate from LSBCLUST Model</h2>
+
+<h3>Description</h3>
+
+<p>Simulate three-way arrays adhering to the LSBCLUST framework (see <code>lsbclust</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rlsbclust(ndata = 50L, nobs, size, nclust, clustsize = NULL,
+  delta = rep(1L, 4L), ndim = 2L, alpha = 0.5, fixed = c("none",
+  "rows", "columns"), err_sd = 1, svmins = 1, svmax = 6)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ndata</code></td>
+<td>
+<p>Integer giving the number of data sets to generate with the same underlying
+parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nobs</code></td>
+<td>
+<p>Integer giving the number of observations to sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>Vector with two elements giving the number of rows and columns respectively
+of each simulated observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclust</code></td>
+<td>
+<p>A vector of length four giving the number of clusters for the overall mean, the row
+margins, the column margins and the interactions (in that order) respectively. Alternatively, a
+vector of length one, in which case all components will have the same number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clustsize</code></td>
+<td>
+<p>A list of length four, with each element containing a vector 
+of the same length as the corresponding entry in <code>nclust</code>, indicating the 
+number of elements to contribute to each sample. Naturally, each of these 
+vectors must sum to <code>nobs</code>, or an error will result. Positional matching 
+are used, in the order "overall", "rows", "columns" and "interactions". If 
+<code>NULL</code>, all clusters will be of equal size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>A four-element binary vector (logical or numeric) indicating which sum-to-zero 
+constraints must be enforced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndim</code></td>
+<td>
+<p>The required rank for the approximation of the interactions (a scalar).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Numeric value in [0, 1] which determines how the singular values are distributed
+between rows and columns (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>One of <code>"none"</code>, <code>"rows"</code> or <code>"columns"</code> indicating whether to fix neither
+sets of coordinates, or whether to fix the row or column coordinates across clusters respectively.
+If a vector is supplied, only the first element will be used (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err_sd</code></td>
+<td>
+<p>The standard deviation of the error distribution, as passed to 
+<code>rnorm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svmins</code></td>
+<td>
+<p>Vector of minimum values for the singular values 
+(as passed to <code>simsv</code>). Optionally, if all minima are equal,
+a single numeric value which will be expanded to the correct length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svmax</code></td>
+<td>
+<p>The maximum possible singular value (as passed to <code>simsv</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Nothing fixed, balanced classes
+set.seed(1)
+dat &lt;- rlsbclust(ndata = 1, nobs = 100, size = c(10, 8), nclust = c(5, 4, 6, 5))
+res &lt;- lsbclust(data = dat[[1]]$data, nclust = c(5, 4, 6, 5))
+cfsim(res, dat[[1]])
+
+## Rows fixed, balanced classes
+set.seed(2)
+dat &lt;- rlsbclust(ndata = 1, nobs = 100, size = c(10, 8), nclust = c(5, 4, 6, 5), 
+                 fixed = "rows")
+res &lt;- lsbclust(data = dat[[1]]$data, nclust = c(5, 4, 6, 5), fixed = "rows")
+cfsim(res, dat[[1]])
+
+## Rows fixed, unbalanced classes
+set.seed(3)
+dat &lt;- rlsbclust(ndata = 1, nobs = 100, size = c(10, 8), nclust = c(5, 4, 6, 5), 
+                 fixed = "columns", 
+                 clustsize = list(NULL, NULL, c(40, 25, 15, 10, 5, 5), c(40, 25, 15, 10, 10)))
+res &lt;- lsbclust(data = dat[[1]]$data, nclust = c(5, 4, 6, 5), fixed = "columns")
+cfsim(res, dat[[1]])
+</code></pre>
+
+
+</div>

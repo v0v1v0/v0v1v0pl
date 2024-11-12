@@ -1,0 +1,202 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_features</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the Features</h2>
+
+<h3>Description</h3>
+
+<p>This function can construct the dataset. This function is only used
+to extract the features, please use function <code>build_model</code> to build
+new models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_features(
+  Sequences,
+  label = NULL,
+  SS.features = FALSE,
+  format = "DNA",
+  frequencies.file = "human",
+  parallel.cores = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sequences</code></td>
+<td>
+<p>mRNA sequences or long non-coding sequences. Can be a FASTA
+file loaded by <code>seqinr-package</code> or
+secondary structure sequences (Dot-Bracket Notation) obtained from function
+<code>run_RNAfold</code>. If <code>Sequences</code> are secondary structure
+sequences file, parameter <code>format</code> should be defined as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Optional. String. Indicate the label of the sequences such as
+"NonCoding", "Coding".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SS.features</code></td>
+<td>
+<p>Logical. If <code>SS.features = TRUE</code>, secondary structure
+features will be extracted. In this case, <code>Sequences</code> should be secondary
+structure sequences (Dot-Bracket Notation) obtained from function
+<code>run_RNAfold</code> and parameter <code>format</code> should be set as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>String. Can be <code>"DNA"</code> or <code>"SS"</code>. Define the format of
+<code>Sequences</code>. <code>"DNA"</code> for DNA sequences and <code>"SS"</code> for secondary
+structure sequences. This parameter must be set as <code>"SS"</code> when
+<code>SS.features = TURE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequencies.file</code></td>
+<td>
+<p>String or a list obtained from function
+<code>make_frequencies</code>. Input species name <code>"human"</code>, <code>"mouse"</code>
+or <code>"wheat"</code> to use pre-build frequencies files. Or assign a users' own
+frequencies file (See function <code>make_frequencies</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>. Users can set as <code>-1</code> to run
+this function with all cores.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function extracts the features and constructs the dataset.
+</p>
+<p>Considering that it is time consuming to obtain secondary structure sequences,
+users can build the model only with features of sequence and EIIP
+(<code>SS.features = FALSE</code>). When <code>SS.features = TRUE</code>, <code>Sequences</code>
+should be secondary structure sequences (Dot-Bracket Notation) obtained from
+function <code>run_RNAfold</code> and parameter <code>format</code> should be set
+as <code>"SS"</code>.
+</p>
+<p>Please note that:
+</p>
+<p>Secondary structure features (<code>SS.features</code>) can improve the performance
+when the species of unevaluated sequences is identical to the species of the
+sequences that used to build the model.
+</p>
+<p>However, if users are trying to predict sequences with the model trained on
+other species, <code>SS.features</code> as <code>TRUE</code> may lead to low accuracy.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a data.frame. 11 features when <code>SS.features</code> is <code>FALSE</code>,
+and 19 features when <code>SS.features</code> is <code>TRUE</code>.
+</p>
+
+
+<h3>Features</h3>
+
+<p>1. Features based on sequence:
+</p>
+<p>The length and coverage of the longest ORF (<code>ORF.Max.Len</code> and
+<code>ORF.Max.Cov</code>);
+</p>
+<p>Log-Distance.lncRNA (<code>Seq.lnc.Dist</code>);
+</p>
+<p>Log-Distance.protein-coding transcripts (<code>Seq.pct.Dist</code>);
+</p>
+<p>Distance-Ratio.sequence (<code>Seq.Dist.Ratio</code>).
+</p>
+<p>2. Features based on EIIP (electron-ion interaction pseudopotential) value:
+</p>
+<p>Signal at 1/3 position (<code>Signal.Peak</code>);
+</p>
+<p>Signal to noise ratio (<code>SNR</code>);
+</p>
+<p>the minimum value of the top 10% power spectrum (<code>Signal.Min</code>);
+</p>
+<p>the quantile Q1 and Q2 of the top 10% power spectrum (<code>Singal.Q1</code>
+and <code>Signal.Q2</code>)
+</p>
+<p>the maximum value of the top 10% power spectrum (<code>Signal.Max</code>).
+</p>
+<p>3. Features based on secondary structure sequence:
+</p>
+<p>Log-Distance.acguD.lncRNA (<code>Dot_lnc.dist</code>);
+</p>
+<p>Log-Distance.acguD.protein-coding transcripts (<code>Dot_pct.dist</code>);
+</p>
+<p>Distance-Ratio.acguD (<code>Dot_Dist.Ratio</code>);
+</p>
+<p>Log-Distance.acgu-ACGU.lncRNA (<code>SS.lnc.dist</code>);
+</p>
+<p>Log-Distance.acgu-ACGU.protein-coding transcripts (<code>SS.pct.dist</code>);
+</p>
+<p>Distance-Ratio.acgu-ACGU (<code>SS.Dist.Ratio</code>);
+</p>
+<p>Minimum free energy (<code>MFE</code>);
+</p>
+<p>Percentage of Unpair-Pair (<code>UP.PCT</code>)
+</p>
+
+
+<h3>References</h3>
+
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>svm_tune</code>, <code>build_model</code>,
+<code>make_frequencies</code>, <code>run_RNAfold</code>, <code>read_SS</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(demo_DNA.seq)
+Seqs &lt;- demo_DNA.seq
+
+### Extract features with pre-build frequencies.file:
+my_features &lt;- extract_features(Seqs, label = "Class.of.the.Sequences",
+                                SS.features = FALSE, format = "DNA",
+                                frequencies.file = "mouse",
+                                parallel.cores = 2)
+
+### Use your own frequencies file by assign frequencies list to parameter
+### "frequencies.file".
+
+## End(Not run)
+</code></pre>
+
+
+</div>

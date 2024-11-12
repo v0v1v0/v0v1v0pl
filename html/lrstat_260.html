@@ -1,0 +1,285 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rpsft</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Rank preserving structured failure time model (RPSFTM) for
+treatment switching</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the causal parameter estimate of the RPSFTM from
+the log-rank test and the hazard ratio estimate from the Cox model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rpsft(
+  data,
+  stratum = "stratum",
+  time = "time",
+  event = "event",
+  treat = "treat",
+  rx = "rx",
+  censor_time = "censor_time",
+  base_cov = "none",
+  low_psi = -1,
+  hi_psi = 1,
+  n_eval_z = 100L,
+  alpha = 0.05,
+  treat_modifier = 1,
+  recensor = 1L,
+  autoswitch = 1L,
+  gridsearch = 0L,
+  boot = 0L,
+  n_boot = 1000L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The input data frame that contains the following variables:
+</p>
+
+<ul>
+<li> <p><code>stratum</code>: The stratum.
+</p>
+</li>
+<li> <p><code>time</code>: The survival time for right censored data.
+</p>
+</li>
+<li> <p><code>event</code>: The event indicator, 1=event, 0=no event.
+</p>
+</li>
+<li> <p><code>treat</code>: The randomized treatment indicator, 1=treatment,
+0=control.
+</p>
+</li>
+<li> <p><code>rx</code>: The proportion of time on active treatment.
+</p>
+</li>
+<li> <p><code>censor_time</code>: The administrative censoring time. It should
+be provided for all subjects including those who had events.
+</p>
+</li>
+<li> <p><code>base_cov</code>: The values of baseline covariates.
+This is the full-rank design matrix (excluding treat)
+for the Cox model, assuming that factor variables
+have already been expanded into dummy variables.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratum</code></td>
+<td>
+<p>The name of the stratum variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>The name of the event variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>The name of the treatment variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rx</code></td>
+<td>
+<p>The name of the rx variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor_time</code></td>
+<td>
+<p>The name of the censor_time variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base_cov</code></td>
+<td>
+<p>The vector of names of baseline covariates (excluding
+treat) in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>low_psi</code></td>
+<td>
+<p>The lower limit of the causal parameter of RPSFTM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hi_psi</code></td>
+<td>
+<p>The upper limit of the causal parameter of RPSFTM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_eval_z</code></td>
+<td>
+<p>The number of points between low_psi and hi_psi at which
+to evaluate the log-rank Z-statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The significance level to calculate confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat_modifier</code></td>
+<td>
+<p>The optional sensitivity parameter for the
+constant treatment effect assumption.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recensor</code></td>
+<td>
+<p>Whether to apply recensoring to counter-factual
+survival times. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>autoswitch</code></td>
+<td>
+<p>Whether to exclude recensoring for treatment arms
+with no switching. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridsearch</code></td>
+<td>
+<p>Whether to use grid search to estimate the causal
+parameter psi. Defaults to <code>FALSE</code>, in which case, a root
+finding algorithm will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>boot</code></td>
+<td>
+<p>Whether to use bootstrap to obtain the confidence
+interval for hazard ratio. Defaults to <code>FALSE</code>, in which case,
+the confidence interval will be constructed to match the log-rank
+test p-value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_boot</code></td>
+<td>
+<p>The number of bootstrap samples.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We use the following steps to obtain the hazard ratio estimate
+and confidence interval had there been no treatment switching:
+</p>
+
+<ul>
+<li>
+<p> use RPSFTM to estimate the causal parameter psi based on the log-rank
+test for counter-factual untreated survival times for both arms:
+<code class="reqn">U = T_{off} + T_{on} e^{\psi}</code>.
+</p>
+</li>
+<li>
+<p> Fit the Cox proportional hazards model to the observed survival times
+on the treatment arm and the counter-factual untreated survival times
+on the control arm to obtain the hazard ratio estimate.
+</p>
+</li>
+<li>
+<p> Use either the log-rank test p-value for the treatment policy strategy
+or bootstrap to construct the confidence interval for hazard ratio.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+
+<ul>
+<li> <p><code>psi</code>: The estimated causal parameter for RPSFTM.
+</p>
+</li>
+<li> <p><code>psi_CI</code>: The confidence interval for psi.
+</p>
+</li>
+<li> <p><code>psi_type</code>: The type of psi estimate, either "grid search" or
+"root finding".
+</p>
+</li>
+<li> <p><code>Sstar</code>: A data frame containing the counter-factual untreated
+survival times and the event indicators.
+</p>
+</li>
+<li> <p><code>kmstar</code>: A data frame containing the Kaplan-Meier estimates
+based on the counter-factual untreated survival times by treatment arm.
+</p>
+</li>
+<li> <p><code>eval_z</code>: A data frame containing the log-rank test Z-statistics
+evaluated at a sequence of psi values. Used to plot and to check
+if the range of psi values to search for the solution and
+limits of confidence interval of psi need be modified.
+</p>
+</li>
+<li> <p><code>pvalue</code>: The p-value of the log-rank test based on
+the treatment policy strategy.
+</p>
+</li>
+<li> <p><code>hr</code>: The estimated hazard ratio from the Cox model.
+</p>
+</li>
+<li> <p><code>hr_CI</code>: The confidence interval for hazard ratio.
+</p>
+</li>
+<li> <p><code>hr_CI_type</code>: The type of confidence interval for hazard ratio,
+either "log-rank p-value" or "bootstrap quantile".
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+data &lt;- immdef %&gt;% mutate(rx = 1-xoyrs/progyrs)
+
+fit &lt;- rpsft(data, time = "progyrs", event = "prog", treat = "imm",
+             rx = "rx", censor_time = "censyrs", boot = 0)
+
+c(fit$hr, fit$hr_CI)
+
+</code></pre>
+
+
+</div>

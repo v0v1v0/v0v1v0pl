@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LCA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Localised Co-dependency Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Performs Localised Co-dependency Analysis</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LCA(x,PTLmodel,clique,seed.row,combine.method="Fisher",
+adjust.method="BH",comparison.alpha=0.05)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Numeric data input array, standardised to range (0,1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PTLmodel</code></td>
+<td>
+<p>List with named elements <code>alpha</code>, <code>beta</code> and <code>gamma</code> specifying PTL parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clique</code></td>
+<td>
+<p>Numeric vector specifying which columns of data table represent entities defining the clique across which to evaluate co-dependency</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.row</code></td>
+<td>
+<p>Numeric value specifying which row of data table to use as 'seed' feature with which to evaluate co-dependency</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combine.method</code></td>
+<td>
+<p>Character specifying which method to use for combining individual LCD estimates. One of "Fisher" or "Inverse Product".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adjust.method</code></td>
+<td>
+<p>Character specifying which method to use for multiple testing adjustment of significance estimates. See <code>p.adjust</code> for further details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparison.alpha</code></td>
+<td>
+<p>Significance level threshold for including objects in the set to be used for evaluating LCD significance estimates for a given pair of features in a given clique.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function to evaluate LCD, within the members of <code>clique</code>, for all features in a dataset against the feature represented by <code>seed.row</code>.</p>
+
+
+<h3>Value</h3>
+
+<p>List with elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>LCD</code></td>
+<td>
+<p>Data frame giving across-clique LCD significance estimates for each feature in the dataset, as both unadjusted p-value and adjusted for multiple testing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combinations</code></td>
+<td>
+<p>An array detailing the individual pair-wise LCD tests performed amongst members of the clique, which were combined to give the overall significance estimates</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ed Curry <a href="mailto:e.curry@imperial.ac.uk">e.curry@imperial.ac.uk</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">suppressWarnings(RNGversion("3.5.0"))
+## create a data matrix
+
+x &lt;- array(runif(1200),dim=c(40,12))
+
+## implant similarity across a 'clique'
+
+clique.cols &lt;- sample(ncol(x),4)
+x[,clique.cols] &lt;- x[,clique.cols] + rnorm(nrow(x))
+
+## scale x to (0,1)
+
+x[x&lt;0] &lt;- 0
+x[x&gt;1] &lt;- 1
+
+## choose a 'seed' feature and some partner
+
+seed.row &lt;- sample(nrow(x),1)
+partner.row &lt;- sample(setdiff(c(1:nrow(x)),seed.row),1)
+
+x[c(seed.row,partner.row),clique.cols] &lt;- x[c(seed.row,partner.row),clique.cols] + 
+rep(rnorm(length(clique.cols)),each=2)
+
+## calibrate PTL models to dataset
+
+PTL.fit &lt;- fitPTLmodel(x,nPairs=15)
+
+## evaluate LCD between 'seed' feature and all other features
+ 
+LCA.result &lt;- LCA(x,PTLmodel=PTL.fit,clique=clique.cols,seed.row=seed.row)
+## Not run: head(LCA.result$LCD)
+
+</code></pre>
+
+
+</div>

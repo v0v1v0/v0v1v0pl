@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.configure_fast_predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Configure Fast Single-Row Predictions</h2>
+
+<h3>Description</h3>
+
+<p>Pre-configures a LightGBM model object to produce fast single-row predictions
+for a given input data type, prediction type, and parameters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.configure_fast_predict(
+  model,
+  csr = FALSE,
+  start_iteration = NULL,
+  num_iteration = NULL,
+  type = "response",
+  params = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>LighGBM model object (class <code>lgb.Booster</code>).
+</p>
+<p><b>The object will be modified in-place</b>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>csr</code></td>
+<td>
+<p>Whether the prediction function is going to be called on sparse CSR inputs.
+If <code>FALSE</code>, will be assumed that predictions are going to be called on single-row
+regular R matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_iteration</code></td>
+<td>
+<p>int or None, optional (default=None)
+Start index of the iteration to predict.
+If None or &lt;= 0, starts from the first iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_iteration</code></td>
+<td>
+<p>int or None, optional (default=None)
+Limit number of iterations in the prediction.
+If None, if the best iteration exists and start_iteration is None or &lt;= 0, the
+best iteration is used; otherwise, all iterations from start_iteration are used.
+If &lt;= 0, all iterations from start_iteration are used (no limits).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of prediction to output. Allowed types are:</p>
+
+<ul>
+<li> <p><code>"response"</code>: will output the predicted score according to the objective function being
+optimized (depending on the link function that the objective uses), after applying any necessary
+transformations - for example, for <code>objective="binary"</code>, it will output class probabilities.
+</p>
+</li>
+<li> <p><code>"class"</code>: for classification objectives, will output the class with the highest predicted
+probability. For other objectives, will output the same as "response". Note that <code>"class"</code> is
+not a supported type for lgb.configure_fast_predict (see the documentation of that function
+for more details).
+</p>
+</li>
+<li> <p><code>"raw"</code>: will output the non-transformed numbers (sum of predictions from boosting iterations'
+results) from which the "response" number is produced for a given objective function - for example,
+for <code>objective="binary"</code>, this corresponds to log-odds. For many objectives such as
+"regression", since no transformation is applied, the output will be the same as for "response".
+</p>
+</li>
+<li> <p><code>"leaf"</code>: will output the index of the terminal node / leaf at which each observations falls
+in each tree in the model, outputted as integers, with one column per tree.
+</p>
+</li>
+<li> <p><code>"contrib"</code>: will return the per-feature contributions for each prediction, including an
+intercept (each feature will produce one column).
+</p>
+</li>
+</ul>
+<p>Note that, if using custom objectives, types "class" and "response" will not be available and will
+default towards using "raw" instead.
+</p>
+<p>If the model was fit through function lightgbm and it was passed a factor as labels,
+passing the prediction type through <code>params</code> instead of through this argument might
+result in factor levels for classification objectives not being applied correctly to the
+resulting output.
+</p>
+<p><em>New in version 4.0.0</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a list of additional named parameters. See
+<a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html#predict-parameters">
+the "Predict Parameters" section of the documentation</a> for a list of parameters and
+valid values. Where these conflict with the values of keyword arguments to this function,
+the values in <code>params</code> take precedence.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Calling this function multiple times with different parameters might not override
+the previous configuration and might trigger undefined behavior.
+</p>
+<p>Any saved configuration for fast predictions might be lost after making a single-row
+prediction of a different type than what was configured (except for types "response" and
+"class", which can be switched between each other at any time without losing the configuration).
+</p>
+<p>In some situations, setting a fast prediction configuration for one type of prediction
+might cause the prediction function to keep using that configuration for single-row
+predictions even if the requested type of prediction is different from what was configured.
+</p>
+<p>Note that this function will not accept argument <code>type="class"</code> - for such cases, one
+can pass <code>type="response"</code> to this function and then <code>type="class"</code> to the
+<code>predict</code> function - the fast configuration will not be lost or altered if the switch
+is between "response" and "class".
+</p>
+<p>The configuration does not survive de-serializations, so it has to be generated
+anew in every R process that is going to use it (e.g. if loading a model object
+through <code>readRDS</code>, whatever configuration was there previously will be lost).
+</p>
+<p>Requesting a different prediction type or passing parameters to predict.lgb.Booster
+will cause it to ignore the fast-predict configuration and take the slow route instead
+(but be aware that an existing configuration might not always be overriden by supplying
+different parameters or prediction type, so make sure to check that the output is what
+was expected when a prediction is to be made on a single row for something different than
+what is configured).
+</p>
+<p>Note that, if configuring a non-default prediction type (such as leaf indices),
+then that type must also be passed in the call to predict.lgb.Booster in
+order for it to use the configuration. This also applies for <code>start_iteration</code>
+and <code>num_iteration</code>, but <b>the <code>params</code> list must be empty</b> in the call to <code>predict</code>.
+</p>
+<p>Predictions about feature contributions do not allow a fast route for CSR inputs,
+and as such, this function will produce an error if passing <code>csr=TRUE</code> and
+<code>type = "contrib"</code> together.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The same <code>model</code> that was passed as input, invisibly, with the desired
+configuration stored inside it and available to be used in future calls to
+predict.lgb.Booster.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+library(lightgbm)
+data(mtcars)
+X &lt;- as.matrix(mtcars[, -1L])
+y &lt;- mtcars[, 1L]
+dtrain &lt;- lgb.Dataset(X, label = y, params = list(max_bin = 5L))
+params &lt;- list(
+  min_data_in_leaf = 2L
+  , num_threads = 2L
+)
+model &lt;- lgb.train(
+  params = params
+ , data = dtrain
+ , obj = "regression"
+ , nrounds = 5L
+ , verbose = -1L
+)
+lgb.configure_fast_predict(model)
+
+x_single &lt;- X[11L, , drop = FALSE]
+predict(model, x_single)
+
+# Will not use it if the prediction to be made
+# is different from what was configured
+predict(model, x_single, type = "leaf")
+
+</code></pre>
+
+
+</div>

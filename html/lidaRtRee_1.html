@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aba_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function for area-based metrics computation</h2>
+
+<h3>Description</h3>
+
+<p>Predefined function usable in <code>cloud_metrics</code> or
+<code>clouds_metrics</code>. Applies a minimum height threshold to the point
+cloud and computes the following metrics:
+</p>
+
+<ol>
+<li>
+<p> for all points: total number <code>ntot</code>, percentage of points above
+minimum height <code>p_hmin</code>, percentage of points in height bins
+<code>H.propZ1_Z2</code>,
+</p>
+</li>
+<li>
+<p> for first return points: percentage above minimum height
+<code>p_1st_hmin</code>,
+</p>
+</li>
+<li>
+<p> for all points above minimum height: height metrics returned by
+<code>stdmetrics_z</code> and intensity metrics returned by
+<code>stdmetrics_i</code>
+</p>
+</li>
+<li>
+<p> for first returns above minimum height: <code>mCH</code> and <code>sdCH</code> as
+proposed by Bouvier et al.
+</p>
+</li>
+</ol>
+<h3>Usage</h3>
+
+<pre><code class="language-R">aba_metrics(z, i, rn, c, hmin = 2, breaksH = NULL)
+
+.aba_metrics
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>z, i, rn, c</code></td>
+<td>
+<p>Height, Intensity, ReturnNumber and Classification</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hmin</code></td>
+<td>
+<p>numeric. height threshold for low points removal before metrics
+computation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breaksH</code></td>
+<td>
+<p>vector. breaks for height histogram proportion computation</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>An object of class <code>formula</code> of length 2.
+</p>
+
+
+<h3>References</h3>
+
+<p>Bouvier et al. 2015. Generalizing predictive models of forest
+inventory attributes using an area-based approach with airborne LiDAR data.
+Remote Sensing of Environment 156, pp. 322-334. <a href="https://doi.org/10.1016/j.rse.2014.10.004">doi:10.1016/j.rse.2014.10.004</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cloud_metrics</code>, <code>stdmetrics</code>,
+<code>clouds_metrics</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load LAS file
+LASfile &lt;- system.file("extdata", "las_chablais3.laz", package="lidaRtRee")
+las_chablais3 &lt;- lidR::readLAS(LASfile)
+
+# extract two point clouds from LAS object
+llas &lt;- lidR::clip_circle(las_chablais3,
+                          c(974350, 974390),
+                          c(6581680, 6581680), 10)
+# normalize point clouds
+llas &lt;- lapply(llas, function(x) {
+  lidR::normalize_height(x, lidR::tin())
+})
+# computes metrics 
+m &lt;- clouds_metrics(llas, ~ aba_metrics(
+ Z, Intensity, ReturnNumber, Classification, 2
+))
+head(m[,1:5])
+</code></pre>
+
+
+</div>

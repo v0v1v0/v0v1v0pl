@@ -1,0 +1,200 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>est_mc_cov</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Markov chain (MC) model with covariates</h2>
+
+<h3>Description</h3>
+
+<p>Main function for estimating the MC model with covariates. <br><br><b>The function is no longer maintained. Please look at</b> <code>lmestMc</code> <b>function</b>.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">est_mc_cov(S, X1 = NULL, X2 = NULL, yv = rep(1,nrow(S)), start = 0, tol = 10^-8,
+	   maxit = 1000, out_se = FALSE, output = FALSE, fort = TRUE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>matrix of available configurations of the response variable (n x TT) with categories starting from 0</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X1</code></td>
+<td>
+<p>matrix of covariates affecting the initial probabilities (n x nc1)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X2</code></td>
+<td>
+<p>array of covariates affecting the transition probabilities (n x TT-1 x nc2)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yv</code></td>
+<td>
+<p>vector of frequencies of the available configurations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>type of starting values (0 = deterministic, 1 = random)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance level for checking convergence of the algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations of the algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out_se</code></td>
+<td>
+<p>to compute the information matrix and standard errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>to return additional output (PI,Piv)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort</code></td>
+<td>
+<p>to use fortran routine when possible (FALSE for not use fortran)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lk </code></td>
+<td>
+<p>maximum log-likelihood</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Be </code></td>
+<td>
+<p>estimated array of the parameters affecting the logit for the initial probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ga </code></td>
+<td>
+<p>estimated array of the parameters affecting the logit for the transition probabilities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>np </code></td>
+<td>
+<p>number of free parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic </code></td>
+<td>
+<p>value of AIC for model selection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bic </code></td>
+<td>
+<p>value of BIC for model selection</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seBe</code></td>
+<td>
+<p>standard errors for Be</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seGa</code></td>
+<td>
+<p>standard errors for Ga</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Piv </code></td>
+<td>
+<p>estimate of initial probability matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PI </code></td>
+<td>
+<p>estimate of transition probability matrices</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>command used to call the function</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci, Silvia Pandolfi, University of Perugia, http://www.stat.unipg.it/bartolucci</p>
+
+
+<h3>References</h3>
+
+<p>Bartolucci, F., Farcomeni, A. and Pennoni, F. (2013) <em>Latent Markov Models for Longitudinal Data</em>, Chapman and Hall/CRC press.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+# Example based on criminal data
+
+# load criminal data
+data(data_criminal_sim)
+
+#We consider the response variable referring of crime of type 5
+
+out &lt;- long2wide(data_criminal_sim, "id", "time", "sex",
+"y5", aggr = T, full = 999)
+XX &lt;- out$XX-1
+YY &lt;- out$YY
+freq &lt;- out$freq
+TT &lt;- 6
+
+X1 &lt;- as.matrix(XX[,1])
+X2 &lt;- as.matrix(XX[,2:TT])
+# estimate the model
+res &lt;- est_mc_cov(S = YY, yv = freq, X1 = X1, X2 = X2, output = TRUE)
+summary(res)
+
+# Initial probability for female
+Piv0 &lt;- round(colMeans(res$Piv[X1 == 0,]), 4)
+
+# Initial probability for male
+Piv1 &lt;- round(colMeans(res$Piv[X1 == 1,]), 4)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

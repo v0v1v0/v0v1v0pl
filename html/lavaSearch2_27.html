@@ -1,0 +1,269 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calibrateType1</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Simulation Study Assessing Bias and Type 1 Error</h2>
+
+<h3>Description</h3>
+
+<p>Perform a simulation study over one or several sample size
+to assess the bias of the estimate
+and the type 1 error of the Wald test and robust Wald test
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calibrateType1(object, param, n.rep, ...)
+
+## S3 method for class 'lvm'
+calibrateType1(
+  object,
+  param,
+  n.rep,
+  n,
+  correction = TRUE,
+  warmup = NULL,
+  null = NULL,
+  F.test = FALSE,
+  cluster = NULL,
+  generative.object = NULL,
+  generative.coef = NULL,
+  true.coef = NULL,
+  n.true = 1e+06,
+  round.true = 2,
+  bootstrap = FALSE,
+  n.bootstrap = 1000,
+  checkType1 = FALSE,
+  checkType2 = FALSE,
+  dir.save = NULL,
+  label.file = NULL,
+  seed = NULL,
+  cpus = 1,
+  trace = 2,
+  ...
+)
+
+## S3 method for class 'lvmfit'
+calibrateType1(
+  object,
+  param,
+  n.rep,
+  correction = TRUE,
+  F.test = FALSE,
+  bootstrap = FALSE,
+  n.bootstrap = 1000,
+  seed = NULL,
+  trace = 2,
+  cpus = 1,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvm</code> object defining the model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>[character vector] names of the coefficient whose value will be tested.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.rep</code></td>
+<td>
+<p>[integer, &gt;0] number of simulations per sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>[internal] Only used by the generic method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>[integer vector, &gt;0] sample size(s) considered in the simulation study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>[logical] should the type 1 error after correction be computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warmup</code></td>
+<td>
+<p>[list of lvm] a list of <code>lvm</code> objects that will be sequentially fitted with for
+starting values the parameter of the previous model in the list (if any). The parameters of the final
+model of the list are used to initialize the fit of the model of interest (i.e. object).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>null</code></td>
+<td>
+<p>[numeric vector] vector of null hypotheses, one for each model coefficient.
+By default a vector of 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F.test</code></td>
+<td>
+<p>[logical] should a multivariate Wald test be perform testing simultaneously all the null hypotheses?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>[integer vector] the grouping variable relative to which the observations are iid.
+Will be passed to <code>lava::estimate</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generative.object</code></td>
+<td>
+<p>[lvm] object defining the statistical model generating the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>generative.coef</code></td>
+<td>
+<p>[name numeric vector] values for the parameters of the generative model.
+Can also be <code>NULL</code>: in such a case the coefficients are set to default values decided by lava (usually 0 or 1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>true.coef</code></td>
+<td>
+<p>[name numeric vector] expected values for the parameters of the fitted model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.true</code></td>
+<td>
+<p>[integer, &gt;0] sample size at which the estimated coefficients will be a reliable approximation of the true coefficients.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>round.true</code></td>
+<td>
+<p>[integer, &gt;0] the number of decimal places to be used for the true value of the coefficients. No rounding is done if <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+<p>[logical] should bootstrap resampling be performed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.bootstrap</code></td>
+<td>
+<p>[integer, &gt;0] the number of bootstrap sample to be used for each bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkType1</code></td>
+<td>
+<p>[logical] returns an error if the coefficients associated to the null hypotheses do not equal 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkType2</code></td>
+<td>
+<p>[logical] returns an error if the coefficients associated to the null hypotheses equal 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir.save</code></td>
+<td>
+<p>[character] path to the directory were the results should be exported.
+Can also be <code>NULL</code>: in such a case the results are not exported.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label.file</code></td>
+<td>
+<p>[character] element to include in the file name.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>[integer, &gt;0] value that will be set before adjustment for multiple comparisons to ensure reproducible results.
+Can also be <code>NULL</code>: in such a case no seed is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>[integer &gt;0] the number of processors to use.
+If greater than 1, the simulations are performed in parallel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>[integer] should the execution of the function be trace. Can be 0, 1 or 2.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>calibrateType1</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Brice Ozenne
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>link{autoplot.calibrateType1}</code> for a graphical display of the bias or of the type 1 error.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+#### simulate data ####
+m.Sim &lt;- lvm(c(Y1[mu1:sigma]~1*eta,
+               Y2[mu2:sigma]~1*eta,
+               Y3[mu3:sigma]~1*eta,
+               eta~beta1*Group+beta2*Gender))
+latent(m.Sim) &lt;- ~eta
+categorical(m.Sim, labels = c("M","F")) &lt;- ~Gender
+
+d &lt;- lava::sim(m.Sim, 1e2)
+
+#### calibrate type 1 error on the estimated model ####
+m &lt;- lvm(Y1~eta,
+         Y2~eta,
+         Y3~eta,
+         eta~Group+Gender)
+e &lt;- lava::estimate(m, data = d)
+res &lt;- calibrateType1(e, param = "eta~Group", n.rep = 100)
+res &lt;- calibrateType1(e, param = c("eta~Group","Y1~eta"), F.test = TRUE, n.rep = 100)
+res &lt;- calibrateType1(e, param = "eta~Group", n.rep = 100, cpus = 4)
+summary(res)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

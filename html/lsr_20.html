@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pairedSamplesTTest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Paired samples t-test</h2>
+
+<h3>Description</h3>
+
+<p>Convenience function that runs a paired samples t-test. This
+is a wrapper function intended to be used for pedagogical purposes only.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pairedSamplesTTest(
+  formula,
+  data = NULL,
+  id = NULL,
+  one.sided = FALSE,
+  conf.level = 0.95
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula specifying the outcome and the groups (required).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Optional data frame containing the variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the id variable (must be a character string).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>one.sided</code></td>
+<td>
+<p>One sided or two sided hypothesis test (default = <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conf.level</code></td>
+<td>
+<p>The confidence level for the confidence interval (default = .95).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>pairedSamplesTTest</code> function runs a paired-sample t-test,
+and prints the results in a format that is easier for novices to handle than
+the output of <code>t.test</code>. All the actual calculations are done by the
+<code>t.test</code> and <code>cohensD</code> functions.
+</p>
+<p>There are two different ways of specifying the formula, depending on whether
+the data are in wide form or long form. If the data are in wide form, then
+the input should be a one-sided formula of the form
+<code>~ variable1 + variable2</code>. The <code>id</code> variable is not required: the
+first element of <code>variable1</code> is paired with the first element of
+<code>variable2</code> and so on. Both <code>variable1</code> and <code>variable2</code> must
+be numeric.
+</p>
+<p>If the data are in long form, a two sided formula is required. The simplest
+way to specify the test is to input a formula of the form
+<code>outcome ~ group + (id)</code>. The term in parentheses is assumed to be
+the <code>id</code> variable, and must be a factor. The <code>group</code> variable
+must be a factor with two levels (if there are more than two levels but
+only two are used in the data, a warning is given). The <code>outcome</code>
+variable must be numeric.
+</p>
+<p>The reason for using the <code>outcome ~ group + (id)</code> format is that it is
+broadly consistent with the way repeated measures analyses are specified
+in the <code>lme4</code> package. However, this format may not appeal to some
+people for teaching purposes. Given this, the <code>pairedSamplesTTest</code>
+also supports a simpler formula of the form <code>outcome ~ group</code>, so
+long as the user specifies the <code>id</code> argument: this must be a
+character vector specifying the name of the id variable
+</p>
+<p>As with the <code>t.test</code> function, the default test is two sided,
+corresponding to a default value of <code>one.sided = FALSE</code>. To specify
+a one sided test, the <code>one.sided</code> argument must specify the name of
+the factor level (long form data) or variable (wide form data) that is
+hypothesised (under the alternative) to have the larger mean. For instance,
+if the outcome at "time2" is expected to be higher than at "time1", then
+the corresponding one sided test is specified by <code>one.sided = "time2"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class 'TTest'. When printed, the output is organised
+into five short sections. The first section lists the name of the test
+and the variables included. The second provides means and standard
+deviations. The third states explicitly what the null and alternative
+hypotheses were. The fourth contains the test results: t-statistic,
+degrees of freedom and p-value. The final section includes the relevant
+confidence interval and an estimate of the effect size (i.e., Cohen's d)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>t.test</code>,
+<code>oneSampleTTest</code>,
+<code>independentSamplesTTest</code>,
+<code>cohensD</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># long form data frame
+df &lt;- data.frame(
+  id = factor( x=c(1, 1, 2, 2, 3, 3, 4, 4),
+               labels=c("alice","bob","chris","diana") ),
+  time = factor( x=c(1,2,1,2,1,2,1,2),
+                 labels=c("time1","time2")),
+  wm = c(3, 4, 6, 6, 9, 12,7,9)
+)
+
+# wide form
+df2 &lt;- longToWide( df, wm ~ time )
+
+# basic test, run from long form or wide form data
+pairedSamplesTTest( formula= wm ~ time, data=df, id="id" )
+pairedSamplesTTest( formula= wm ~ time + (id), data=df )
+pairedSamplesTTest( formula= ~wm_time1 + wm_time2, data=df2 )
+
+# one sided test
+pairedSamplesTTest( formula= wm~time, data=df, id="id", one.sided="time2" )
+
+# missing data because of NA values
+df$wm[1] &lt;- NA
+pairedSamplesTTest( formula= wm~time, data=df, id="id" )
+
+# missing data because of missing cases from the long form data frame
+df &lt;- df[-1,]
+pairedSamplesTTest( formula= wm~time, data=df, id="id" )
+
+</code></pre>
+
+
+</div>

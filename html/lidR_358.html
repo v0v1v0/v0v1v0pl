@@ -1,0 +1,118 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>its_silva2016</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Individual Tree Segmentation Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This functions is made to be used in segment_trees. It implements an algorithm for tree
+segmentation based on Silva et al. (2016) (see reference). This is a simple method
+based on seed + voronoi tesselation (equivalent to nearest neighbour). This algorithm is implemented
+in the package <code>rLiDAR</code>. This version is not the version from <code>rLiDAR</code>. It is
+code written from the original article by the lidR authors and is considerably (between 250
+and 1000 times) faster.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">silva2016(chm, treetops, max_cr_factor = 0.6, exclusion = 0.3, ID = "treeID")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>chm</code></td>
+<td>
+<p>'RasterLayer', 'SpatRaster' or 'stars'. Canopy height model. Can be computed with rasterize_canopy or read from
+an external file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treetops</code></td>
+<td>
+<p>'SpatialPoints*' or 'sf/sfc_POINT' with 2D or 3D coordinates. Can be computed with
+locate_trees or read from an external file</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_cr_factor</code></td>
+<td>
+<p>numeric. Maximum value of a crown diameter given as a proportion of the
+tree height. Default is 0.6, meaning 60% of the tree height.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exclusion</code></td>
+<td>
+<p>numeric. For each tree, pixels with an elevation lower than <code>exclusion</code>
+multiplied by the tree height will be removed. Thus, this number belongs between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>character. If <code>treetops</code> contains an attribute with the ID for
+each tree, the name of this attribute. This way, original IDs will be preserved.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Because this algorithm works on a CHM only there is no actual need for a point cloud. Sometimes the
+user does not even have the point cloud that generated the CHM. <code>lidR</code> is a point cloud-oriented
+library, which is why this algorithm must be used in segment_trees to merge the result into the point
+cloud. However, the user can use this as a stand-alone function like this:
+</p>
+<pre>
+ chm &lt;- raster("chm.tif")
+ ttops &lt;- locate_trees(chm, lmf(3))
+ crowns &lt;- silva2016(chm, ttops)()
+</pre>
+
+
+<h3>References</h3>
+
+<p>Silva, C. A., Hudak, A. T., Vierling, L. A., Loudermilk, E. L., O’Brien, J. J., Hiers,
+J. K., Khosravipour, A. (2016). Imputation of Individual Longleaf Pine (Pinus palustris Mill.)
+Tree Attributes from Field and LiDAR Data. Canadian Journal of Remote Sensing, 42(5), 554–573.
+https://doi.org/10.1080/07038992.2016.1196582.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other individual tree segmentation algorithms: 
+<code>its_dalponte2016</code>,
+<code>its_li2012</code>,
+<code>its_watershed</code>
+</p>
+<p>Other raster based tree segmentation algorithms: 
+<code>its_dalponte2016</code>,
+<code>its_watershed</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+poi &lt;- "-drop_z_below 0 -inside 481280 3812940 481320 3812980"
+las &lt;- readLAS(LASfile, select = "xyz", filter = poi)
+col &lt;- pastel.colors(200)
+
+chm &lt;- rasterize_canopy(las, res = 0.5, p2r(0.3))
+ker &lt;- matrix(1,3,3)
+chm &lt;- terra::focal(chm, w = ker, fun = mean, na.rm = TRUE)
+
+ttops &lt;- locate_trees(chm, lmf(4, 2))
+las   &lt;- segment_trees(las, silva2016(chm, ttops))
+#plot(las, color = "treeID", colorPalette = col)
+</code></pre>
+
+
+</div>

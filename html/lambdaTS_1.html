@@ -1,0 +1,280 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lambdaTS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>lambdaTS: Variational Seq2Seq Lambda Transformer Model for Time Series Analysis</h2>
+
+<h3>Description</h3>
+
+<p>Time series analysis based on Lambda Transformer and Variational Seq2Seq, built on 'Torch'.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lambdaTS(
+  data,
+  target,
+  future,
+  past = future,
+  ci = 0.8,
+  deriv = 1,
+  yjt = TRUE,
+  shift = 0,
+  smoother = FALSE,
+  k_embed = 30,
+  r_proj = ceiling(k_embed/3) + 1,
+  n_heads = 1,
+  n_bases = 1,
+  activ = "linear",
+  loss_metric = "elbo",
+  optim = "adam",
+  epochs = 30,
+  lr = 0.01,
+  patience = epochs,
+  verbose = TRUE,
+  sample_n = 100,
+  seed = 42,
+  dev = "cpu",
+  starting_date = NULL,
+  dbreak = NULL,
+  days_off = NULL,
+  min_set = future,
+  holdout = 0.5,
+  batch_size = 30
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame with ts on columns and possibly a date column (not mandatory)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>String. Time series names to be jointly analyzed within the seq2seq model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>future</code></td>
+<td>
+<p>Positive integer. The future dimension with number of time-steps to be predicted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>past</code></td>
+<td>
+<p>Positive integer. The past dimension with number of time-steps in the past used for the prediction. Default: future</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ci</code></td>
+<td>
+<p>Confidence interval. Default: 0.8</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>Positive integer. Number of differentiation operations to perform on the original series. 0 = no change; 1: one diff; 2: two diff, and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yjt</code></td>
+<td>
+<p>Logical. Performing Yeo-Johnson Transformation on data is always advisable, especially when dealing with different ts at different scales. Default: TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shift</code></td>
+<td>
+<p>Vector of positive integers. Allow for target variables to shift ahead of time. Zero means no shift. Length must be equal to the number of targets. Default: 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smoother</code></td>
+<td>
+<p>Logical. Perform optimal smooting using standard loess. Default: FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k_embed</code></td>
+<td>
+<p>Positive integer. Number of Time2Vec embedding dimensions. Minimum value is 2. Default: 30</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_proj</code></td>
+<td>
+<p>Positive integer. Number of dimensions for the reduction space (to reduce quadratic complexity). Must be largely less than k_embed size. Default: ceiling(k_embed/3) + 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_heads</code></td>
+<td>
+<p>Positive integer. Number of heads for the attention mechanism. Computationally expensive, use with care. Default: 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_bases</code></td>
+<td>
+<p>Positive integer. Number of normal curves to build on each parameter. Computationally expensive, use with care. Default: 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>activ</code></td>
+<td>
+<p>String. The activation function for the linear transformation of the attention matrix into the future sequence. Implemented options are: "linear", "leaky_relu", "celu", "elu", "gelu", "selu", "softplus", "bent", "snake", "softmax", "softmin", "softsign", "sigmoid", "tanh", "tanhshrink", "swish", "hardtanh", "mish". Default: "linear".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss_metric</code></td>
+<td>
+<p>String. Loss function for the variational model. Two options: "elbo" or "crps". Default: "crps".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optim</code></td>
+<td>
+<p>String. Optimization methods available are: "adadelta", "adagrad", "rmsprop", "rprop", "sgd", "asgd", "adam". Default: "adam".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochs</code></td>
+<td>
+<p>Positive integer. Default: 30.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lr</code></td>
+<td>
+<p>Positive numeric. Learning rate. Default: 0.01.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patience</code></td>
+<td>
+<p>Positive integer. Waiting time (in epochs) before evaluating the overfit performance. Default: epochs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical. Default: TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_n</code></td>
+<td>
+<p>Positive integer. Number of samples from the variational model to evalute the mean forecast values. Computationally expensive, use with care. Default: 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Random seed. Default: 42.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dev</code></td>
+<td>
+<p>String. Torch implementation of computational platform: "cpu" or "cuda" (gpu). Default: "cpu".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starting_date</code></td>
+<td>
+<p>Date. Initial date to assign temporal values to the series. Default: NULL (progressive numbers).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbreak</code></td>
+<td>
+<p>String. Minimum time marker for x-axis, in liberal form: i.e., "3 months", "1 week", "20 days". Default: NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>days_off</code></td>
+<td>
+<p>String. Weekdays to exclude (i.e., c("saturday", "sunday")). Default: NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_set</code></td>
+<td>
+<p>Positive integer. Minimun number for validation set in case of automatic resize of past dimension. Default: future.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>holdout</code></td>
+<td>
+<p>Positive numeric. Percentage of time series for holdout validation. Default: 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_size</code></td>
+<td>
+<p>Positive integer. Default: 30.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>This function returns a list including:
+</p>
+
+<ul>
+<li>
+<p> prediction: a table with quantile predictions, mean and std for each ts
+</p>
+</li>
+<li>
+<p> history: plot of loss during the training process for the joint-transformed ts
+</p>
+</li>
+<li>
+<p> plot: graph with history and prediction for each ts
+</p>
+</li>
+<li>
+<p> learning_error: errors for the joint-ts in the transformed scale (rmse, mae, mdae, mpe, mape, smape, rrse, rae)
+</p>
+</li>
+<li>
+<p> feature_errors: errors for each ts in the original scale (rmse, mae, mdae, mpe, mape, smape, rrse, rae)
+</p>
+</li>
+<li>
+<p> pred_stats: for each predicted time feature, IQR to range, KL-divergence, risk ratio, upside probability, averaged across time-points and compared at the terminal points.
+</p>
+</li>
+<li>
+<p> time_log
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Giancarlo Vercellino <a href="mailto:giancarlo.vercellino@gmail.com">giancarlo.vercellino@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+lambdaTS(bitcoin_gold_oil, c("gold_close", "oil_Close"), 30, deriv = 1)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

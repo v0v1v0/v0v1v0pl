@@ -1,0 +1,199 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LSDsensitivity-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Sensitivity Analysis Tools for LSD Simulations
+</h2>
+
+<h3>Description</h3>
+
+<p>Tools for sensitivity analysis of LSD simulation models. Reads object-oriented data produced by LSD simulation models and performs screening and global sensitivity analysis (Sobol decomposition method, Saltelli et al. (2008) ISBN:9780470725177). A Kriging or polynomial meta-model (Kleijnen (2009) &lt;doi:10.1016/j.ejor.2007.10.013&gt;) is estimated using the simulation data to provide the data required by the Sobol decomposition. LSD (Laboratory for Simulation Development) is free software developed by Marco Valente and Marcelo C. Pereira (documentation and downloads available at &lt;https://www.labsimdev.org/&gt;).
+</p>
+
+
+<h3>Details</h3>
+
+<p>The LSDsensitivity R package provides tools to analyze simulated experiments from <strong>LSD</strong>. LSD offers native tools to sample the configuration (factor) space of a simulation model using different design of experiments (DoE). The produced experimental design data can be transparently imported to R by using the function <code>read.doe.lsd()</code>.
+</p>
+<p>The package offers two sensitivity analysis (SA) methods (<code>elementary.effects.lsd()</code> and <code>sobol.decomposition.lsd()</code>) pre-configured for application on LSD simulations: Morris Elementary Effects (EE) and Sobol Variance Decomposition (SVD).
+</p>
+<p>EE (<code>elementary.effects.lsd()</code>) employs a simple one-factor-at-a-time (OAT) SA and is usually applied as an initial screening method while selecting relevant factors to a SVD global SA. EE requires an appropriate set of sample points (the DoE) which can be generated in LSD when "EE Sampling" is selected in the "Data" menu. Please make sure to take note of the DoE parameters used for the sampling, as they will be required for the configuration of the R analysis script.
+</p>
+<p>Due to its high computational cost, <code>sobol.decomposition.lsd()</code> (SVD) is performed over a meta-model fitted from the experimental data produced by the LSD original model. The meta-model can be fitted using different sampling strategies offered by LSD, being "NOLH Sampling" (Near Orthogonal Latin Hypercube) usually the most efficient. Additionally to the set of samples used to fit the meta-model, it is recommended to also generate another set for the (external) validation of the meta-model ("MC Range Sampling" is the recommended option).
+</p>
+<p>The package offers two meta-modeling (MM) methods for using with SVD: Kriging and polynomial. Kriging (<code>kriging.model.lsd()</code>) is offered under five different variance kernels (Matern 5/2, Matern3/2, Gaussian, exponential and power exponential) and two trend models (constant or first order polynomial) to choose, including auto-selection to the best fitting alternative. Polynomial meta-models of first or second order, with or without interactions, and auto-selection are also offered (<code>polynomial.model.lsd()</code>). Kriging is the recommended option in most cases.
+</p>
+<p>Additionally, the package offers tools for the graphical representation of the meta-models response surfaces (2D and 3D) (<code>response.surface.lsd()</code>), to predict meta-model response in specific points in the factor space (<code>model.pred.lsd()</code>), to identify maximum and minimum responses from a set of factors (<code>model.limits.lsd()</code>), and to find optimal parameter settings using the meta-model (<code>model.optim.lsd()</code>).
+</p>
+<p>For a complete list of exported functions, use <code>library(help = "LSDsensitivity")</code>.
+</p>
+<p><strong>LSD 7.0+</strong> default installation provides <em>example scripts</em> for the usage of the LSDsensitivity package. LSD can be downloaded at <a href="https://github.com/marcov64/Lsd/">https://github.com/marcov64/Lsd/</a>. They can also be retrieved from the package itself using the commands:
+</p>
+<p><strong>EE example</strong>: <code>file.show(system.file("examples", "elementary-effects-SA.R", package = "LSDsensitivity"))</code>
+</p>
+<p><strong>Kriging SVD example</strong>: <code>file.show(system.file("examples", "kriging-sobol-SA.R", package = "LSDsensitivity"))</code>
+</p>
+<p><strong>Polynomial SVD example</strong>: <code>file.show(system.file("examples", "poly-sobol-SA.R", package = "LSDsensitivity"))</code>
+</p>
+<p><strong>Optimize MM example</strong>: <code>file.show(system.file("examples", "optimize-MM.R", package = "LSDsensitivity"))</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>Below are the minimum required steps to perform SA on a working LSD model using NOLH sampling, Kriging MM and SVD. The changes to perform an EE or to use a polynomial MM are also indicated, as options.
+</p>
+
+<ol>
+<li>
+<p> Define the parameters/initial values to be explored in the SA, their max/min ranges and the result variables over which the SA is to be done
+</p>
+</li>
+<li>
+<p> In <code>LMM</code> create a no-window (command prompt) version of your model by selecting menu <code>Model/Create 'No Window' Version</code>
+</p>
+</li>
+<li>
+<p> In <code>LSD Browser</code> make sure that all parameters/initial values are set with the correct calibration/default values (menu <code>Data/Initial Values</code>), the required result variables are being saved (menu <code>Model/Change Element...</code>, click on <code>Save/OK</code> or simply <code>Save</code> in the right mouse button context menu) and the number of MC runs for each SA sample (point) is defined (menu <code>Run/Simulation Settings</code>, <code>Number of simulation runs</code> field, typically set to 10)
+</p>
+</li>
+<li>
+<p> Save your setup in a baseline <code>.lsd</code> configuration file (menu <code>File/Save As...</code>), preferably in a new folder inside your current model configuration folder (you can create a new folder while in the <code>File/Save As...</code> dialog box, if you do not, LSD will create a new folder when saving SA configuration and results files, named as your baseline configuration)
+</p>
+</li>
+<li>
+<p> (Re)load your baseline <code>.lsd</code> configuration if it is not already loaded (menu <code>File/Load...</code>)
+</p>
+</li>
+<li>
+<p> Choose the ranges (max/min) for each parameter/initial value in your SA exploration space by using the <code>Sensitivity Analysis</code> button in the menu <code>Model/Change Element...</code> window or the same option in the context menu (mouse right-button click on the parameter/variable name in the <code>Variables &amp; Parameters</code> list box)
+</p>
+</li>
+<li>
+<p> After choosing all ranges, save your exploration space definition as a <code>.sa</code> sensitivity analysis file using the same base name and folder as your <code>.lsd</code> baseline configuration (menu <code>File/Save Sensitivity...</code>)
+</p>
+</li>
+<li>
+<p> With both the created <code>.lsd</code> and <code>.sa</code> files loaded (use menu <code>File/Load...</code> and <code>File/Load Sensitivity...</code> if required), select <code>Data/Sensitivity Analysis/NOLH Sampling...</code> and accept the defaults (several new <code>.lsd</code> files will be created in your just created baseline configuration folder (or one created by LSD, if you did not), those are the sample points for the meta-model estimation)
+</p>
+
+<ol>
+<li>
+<p> To perform Elementary Effects (EE) analysis instead of Sobol Variance Decomposition, in the step below select <code>Data/Sensitivity Analysis/EE Sampling...</code> instead (NOLH sampling cannot be used for EE)
+</p>
+</li>
+<li>
+<p> If a polynomial meta-model (MM) is being estimated, sometimes it is preferred to use <code>Data/Sensitivity Analysis/MC Range Sampling...</code> despite not required
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Immediately after the previous step, select menu <code>Data/Sensitivity Analysis/MC Range Sampling...</code> and accept the defaults (to create the external validation sample, more <code>.lsd</code> files will be created for the additional sampling points)
+</p>
+
+<ol><li>
+<p> EE analysis does not uses external validation, so skip this step for EE
+</p>
+</li></ol>
+</li>
+<li>
+<p> Immediately after the previous step select menu <code>Run/Create/Run Parallel Batch</code>, accept using the just created configuration, adjust the number of cores only if going to run in another machine (8 in a modern PC, 20 in a basic server), and decide if you want to start the (time-consuming) processing right now or later (in the current or in another machine)
+</p>
+</li>
+<li>
+<p> If running later in the same machine, you just have to execute the created script file (<code>.bat</code> or <code>.sh</code>) inside the new folder your baseline <code>.lsd</code> file was created (or the one LSD created if you did not)
+</p>
+</li>
+<li>
+<p> If running in another machine, you have to copy the entire model folder and sub-folders to the new machine (the remaining LSD folders are not required), recompile LSD for the new platform if required and execute the script file (<code>.bat</code> or <code>.sh</code>) in the same folder as your baseline <code>.lsd</code> file
+</p>
+</li>
+<li>
+<p> Open R (or RStudio) and check you have the following packages installed and download them if required (if you install LSDsensitivity from CRAN or another online repository, and not from a file, all other dependency packages should be automatically downloaded):
+</p>
+<p><code>LSDsensitivity, LSDinterface, abind, tseries, car, minqa, nloptr, Rcpp, RcppEigen, lme4, SparseM, MatrixModels, pbkrtest, quantreg, DiceKriging, kSamples, SuppDists, randtoolbox, rngWELL, rgenoud, sensitivity, xts, TTR, quadprog, zoo, quantmod</code>
+</p>
+</li>
+<li>
+<p> Open the <code>kriging-sobol-SA.R</code> example script (included in your LSD installation folder) in RStudio or your text editor
+</p>
+
+<ol>
+<li>
+<p> For EE analysis, open <code>elementary-effects-SA.R</code> instead
+</p>
+</li>
+<li>
+<p> For the use of a polynomial MM for the SVD analysis, open <code>poly-sobol-SA.R</code> instead
+</p>
+</li>
+</ol>
+</li>
+<li>
+<p> Adjust the vector <code>lsdVars</code> to contain all the LSD saved variables you want to use in your analysis (do not include saved but unused variables, for performance reasons), replacing the dummies <code>varX</code>
+</p>
+</li>
+<li>
+<p> Adjust the vector <code>logVars</code> to contain all LSD variables (included in <code>lsdVars</code>) that require to have the log value used in the analysis (let the vector empty, i.e. <code>c( )</code>, if no log variable is required)
+</p>
+</li>
+<li>
+<p> Include in the vector <code>newVars</code> any new variable (not included in <code>lsdVars</code>) that has to be added to the dataset (let the vector empty, i.e. <code>c( )</code>, if no new variable is required)
+</p>
+</li>
+<li>
+<p> Adapt the <code>eval.vars()</code> function to compute any new variable included in <code>newVars</code> (use the commented example as a reference)
+</p>
+</li>
+<li>
+<p> Adjust the arguments to the function <code>read.doe.lsd()</code> for the relative folder of LSD data files (default is same as R working directory), the data files base name (the file name chosen for the baseline configuration in step 4 without the <code>.lsd</code> suffix) and the name of the variable to be used as reference for the sensitivity analysis (you have to run the script multiple times if there is more than one)
+</p>
+</li>
+<li>
+<p> Save the modified script, renaming if necessary, and run it in R (or click the <code>Source</code> button in RStudio), redirecting output to a file first if required
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Marcelo C. Pereira [aut, cre] (&lt;https://orcid.org/0000-0002-8069-2734&gt;)
+</p>
+<p>Maintainer: Marcelo C. Pereira &lt;mcper@unicamp.br&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>LSD documentation is available at <a href="https://www.labsimdev.org/">https://www.labsimdev.org/</a>
+</p>
+<p>The latest LSD binaries and source code can be downloaded at <a href="https://github.com/marcov64/Lsd/">https://github.com/marcov64/Lsd/</a>.
+</p>
+<p>Cioppa T, Lucas T (2007) <em>Efficient nearly orthogonal and space-filling latin hypercubes</em>. Technometrics
+49(1):45-55
+</p>
+<p>Kleijnen JP (2009) <em>Kriging metamodeling in simulation: a review</em>. Eur J Oper Res 192(3):707-716
+</p>
+<p>Morris MD (1991) <em>Factorial sampling plans for preliminary computational experiments</em>.Technometrics
+33(1):161-174
+</p>
+<p>Rasmussen C, Williams C (2006) <em>Gaussian processes for machine learning</em>. MIT Press, Cambridge
+</p>
+<p>Roustant O, Ginsbourger D, Deville Y (2012) <em>Dicekriging, diceoptim: two R packages for the analysis of computer experiments by kriging-based metamodeling and optimization</em>. J Stat Softw 51(1):1-55
+</p>
+<p>Saltelli A, Ratto M, Andres T, Campolongo F, Cariboni J, Gatelli D, Saisana M, Tarantola S (2008) <em>Global sensitivity analysis: the primer</em>. Wiley, New York
+</p>
+<p>Sekhon JS, Walter RM (1998). <em>Genetic optimization using derivatives: theory and application to nonlinear models</em>. Political Analysis 7:187-210
+</p>
+
+
+<h3>See Also</h3>
+
+<p>LSDinterface-package
+</p>
+
+
+</div>

@@ -1,0 +1,939 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>f_projection3</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Project Function-based Matrix Projection Model</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>f_projection3()</code> develops and projects function-based matrix
+models. Unlike <code>projection3()</code>, which uses matrices provided as
+input via already created <code>lefkoMat</code> objects, function
+<code>f_projection3()</code> creates matrices at each time step from vital rate
+models and parameter inputs provided. Projections may be stochastic or not,
+and may be density dependent in either case. Also handles replication.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">f_projection3(
+  format,
+  prebreeding = TRUE,
+  start_age = NA_integer_,
+  last_age = NA_integer_,
+  fecage_min = NA_integer_,
+  fecage_max = NA_integer_,
+  cont = TRUE,
+  stochastic = FALSE,
+  standardize = FALSE,
+  growthonly = TRUE,
+  repvalue = FALSE,
+  integeronly = FALSE,
+  substoch = 0L,
+  ipm_cdf = TRUE,
+  nreps = 1L,
+  times = 10000L,
+  repmod = 1,
+  exp_tol = 700,
+  theta_tol = 1e+08,
+  random_inda = FALSE,
+  random_indb = FALSE,
+  random_indc = FALSE,
+  err_check = FALSE,
+  quiet = FALSE,
+  data = NULL,
+  stageframe = NULL,
+  supplement = NULL,
+  repmatrix = NULL,
+  overwrite = NULL,
+  modelsuite = NULL,
+  paramnames = NULL,
+  year = NULL,
+  patch = NULL,
+  sp_density = NULL,
+  ind_terms = NULL,
+  ann_terms = NULL,
+  dev_terms = NULL,
+  surv_model = NULL,
+  obs_model = NULL,
+  size_model = NULL,
+  sizeb_model = NULL,
+  sizec_model = NULL,
+  repst_model = NULL,
+  fec_model = NULL,
+  jsurv_model = NULL,
+  jobs_model = NULL,
+  jsize_model = NULL,
+  jsizeb_model = NULL,
+  jsizec_model = NULL,
+  jrepst_model = NULL,
+  jmatst_model = NULL,
+  start_vec = NULL,
+  start_frame = NULL,
+  tweights = NULL,
+  density = NULL,
+  density_vr = NULL,
+  sparse = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>An integer indicating the kind of function-based MPM to create.
+Possible choices include: <code>1</code>, Ehrlen-format historical MPM; <code>2</code>,
+deVries-format historical MPM; <code>3</code>, ahistorical MPM; <code>4</code>,
+age-by-stage MPM; and <code>5</code>, Leslie (age-based) MPM.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prebreeding</code></td>
+<td>
+<p>A logical value indicating whether the life history model
+is a pre-breeding model. Only used in Leslie and age-by-stage MPMs. Defaults
+to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_age</code></td>
+<td>
+<p>The age from which to start the matrix. Defaults to
+<code>NA</code>, in which case age <code>1</code> is used if <code>prebreeding = TRUE</code>,
+and age <code>0</code> is used if <code>prebreeding = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last_age</code></td>
+<td>
+<p>The final age to use in the matrix. Defaults to <code>NA</code>, in
+which case the highest age in the dataset is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fecage_min</code></td>
+<td>
+<p>The minimum age at which reproduction is possible. Defaults
+to <code>NA</code>, which is interpreted to mean that fecundity should be assessed
+starting in the minimum age observed in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fecage_max</code></td>
+<td>
+<p>The maximum age at which reproduction is possible. Defaults
+to <code>NA</code>, which is interpreted to mean that fecundity should be assessed
+until the final observed age.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cont</code></td>
+<td>
+<p>A logical value designating whether to allow continued survival
+of individuals past the final age noted in the stageframe, using the 
+demographic characteristics of the final age. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stochastic</code></td>
+<td>
+<p>A logical value denoting whether to conduct a stochastic
+projection or a deterministic / cyclical projection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardize</code></td>
+<td>
+<p>A logical value denoting whether to re-standardize the
+population size to <code>1.0</code> at each occasion. Used in density-independent
+simulations in which it is more important to know the general trend in
+population growth than the explicit growth rate. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growthonly</code></td>
+<td>
+<p>A logical value indicating whether to produce only the
+projected population size at each occasion (<code>TRUE</code>), or also to produce
+vectors showing the stage distribution at each occasion (<code>FALSE</code>).
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repvalue</code></td>
+<td>
+<p>A logical value indicating whether to calculate reproductive
+value vectors at each time step. Can only be set to <code>TRUE</code> if 
+<code>growthonly = FALSE</code>. Setting to <code>TRUE</code> may dramatically increase
+the duration of calculations. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integeronly</code></td>
+<td>
+<p>A logical value indicating whether to round the number of
+individuals projected in each stage at each occasion to the nearest
+integer. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>substoch</code></td>
+<td>
+<p>An integer value indicating whether to force survival-
+transition matrices to be substochastic in density dependent and density
+independent simulations. Defaults to <code>0</code>, which does not enforce
+substochasticity. Alternatively, <code>1</code> forces all survival-transition
+elements to range from 0.0 to 1.0, and forces fecundity to be non-negative;
+and <code>2</code> forces all column rows in the survival-transition matrices to
+total no more than 1.0, in addition to the actions outlined for option
+<code>1</code>. Both settings <code>1</code> and <code>2</code> change negative fecundity
+elements to <code>0.0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipm_cdf</code></td>
+<td>
+<p>A logical value indicating whether to estimate size
+transitions using the cumulative density function in cases with continuous
+distributions. Defaults to <code>TRUE</code>, with the midpoint method used if
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nreps</code></td>
+<td>
+<p>The number of replicate projections. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>Number of occasions to iterate per replicate. Defaults to
+<code>10000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repmod</code></td>
+<td>
+<p>A scalar multiplier of fecundity. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exp_tol</code></td>
+<td>
+<p>A numeric value used to indicate a maximum value to set
+exponents to in the core kernel to prevent numerical overflow. Defaults to
+<code>700</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta_tol</code></td>
+<td>
+<p>A numeric value used to indicate a maximum value to theta as
+used in the negative binomial probability density kernel. Defaults to
+<code>100000000</code>, but can be reset to other values during error checking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_inda</code></td>
+<td>
+<p>A logical value denoting whether to treat individual
+covariate <code>a</code> as a random, categorical variable. Otherwise is treated as
+a fixed, numeric variable. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_indb</code></td>
+<td>
+<p>A logical value denoting whether to treat individual
+covariate <code>b</code> as a random, categorical variable. Otherwise is treated as
+a fixed, numeric variable. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>random_indc</code></td>
+<td>
+<p>A logical value denoting whether to treat individual
+covariate <code>c</code> as a random, categorical variable. Otherwise is treated as
+a fixed, numeric variable. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err_check</code></td>
+<td>
+<p>A logical value indicating whether to append extra output
+for debugging purposes. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>A logical value indicating whether warning messages should be
+suppressed. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The historical vertical demographic data frame used to estimate
+vital rates (class <code>hfvdata</code>), which is required to initialize times and
+patches properly. Variable names should correspond to the naming conventions
+in <code>verticalize3()</code> and <code>historicalize3()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stageframe</code></td>
+<td>
+<p>An object of class <code>stageframe</code>. These objects are
+generated by function <code>sf_create()</code>, and include information on
+the size, observation status, propagule status, reproduction status,
+immaturity status, maturity status, stage group, size bin widths, and other
+key characteristics of each ahistorical stage. Required for all MPM formats
+except Leslie MPMs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>supplement</code></td>
+<td>
+<p>An optional data frame of class <code>lefkoSD</code> that
+provides supplemental data that should be incorporated into the MPM. Three
+kinds of data may be integrated this way: transitions to be estimated via the
+use of proxy transitions, transition overwrites from the literature or
+supplemental studies, and transition multipliers for survival and fecundity.
+This data frame should be produced using the <code>supplemental()</code>
+function. Can be used in place of or in addition to an overwrite table (see 
+<code>overwrite</code> below) and a reproduction matrix (see <code>repmatrix</code>
+below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repmatrix</code></td>
+<td>
+<p>An optional reproduction matrix. This matrix is composed
+mostly of <code>0</code>s, with non-zero entries acting as element identifiers and
+multipliers for fecundity (with <code>1</code> equaling full fecundity). If left
+blank, and no <code>supplement</code> is provided, then <code>flefko3()</code> will
+assume that all stages marked as reproductive produce offspring at 1x that of
+estimated fecundity, and that offspring production will yield the first stage
+noted as propagule or immature. May be the dimensions of either a historical
+or an ahistorical matrix. If the latter, then all stages will be used in
+occasion <em>t</em>-1 for each suggested ahistorical transition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>An optional data frame developed with the
+<code>overwrite()</code> function describing transitions to be overwritten
+either with given values or with other estimated transitions. Note that this
+function supplements overwrite data provided in <code>supplement</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelsuite</code></td>
+<td>
+<p>A <code>lefkoMod</code> object, at minimum with all required
+best-fit vital rate models and a <code>paramnames</code> data frame, and following
+the naming conventions used in this package. If given, then
+<code>surv_model</code>, <code>obs_model</code>, <code>size_model</code>, <code>sizeb_model</code>,
+<code>sizec_model</code>, <code>repst_model</code>, <code>fec_model</code>, <code>jsurv_model</code>,
+<code>jobs_model</code>, <code>jsize_model</code>, <code>jsizeb_model</code>,
+<code>jsizec_model</code>, <code>jrepst_model</code>, <code>jmatst_model</code>,
+<code>paramnames</code>, <code>yearcol</code>, and <code>patchcol</code> are not required.
+Although this is optional input, it is recommended, and without it separate
+vital rate model inputs (named <code>XX_model</code>) are required.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paramnames</code></td>
+<td>
+<p>A data frame with three columns, the first describing all
+terms used in linear modeling, the second (must be called <code>mainparams</code>)
+giving the general model terms that will be used in matrix creation, and the
+third showing the equivalent terms used in modeling (must be named
+<code>modelparams</code>). Function <code>create_pm()</code> can be used to
+create a skeleton <code>paramnames</code> object, which can then be edited. Only
+required if <code>modelsuite</code> is not supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>Either a single integer value corresponding to the year to
+project, or a vector of <code>times</code> elements with the year to use at each
+time step. Defaults to <code>NA</code>, in which the first year in the set of years
+in the dataset is projected. If a vector shorter than <code>times</code> is
+supplied, then this vector will be cycled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch</code></td>
+<td>
+<p>A value of <code>NA</code>, a single string value corresponding to the
+patch to project, or a vector of <code>times</code> elements with the patch to use
+at each time step. If a vector shorter than <code>times</code> is supplied, then
+this vector will be cycled. Note that this function currently does not
+handle multiple projections for different patches in the same run.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sp_density</code></td>
+<td>
+<p>Either a single numeric value of spatial density to use in
+vital rate models in all time steps, or a vector of <code>times</code> elements of
+such numeric values. Defaults to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ind_terms</code></td>
+<td>
+<p>An optional data frame with 3 columns and <code>times</code> rows
+giving the values of individual covariates a, b, and c, respectively, for
+each projected time. Unused terms must be set to <code>0</code> (use of <code>NA</code>
+will produce errors.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ann_terms</code></td>
+<td>
+<p>An optional data frame with 3 columns and <code>times</code> rows
+giving the values of annual covariates a, b, and c, respectively, for each
+projected time. Unused terms must be set to <code>0</code> (use of <code>NA</code> will
+produce errors.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dev_terms</code></td>
+<td>
+<p>An optional data frame with 14 columns and <code>times</code>
+rows showing the values of the deviation terms to be added to each linear
+vital rate. The column order should be: 1: survival, 2: observation, 3:
+primary size, 4: secondary size, 5: tertiary size, 6: reproduction, 7:
+fecundity, 8: juvenile survival, 9: juvenile observation, 10: juvenile
+primary size, 11: juvenile secondary size, 12: juvenile tertiary size, 13:
+juvenile reproduction, and 14: juvenile maturity transition.  Unused terms
+must be set to <code>0</code> (use of <code>NA</code> will produce errors.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surv_model</code></td>
+<td>
+<p>A linear model predicting survival probability. This can 
+be a model of class <code>glm</code> or <code>glmer</code>, and requires a predicted
+binomial variable under a logit link. Ignored if <code>modelsuite</code> is
+provided. This model must have been developed in a modeling exercise testing
+the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obs_model</code></td>
+<td>
+<p>A linear model predicting sprouting or observation
+probability. This can be a model of class <code>glm</code> or <code>glmer</code>, and
+requires a predicted binomial variable under a logit link. Ignored if
+<code>modelsuite</code> is provided. This model must have been developed in a
+modeling exercise testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size_model</code></td>
+<td>
+<p>A linear model predicting primary size. This can be a model
+of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>, <code>zeroinfl</code>,
+<code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if <code>modelsuite</code> is
+provided. This model must have been developed in a modeling exercise testing
+the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizeb_model</code></td>
+<td>
+<p>A linear model predicting secondary size. This can be a
+model of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>, <code>zeroinfl</code>,
+<code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if <code>modelsuite</code> is
+provided. This model must have been developed in a modeling exercise testing
+the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sizec_model</code></td>
+<td>
+<p>A linear model predicting tertiary size. This can be a
+model of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>, <code>zeroinfl</code>,
+<code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if <code>modelsuite</code> is
+provided. This model must have been developed in a modeling exercise testing
+the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repst_model</code></td>
+<td>
+<p>A linear model predicting reproduction probability. This 
+can be a model of class <code>glm</code> or <code>glmer</code>, and requires a predicted
+binomial variable under a logit link. Ignored if <code>modelsuite</code> is
+provided. This model must have been developed in a modeling exercise testing
+the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fec_model</code></td>
+<td>
+<p>A linear model predicting fecundity. This can be a model of
+class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>, <code>zeroinfl</code>, <code>vglm</code>,
+<code>lm</code>, or <code>lmer</code>. Ignored if <code>modelsuite</code> is provided. This
+model must have been developed in a modeling exercise testing the impacts of
+occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jsurv_model</code></td>
+<td>
+<p>A linear model predicting juvenile survival probability.
+This can be a model of class <code>glm</code> or <code>glmer</code>, and requires a
+predicted binomial variable under a logit link. Ignored if <code>modelsuite</code>
+is provided. This model must have been developed in a modeling exercise
+testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jobs_model</code></td>
+<td>
+<p>A linear model predicting juvenile sprouting or observation
+probability. This can be a model of class <code>glm</code> or <code>glmer</code>, and
+requires a predicted binomial variable under a logit link. Ignored if
+<code>modelsuite</code> is provided. This model must have been developed in a
+modeling exercise testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jsize_model</code></td>
+<td>
+<p>A linear model predicting juvenile primary size. This
+can be a model of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>,
+<code>zeroinfl</code>, <code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if
+<code>modelsuite</code> is provided. This model must have been developed in a
+modeling exercise testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jsizeb_model</code></td>
+<td>
+<p>A linear model predicting juvenile secondary size. This
+can be a model of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>,
+<code>zeroinfl</code>, <code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if
+<code>modelsuite</code> is provided. This model must have been developed in a
+modeling exercise testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jsizec_model</code></td>
+<td>
+<p>A linear model predicting juvenile tertiary size. This
+can be a model of class <code>glm</code>, <code>glmer</code>, <code>glmmTMB</code>,
+<code>zeroinfl</code>, <code>vglm</code>, <code>lm</code>, or <code>lmer</code>. Ignored if
+<code>modelsuite</code> is provided. This model must have been developed in a
+modeling exercise testing the impacts of occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jrepst_model</code></td>
+<td>
+<p>A linear model predicting reproduction probability of a 
+mature individual that was immature in time <em>t</em>. This can be a model
+of class <code>glm</code> or <code>glmer</code>, and requires a predicted binomial
+variable under a logit link. Ignored if <code>modelsuite</code> is provided. This
+model must have been developed in a modeling exercise testing the impacts of
+occasions <em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jmatst_model</code></td>
+<td>
+<p>A linear model predicting maturity probability of an 
+individual that was immature in time <em>t</em>. This can be a model of class
+<code>glm</code> or <code>glmer</code>, and requires a predicted binomial variable under
+a logit link. Ignored if <code>modelsuite</code> is provided. This model must have
+been developed in a modeling exercise testing the impacts of occasions
+<em>t</em> and <em>t</em>-1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_vec</code></td>
+<td>
+<p>An optional numeric vector denoting the starting stage
+distribution for the projection. Defaults to a single individual of each
+stage.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_frame</code></td>
+<td>
+<p>An optional data frame characterizing stages, age-stages,
+or stage-pairs that should be set to non-zero values in the starting vector,
+and what those values should be. Can only be used with <code>lefkoMat</code>
+objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tweights</code></td>
+<td>
+<p>An optional numeric vector or matrix denoting the
+probabilities of choosing each matrix in a stochastic projection. If a
+matrix is input, then a first-order Markovian environment is assumed, in
+which the probability of choosing a specific annual matrix depends on which
+annual matrix is currently chosen. If a vector is input, then the choice of
+annual matrix is assumed to be independent of the current matrix. Defaults
+to equal weighting among matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density</code></td>
+<td>
+<p>An optional data frame describing the matrix elements that
+will be subject to density dependence, and the exact kind of density
+dependence that they will be subject to. The data frame used should be an
+object of class <code>lefkoDens</code>, which is the output from function
+<code>density_input()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density_vr</code></td>
+<td>
+<p>An optional data frame describing density dependence
+relationships in vital rates, if such relationships are to be assumed. The
+data frame must be of class <code>lefkoDensVR</code>, which is the output from the
+function <code>density_vr()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>A text string indicating whether to use sparse matrix encoding
+(<code>"yes"</code>) or dense matrix encoding (<code>"no"</code>). Defaults to
+<code>"auto"</code>, in which case sparse matrix encoding is used with square
+matrices with at least 50 rows and no more than 50% of elements with values
+greater than zero. Can also be entered as a logical value if forced sparse
+(<code>TRUE</code>) or forced dense (<code>FALSE</code>) projection is desired.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of class <code>lefkoProj</code>, which always includes the first
+three elements of the following, and also includes the remaining elements
+below when a <code>lefkoMat</code> object is used as input:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>projection</code></td>
+<td>
+<p>A list of lists of matrices showing the total number of
+individuals per stage per occasion. The first list corresponds to each
+pop-patch followed by each population (this top-level list is a single
+element in <code>f_projection3()</code>). The inner list corresponds to
+replicates within each pop-patch or population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stage_dist</code></td>
+<td>
+<p>A list of lists of the actual stage distribution in each
+occasion in each replicate in each pop-patch or population. The list
+structure is the same as in <code>projection3()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep_value</code></td>
+<td>
+<p>A list of lists of the actual reproductive value in each
+occasion in each replicate in each pop-patch or population. The list
+structure is the same as in <code>projection3()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop_size</code></td>
+<td>
+<p>A list of matrices showing the total population size in each
+occasion per replicate (row within matrix) per pop-patch or population
+(list element). Only a single pop-patch or population is allowed in
+<code>f_projection3()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A data frame showing the order of populations and patches in
+item <code>projection</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ahstages</code></td>
+<td>
+<p>The original stageframe used in the study.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hstages</code></td>
+<td>
+<p>A data frame showing the order of historical stage pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agestages</code></td>
+<td>
+<p>A data frame showing the order of age-stage pairs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A short data frame indicating the population (always <code>1</code>),
+and patch (either the numeric index of the single chosen patch, or <code>1</code>
+in all other cases).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A short vector indicating the number of replicates and the
+number of occasions projected per replicate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density</code></td>
+<td>
+<p>The data frame input under the density option. Only provided
+if input by the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>density_vr</code></td>
+<td>
+<p>The data frame input under the density_vr option. Only
+provided if input by the user.</p>
+</td>
+</tr>
+</table>
+<h3>Notes</h3>
+
+<p>Population projection can be a very time-consuming activity, and it is most
+time-consuming when matrices need to be created at each time step. We have
+created this function to work as quickly as possible, but some options will
+slow analysis. First, the <code>err_check</code> option should always be set to
+<code>FALSE</code>, as the added created output will not only slow the analysis
+down but also potentially crash the memory if matrices are large enough.
+Second, the <code>repvalue</code> option should be set to <code>FALSE</code> unless
+reproductive values are genuinely needed, since this step requires
+concurrent backward projection and so in some cases may double total run
+time. Finally, if the only needed data is the total population size and
+age/stage structure at each time step, then setting <code>growthonly = TRUE</code>
+will yield the quickest possible run time.
+</p>
+<p>Projections with large matrices may take a long time to run. To assess the
+likely running time, try using a low number of iterations on a single
+replicate first. For example, set <code>nreps = 1</code> and <code>times = 10</code> for
+a trial run. If a full run is set and takes too long, press the STOP button
+in RStudio to cancel the projection run, or click <code>esc</code>.
+</p>
+<p>This function currently allows three forms of density dependence. The first
+modifies matrix elements on the basis of the input provided in option
+<code>density</code>, and so alters matrix elements once the matrix has already
+been created. The second form alters the vital rates estimated, and so
+estimates matrix elements using vital rate values already modified by
+density. This second form uses the input provided in option
+<code>density_vr</code>. These two forms of density dependence utilize the
+projected population size at some time to make these alterations. The third
+form of density dependence also alters the vital rates, but using spatial
+density supplied via option <code>sp_density</code> and only in vital rates in
+which spatial density is included as a fixed factor in the associated
+vital rate model.
+</p>
+<p>When running density dependent simulations involving user-set exponents,
+such as the beta term in the Ricker function and both the alpha and beta
+terms in the Usher function, values above or below the computer limits may
+cause unpredictable behavior. Noted odd behavior includes sudden shifts in
+population size to negative values. This function produces warnings when
+such values are used, and the values used for warnings may be reset with the
+<code>exp_tol</code> term. In addition, this function resets beta values for the
+Ricker function automatically to positive or negative <code>exp_tol</code>, giving
+a warning when doing so.
+</p>
+<p>Consistently positive population growth can quickly lead to population size
+numbers larger than can be handled computationally. In that circumstance, a
+continuously rising population size will suddenly become <code>NaN</code> for the
+remainder of the projection.
+</p>
+<p>This function does not reduce the dimensionality of matrices developed for
+projection.
+</p>
+<p>Speed can sometimes be increased by shifting from automatic sparse matrix
+determination to forced dense or sparse matrix projection. This will most
+likely occur when matrices have between 30 and 300 rows and columns.
+Defaults work best when matrices are very small and dense, or very large and
+sparse.
+</p>
+<p>Some issues may arise in first-order Markovian stochastic projections if
+the <code>year</code> argument is used. Use the matrix input in the
+<code>tweights</code> argument to eliminate any years from consideration that are
+not needed.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>start_input()</code>
+</p>
+<p><code>density_input()</code>
+</p>
+<p><code>density_vr()</code>
+</p>
+<p><code>projection3()</code>
+</p>
+<p><code>flefko3()</code>
+</p>
+<p><code>flefko2()</code>
+</p>
+<p><code>aflefko2()</code>
+</p>
+<p><code>fleslie()</code>
+</p>
+<p><code>append_lP()</code>
+</p>
+<p><code>summary.lefkoProj()</code>
+</p>
+<p><code>plot.lefkoProj()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(lathyrus)
+
+sizevector &lt;- c(0, 4.6, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8,
+  9)
+stagevector &lt;- c("Sd", "Sdl", "Dorm", "Sz1nr", "Sz2nr", "Sz3nr", "Sz4nr",
+  "Sz5nr", "Sz6nr", "Sz7nr", "Sz8nr", "Sz9nr", "Sz1r", "Sz2r", "Sz3r", 
+  "Sz4r", "Sz5r", "Sz6r", "Sz7r", "Sz8r", "Sz9r")
+repvector &lt;- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+obsvector &lt;- c(0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+matvector &lt;- c(0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+immvector &lt;- c(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+propvector &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+  0)
+indataset &lt;- c(0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+binvec &lt;- c(0, 4.6, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 
+  0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+
+lathframeln &lt;- sf_create(sizes = sizevector, stagenames = stagevector, 
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector, 
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec, 
+  propstatus = propvector)
+
+lathvertln &lt;- verticalize3(lathyrus, noyears = 4, firstyear = 1988,
+  patchidcol = "SUBPLOT", individcol = "GENET", blocksize = 9, 
+  juvcol = "Seedling1988", sizeacol = "lnVol88", repstracol = "Intactseed88",
+  fecacol = "Intactseed88", deadacol = "Dead1988", 
+  nonobsacol = "Dormant1988", stageassign = lathframeln, stagesize = "sizea",
+  censorcol = "Missing1988", censorkeep = NA, NAas0 = TRUE, censor = TRUE)
+
+lathvertln$feca2 &lt;- round(lathvertln$feca2)
+lathvertln$feca1 &lt;- round(lathvertln$feca1)
+lathvertln$feca3 &lt;- round(lathvertln$feca3)
+
+lathvertln_adults &lt;- subset(lathvertln, stage2index &gt; 2)
+surv_model &lt;- glm(alive3 ~ sizea2 + sizea1 + as.factor(patchid) +
+  as.factor(year2), data = lathvertln_adults, family = "binomial")
+
+obs_data &lt;- subset(lathvertln_adults, alive3 == 1)
+obs_model &lt;- glm(obsstatus3 ~ as.factor(patchid), data = obs_data,
+  family = "binomial")
+
+size_data &lt;- subset(obs_data, obsstatus3 == 1)
+siz_model &lt;- lm(sizea3 ~ sizea2 + sizea1 + repstatus1 + as.factor(patchid) +
+  as.factor(year2), data = size_data)
+
+reps_model &lt;- glm(repstatus3 ~ sizea2 + sizea1 + as.factor(patchid) +
+  as.factor(year2), data = size_data, family = "binomial")
+
+fec_data &lt;- subset(lathvertln_adults, repstatus2 == 1)
+fec_model &lt;- glm(feca2 ~ sizea2 + sizea1 + repstatus1 + as.factor(patchid),
+  data = fec_data, family = "poisson")
+
+lathvertln_juvs &lt;- subset(lathvertln, stage2index &lt; 3)
+jsurv_model &lt;- glm(alive3 ~ as.factor(patchid), data = lathvertln_juvs,
+  family = "binomial")
+
+jobs_data &lt;- subset(lathvertln_juvs, alive3 == 1)
+jobs_model &lt;- glm(obsstatus3 ~ 1, family = "binomial", data = jobs_data)
+
+jsize_data &lt;- subset(jobs_data, obsstatus3 == 1)
+jsiz_model &lt;- lm(sizea3 ~ as.factor(year2), data = jsize_data)
+
+jrepst_model &lt;- 0
+jmatst_model &lt;- 1
+
+mod_params &lt;- create_pm(name_terms = TRUE)
+mod_params$modelparams[3] &lt;- "patchid"
+mod_params$modelparams[4] &lt;- "alive3"
+mod_params$modelparams[5] &lt;- "obsstatus3"
+mod_params$modelparams[6] &lt;- "sizea3"
+mod_params$modelparams[9] &lt;- "repstatus3"
+mod_params$modelparams[11] &lt;- "feca2"
+mod_params$modelparams[12] &lt;- "sizea2"
+mod_params$modelparams[13] &lt;- "sizea1"
+mod_params$modelparams[18] &lt;- "repstatus2"
+mod_params$modelparams[19] &lt;- "repstatus1"
+
+lathsupp3 &lt;- supplemental(stage3 = c("Sd", "Sd", "Sdl", "Sdl", "mat", "Sd", "Sdl"), 
+  stage2 = c("Sd", "Sd", "Sd", "Sd", "Sdl", "rep", "rep"),
+  stage1 = c("Sd", "rep", "Sd", "rep", "Sd", "mat", "mat"),
+  eststage3 = c(NA, NA, NA, NA, "mat", NA, NA),
+  eststage2 = c(NA, NA, NA, NA, "Sdl", NA, NA),
+  eststage1 = c(NA, NA, NA, NA, "Sdl", NA, NA),
+  givenrate = c(0.345, 0.345, 0.054, 0.054, NA, NA, NA),
+  multiplier = c(NA, NA, NA, NA, NA, 0.345, 0.054),
+  type = c(1, 1, 1, 1, 1, 3, 3), type_t12 = c(1, 2, 1, 2, 1, 1, 1),
+  stageframe = lathframeln, historical = TRUE)
+
+# While we do not use MPMs to initialize f_projections3(), we do use MPMs to
+# initialize functions start_input() and density_input().
+lathmat3ln &lt;- flefko3(year = "all", patch = "all", data = lathvertln,
+  stageframe = lathframeln, supplement = lathsupp3, paramnames = mod_params,
+  surv_model = surv_model, obs_model = obs_model, size_model = siz_model,
+  repst_model = reps_model, fec_model = fec_model, jsurv_model = jsurv_model,
+  jobs_model = jobs_model, jsize_model = jsiz_model,
+  jrepst_model = jrepst_model, jmatst_model = jmatst_model, reduce = FALSE)
+
+e3m_sv &lt;- start_input(lathmat3ln, stage2 = "Sd", stage1 = "Sd", value = 1000)
+
+dyn7 &lt;- c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+  FALSE, FALSE, FALSE, FALSE, FALSE)
+dst7 &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+dal7 &lt;- c(0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+dbe7 &lt;- c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+e3d_vr &lt;- density_vr(density_yn = dyn7, style = dst7, alpha = dal7,
+  beta = dbe7)
+
+trial7_dvr_1 &lt;- f_projection3(format = 1, data = lathvertln, supplement = lathsupp3,
+  paramnames = mod_params, stageframe = lathframeln, nreps = 2,
+  surv_model = surv_model, obs_model = obs_model, size_model = siz_model,
+  repst_model = reps_model, fec_model = fec_model, jsurv_model = jsurv_model,
+  jobs_model = jobs_model, jsize_model = jsiz_model,
+  jrepst_model = jrepst_model, jmatst_model = jmatst_model,
+  times = 100, stochastic = TRUE, standardize = FALSE, growthonly = TRUE,
+  integeronly = FALSE, substoch = 0, sp_density = 0, start_frame = e3m_sv,
+  density_vr = e3d_vr)
+
+
+</code></pre>
+
+
+</div>

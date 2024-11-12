@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>oos_realized_forc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Out-of-sample linear model forecast conditioned on realized values</h2>
+
+<h3>Description</h3>
+
+<p><code>oos_realized_forc</code> takes a linear model call, an integer number of
+periods ahead to forecast, a period to end the initial coefficient estimation
+and begin forecasting, an optional vector of time data associated with
+the linear model, and an optional integer number of past periods to estimate
+the linear model over. The linear model is originally estimated with data up
+to <code>estimation_end</code> minus the number of periods specified in
+<code>estimation_window</code>. If <code>estimation_window</code> is left <code>NULL</code>
+then the linear model is estimated with all available data up to
+<code>estimation_end</code>. Coefficients are multiplied by realized values of the
+covariates <code>h_ahead</code> periods ahead to create an <code>h_ahead</code> period
+ahead forecast. This process is iteratively repeated for each period after
+<code>estimation_end</code> with coefficients updating in each period. Returns an
+out-of-sample forecast conditional on realized values that <strong>would not</strong>
+have been available at the forecast origin. Optionally returns the coefficients
+used to create each forecast. Tests the out-of-sample performance of a linear
+model had it been conditioned on perfect information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">oos_realized_forc(
+  lm_call,
+  h_ahead,
+  estimation_end,
+  time_vec = NULL,
+  estimation_window = NULL,
+  return_betas = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lm_call</code></td>
+<td>
+<p>Linear model call of the class lm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h_ahead</code></td>
+<td>
+<p>Integer representing the number of periods ahead that is being
+forecasted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation_end</code></td>
+<td>
+<p>Value of any class representing when to end the initial
+coefficient estimation period and begin forecasting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_vec</code></td>
+<td>
+<p>Vector of any class that is equal in length to the data
+in <code>lm_call</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation_window</code></td>
+<td>
+<p>Integer representing the number of past periods
+that the linear model should be estimated over in each period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>return_betas</code></td>
+<td>
+<p>Boolean, selects whether the coefficients used in each
+period to create the forecast are returned. If TRUE, a data frame of
+betas is returned to the Global Environment.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>Forecast</code> object that contains the out-of-sample
+forecast.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For a detailed example see the help vignette:
+<code>vignette("lmForc", package = "lmForc")</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">date &lt;- as.Date(c("2010-03-31", "2010-06-30", "2010-09-30", "2010-12-31",
+                  "2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31", 
+                  "2012-03-31", "2012-06-30"))
+y  &lt;- c(1.09, 1.71, 1.09, 2.46, 1.78, 1.35, 2.89, 2.11, 2.97, 0.99)
+x1 &lt;- c(4.22, 3.86, 4.27, 5.60, 5.11, 4.31, 4.92, 5.80, 6.30, 4.17)
+x2  &lt;- c(10.03, 10.49, 10.85, 10.47, 9.09, 10.91, 8.68, 9.91, 7.87, 6.63)
+data &lt;- data.frame(date, y, x1, x2)
+
+oos_realized_forc(
+  lm_call = lm(y ~ x1 + x2, data),
+  h_ahead = 2L,
+  estimation_end = as.Date("2011-03-31"),
+  time_vec = data$date,
+  estimation_window = NULL,
+  return_betas = FALSE
+)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,332 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bootstrap.merMod</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bootstrap Nested Linear Mixed-Effects Models</h2>
+
+<h3>Description</h3>
+
+<p>Perform various bootstrap process for nested linear mixed effects (LMEs) models including:
+parametric, residual, cases, wild, and REB bootstraps.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'merMod'
+bootstrap(
+  model,
+  .f = extract_parameters,
+  type,
+  B,
+  resample,
+  reb_type,
+  hccme,
+  aux.dist,
+  orig_data = NULL,
+  .refit = TRUE,
+  rbootnoise = 0
+)
+
+## S3 method for class 'lme'
+bootstrap(
+  model,
+  .f = extract_parameters,
+  type,
+  B,
+  resample,
+  reb_type,
+  hccme,
+  aux.dist,
+  orig_data = NULL,
+  .refit = TRUE,
+  rbootnoise = 0
+)
+
+bootstrap(
+  model,
+  .f,
+  type,
+  B,
+  resample = NULL,
+  reb_type = NULL,
+  hccme = NULL,
+  aux.dist = NULL,
+  orig_data = NULL,
+  .refit = TRUE,
+  rbootnoise = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model object you wish to bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.f</code></td>
+<td>
+<p>A function returning the statistic(s) of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A character string indicating the type of bootstrap that is being
+requested. Possible values are <code>"parametric"</code>, <code>"residual"</code>, 
+<code>"case"</code>, <code>"wild"</code>, or <code>"reb"</code> 
+(random effect block bootstrap).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The number of bootstrap resamples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>resample</code></td>
+<td>
+<p>A logical vector specifying whether each level of the model 
+should be resampled in the cases bootstrap. The levels should be specified 
+from the highest level (largest cluster) of the hierarchy to the lowest 
+(observation-level); for example for students within a school, specify the 
+school level first, then the student level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reb_type</code></td>
+<td>
+<p>Specification of what random effect block bootstrap version to
+implement. Possible values are <code>0</code>, <code>1</code> or <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hccme</code></td>
+<td>
+<p>either <code>"hc2"</code> or <code>"hc3"</code>, indicating which 
+heteroscedasticity consistent covariance matrix estimator to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aux.dist</code></td>
+<td>
+<p>one of <code>"mammen"</code>, <code>"rademacher"</code>, <code>"norm"</code>, 
+<code>"webb"</code>, or <code>"gamma"</code> indicating which auxiliary 
+distribution to draw the errors from</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>orig_data</code></td>
+<td>
+<p>the original data frame. This should be specified if variables
+are transformed within the formula for <code>glmer()</code> or <code>lmer()</code>
+and the case bootstrap is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.refit</code></td>
+<td>
+<p>a logical value indicating whether the model should be refit to 
+the bootstrap resample, or if the simulated bootstrap resample should be 
+returned. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rbootnoise</code></td>
+<td>
+<p>a numeric value between 0-1 indicating the strength of
+technical 2-level noise added in relation to the 1-level variation (in
+standard deviations) during residual bootstrapping. Minuscule noise, such
+as <code>rbootnoise = 0.0001</code>, can be used to avoid errors with singular
+matrices when exactly the same values are replicated during the
+bootstrapping, or when the model being processed fails to return any
+2-level variation. Currently applicable only with <code>lme4::lmer</code>
+models. The feature has been tested with 2-level random-intercept models
+with predictors. Defaults to <code>0</code> (i.e. the feature is not used by
+default).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All of the below methods have been implemented for nested linear mixed-effects
+models fit by <code>lmer</code> (i.e., an <code>lmerMod</code> object) and <code>lme</code> 
+(i.e., an <code>lmerMod</code> object). Details of the bootstrap procedures can be found
+in the help file for that specific function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned value is an object of class "lmeresamp". This is a list
+with the following elements:
+</p>
+
+<ul>
+<li> <p><code>observed</code>: the estimated values for the model parameters
+</p>
+</li>
+<li> <p><code>model</code>: the fitted model object
+</p>
+</li>
+<li> <p><code>.f</code>: the function call
+</p>
+</li>
+<li> <p><code>replicates</code>: a <code class="reqn">B \times p</code> data frame of bootstrap values for each of the p model parameters,
+</p>
+</li>
+<li> <p><code>stats</code>: a tibble containing the <code>observed</code>, <code>rep.mean</code> (bootstrap mean), 
+<code>se</code> (bootstrap standard error), and <code>bias</code> values for each model parameter,
+</p>
+</li>
+<li> <p><code>B</code>: the number of bootstrap resamples performed
+</p>
+</li>
+<li> <p><code>data</code>: the data with which the model was fit
+</p>
+</li>
+<li> <p><code>seed</code>: a vector of randomly generated seeds that are used by the bootstrap
+</p>
+</li>
+<li> <p><code>type</code>: the type of bootstrap executed
+</p>
+</li>
+<li> <p><code>call</code>: the call to <code>bootstrap()</code> that the user
+</p>
+</li>
+<li> <p><code>message</code>: a list of length <code>B</code> giving any messages generated during refitting. An entry will be <code>NULL</code> if no message was generated.
+</p>
+</li>
+<li> <p><code>warning</code>: a list of length <code>B</code> giving any warnings generated during refitting. An entry will be <code>NULL</code> if no message was generated.
+</p>
+</li>
+<li> <p><code>error</code>: a list of length <code>B</code> giving any errors generated during refitting. An entry will be <code>NULL</code> if no message was generated.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Carpenter, J. R., Goldstein, H. and Rasbash, J. (2003) A novel bootstrap 
+procedure for assessing the relationship between class size and achievement. 
+<em>Journal of the Royal Statistical Society. Series C (Applied Statistics)</em>, 
+<b>52</b>, 431–443.
+</p>
+<p>Chambers, R. and Chandra, H. (2013) A random effect block bootstrap for 
+clustered data. <em>Journal of Computational and Graphical Statistics</em>, 
+<b>22</b>, 452–470.
+</p>
+<p>Morris, J. S. (2002) The BLUPs are not "best" when it comes to bootstrapping. 
+<em>Statistics and Probability Letters</em>, <b>56</b>, 425–430.
+</p>
+<p>Van der Leeden, R., Meijer, E. and Busing F. M. (2008) Resampling multilevel 
+models. In J. de Leeuw and E. Meijer, editors, <em>Handbook of 
+Multilevel Analysis</em>, pages 401–433. New York: Springer.
+</p>
+<p>Bates, D., Maechler, M., Bolker, W., Walker, S. (2015).
+Fitting Linear Mixed-Effects Models Using lme4. <em>Journal of
+Statistical Software</em>, <b>67</b>, 1–48. doi:10.18637/jss.v067.i01.
+</p>
+<p>Modugno, L., &amp; Giannerini, S. (2015). The Wild Bootstrap for 
+Multilevel Models. <em>Communications in Statistics – Theory and Methods</em>, 
+<b>44</b>(22), 4812–4825.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li> <p><code>parametric_bootstrap</code>, <code>resid_bootstrap</code>,
+<code>case_bootstrap</code>, <code>reb_bootstrap</code>, 
+<code>wild_bootstrap</code> for more details on a specific bootstrap.
+</p>
+</li>
+<li> <p><code>bootMer</code> in the <span class="pkg">lme4</span> package for an 
+implementation of (semi-)parametric bootstrap for mixed models.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(lme4) 
+vcmodA &lt;- lmer(mathAge11 ~ mathAge8 + gender + class + (1 | school), data = jsp728)
+
+## you can write your own function to return stats, or use something like 'fixef'
+mySumm &lt;- function(.) { 
+  s &lt;- getME(., "sigma")
+    c(beta = getME(., "beta"), sigma = s, sig01 = unname(s * getME(., "theta"))) 
+}
+
+## running a parametric bootstrap 
+set.seed(1234)
+boo1 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "parametric", B = 20)
+
+## to print results in a formatted way
+print(boo1)
+
+## Not run: 
+## running a cases bootstrap - only resampling the schools
+boo2 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "case", B = 100, resample = c(TRUE, FALSE))
+
+## running a cases bootstrap - resampling the schools and students within the school
+boo3 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "case", B = 100, resample = c(TRUE, TRUE))
+
+## running a residual bootstrap
+boo4 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "residual", B = 100)
+
+## running an REB0 bootstrap
+boo5 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "reb", B = 100, reb_typ = 0)
+
+## Running the Wild bootstrap
+boo6 &lt;- bootstrap(model = vcmodA, .f = mySumm, type = "wild", B= 100, 
+                  hccme = "hc2", aux.dist = "mammen")
+
+## Running a bootstrap in parallel via foreach
+library(foreach)
+library(doParallel)
+set.seed(1234)
+numCores &lt;- 2
+
+cl &lt;- makeCluster(numCores, type = "PSOCK") # make a socket cluster
+doParallel::registerDoParallel(cl)          # how the CPU knows to run in parallel
+
+b_parallel &lt;- foreach(B = rep(250, 2), 
+                       .combine = combine_lmeresamp,
+                       .packages = c("lmeresampler", "lme4")) %dopar% {
+                         bootstrap(vcmodA, .f = fixef, type = "parametric", B = B)
+                       }
+stopCluster(cl)
+
+## Running a bootstrap in parallel via parLapply
+cl &lt;- makeCluster(numCores, type = "PSOCK") # make a socket cluster
+doParallel::registerDoParallel(cl)          # how the CPU knows to run in parallel
+
+boot_mod &lt;- function(...) {
+  library(lme4)
+  library(lmeresampler)
+  vcmodA &lt;- lmer(mathAge11 ~ mathAge8 + gender + class + (1 | school), data = jsp728)
+  bootstrap(vcmodA, .f = fixef, type = "parametric", B = 250)
+  
+}
+
+result &lt;- parLapply(cl, seq_len(2), boot_mod)
+b_parallel2 &lt;- do.call("combine_lmeresamp", result)
+
+stopCluster(cl)
+
+## End(Not run)
+
+
+
+</code></pre>
+
+
+</div>

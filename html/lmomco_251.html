@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>parsmd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Singh–Maddala Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Singh–Maddala (Burr Type XII) distribution given the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The L-moments in terms of the parameters are complicated and solved numerically. Extensive study of the computational limits of the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> implementation are incorporated within the source code of the function. The file <code>lmomco/inst/doc/domain_of_smd.R</code> contains the algorithmic sweep used to compute the L-skew and L-kurtosis attainable domain of the distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">parsmd(lmom, checklmom=TRUE, checkbounds=TRUE, snap.tau4=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or <code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> inequality, <br><code>are.lmom.valid</code>). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checkbounds</code></td>
+<td>
+<p>Should the lower bounds of <code class="reqn">\tau_4</code> be verified and if sample <code class="reqn">\hat\tau_3</code> and <code class="reqn">\hat\tau_4</code> are outside of these bounds, then <code>NA</code> are returned for the solutions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>snap.tau4</code></td>
+<td>
+<p>A logical to trigger the application of the empirical limits of the distribution in terms of <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> wherein parameter estimation appears numerically possible and such parameters return the given values of these L-moment ratios. The lower and upper limits of <code class="reqn">\tau_4</code> are defined by separate polynomials as functions of <code class="reqn">\tau_3</code>. If the logical is true, then <code class="reqn">\tau_4</code> in excess of the upper bounds are assigned to the upper bounds and <code class="reqn">\tau_4</code> in deficit of the lower bounds are assigned to the lower bounds. Messages within the returned parameter object are provided if the snapping occurs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>smd</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last_para</code></td>
+<td>
+<p>The last or final iteration of the parameters that are the same as <code>para</code> if <code>ifail</code> is zero. This provides a way to preserve where the parameter left off or gave up.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “parsmd”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>The number of iteration attempts looping on the <code>optim()</code> call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rt</code></td>
+<td>
+<p>The output of the <code>optim()</code> call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p>A message from <code>parsmd</code>, which generally involves <code>checkbounds=TRUE</code> and <br><code>snap.tau4=TRUE</code> on the resetting or snapping of the <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> to the computational bounds for the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A interger flag to status of the operations: -1 means that the L-moments are invalid (if they are checked), 0 means that the parameter estimation appears successful, and 1 means that the parameter estimation appears to have failed.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Shahzad, M.N., and Zahid, A., 2013, Parameter estimation of Singh Maddala distribution by moments: International Journal of Advanced Statistics and Probability, v. 1, no. 3, pp. 121–131, <a href="https://doi.org/10.14419/ijasp.v1i3.1206">doi:10.14419/ijasp.v1i3.1206</a>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomsmd</code>, <code>cdfsmd</code>, <code>pdfsmd</code>, <code>quasmd</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">lmr &lt;- lmoms(rnorm(20))
+parsmd(lmr, snap.tau4=TRUE)
+</code></pre>
+
+
+</div>

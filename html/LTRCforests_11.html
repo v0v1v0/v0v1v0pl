@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sbrier_ltrc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Model fit evaluation for LTRC forests.</h2>
+
+<h3>Description</h3>
+
+<p>Compute the (integrated) Brier score to evaluate the model fit for
+(left-truncated) right-censored survival data with time-varying covariates,
+as well as left-truncated right-censored data with time-invariant covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sbrier_ltrc(obj, id = NULL, pred, type = c("IBS", "BS"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>an object of class <code>Surv</code>, formed on
+left-truncated right-censored observations (which are pseudo-subject
+observations in the time-varying case).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>an optional vector as subject identifiers for <code>obj</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>a list. This should contain 1) either a matrix
+or a list of survival probabilies named <code>survival.probs</code>; 2) a sequence
+of time points <code>survival.times</code>; 3) a vector of upper time limits
+<code>survival.tau</code>.
+See the values returned by <code>predictProb</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>a character string denoting the type of scores returned. If <code>type = "IBS"</code>,
+the integrated Brier score up to the last time point in <code>pred$surv.times</code> that is
+not larger than the minimum value of <code>pred$surv.tau</code> is returned.
+If <code>type = "BS"</code>, the Brier score at every time point in <code>pred$surv.times</code> up to
+the minimum value of <code>pred$surv.tau</code> is returned. <code>type = "IBS"</code> is set by default.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>type = "IBS"</code>, this returns the integrated Brier score.
+</p>
+<p>If <code>type = "BS"</code>, this returns <code>BScore</code>, the Brier scores
+and <code>Time</code>, the time points at which the scores are computed.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Example with dataset pbcsample
+library(survival)
+Formula = Surv(Start, Stop, Event) ~ age + alk.phos + ast + chol + edema
+## Fit an LTRC conditional inference forest on time-varying data
+LTRCCIFobj = ltrccif(formula = Formula, data = pbcsample, id = ID, mtry = 3, ntree = 50L)
+
+# Time points
+tpnt = seq(0, 6000, by = 100)
+# Set different upper time limits for each of the subjects
+tau = seq(4001, 6200, length.out = length(unique(pbcsample$ID)))
+## Obstain estimation at time points tpnt
+Predobj = predictProb(object = LTRCCIFobj, time.eval = tpnt, time.tau = tau)
+
+## Compute the integrated Brier score:
+pbcobj = Surv(pbcsample$Start, pbcsample$Stop, pbcsample$Event)
+IBS = sbrier_ltrc(obj = pbcobj, id = pbcsample$ID, pred = Predobj, type = "IBS")
+
+## Compute the Brier score at each value of tpnt
+BS = sbrier_ltrc(obj = pbcobj, id = pbcsample$ID, pred = Predobj, type = "BS")
+## Plot the Brier scores
+plot(BS$Time, BS$BScore, pch = 20, xlab = "Time", ylab = "Brier score", col = 2)
+## As one can see, the Brier scores are returned at all tpnt up to 4000,
+## this is because the algorithm set the last evaluation time point
+## to be 4000 based on the value of time.eval and time.tau
+## (max(tpnt[tpnt &lt;= min(tau)]) == 4000).
+</code></pre>
+
+
+</div>

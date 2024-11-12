@@ -1,0 +1,146 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plot.predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot of predicted trajectories and link functions</h2>
+
+<h3>Description</h3>
+
+<p>This function provides the class-specific predicted trajectories stemmed
+from a <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code> or <code>Jointlcmm</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'predictL'
+plot(x, legend.loc = "topright", legend, add = FALSE, shades = FALSE, ...)
+
+## S3 method for class 'predictY'
+plot(
+  x,
+  outcome = 1,
+  legend.loc = "topright",
+  legend,
+  add = FALSE,
+  shades = FALSE,
+  ...
+)
+
+## S3 method for class 'predictYcond'
+plot(x, legend.loc = "topleft", legend, add = FALSE, shades = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object inheriting from classes <code>predictL</code>, <code>predictY</code>
+or <code>predictlink</code> representing respectively the predicted marginal mean
+trajectory of the latent process, the predicted marginal mean trajectory of
+the longitudinal outcome, or the predicted link function of a fitted latent
+class model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend.loc</code></td>
+<td>
+<p>keyword for the position of the legend from the list
+<code>"bottomright"</code>, <code>"bottom"</code>, <code>"bottomleft"</code>, <code>"left"</code>,
+<code>"topleft"</code>,<code>"top"</code>, <code>"topright"</code>, <code>"right"</code> and
+<code>"center"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend</code></td>
+<td>
+<p>character or expression to appear in the legend. If no legend
+should be added, <code>"legend"</code> should be NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p>logical indicating if the curves should be added to an existing
+plot. Default to FALSE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shades</code></td>
+<td>
+<p>logical indicating if confidence intervals should be
+represented with shades. Default to FALSE, the confidence intervals are
+represented with dotted lines.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other parameters to be passed through to plotting functions or
+to legend</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>for <code>predictY</code> and multivariate model fitted with
+<code>multlcmm</code> only, the outcome to consider.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima, Benoit Liquet and Viviane Philipps
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>hlme</code>, <code>lcmm</code>, <code>Jointlcmm</code>,
+<code>multlcmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+################# Prediction from linear latent class model
+## fitted model
+m&lt;-lcmm(Y~Time*X1,mixture=~Time,random=~Time,classmb=~X2+X3,
+subject='ID',ng=2,data=data_hlme,B=c(0.41,0.55,-0.18,-0.41,
+-14.26,-0.34,1.33,13.51,24.65,2.98,1.18,26.26,0.97))
+## newdata for predictions plot
+newdata&lt;-data.frame(Time=seq(0,5,length=100),
+X1=rep(0,100),X2=rep(0,100),X3=rep(0,100))
+plot(predictL(m,newdata,var.time="Time"),legend.loc="right",bty="l")
+## data from the first subject for predictions plot
+firstdata&lt;-data_hlme[1:3,]
+plot(predictL(m,firstdata,var.time="Time"),legend.loc="right",bty="l")
+
+ ## Not run: 
+################# Prediction from a joint latent class model
+## fitted model - see help of Jointlcmm function for details on the model
+m3 &lt;- Jointlcmm(fixed= Ydep1~Time*X1,mixture=~Time,random=~Time,
+classmb=~X3,subject='ID',survival = Surv(Tevent,Event)~X1+mixture(X2),
+hazard="3-quant-splines",hazardtype="PH",ng=3,data=data_lcmm,
+B=c(0.7576, 0.4095, -0.8232, -0.2737, 0, 0, 0, 0.2838, -0.6338, 
+2.6324, 5.3963, -0.0273, 1.398, 0.8168, -15.041, 10.164, 10.2394, 
+11.5109, -2.6219, -0.4553, -0.6055, 1.473, -0.0383, 0.8512, 0.0389, 
+0.2624, 1.4982))
+# class-specific predicted trajectories 
+#(with characteristics of subject ID=193)
+data &lt;- data_lcmm[data_lcmm$ID==193,]
+plot(predictY(m3,newdata=data,var.time="Time"),bty="l")
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

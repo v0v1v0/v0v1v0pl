@@ -1,0 +1,171 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lnt_similarity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Check for highly similar articles.</h2>
+
+<h3>Description</h3>
+
+<p>Check for highly similar articles by comparing all articles published on the
+same date. This function implements two measures to test if articles are
+almost identical. The function textstat_simil, which
+compares the word similarity of two given texts; and a relative modification
+of the generalized Levenshtein (edit) distance implementation in
+stringdist. The relative distance is calculated by
+dividing the string distance by the number of characters in the longer
+article (resulting in a minimum of 0 if articles are exactly alike and 1 if
+strings are completely different). Using both methods cancels out the
+disadvantages of each method: the similarity measure is fast but does not
+take the word order into account. Two widely different texts could,
+therefore, be identified as the same, if they employ the exact same
+vocabulary for some reason. The generalized Levenshtein distance is more
+accurate but is very computationally demanding, especially if more than two
+texts are compared at once.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lnt_similarity(
+  texts,
+  dates,
+  LNToutput,
+  IDs = NULL,
+  threshold = 0.99,
+  rel_dist = TRUE,
+  length_diff = Inf,
+  nthread = getOption("sd_num_thread"),
+  max_length = Inf,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>texts</code></td>
+<td>
+<p>Provide texts to check for similarity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dates</code></td>
+<td>
+<p>Provide corresponding dates, same length as <code>text</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LNToutput</code></td>
+<td>
+<p>Alternatively to providing texts and dates individually, you
+can provide an LNToutput object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IDs</code></td>
+<td>
+<p>IDs of articles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>At which threshold of similarity is an article considered a
+duplicate. Note that lower threshold values will increase the time to
+calculate the relative difference (as more articles are considered).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rel_dist</code></td>
+<td>
+<p>Calculate the relative Levenshtein distance between two
+articles if set to TRUE (can take very long). The main difference between
+the similarity and distance value is that the distance takes word order
+into account while similarity employs the bag of words approach.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length_diff</code></td>
+<td>
+<p>Before calculating the relative distance between articles,
+the length of the articles in characters is calculated. If the difference
+surpasses this value, calculation is omitted and the distance will set to
+NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nthread</code></td>
+<td>
+<p>Maximum number of threads to use (see
+stringdist-parallelization).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_length</code></td>
+<td>
+<p>If the article is too long, calculation of the relative
+distance can cause R to crash (see
+<a href="https://github.com/markvanderloo/stringdist/issues/59">https://github.com/markvanderloo/stringdist/issues/59</a>). To prevent
+this you can set a maximum length (longer articles will not be evaluated).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical flag indicating whether information should be
+printed to the screen.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data.table consisting of information about duplicated
+articles. Articles with a lower similarity than the threshold will be
+removed, while all relative distances are still in the returned object.
+Before you use the duplicated information to subset your dataset, you
+should, therefore, filter out results with a high relative distance (e.g.
+larger than 0.2).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Johannes B. Gruber
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Copy sample file to current wd
+lnt_sample()
+
+## End(Not run)
+
+# Convert raw file to LNToutput object
+LNToutput &lt;- lnt_read(lnt_sample(copy = FALSE))
+
+# Test similarity of articles
+duplicates.df &lt;- lnt_similarity(
+  texts = LNToutput@articles$Article,
+  dates = LNToutput@meta$Date,
+  IDs = LNToutput@articles$ID
+)
+
+# Remove instances with a high relative distance
+duplicates.df &lt;- duplicates.df[duplicates.df$rel_dist &lt; 0.2]
+
+# Create three separate data.frames from cleaned LNToutput object
+LNToutput &lt;- LNToutput[!LNToutput@meta$ID %in%
+  duplicates.df$ID_duplicate]
+meta.df &lt;- LNToutput@meta
+articles.df &lt;- LNToutput@articles
+paragraphs.df &lt;- LNToutput@paragraphs
+</code></pre>
+
+
+</div>

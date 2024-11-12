@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>FEXPest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fractional EXP (FEXP) Model Estimator</h2>
+
+<h3>Description</h3>
+
+<p><code>FEXPest(x, *)</code> computes Beran's Fractional EXP or ‘FEXP’
+model estimator.
+</p>
+<p><code>.ffreq(n)</code> returns the Fourier frequencies <code class="reqn">\frac{2\pi j}{n}</code>
+(of a time series of length <code>n</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">FEXPest(x, order.poly, pvalmax, verbose = FALSE)
+## S3 method for class 'FEXP'
+print(x, digits = getOption("digits"), ...)
+
+.ffreq(n, full = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>numeric vector representing a time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order.poly</code></td>
+<td>
+<p>integer specifying the maximal polynomial order that
+should be taken into account.  <code>order.poly = 0</code> is equivalent
+to a FARIMA(0,d,0) model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalmax</code></td>
+<td>
+<p>maximal P-value – the other iteration stopping
+criterion and “model selection tuning parameter”.
+Setting this to <code>1</code>, will use <code>order.poly</code> alone, and
+hence the final model order will be <code>= order.poly</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical indicating if iteration output should be printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits,...</code></td>
+<td>
+<p>optional arguments for <code>print</code> method, see
+<code>print.default</code>.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>a positive integer, typically the length of a time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full</code></td>
+<td>
+<p>logical indicating if <code>n %/% 2</code> or by default
+“only” <code>(n-1) %/% 2</code> values should be returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>FEXPest(x,..)</code> returns an object of class <code>FEXP</code>, basically a list with components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the function <code>call</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>time series length <code>length(x)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H</code></td>
+<td>
+<p>the “Hurst” parameter which is simply <code>(1-theta[2])/2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>numeric 4-column matrix as returned from
+<code>summary.glm()</code>, with estimate of the full parameter
+vector <code class="reqn">\theta</code>, its standard error estimates, t- and P-values,
+as from the <code>glm(*, family = Gamma)</code> fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order.poly</code></td>
+<td>
+<p>the effective polynomial order used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.order.poly</code></td>
+<td>
+<p>the original <code>order.poly</code> (argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>early.stop</code></td>
+<td>
+<p>logical indicating if <code>order.poly</code> is less than
+<code>max.order.poly</code>, i.e., the highest order polynomial terms were
+dropped because of a non-significant P-value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p>the spectral estimate <code class="reqn">f(\omega_j)</code>, at the Fourier
+frequencies <code class="reqn">\omega_j</code>.  Note that <code>.ffreq(x$n)</code>
+recomputes the Fourier frequencies vector (from a fitted FEXP or
+WhittleEst model <code>x</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yper</code></td>
+<td>
+<p>raw periodogram of (centered and scaled <code>x</code>) at
+Fourier frequencies <code class="reqn">I(\omega_j)</code>.</p>
+</td>
+</tr>
+</table>
+<p>There currently are methods for <code>print()</code>,
+<code>plot</code> and <code>lines</code> (see
+<code>plot.FEXP</code>) for objects of class <code>"FEXP"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Martin Maechler, using Beran's “main program” in
+Beran(1994), p.234 ff
+</p>
+
+
+<h3>References</h3>
+
+<p>Beran, Jan (1993)
+Fitting long-memory models by generalized linear regression.
+<em>Biometrika</em> <b>80</b>, 817–822.
+</p>
+<p>Beran, Jan (1994).
+<em>Statistics for Long-Memory Processes</em>;
+Chapman &amp; Hall.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>WhittleEst</code>;
+the plot method, <code>plot.FEXP</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(videoVBR)
+(fE  &lt;- FEXPest(videoVBR, order = 3, pvalmax = .5))
+(fE3 &lt;- FEXPest(videoVBR, order = 3, pvalmax = 1 ))
+
+(fE7 &lt;- FEXPest(videoVBR, order = 3, pvalmax = 0.10))
+##--&gt; this also choses order 2, as "FE" :
+all.equal(fE $coef,
+          fE7$coef) # -&gt; TRUE
+
+confint(fE)
+confint(fE7, level = 0.99)
+
+.ffreq(8)
+.ffreq(8, TRUE)
+stopifnot(all.equal((1:3)/4,
+                    .ffreq(8) / pi))
+</code></pre>
+
+
+</div>

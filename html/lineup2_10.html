@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_problems</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarize potential problems in a distance matrix</h2>
+
+<h3>Description</h3>
+
+<p>For the inviduals represented in a distance matrix, collect the
+self-self, best, and 2nd best distances, and summarize the results
+in a data frame.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_problems(
+  d,
+  dimension = c("row", "column"),
+  get_min = TRUE,
+  subset = c("problems", "all"),
+  threshold = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>A distance or similarity matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dimension</code></td>
+<td>
+<p>Whether to determine the best distances within rows or columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>get_min</code></td>
+<td>
+<p>If TRUE, get the minimum (for a distance matrix);
+if FALSE, get the maximum (for a similarity matrix)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>Whether to return just the rows with potential problems, or all of the rows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>If <code>subset="problems"</code>, the threshold on the difference between the self and best distances.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame containing individual ID, distance to self,
+best distance and corresponding individual, 2nd best distance
+and the corresponding individual.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_self()</code>, <code>get_best()</code>, <code>get_2ndbest()</code>, <code>which_best()</code>, <code>get_nonself()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># align rows in the provided dataset, lineup2ex
+aligned &lt;- align_matrix_rows(lineup2ex$gastroc, lineup2ex$islet)
+# find correlated columns
+selected_genes &lt;- (corr_betw_matrices(aligned[[1]], aligned[[2]], "paired") &gt; 0.75)
+# calculate correlation between rows
+similarity &lt;- corr_betw_matrices(t(lineup2ex$gastroc[,selected_genes]),
+                                 t(lineup2ex$islet[,selected_genes]), "all")
+# pull out the problems, looking by row (where best &gt; self + 0.3)
+problems_byrow &lt;- get_problems(similarity, get_min=FALSE, threshold=0.3)
+
+# pull out the problems, looking by column (where best &gt; self + 0.3)
+problems_bycol &lt;- get_problems(similarity, get_min=FALSE, threshold=0.3,
+                               dimension="column")
+
+</code></pre>
+
+
+</div>

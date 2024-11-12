@@ -1,0 +1,230 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>search_lqmix</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Search the Global Maximum of a Linear Quantile Mixture</h2>
+
+<h3>Description</h3>
+
+<p>Search the global maximum of the log-likelihood function for a finite mixture of linear quantile regression models with TC and/or TV, discrete, random coefficients, for varying number of components and/or states
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">search_lqmix(formula, randomTC = NULL, randomTV = NULL, group, time,
+  Gv = NULL, mv = NULL, data, method = "bic", nran = 0, qtl = 0.5,
+  eps = 10^-5, maxit = 1000, se = TRUE, R = 50, verbose = TRUE,
+  seed = NULL, parallel = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>an object of <code>class</code> <code>formula</code>: a symbolic description of the model to be fitted</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomTC</code></td>
+<td>
+<p>a one-sided formula of the form <code>~z1+z2+...+zr</code>, where <code>z1,..., zr</code> denote the variables associated to TC random coefficients (1 for the intercept)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randomTV</code></td>
+<td>
+<p>a one-sided formula of the form <code>~w1+w2+...+wl</code>, where <code>w1,..., wl</code> denote the variables associated to TV random coefficients (1 for the intercept). Note that only TC variables are allowed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>a string indicating the grouping variable, i.e., the factor identifying the unit longitudinal measurements refer to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>a string indicating the time variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gv</code></td>
+<td>
+<p>vector of possible number of mixture components associated to TC random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mv</code></td>
+<td>
+<p>vector of possible number of states associated to the TV random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data frame containing the variables named in <code>formula</code>, <code>randomTC</code>, <code>randomTV</code>, and <code>time</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>method to use for selecting the optimal model. Possible values are <code>"lk"</code>, <code>"aic"</code>, or <code>"bic"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nran</code></td>
+<td>
+<p>number of repetitions of each random initialization</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtl</code></td>
+<td>
+<p>quantile to be estimated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>tolerance level for (relative) convergence of the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations for the EM algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>standard error computation for the optimal model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>number of bootstrap samples for computing standard errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if set to FALSE, no printed output is given during the function execution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>an integer value for random numbers generation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>if set to TRUE, a parallelized code is use for standard error computation (if se=TRUE)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function allows to identify the optimal model specification in terms of number of mixture components and/or hidden states associated to
+TC and/or TV random coefficients, respectively.
+This is done by considering a multi-start strategy based on both deterministic and random starting points.
+The number or random tries is proportional to the number of mixture components and/or hidden states associated to the random coefficients in the model.
+</p>
+<p>If <code>method="lk"</code>, the optimal model selected by the function is that providing the highest log-likelihood value;
+if <code>method="AIC"</code>, (<code>method="BIC"</code>, respectively), the optimal model selected by the function is that providing the lowest AIC (BIC, respectively) value.
+</p>
+<p>If <code>se=TRUE</code>, standard errors based on a block bootstrap procedure are computed for the identified optimal model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return an object of <code>class</code> <code>search_lqmix</code>. This is a list containing the following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>optimal</code></td>
+<td>
+<p>the identified optimal model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allmodels</code></td>
+<td>
+<p>the output of each estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lkv</code></td>
+<td>
+<p>the vector of likelihood values for each estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aicv</code></td>
+<td>
+<p>the vector of AIC values for each estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bicv</code></td>
+<td>
+<p>the vector of BIC values for each estimated model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qtl</code></td>
+<td>
+<p>the estimated quantile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mv</code></td>
+<td>
+<p>the vector of possible number of states associated to TV random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gv</code></td>
+<td>
+<p>the vector of possible number of mixture components associated to TC random coefficients (if present)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method used to select the optimal model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">sTC = search_lqmix(formula=meas~trt+time+trt:time,
+                   randomTC=~1,group="id",time="time",Gv=1:3,method="bic",data=pain,se=FALSE)
+
+sTV = search_lqmix(formula=meas~trt+time+trt:time,
+randomTV=~1,group="id",time="time",mv=1:3,method="bic",data=pain,se=FALSE)
+
+sTCTV = search_lqmix(formula=meas~trt+time+trt:time,
+randomTC=~time,randomTV=~1,group="id",time="time",mv=1:3,Gv=1:3,method="bic",data=pain,se=FALSE)
+
+</code></pre>
+
+
+</div>

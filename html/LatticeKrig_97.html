@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LKrigNormalizeBasis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Methods and functions to support normalizing to 
+marginal variance of one. 
+</h2>
+
+<h3>Description</h3>
+
+<p>The basis functions can be normalized so that the 
+marginal variance of the process at each level and at all locations is
+one. A generic function <code>LKrigNormalizeBasis</code> computes this for
+any LatticeKrig model. However, in special cases the normalization can 
+be accelerated. <code>LKrigNormalizeBasisFast</code> takes advantage of rectangular geometry and a constant <code>a.wght</code>, and further decomposes the SAR matrix using Kronecker products. This method calculates the exact marginal variance while providing an increase in computational efficiency. The <code>LKrigNormalizeBasisFFTInterpolate</code> method is the fastest, yet it provides an approximate marginal variance, and can only be used when there are significantly less basis functions than locations. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LKrigNormalizeBasis(
+LKinfo, Level, PHI = NULL, x1 = NULL, gridList = NULL, ...)
+LKrigNormalizeBasisFast(LKinfo, ...)
+LKrigNormalizeBasisFFTInterpolate(LKinfo, Level, x1)
+## Default S3 method:
+LKrigNormalizeBasisFast(LKinfo, ...)
+## S3 method for class 'LKRectangle'
+LKrigNormalizeBasisFast(LKinfo, Level, x1,  ...)
+LKRectangleSetupNormalization(mx, a.wght)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>a.wght</code></td>
+<td>
+<p>A.wght parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gridList</code></td>
+<td>
+<p>If not NULL this is a gridList object that will be expanded to give a grid of locations and used for <code>x1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LKinfo</code></td>
+<td>
+<p> An LKinfo object.  NOTE:  Here  <code>choleskyMemory</code>, a Spam memory argument, can be a component of LKinfo and is subsequently passed
+through to the	(spam) sparse cholesky decomposition</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Level</code></td>
+<td>
+<p>The multi-resolution level.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mx</code></td>
+<td>
+<p>Matrix of lattice sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PHI</code></td>
+<td>
+<p>Unnormalized basis functions evaluated at the locations 
+to find the normalization weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+<p>Locations to find normalization weights. If NULL then locations obtained from <code>gridList argument</code>. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for method. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Normalization to unit variance is useful for reducing the artifacts of
+the lattice points and creates a model that is closer to being stationary. 
+The computation must be done for every point evaluated with the basis functions 
+The basic calculation is 
+</p>
+<pre>
+	tempB &lt;- LKrigSAR(LKinfo, Level = Level)
+    tempB &lt;- LKrig.spind2spam(tempB)
+    wght &lt;- LKrig.quadraticform(t(tempB) 
+        choleskyMemory = choleskyMemory)
+</pre>
+<p>This generic method uses the low level utility <code>LKrig.quadraticform</code> that evaluates  diag( t(PHI) solve( Q.l) PHI ) where PHI are the basis functions evaluated at the locations and Q.l is the precision matrix for the lattice coefficients at level l. 
+</p>
+<p>For constant a.wght and for the rectangular geometry one can use an eigen decomposition of the Kronecker product of the SAR matrix. This allows for a faster way of calculating the exact marginal variance. 
+</p>
+<p>In cases where (2 * NC - 1) &lt; s, where NC is the selected number of basis functions and s is the larger side of a 2-dimensional dataset, an approximate marginal variance with extremely high accuracy (average error 0.001%, maximum error ~2%) can be calculated. This is done by first calculating the marginal variance on a coarser grid, then performing 2-dimensional Fourier Interpolation to upsample to all locations of the dataset. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of weights. The basis are normalized by dividing by the square root
+of the weights.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+</p>
+
+
+</div>

@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>surv.colors</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Produces visual representation of survival data
+</h2>
+
+<h3>Description</h3>
+
+<p>This function generates color shades for each individual, according to their respective right-censored survival data (event occurred or not, after which follow-up time). This can prove useful to annotate heat maps with survival data.
+</p>
+<p>Two color scales are used, one for right-censored individuals (lost of sight before the event occurs, yellow with default colors) and an other for individual with observed events (death, relapse ... black in default colors). Shades are generated according to their impact : fast events and long follow-ups without event have strong colors, while late events and short follow-up without event are light-colored.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  surv.colors(time, event, eventColors = c("#000000", "#CCCCCC"),
+    censColors = c("#FFFFEE", "#FFDD00"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+
+<p>Numeric vector, the follow-up times of each individual (see <code>Surv</code> in the <code>survival</code> package).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+
+<p>Logical vector, whether an event (death, relapse ...) occured at the end of each individual follow-up or not (see <code>Surv</code> in the <code>survival</code> package).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eventColors</code></td>
+<td>
+
+<p>Character vector of length 2, the boundaries of the color scale to generate for individuals with events.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censColors</code></td>
+<td>
+
+<p>Character vector of length 2, the boundaries of the color scale to generate for right-censored individuals.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a character vector, named according to <code>time</code> names.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sylvain Mareschal
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>surv.scale</code>, <code>heat.map</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Rosenwald's dataset (hand-picked prognostic probes)
+  data(rosenwald)
+  probes &lt;- c("30580", "16006", "32315", "16978", "26588")
+  expr &lt;- t(rosenwald.expr[ probes ,])
+  
+  # NA imputation (feature's mean to minimize impact)
+  f &lt;- function(x) { x[ is.na(x) ] &lt;- round(mean(x, na.rm=TRUE), 3); x }
+  expr &lt;- apply(expr, 2, f)
+  
+  # Survival colors
+  surv &lt;- with(rosenwald.cli, surv.colors(time=follow.up, event=status=="Dead"))
+  
+  # Color scale legend
+  with(rosenwald.cli, surv.scale(time=follow.up, event=status=="Dead"))
+  
+  # Annotated clustering
+  side &lt;- data.frame(OS=surv, row.names=rownames(rosenwald.cli))
+  clusterize(expr, side=side)
+</code></pre>
+
+
+</div>

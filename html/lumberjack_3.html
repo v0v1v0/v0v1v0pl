@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cellwise</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The cellwise logger.</h2>
+
+<h3>Description</h3>
+
+<p>The cellwise logger registers the row, column, old, and new value of cells
+that changed, along with a step number, timestamp, source reference, and the
+expression used to alter a dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cellwise(key, verbose=TRUE, tempfile=file.path(tempdir(),"cellwise.csv"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>key</code></td>
+<td>
+<p><code>[character|integer]</code> index to column that uniquely identifies a row.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p><code>[logical]</code> toggle verbosity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tempfile</code></td>
+<td>
+<p><code>[character]</code> filename for temporary log storage.</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>An <code>R6</code> class object.
+</p>
+
+
+<h3>Creating a logger</h3>
+
+<p><code>cellwise$new(key, verbose=TRUE, file=tempfile())</code>
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+  <code>key</code>
+</td>
+<td style="text-align: left;"> <code>[character|integer]</code> index to column that uniquely identifies a row.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  <code>verbose</code>
+</td>
+<td style="text-align: left;"> <code>[logical]</code> toggle verbosity.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+  <code>tempfile</code>
+</td>
+<td style="text-align: left;"> [character] filename for temporary log storage. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Dump options</h3>
+
+<p><code>$dump(file=NULL)</code>
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+  <code>file</code>
+</td>
+<td style="text-align: left;"> <code>[character]</code> location to write final output to.</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The default location is <code>"cellwise.csv"</code> in an interactive session, and
+<code>"DATA_cellwise.csv"</code> in a script that executed via <code>run_file</code>.
+Here, <code>DATA</code> is the variable name of the data being tracked or the
+<code>label</code> provided with <code>start_log</code>.
+</p>
+
+
+<h3>Getting data from the logger</h3>
+
+<p><code>$logdata()</code> Returns a data frame with the current log.
+</p>
+
+
+<h3>Details</h3>
+
+<p>At initialization, the cellwise logger opens a connection to a temporary
+file. All logging info is appended to that connection. When
+<code>dump_log</code> is called, the temporary file is closed, copied to
+the output file, and reopened for writing. The connection is closed
+automatically when the logger is destroyed, for example when calling
+<code>stop_log()</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other loggers: 
+<code>expression_logger</code>,
+<code>filedump</code>,
+<code>no_log</code>,
+<code>simple</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">logfile &lt;- tempfile(fileext=".csv")
+
+# convert height from inch to cm and log changes.
+# we need to set a unique key.
+women$sleutel &lt;- 1:nrow(women)
+out &lt;- women %L&gt;%
+  start_log(log=cellwise$new(key="sleutel")) %L&gt;%
+  {.$height &lt;- .$height*2.54; .} %L&gt;%
+  dump_log(file=logfile, stop=TRUE)
+
+read.csv(logfile) %L&gt;% head()
+
+# work with an externally defined logger.
+iris$id &lt;- seq_len(nrow(iris))
+logger &lt;- cellwise$new(key="id")
+iris %L&gt;% 
+  start_log(logger) %L&gt;%
+  head() %L&gt;%
+  stop_log(dump=FALSE)
+logger$logdata()
+
+
+</code></pre>
+
+
+</div>

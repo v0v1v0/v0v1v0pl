@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predicts according to the fitted SurvCART or LongCART tree</h2>
+
+<h3>Description</h3>
+
+<p>Predicts according to the fitted SurvCART or LongCART tree.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'SurvCART'
+predict(object, newdata, ...)
+## S3 method for class 'LongCART'
+predict(object, newdata, patid, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a fitted object of class <code>"SurvCART"</code>, containing a survival tree, or class <code>"LongCART"</code>, containing a longitudinal tree.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>The dataset for prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patid</code></td>
+<td>
+<p>Variable name containing patient id in the new dataset. Must for prediction based on LongCART object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Please disregard.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For prediction based on <code>"SurvCART"</code> algorithm, the predicted dataset includes the terminal node id the observation belongs to, and the median event and censoring times of the terminal id. 
+</p>
+<p>For prediction based on <code>"LongCART"</code> algorithm, the predicted dataset includes the terminal node id the observation belongs to,  the fitted profile, and the predicted value based on the fitted profile. Note that the predicted value does not consider the random effects.  
+</p>
+
+
+<h3>Value</h3>
+
+<p>For prediction based on <code>"SurvCART"</code> algorithm, the dataset adds to the following variables in the new dataset:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>node</code></td>
+<td>
+<p>Terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>median.T</code></td>
+<td>
+<p>Median event time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>median.C</code></td>
+<td>
+<p>Median censoring time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q1.T</code></td>
+<td>
+<p>First quartile for event time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q1.C</code></td>
+<td>
+<p>First quartile for censoring time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q3.T</code></td>
+<td>
+<p>Third quartile for event time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q3.C</code></td>
+<td>
+<p>Third quartile for censoring time of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+</table>
+<p>For prediction based on <code>LongCART</code> algorithm, the dataset adds to the following variables in the new dataset:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>node.id</code></td>
+<td>
+<p>Terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>profile</code></td>
+<td>
+<p>The fitted profile of the terminal node id the observation belongs to</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predval</code></td>
+<td>
+<p>predicted value based on the fitted profile <code>profile</code></p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Madan Gopal Kundu <a href="mailto:madan_g.kundu@yahoo.com">madan_g.kundu@yahoo.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Kundu, M. G., and Harezlak, J. (2019). Regression trees for longitudinal data with baseline covariates. Biostatistics &amp; Epidemiology, 3(1):1-22.
+</p>
+<p>Kundu, M. G., and Ghosh, S. (2021). Survival trees based on heterogeneity in time-to-event and censoring distributions using parameter instability test. Statistical Analysis and Data Mining: The ASA Data Science Journal, 14(5), 466-483.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>SurvCART</code>, <code>LongCART</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#--- LongCART example
+
+data(ACTG175)
+gvars=c("gender", "wtkg", "hemo", "homo", "drugs",
+        "karnof", "oprior", "z30", "zprior", "race",
+        "str2", "symptom", "treat", "offtrt")
+tgvars=c(0, 1, 0, 0, 0,
+         1, 0, 0, 0, 0,
+         0, 0, 0, 0)
+out1&lt;- LongCART(data=ACTG175, patid="pidnum", fixed=cd4~time,
+                gvars=gvars, tgvars=tgvars, alpha=0.05,
+                minsplit=100, minbucket=50, coef.digits=2)
+pred1&lt;- predict.LongCART(object=out1, newdata=ACTG175, patid="pidnum")
+head(pred1)
+
+#--- SurvCART example
+
+data(GBSG2)
+GBSG2$horTh1&lt;- as.numeric(GBSG2$horTh)
+GBSG2$tgrade1&lt;- as.numeric(GBSG2$tgrade)
+GBSG2$menostat1&lt;- as.numeric(GBSG2$menostat)
+
+GBSG2$subjid&lt;- 1:nrow(GBSG2)
+
+fit&lt;- SurvCART(data=GBSG2, patid="subjid", censorvar="cens", timevar="time", 
+        gvars=c('horTh1', 'age', 'menostat1', 'tsize', 'tgrade1', 'pnodes', 'progrec', 'estrec'),  
+        tgvars=c(0,1,0,1,0,1, 1,1),          
+        event.ind=1,  alpha=0.05, minsplit=80, minbucket=40, print=TRUE)
+
+pred2&lt;- predict.SurvCART(object=fit, newdata=GBSG2)
+head(pred2)
+
+</code></pre>
+
+
+</div>

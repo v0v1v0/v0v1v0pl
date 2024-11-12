@@ -1,0 +1,180 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>corr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Correlation table</h2>
+
+<h3>Description</h3>
+
+<p>This function correlates a whole dataframe, running one hot smart
+encoding (<code>ohse</code>) to transform non-numerical features.
+Note that it will automatically suppress columns
+with less than 3 non missing values and warn the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">corr(
+  df,
+  method = "pearson",
+  use = "pairwise.complete.obs",
+  pvalue = FALSE,
+  padjust = NULL,
+  half = FALSE,
+  dec = 6,
+  ignore = NULL,
+  dummy = TRUE,
+  redundant = NULL,
+  logs = FALSE,
+  limit = 10,
+  top = NA,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Dataframe. It doesn't matter if it's got non-numerical
+columns: they will be filtered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Character. Any of: c("pearson", "kendall", "spearman").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use</code></td>
+<td>
+<p>Character. Method for computing covariances in the presence
+of missing values. Check <code>stats::cor</code> for options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p>Boolean. Returns a list, with correlations and statistical
+significance (p-value) for each value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>padjust</code></td>
+<td>
+<p>Character. NULL to skip or any of <code>p.adjust.methods</code> to
+calculate adjust p-values for multiple comparisons using <code>p.adjust()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>half</code></td>
+<td>
+<p>Boolean. Return only half of the matrix? The redundant
+symmetrical correlations will be <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dec</code></td>
+<td>
+<p>Integer. Number of decimals to round correlations and p-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ignore</code></td>
+<td>
+<p>Vector or character. Which column should be ignored?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dummy</code></td>
+<td>
+<p>Boolean. Should One Hot (Smart) Encoding (<code>ohse()</code>)
+be applied to categorical columns?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>redundant</code></td>
+<td>
+<p>Boolean. Should we keep redundant columns? i.e. If the
+column only has two different values, should we keep both new columns?
+Is set to <code>NULL</code>, only binary variables will dump redundant columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logs</code></td>
+<td>
+<p>Boolean. Calculate log(x)+1 for numerical columns?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>Integer. Limit one hot encoding to the n most frequent
+values of each column. Set to <code>NA</code> to ignore argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top</code></td>
+<td>
+<p>Integer. Select top N most relevant variables? Filtered
+and sorted by mean of each variable's correlations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to <code>ohse</code>, <code>corr</code>,
+and/or <code>cor.test</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame. Squared dimensions (N x N) to match every
+correlation between every <code>df</code> data.frame column/variable. Notice
+that when using <code>ohse()</code> you may get more dimensions.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other Calculus: 
+<code>dist2d()</code>,
+<code>model_metrics()</code>,
+<code>quants()</code>
+</p>
+<p>Other Correlations: 
+<code>corr_cross()</code>,
+<code>corr_var()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(dft) # Titanic dataset
+df &lt;- dft[, 2:5]
+
+# Correlation matrix (without redundancy)
+corr(df, half = TRUE)
+
+# Ignore specific column
+corr(df, ignore = "Pclass")
+
+# Calculate p-values as well
+corr(df, pvalue = TRUE, limit = 1)
+
+# Test when no more than 2 non-missing values
+df$trash &lt;- c(1, rep(NA, nrow(df) - 1))
+# and another method...
+corr(df, method = "spearman")
+</code></pre>
+
+
+</div>

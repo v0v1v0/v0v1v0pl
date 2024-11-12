@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc_ration_growthfac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate growth increments</h2>
+
+<h3>Description</h3>
+
+<p>Calculates the amount of food required for fish of a given species and length class to grow according to the von Bertalanffy growth curve in a time step.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc_ration_growthfac(
+  k,
+  Linf,
+  nsc,
+  nfish,
+  l_bound,
+  u_bound,
+  mid,
+  W_a,
+  W_b,
+  phi_min,
+  vary_growth = TRUE,
+  growth_eff = 0.5,
+  growth_eff_decay = 0.11
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the von Bertalanffy growth parameter <code>(1/yr)</code> for each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Linf</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the asymptotic length of each species.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsc</code></td>
+<td>
+<p>A numeric value representing the number of length classes in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfish</code></td>
+<td>
+<p>A numeric value representing the number of species in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>l_bound</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the lower bounds of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u_bound</code></td>
+<td>
+<p>A numeric vector of length <code>nsc</code> representing the upper bounds of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mid</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the mid-point of the length classes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W_a</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the parameter <code>a</code> in the length-weight conversion. See 'Details' for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W_b</code></td>
+<td>
+<p>A numeric vector of length <code>nfish</code> representing the parameter <code>b</code> in the length-weight conversion. See 'Details' for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi_min</code></td>
+<td>
+<p>A numeric value representing the time step of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vary_growth</code></td>
+<td>
+<p>A logical statement indicating whether growth efficiency should vary for each species (<code>vary_growth=TRUE</code>) or be fixed at the value given by <code>fixed_growth</code> (<code>vary_growth=FALSE</code>). The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth_eff</code></td>
+<td>
+<p>If <code>vary_growth==TRUE</code>, <code>growth_eff</code> is a numeric representing the growth efficiencies of a fish of length 0. If <code>vary_growth==FALSE</code>, <code>growth_eff</code> is a numeric value of length <code>1</code> representing a fixed growth efficiency for all fish. The default is 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>growth_eff_decay</code></td>
+<td>
+<p>A numeric value specifying the rate at which growth efficiency decreases as length approaches <code>Linf</code>. The default is 0.11.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The weight increments of the <code>i</code>th species in the <code>j</code>th length class is calculated by determining the amount an individual will grow in one time step, <code>phi_min</code>, if it were to follow the von Bertalanffy growth curve
+</p>
+<p><code>L22=(Linf[i]-mid[j])*(1-exp(-k[i]*phi_min))</code>.
+</p>
+<p>The weight of a fish at the mid-point of the size class is calculated using the length-weight relationship
+</p>
+<p><code>wgt[j,i] = a[i]*mid[j]^b[i]</code>,
+</p>
+<p>and similarly the expected change in weight of the the fish is calculated as
+</p>
+<p><code>growth_inc = (W_a[i]*L22^W_b[i])</code>.
+</p>
+<p>It also has a growth efficiency
+</p>
+<p><code>g_eff[j, i]=(1-(wgt[j,i]/(W_a[i]*Linf[i]^W_b[i]))^growth_eff_decay)*growth_eff</code>
+</p>
+<p>if <code>vary_growth==TRUE</code> or <code>g_eff[j, i]=growth_eff</code> otherwise.
+</p>
+<p><code>ration</code> is then calculated by
+</p>
+<p><code>growth_inc*(1/g_eff[j, i])</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list object containing <code>ration</code>, <code>sc_Linf</code>, <code>wgt</code> and <code>g_eff</code>. <code>ration</code> is a matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the amount of food required for fish of a given species and length class to grow according to the von Bertalanffy growth curve in a time step. <code>sc_Linf</code> is a numeric vector of length <code>nfish</code> representing the length class at which each species reaches <code>Linf</code>. <code>wgt</code> is a matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the weight of each species in each length class. <code>g_eff</code> is a matrix with dimensions <code>nsc</code> and <code>nfish</code> representing the growth efficiency of each species in each length class.
+</p>
+
+
+<h3>References</h3>
+
+<p>von Bertalanffy, L. (1957). Quantitative Laws in Metabolism and Growth. <em>The Quarterly Review of Biology</em>, 32:217-231
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Set up the inputs to the function - species-independent parameters
+nfish &lt;- nrow(NS_par)
+nsc &lt;- 32
+maxsize &lt;- max(NS_par$Linf)*1.01 # the biggest size is 1% bigger than the largest Linf
+l_bound &lt;- seq(0, maxsize, maxsize/nsc); l_bound &lt;- l_bound[-length(l_bound)]
+u_bound &lt;- seq(maxsize/nsc, maxsize, maxsize/nsc)
+mid &lt;- l_bound+(u_bound-l_bound)/2
+
+# Set up the inputs to the function - species-specific parameters
+Linf &lt;- NS_par$Linf # the von-Bertalanffy asymptotic length of each species (cm).
+W_a &lt;- NS_par$W_a # length-weight conversion parameter.
+W_b &lt;- NS_par$W_b # length-weight conversion parameter.
+k &lt;- NS_par$k # the von-Bertalnaffy growth parameter.
+Lmat &lt;- NS_par$Lmat # the length at which 50\% of individuals are mature (cm).
+
+# Get phi_min
+tmp &lt;- calc_phi(k, Linf, nsc, nfish, u_bound, l_bound, calc_phi_min=FALSE,
+                  phi_min=0.1) # fixed phi_min
+phi_min &lt;- tmp$phi_min
+
+# Calculate growth increments
+tmp &lt;- calc_ration_growthfac(k, Linf, nsc, nfish, l_bound, u_bound, mid, W_a, W_b, phi_min)
+ration &lt;- tmp$ration
+sc_Linf &lt;- tmp$sc_Linf
+wgt &lt;- tmp$wgt
+g_eff &lt;- tmp$g_eff
+</code></pre>
+
+
+</div>

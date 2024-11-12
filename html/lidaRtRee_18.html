@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clouds_tree_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes metrics on trees detected in list of point clouds.</h2>
+
+<h3>Description</h3>
+
+<p>Extracts summary statistics on trees for each LAS object in a list:
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clouds_tree_metrics(llasn, XY, plot_radius, res = 0.5, func, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>llasn</code></td>
+<td>
+<p>list of <code>LAS</code> objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XY</code></td>
+<td>
+<p>a data frame or matrix with XY coordinates of plot centers</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot_radius</code></td>
+<td>
+<p>numeric. plot radius in meters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric. resolution of canopy height model computed with 
+<code>points2DSM</code> before tree segmentation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>a function to be applied to the attributes of extracted trees 
+(return from internal call to <code>tree_extraction</code> function) to compute 
+plot level metrics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other parameters to be passed to <code>tree_segmentation</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<ul>
+<li>
+<p>calls <code>tree_segmentation</code> to segment trees and then 
+<code>tree_extraction</code> to extract their features
+</p>
+</li>
+<li>
+<p>computes 'TreeCanopy_cover_in_plot' (proportion of surface of disk of interest 
+which is covered by segmented trees), 'TreeCanopy_meanH_in_plot' (mean canopy 
+height inside intersection of tree segments and disk of interest)
+</p>
+</li>
+<li>
+<p>removes detected trees located outside of the disk of interest defined 
+by their centers and radius
+</p>
+</li>
+<li>
+<p>computes summary statistics of extracted tree features based on a 
+user-defined function (default is <code>std_tree_metrics</code>)
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>a data frame with tree metrics in columns corresponding to LAS objects 
+of the list (lines)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tree_segmentation</code>, <code>tree_extraction</code>, 
+<code>std_tree_metrics</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load LAS file
+LASfile &lt;- system.file("extdata", "las_chablais3.laz", package="lidaRtRee")
+las_chablais3 &lt;- lidR::readLAS(LASfile)
+
+# extract two point clouds from LAS object
+llas &lt;- lidR::clip_circle(las_chablais3,
+                          c(974350, 974390),
+                          c(6581680, 6581680), 10)
+# normalize point clouds
+llas &lt;- lapply(llas, function(x) {
+  lidR::normalize_height(x, lidR::tin())
+})
+
+# compute metrics with user-defined function
+# number of detected trees between 20 and 30 meters and their mean height
+# restricted to disks of radius 8 m.
+user_func &lt;- function(x) {
+  dummy &lt;- x$h[which(x$h &gt; 20 &amp; x$h &lt; 30)]
+  data.frame(Tree.between.20.30 = length(dummy), Tree.meanH = mean(dummy))
+}
+clouds_tree_metrics(llas,
+  cbind(c(974350, 974390), c(6581680, 6581680)),
+  8,
+  res = 0.5, func = user_func
+)
+</code></pre>
+
+
+</div>

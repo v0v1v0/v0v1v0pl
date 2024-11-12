@@ -1,0 +1,86 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vector_logic_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Enforce usage of scalar logical operators in conditional statements</h2>
+
+<h3>Description</h3>
+
+<p>Usage of <code>&amp;</code> in conditional statements is error-prone and inefficient.
+<code>condition</code> in <code>if (condition) expr</code> must always be of length 1, in which
+case <code>&amp;&amp;</code> is to be preferred. Ditto for <code>|</code> vs. <code>||</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vector_logic_linter()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>This linter covers inputs to <code style="white-space: pre;">⁠if()⁠</code> and <code style="white-space: pre;">⁠while()⁠</code> conditions and to
+<code>testthat::expect_true()</code> and <code>testthat::expect_false()</code>.
+</p>
+<p>Note that because <code>&amp;</code> and <code>|</code> are generics, it is possible that
+<code>&amp;&amp;</code> / <code>||</code> are not perfect substitutes because <code>&amp;</code> is doing
+method dispatch in an incompatible way.
+</p>
+<p>Moreover, be wary of code that may have side effects, most commonly
+assignments. Consider <code>if ((a &lt;- foo(x)) | (b &lt;- bar(y))) { ... }</code>
+vs. <code>if ((a &lt;- foo(x)) || (b &lt;- bar(y))) { ... }</code>. Because <code>||</code> exits
+early, if <code>a</code> is <code>TRUE</code>,  the second condition will never be evaluated
+and <code>b</code> will not be assigned. Such usage is not allowed by the Tidyverse
+style guide, and the code can easily be refactored by pulling the
+assignment outside the condition, so using <code>||</code> is still preferable.
+</p>
+
+
+<h3>Tags</h3>
+
+<p>best_practices, default, efficiency
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li> <p>linters for a complete list of linters available in lintr.
+</p>
+</li>
+<li> <p><a href="https://style.tidyverse.org/syntax.html#if-statements">https://style.tidyverse.org/syntax.html#if-statements</a>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = "if (TRUE &amp; FALSE) 1",
+  linters = vector_logic_linter()
+)
+
+lint(
+  text = "if (TRUE &amp;&amp; (TRUE | FALSE)) 4",
+  linters = vector_logic_linter()
+)
+
+# okay
+lint(
+  text = "if (TRUE &amp;&amp; FALSE) 1",
+  linters = vector_logic_linter()
+)
+
+lint(
+  text = "if (TRUE &amp;&amp; (TRUE || FALSE)) 4",
+  linters = vector_logic_linter()
+)
+
+</code></pre>
+
+
+</div>

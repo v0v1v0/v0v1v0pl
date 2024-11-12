@@ -1,0 +1,325 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lactate_threshold</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lactate threshold</h2>
+
+<h3>Description</h3>
+
+<p>This is a general function that applies several lactate threshold methods at the same time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lactate_threshold(
+  .data,
+  intensity_column,
+  lactate_column,
+  heart_rate_column,
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
+  fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
+  include_baseline = FALSE,
+  sport = c("cycling", "running", "swimming"),
+  loglog_restrainer = 1,
+  plot = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>The raw data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensity_column</code></td>
+<td>
+<p>The name of the intensity column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lactate_column</code></td>
+<td>
+<p>The name of the lactate column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heart_rate_column</code></td>
+<td>
+<p>The name of the heart rate column, if applicable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The lactate threshold method to calculate. It can be one or many of the following:
+<code>Log-log</code>, <code>OBLA</code>, <code style="white-space: pre;">⁠Bsln+⁠</code>, <code>Dmax</code>, <code>LTP</code>, <code>LTratio</code>. See <code>Details</code> for more information.
+Default to <code>c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
+Please, note that a few lactate thresholds have default methods for this and cannot be changed.
+Options are <code style="white-space: pre;">⁠3rd degree polynomial⁠</code>, <code style="white-space: pre;">⁠4th degree polynomial⁠</code>, or <code>B-spline</code>. See <code>Details</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_baseline</code></td>
+<td>
+<p>A boolean to indicate whether to include the baseline value in the fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sport</code></td>
+<td>
+<p>The sport at which the incremental test was performed. One of <code>cycling</code>, <code>running</code>, or <code>swimming</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglog_restrainer</code></td>
+<td>
+<p>A scalar from 0 to 1 indicating the percentage of the data that you would like to
+restrain for fitting the Log-Log method. For example, <code>1</code> means no restriction (fits using the whole data), and <code>0.5</code> means that
+only the first 50% of the data will be used. Default to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>A boolean to indicate whether to generate a plot from each one of the methods. Default to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+
+<h4>Log-log</h4>
+
+<p>The lactate response (i.e., log of lactate vs intensity) is divided into two segments.
+A segmented regression is then performed such that the lactate curve would present one breaking point. The exercise
+intensity at which the breaking point occurs is then considered as Log-log (Beaver et al., 1985).
+Caution: this method might require a double-check via a visual inspection, depending in some cases.
+</p>
+
+
+
+<h4>OBLA</h4>
+
+<p>The Onset of Blood Lactate Accumulation (OBLA) is the exercise intensity at fixed lactate of 2.0, 2.5,
+3.0, 3.5, and 4.0 mmol/L (Heck et al., 1985, Kindermann et al., 1979; Skinner &amp; Mclellan, 1980). The lactate curve is usually fitted using a 3rd order polynomial regression curve,
+but the user can define another method (4th degree polynomial or B-spline).
+</p>
+
+
+
+<h4>Bsln+</h4>
+
+<p>In the baseline plus method (Bsln+), the exercise intensity at which lactate increases to 0.5, 1.0,
+and 1.5 mmol/L above baseline (resting) values is considered (Berg et al., 1990; Zoladz et al., 1995). The lactate curve is usually fitted using a
+3rd order polynomial regression curve,
+but the user can define another method (4th degree polynomial or B-spline).
+</p>
+
+
+
+<h4>Dmax</h4>
+
+
+
+<h5>Dmax</h5>
+
+<p>The exercise intensity that yields the maximum perpendicular distance to the straight line
+between the first and the last data point (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial regression curve,
+and it can't be changed.
+</p>
+
+
+
+<h5>Modified Dmax (ModDmax)</h5>
+
+<p>The exercise intensity that yields the maximum perpendicular distance to the straight line
+between data point preceding the first rise in lactate greater than 0.4 mmol/L and the last
+data point (Bishop et al., 1998). The lactate curve is fitted using a 3rd order polynomial regression curve,
+and it can't be changed.
+</p>
+
+
+
+<h5>Exponential Dmax (Exp-Dmax)</h5>
+
+<p>The exercise intensity on the exponential plus-constant regression lactate curve that
+yields the maximum perpendicular distance to the straight line between the first and the
+last data point (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
+and it can't be changed.
+</p>
+
+
+
+<h5>Log-log modified Dmax (Log-Poly-ModDmax)</h5>
+
+<p>The exercise intensity that yields the maximum perpendicular distance to the straight line
+between Log-log and the last data point in the 3rd order polynomial regression curve (Jamnick et al., 2018).
+The lactate curve is fitted using a 3rd order polynomial regression curve,
+and it can't be changed.
+</p>
+
+
+
+<h5>Log-log exponential Dmax (Log-Exp-ModDmax)</h5>
+
+<p>The exercise intensity that yields the maximum perpendicular distance to the straight line
+between Log-log and the last data point in the exponential curve (Jamnick et al., 2018).
+The lactate curve is fitted using an exponential curve,
+and it can't be changed.
+</p>
+
+
+
+
+<h4>LTP</h4>
+
+
+
+<h5>Lactate Turning Point 1 (LTP1) and Lactate Turning Point 2 (LTP2)</h5>
+
+<p>the lactate response is divided into three segments. A segmented regression is performed
+such that the lactate curve yields two breaking points. The first breaking point, representing
+the first rise in lactate above resting levels, is considered as LTP1. The second breaking point,
+representing an accelerated lactate accumulation, is then considered as LTP2
+(Hofmann &amp; Tschakert, 2017; Hofmann et al., 1997; Pokan et al., 1997).
+Caution: this method might require a double-check via a visual inspection, depending in some cases.
+</p>
+
+
+
+
+<h4>LTratio</h4>
+
+<p>The lactate response (i.e., ratio of lactate / exercise intensity vs exercise intensity) is interpolated
+using a B-spline regression curve. LTratio is then defined as the lowest value of the lactate / exercise intensity
+ratio, which attempts to describe the onset of the lactate increase (Dickhuth et al., 1999).
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>a tibble with the following columns:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>method_category</code></td>
+<td>
+<p>the category of the lactate threshold method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the method used to estimate the lactate threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitting</code></td>
+<td>
+<p>the fitting method used to predict the lactate curve</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intensity</code></td>
+<td>
+<p>the intensity associated with the estimated lactate threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lactate</code></td>
+<td>
+<p>the lactate concentration associated with the estimated lactate threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heart_rate</code></td>
+<td>
+<p>the heart rate associated with the estimated lactate threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>the plot produced to display the lactate threshold</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log transformation.
+Journal of Applied Physiology. 1985;59(6):1936–40.
+</p>
+<p>Heck H, Mader A, Hess G, Mücke S, Müller R, Hollmann W. Justification of the 4-mmol/l Lactate Threshold.
+International Journal of Sports Medicine. 1985;06(03):117–30.
+</p>
+<p>Kindermann W, Simon G, Keul J. The significance of the aerobic-anaerobic transition for the determination of work load
+intensities during endurance training. European Journal of Applied Physiology and Occupational Physiology. 1979;42(1):25–34.
+</p>
+<p>Skinner JS, Mclellan TH. The Transition from Aerobic to Anaerobic Metabolism. Research Quarterly for Exercise and Sport. 1980;51(1):234–48.
+</p>
+<p>Berg A, Jakob E, Lehmann M, Dickhuth HH, Huber G, Keul J. Current aspects of modern ergometry. Pneumologie. 1990;44(1):2–13.
+</p>
+<p>Zoladz JA, Rademaker AC, Sargeant AJ. Non-linear relationship between O2 uptake and power output at high intensities of
+exercise in humans. The Journal of Physiology. 1995;488(1):211–7.
+</p>
+<p>Cheng B, Kuipers H, Snyder A, Keizer H, Jeukendrup A, Hesselink M. A New Approach for the Determination of Ventilatory and
+Lactate Thresholds. International Journal of Sports Medicine. 1992;13(07):518–22.
+</p>
+<p>Bishop D, Jenkins DG, Mackinnon LT. The relationship between plasma lactate parameters, Wpeak and 1-h cycling performance
+in women. Med Sci Sports Exerc. 1998;30(8):1270–5.
+</p>
+<p>Hughson RL, Weisiger KH, Swanson GD. Blood lactate concentration increases as a continuous function in progressive exercise.
+Journal of Applied Physiology. 1987;62(5):1975–81.
+</p>
+<p>Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the lactate
+threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
+</p>
+<p>Hofmann P, Tschakert G. Intensity- and Duration-Based Options to Regulate Endurance Training. Front Physiol. 2017;8:337.
+</p>
+<p>Hofmann P, Pokan R, von Duvillard SP, Seibert FJ, Zweiker R, Schmid P. Heart rate performance curve during incremental
+cycle ergometer exercise in healthy young male subjects. Med Sci Sports Exerc. 1997;29(6):762–8.
+</p>
+<p>Pokan R, Hofmann P, Von Duvillard SP, et al. Left ventricular function in response to the transition from aerobic to
+anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040–7.
+</p>
+<p>Dickhuth H-H, Yin L, Niess A, et al. Ventilatory, Lactate-Derived and Catecholamine Thresholds During Incremental
+Treadmill Running: Relationship and Reproducibility. International Journal of Sports Medicine. 1999;20(02):122–7.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+lactate_threshold(
+  .data = demo_data,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  fit = "3rd degree polynomial",
+  include_baseline = TRUE,
+  sport = "cycling",
+  loglog_restrainer = 1,
+  plot = TRUE
+)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

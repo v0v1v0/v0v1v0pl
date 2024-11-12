@@ -1,0 +1,127 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IcosahedronGrid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Icosahedral multi-resolution grids
+
+</h2>
+
+<h3>Description</h3>
+
+<p>Creates a multi-resolution grid based on subdividing triangles starting with faces of an 
+icosahedron.  
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IcosahedronGrid(K)
+
+IcosahedronFaces(K)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>K</code></td>
+<td>
+<p> Number of levels.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Creates a nearly regular grid by taking the first
+level as the 12 points from a regular icosahedron. The subsequent levels generate a finer set
+of points by subdividing each triangular face into 4 new triangles. The three new mid points
+from the subdivision are added to the previous nodes to give the new level of resolution. The
+triangles tend to be roughly  equilateral and so the nodes will tend to be roughly equally
+space but there is some variation in distances among nearest neighbors. 
+</p>
+<p>To depict the faces and nodes in a snazzy way use the <code>rgl</code> package and the following code 
+</p>
+<pre>
+library( rgl)
+# show level 3
+Level&lt;- 3
+    SGrid &lt;- IcosahedronFaces(4)
+    Tri &lt;- SGrid$Face[[Level]]
+    L &lt;- dim(Tri)[3]
+    plot3d(rbind(c(0, 0, 0)), xlim = c(-1, 1), ylim = c(-1, 1), 
+        zlim = c(-1, 1), axes = FALSE, xlab = "", ylab = "", 
+        zlab = "", type = "p", box = TRUE)
+    for (k in 1:L) {
+        U &lt;- Tri[, , k]
+        rgl.triangles(U, col = "grey80")
+    }
+    plot3d(SGrid$nodes[[Level]], col = "green4", type = "s", 
+        radius = 0.03, add = TRUE)
+</pre>
+
+
+
+
+<h3>Value</h3>
+
+<p><strong>IcosahedronGrid</strong> A list with <code>K</code> components each component is a three column matrix
+giving the direction cosines for each grid point. 
+</p>
+<p><strong>IcosahedronFaces</strong> A list with components:
+</p>
+
+<dl>
+<dt>MultiGrid</dt>
+<dd>
+<p>The same list returned by IcosahedronGrid. </p>
+</dd>
+<dt>Faces</dt>
+<dd>
+<p>A list with <code>K-1</code> components. Each components are the faces at a given level
+represented as a three dimensional array (3X3XN with N the number of faces and a given level). The
+array indices are vertices of triangle, coordinates and faces within a resolution level.   e.g. to
+extract the 10th face (out of 80) for  the 2nd level: 
+</p>
+<pre>
+look&lt;- IcosahedronFaces(3)$Faces
+triangle &lt;- (look[[2]])[,,10]
+print (triangle)
+           [,1]       [,2]      [,3]
+[1,] -0.5257311 -0.8506508  0.000000
+[2,] -0.8090170 -0.5000000  0.309017
+[3,] -0.8090170 -0.5000000 -0.309017
+rowSums( triangle^2)
+[1] 1 1 1
+</pre>
+<p><code>triangle</code> will be the 10th face for the second level where
+the columns are the 3d
+coordinates of the direction cosines and the rows index the three
+vertices. 
+</p>
+</dd>
+</dl>
+<h3>Author(s)</h3>
+
+<p>Doug Nychka and Zachary Thomas
+
+</p>
+
+
+<h3>See Also</h3>
+
+ <p>toSphere, directionCosines, projectionSphere </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># second level in lon lat coordinates 
+look&lt;- IcosahedronGrid(3)
+lonlat&lt;- toSphere( look[[3]])
+plot( lonlat, xlab="lon", ylab="lat")
+</code></pre>
+
+
+</div>

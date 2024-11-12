@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>star</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the silhouette to area ratio</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the percentage of potential exposure of flat, tilted surfaces to direct solar radiation. It is equivalent to the ratio of the surface projected area to total surface area, but instead of using area data it uses spatial position angles (pitch, roll and course or tilt and course), geographical coordinates, hour and date information. This function implements equation 3 in Escribano-Rocafort et al. (2014).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">star(x, lat, long, local.time = NULL, tz, Ahmes = F, ID = NULL,
+  pitch = NULL, roll = NULL, horiz = T, tilt.ang = NULL,
+  course = NULL, date = NULL, o.format = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A dataframe with observations in the rows and at least two spatial position angles in the columns (see Details). Data can either come from 'Ahmes' 1.0 or from measurements performed with traditional instrumentation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lat</code></td>
+<td>
+<p>A vector with the latitude of each observation in decimal format. If all observations correspond to the same latitude, <code>lat</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>long</code></td>
+<td>
+<p>A vector with the longitude of each observation in decimal format. If all observations correspond to the same longitude, <code>long</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>local.time</code></td>
+<td>
+<p>A numeric vector with the approximate local time of each observation in decimal format. Hours from 0 to 24. Minutes in decimal format, from 0 to 99. E.g., 12:30 should be written as 12.50. If available, seconds should also be specified in decimal format. See <code>fixhour</code>. If all observations correspond to the same local time, <code>local.time</code> can be introduced directly as a single number (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>A vector with the time zone of each observation. If all observations correspond to the same time zone, <code>tz</code> can be introduced directly as a single number (see examples). Time zones located at the West of Greenwich are negative, and at the East are positive; e.g., for Colombia, <code>tz</code> = -5; for Reunion Island, <code>tz</code> = 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ahmes</code></td>
+<td>
+<p>Logical. Do data come from 'Ahmes' 1.0? Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ID</code></td>
+<td>
+<p>An optional vector with the labels of the observations. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pitch</code></td>
+<td>
+<p>A vector with pitch angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>roll</code></td>
+<td>
+<p>A vector with roll rotation angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>horiz</code></td>
+<td>
+<p>Logical. Set the position of the start (zero, 0) of pitch, roll and tilt angle data. <code>horiz = F</code> indicates the zero is located at zenith. This is the reference system used by 'Ahmes'. <code>horiz = T</code> indicates the start is at the horizon. To use tilt in further calculations (<code>simu.star</code>, <code>sal</code>...), angle data should be expressed in the horizontal reference system (0 = horizon). Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tilt.ang</code></td>
+<td>
+<p>A vector with tilt angles in degrees. Tilt is calculated from <code>pitch</code> and <code>roll</code> angles. This argument allows to specify tilt directly if available.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>course</code></td>
+<td>
+<p>A vector with course angles in degrees. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>date</code></td>
+<td>
+<p>A vector containing the date(s) when observations were made. If input data do not come from 'Ahmes', <code>o.format</code> needs to be specified. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>o.format</code></td>
+<td>
+<p>A character indicating the date format in the input data. It is similar to the argument <code>format</code> in the function <code>as.Date{base}</code>. Defaults to <code>NULL</code>. See details and examples.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>x</code> may also content geographical coordinates and hour and date information.
+</p>
+<p><code>date</code> Internally the function uses Julian dates. Julian date is the recommended input format. Conversion tables are available at <a href="https://landweb.nascom.nasa.gov/browse/calendar.html">https://landweb.nascom.nasa.gov/browse/calendar.html</a> for leap and regular years.
+</p>
+<p><code>o.format</code> Needs to be specified if <code>Ahmes = FALSE</code> AND input data format is other than Julian or the default formats handled by <code>as.Date{base}</code> ("%Y/%m/%d" and "%Y-%m-%d"). When <code>Ahmes = TRUE</code>, <code>o.format</code> is not needed because functions of the <code>Ahmes</code> family solve date issues internally.
+</p>
+<p><code>pitch</code> values span from 0 to 180 degrees. If <code>horiz = TRUE</code> (default) 0 and 180 refer to the flat horizontal surface and 90 refers to the flat vertical surface. If <code>horiz = FALSE</code> 0 and 180 refer to the flat vertical surface and 90 refers to the flat horizontal surface.
+</p>
+<p><code>roll</code> values span from 0 to 180 degrees.
+</p>
+<p><code>course</code> values span from 0 (North) to 360 degrees, clockwise. Course is the angle between north and the horizontal projection of a normal vector to the surface.
+</p>
+<p>For a graphical explanation, see Fig. 2 in Escribano-Rocafort et al. (2014).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Agustina Ventre-Lespiaucq and Silvia Santamaria Bueno.
+</p>
+
+
+<h3>References</h3>
+
+<p><strong>Escribano-Rocafort, A.G., Ventre-Lespiaucq, A.B., Granado-Yela, C., Lopez-Pintor, A., Delgado, J.A., Munoz, V., Dorado, G.A., Balaguer, L. (2014).</strong> Simplifying data acquisition in plant canopies- Measurements of leaf angles with a cell phone. Methods in Ecology and Evolution 5:132-140. doi:10.1111/2041-210X.12141.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Example with an 'Ahmes'-type input
+data(olea)
+star_olea&lt;-star(olea,lat=40,long=4,tz=2,Ahmes=TRUE)
+ # Add results to the original dataset
+    olea1&lt;-fixfile(olea) # Fix the original dataset
+    olea2&lt;-cbind(olea1,as.data.frame(star_olea))
+
+ # Example with an input different to 'Ahmes' data
+  data(olive)
+   star_olive&lt;-star(olive,lat=olive$latitude,long=olive$longitude,
+               local.time=olive$hour,tz=olive$tz, Ahmes=FALSE,
+               ID=olive$leafID,tilt.ang=olive$tilt,horiz=TRUE,
+               course=olive$course,date=olive$date)
+  # Add results to the original dataset.
+   olive2&lt;-cbind(olive,as.data.frame(star_olive)) # Since it does not
+                                                 # come from 'Ahmes', 
+                                                 # it is not necessary 
+                                                 # to run fixfile().
+
+## Input date formats. The three examples give the same result.
+   # 1. With Julian date
+        julian_olive&lt;-star(olive,lat=olive$latitude,long=olive$longitude,
+                      local.time=olive$hour,tz=olive$tz,
+                      Ahmes=FALSE,ID=olive$leafID,tilt.ang=olive$tilt,horiz=TRUE,
+                      course=olive$course,date=25) # January 25th
+ 
+   # 2. With standard date
+        std_olive&lt;-star(olive,lat=olive$latitude,long=olive$longitude,
+                   local.time=olive$hour,tz=olive$tz,
+                   Ahmes=FALSE,ID=olive$leafID,tilt.ang=olive$tilt,horiz=TRUE,
+                   course=olive$course,date="2017/01/25") # January 25th 2017.
+                         # Date should be quoted. o.format is not needed.
+
+   # 3. With non-standard date
+        nonstd_olive&lt;-star(olive,lat=olive$latitude,long=olive$longitude,
+                      local.time=olive$hour,tz=olive$tz, Ahmes=FALSE,
+                      ID=olive$leafID,tilt.ang=olive$tilt,horiz=TRUE,
+                      course=olive$course,date="25/01/2017",o.format="%d/%m/%Y") 
+               # January 25th 2017. Date should be quoted. o.format is necessary.
+
+# star()
+</code></pre>
+
+
+</div>

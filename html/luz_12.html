@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ctx</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Context object</h2>
+
+<h3>Description</h3>
+
+<p>Context objects used in luz to share information between model methods,
+metrics and callbacks.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The <code>ctx</code> object is used in luz to share information between the
+training loop and callbacks, model methods, and metrics. The table below
+describes information available in the <code>ctx</code> by default. Other callbacks
+could potentially modify these attributes or add new ones.
+<!-- It's recommended to use the RStudio Visual editor to edit this table. -->
+
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   Attribute </td>
+<td style="text-align: left;"> Description </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>verbose</code> </td>
+<td style="text-align: left;"> The value (<code>TRUE</code> or <code>FALSE</code>) attributed to the <code>verbose</code> argument in <code>fit</code> . </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>accelerator</code> </td>
+<td style="text-align: left;"> Accelerator object used to query the correct device to place models, data, etc. It assumes the value passed to the <code>accelerator</code> parameter in <code>fit</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>model</code> </td>
+<td style="text-align: left;"> Initialized <code>nn_module</code> object that will be trained during the <code>fit</code> procedure. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>optimizers</code> </td>
+<td style="text-align: left;"> A named list of optimizers used during training. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>data</code> </td>
+<td style="text-align: left;"> The currently in-use dataloader. When training it’s <code>ctx$train_data</code>, when doing validation its <code>ctx$valid_data</code>. It can also be the prediction dataset when in <code>predict</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>train_data</code> </td>
+<td style="text-align: left;"> Dataloader passed to the <code>data</code> argument in <code>fit</code>. Modified to yield data in the selected device. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>valid_data</code> </td>
+<td style="text-align: left;"> Dataloader passed to the <code>valid_data</code> argument in <code>fit</code>. Modified to yield data in the selected device. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>min_epochs</code> </td>
+<td style="text-align: left;"> Minimum number of epochs the model will be trained for. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>max_epochs</code> </td>
+<td style="text-align: left;"> Maximum number of epochs the model will be trained for. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>epoch</code> </td>
+<td style="text-align: left;"> Current training epoch. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>iter</code> </td>
+<td style="text-align: left;"> Current training iteration. It’s reset every epoch and when going from training to validation. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>training</code> </td>
+<td style="text-align: left;"> Whether the model is in training or validation mode. See also <code>help("luz_callback_train_valid")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>callbacks</code> </td>
+<td style="text-align: left;"> List of callbacks that will be called during the training procedure. It’s the union of the list passed to the <code>callbacks</code> parameter and the default <code>callbacks</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>step</code> </td>
+<td style="text-align: left;"> Closure that will be used to do one <code>step</code> of the model. It’s used for both training and validation. Takes no argument, but can access the <code>ctx</code> object. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>call_callbacks</code> </td>
+<td style="text-align: left;"> Call callbacks by name. For example <code>call_callbacks("on_train_begin")</code> will call all callbacks that provide methods for this point. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>batch</code> </td>
+<td style="text-align: left;"> Last batch obtained by the dataloader. A batch is a <code>list()</code> with 2 elements, one that is used as <code>input</code> and the other as <code>target</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>input</code> </td>
+<td style="text-align: left;"> First element of the last batch obtained by the current dataloader. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>target</code> </td>
+<td style="text-align: left;"> Second element of the last batch obtained by the current dataloader. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>pred</code> </td>
+<td style="text-align: left;"> Last predictions obtained by <code>ctx$model$forward</code> . <strong>Note:</strong> can be potentially modified by previously ran callbacks. Also note that this might not be available if you used a custom training step. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>loss_fn</code> </td>
+<td style="text-align: left;"> The active loss function that will be minimized during training. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>loss</code> </td>
+<td style="text-align: left;"> Last computed loss from the model. <strong>Note:</strong> this might not be available if you modified the training or validation step. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>opt</code> </td>
+<td style="text-align: left;"> Current optimizer, ie. the optimizer that will be used to do the next <code>step</code> to update parameters. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>opt_nm</code> </td>
+<td style="text-align: left;"> Current optimizer name. By default it’s <code>opt</code> , but can change if your model uses more than one optimizer depending on the set of parameters being optimized. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>metrics</code> </td>
+<td style="text-align: left;"> <code>list()</code> with current metric objects that are <code>update</code>d at every <code>on_train_batch_end()</code> or <code>on_valid_batch_end()</code>. See also <code>help("luz_callback_metrics")</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>records</code> </td>
+<td style="text-align: left;"> <code>list()</code> recording metric values for training and validation for each epoch. See also <code>help("luz_callback_metrics")</code> . Also records profiling metrics. See <code>help("luz_callback_profile")</code> for more information. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>handlers</code> </td>
+<td style="text-align: left;"> A named <code>list()</code> of handlers that is passed to <code>rlang::with_handlers()</code> during the training loop and can be used to handle errors or conditions that might be raised by other callbacks. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>epoch_handlers</code> </td>
+<td style="text-align: left;"> A named list of handlers that is used with <code>rlang::with_handlers()</code>. Those handlers are used inside the epochs loop, thus you can handle epoch specific conditions, that won’t necessarily end training. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>Context attributes
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Context object: context
+</p>
+
+
+</div>

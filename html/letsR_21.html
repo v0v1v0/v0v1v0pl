@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lets.presab.grid</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a presence-absence matrix of species' geographic ranges 
+within a user's grid shapefile (beta version)</h2>
+
+<h3>Description</h3>
+
+<p>Convert species' ranges (in shapefile format) into a presence-absence matrix based on a grid in shapefile format.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lets.presab.grid(
+  shapes,
+  grid,
+  sample.unit,
+  remove.sp = TRUE,
+  presence = NULL,
+  origin = NULL,
+  seasonal = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>shapes</code></td>
+<td>
+<p>Object of class <code>SpatVect</code> or <code>Spatial</code> (see packages
+<code>terra</code> and  <code>sf</code> to read these files) containing
+the distribution of one or more species. Species names should be stored in
+the object as BINOMIAL/binomial or SCINAME/sciname.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grid</code></td>
+<td>
+<p>Object of class shapefile representing the spatial grid (e.g. regular/irregular cells, 
+political divisions, hexagonal grids, etc). 
+The grid and the shapefiles must be in the same projection.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample.unit</code></td>
+<td>
+<p>Object of class <code>character</code> with the name of the column (in the grid) 
+representing the sample units of the presence absence matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>remove.sp</code></td>
+<td>
+<p>Logical, if <code>TRUE</code> the final matrix will not contain
+species that do not match any cell in the grid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>presence</code></td>
+<td>
+<p>A vector with the code numbers for the presence type to be
+considered in the process (for IUCN spatial data
+<a href="https://www.iucnredlist.org/resources/spatial-data-download">https://www.iucnredlist.org/resources/spatial-data-download</a>, see
+metadata).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>origin</code></td>
+<td>
+<p>A vector with the code numbers for the origin type to be
+considered in the process (for IUCN spatial data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seasonal</code></td>
+<td>
+<p>A vector with the code numbers for the seasonal type to be
+considered in the process (for IUCN spatial data).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is an alternative way to create a presence absence matrix when users
+already have their own grid.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The result is a <code>list</code> containing two objects: 
+</p>
+<p>(I) A matrix the species presence (1) and absence (0) values per sample unity.
+</p>
+<p>(II) The original grid.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Bruno Vilela &amp; Fabricio Villalobos
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>plot.PresenceAbsence</code>
+</p>
+<p><code>lets.presab.birds</code>
+</p>
+<p><code>lets.shFilter</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Species polygons
+data("Phyllomedusa")
+data("wrld_simpl")
+# Grid 
+sp.r &lt;- terra::as.polygons(terra::rast(resol = 5, 
+crs = terra::crs(Phyllomedusa),
+xmin = -93, xmax = -29, ymin = -57, ymax = 15))
+sp.r$ID &lt;- 1:length(sp.r)
+                         
+
+# PAM
+resu &lt;- lets.presab.grid(Phyllomedusa, sp.r, "ID")
+
+# Plot
+rich_plus1 &lt;- rowSums(resu$PAM[, -1]) + 1
+colfunc &lt;- colorRampPalette(c("#fff5f0", "#fb6a4a", "#67000d"))
+colors &lt;- c("white", colfunc(max(rich_plus1)))
+plot(resu$grid, border = "gray40",
+     col = colors[rich_plus1])
+plot(sf::st_geometry(wrld_simpl), add = TRUE)
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>item.fit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Item-Fit Statistics and P-values </h2>
+
+<h3>Description</h3>
+
+<p>Computation of item fit statistics for <code>ltm</code>, <code>rasch</code> and <code>tpm</code> models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">item.fit(object, G = 10, FUN = median, 
+         simulate.p.value = FALSE, B = 100)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a model object inheriting either from class <code>ltm</code>, class <code>rasch</code> or class <code>tpm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>either a number or a numeric vector. If a number, then it denotes the number of categories sample units
+are grouped according to their ability estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>FUN</code></td>
+<td>
+<p>a function to summarize the ability estimate with each group (e.g., median, mean, etc.).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulate.p.value</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, then the Monte Carlo procedure described in the <b>Details</b> 
+section is used to approximate the the distribution of the item-fit statistic under the null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>the number of replications in the Monte Carlo procedure.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The item-fit statistic computed by <code>item.fit()</code> has the form: </p>
+<p style="text-align: center;"><code class="reqn">\sum \limits_{j = 1}^G \frac{N_j 
+  (O_{ij} - E_{ij})^2}{E_{ij} (1 - E_{ij})},</code>
+</p>
+
+<p>where <code class="reqn">i</code> is the item, <code class="reqn">j</code> is the interval created by grouping sample units on the basis of their ability
+estimates, <code class="reqn">G</code> is the number of sample units groupings (i.e., <code>G</code> argument), <code class="reqn">N_j</code> is the number of
+sample units with ability estimates falling in a given interval <code class="reqn">j</code>, <code class="reqn">O_{ij}</code> is the observed proportion of 
+keyed responses on item <code class="reqn">i</code> for interval <code class="reqn">j</code>, and <code class="reqn">E_{ij}</code> is the expected proportion of keyed responses 
+on item <code class="reqn">i</code> for interval <code class="reqn">j</code> based on the IRT model (i.e., <code>object</code>) evaluated at the ability estimate 
+<code class="reqn">z^*</code> within the interval, with <code class="reqn">z^*</code> denoting the result of <code>FUN</code> applied to the ability estimates in 
+group <code class="reqn">j</code>.
+</p>
+<p>If <code>simulate.p.value = FALSE</code>, then the <code class="reqn">p</code>-values are computed assuming a chi-squared distribution with 
+degrees of freedom equal to the number of groups <code>G</code> minus the number of estimated parameters. If 
+<code>simulate.p.value = TRUE</code>, a Monte Carlo procedure is used to approximate the distribution of the item-fit 
+statistic under the null hypothesis. In particular, the following steps are replicated <code>B</code> times:
+</p>
+
+<dl>
+<dt>Step 1:</dt>
+<dd>
+<p>Simulate a new data-set of dichotomous responses under the assumed IRT model, using the maximum
+likelihood estimates <code class="reqn">\hat{\theta}</code> in the original data-set, extracted from <code>object</code>.</p>
+</dd>
+<dt>Step 2:</dt>
+<dd>
+<p>Fit the model to the simulated data-set, extract the maximum likelihood estimates 
+<code class="reqn">\theta^*</code> and compute the ability estimates <code class="reqn">z^*</code> for each response pattern.</p>
+</dd>
+<dt>Step 3:</dt>
+<dd>
+<p>For the new data-set, and using <code class="reqn">z^*</code> and <code class="reqn">\theta^*</code>, compute the value of the 
+item-fit statistic.</p>
+</dd>
+</dl>
+<p>Denote by <code class="reqn">T_{obs}</code> the value of the item-fit statistic for the original data-set. Then the <code class="reqn">p</code>-value is 
+approximated according to the formula </p>
+<p style="text-align: center;"><code class="reqn">\left(1 + \sum_{b = 1}^B I(T_b \geq T_{obs})\right) / (1 + B),</code>
+</p>
+<p> where <code class="reqn">I(.)</code> denotes the indicator function, and <code class="reqn">T_b</code> denotes 
+the value of the item-fit statistic in the <code class="reqn">b</code>th simulated data-set.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>itemFit</code> is a list with components,
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>Tobs</code></td>
+<td>
+<p>a numeric vector with item-fit statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.values</code></td>
+<td>
+<p>a numeric vector with the corresponding <code class="reqn">p</code>-values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+<p>the value of the <code>G</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simulate.p.value</code></td>
+<td>
+<p>the value of the <code>simulate.p.value</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>the value of the <code>B</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>a copy of the matched call of <code>object</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Dimitris Rizopoulos <a href="mailto:d.rizopoulos@erasmusmc.nl">d.rizopoulos@erasmusmc.nl</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Reise, S. (1990) A comparison of item- and person-fit methods of assessing model-data fit in IRT. <em>Applied
+Psychological Measurement</em>, <b>14</b>, 127–137.
+</p>
+<p>Yen, W. (1981) Using simulation results to choose a latent trait model. <em>Applied Psychological Measurement</em>, 
+<b>5</b>, 245–262.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>person.fit</code>,
+<code>margins</code>,
+<code>GoF.gpcm</code>,
+<code>GoF.rasch</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# item-fit statistics for the Rasch model
+# for the Abortion data-set
+item.fit(rasch(Abortion))
+
+# Yen's Q1 item-fit statistic (i.e., 10 latent ability groups; the
+# mean ability in each group is used to compute fitted proportions) 
+# for the two-parameter logistic model for the LSAT data-set
+item.fit(ltm(LSAT ~ z1), FUN = mean)
+
+</code></pre>
+
+
+</div>

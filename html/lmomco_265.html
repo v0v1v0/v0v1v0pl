@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfgev</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Generalized Extreme Value Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density
+of the Generalized Extreme Value distribution given parameters (<code class="reqn">\xi</code>, <code class="reqn">\alpha</code>, and <code class="reqn">\kappa</code>)  computed by <code>pargev</code>. The probability density function is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x) = \alpha^{-1} \exp[-(1-\kappa)Y - \exp(-Y)] \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">Y</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">Y = -\kappa^{-1} \log\!\left(1 - \frac{\kappa(x-\xi)}{\alpha}\right)\mbox{,}</code>
+</p>
+
+<p>for <code class="reqn">\kappa \ne 0</code>, and
+</p>
+<p style="text-align: center;"><code class="reqn">Y = (x-\xi)/\alpha\mbox{,}</code>
+</p>
+
+<p>for <code class="reqn">\kappa = 0</code>, where <code class="reqn">f(x)</code> is the probability density for quantile <code class="reqn">x</code>, <code class="reqn">\xi</code> is a location parameter, <code class="reqn">\alpha</code> is a scale parameter, and <code class="reqn">\kappa</code> is a shape parameter. The range of <code class="reqn">x</code> is <code class="reqn">-\infty &lt; x \le \xi + \alpha/\kappa</code> if <code class="reqn">k &gt; 0</code>; <code class="reqn">\xi + \alpha/\kappa \le x &lt; \infty</code> if <code class="reqn">\kappa \le 0</code>. Note that the shape parameter <code class="reqn">\kappa</code> parameterization of the distribution herein follows that in tradition by the greater L-moment community and others use a sign reversal on <code class="reqn">\kappa</code>. (The <span class="pkg">evd</span> package is one example.)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfgev(x, para, paracheck=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>pargev</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical switch as to whether the validity of the parameters should be checked.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124, <a href="https://doi.org/10.1111/j.2517-6161.1990.tb01775.x">doi:10.1111/j.2517-6161.1990.tb01775.x</a>.
+</p>
+<p>Hosking, J.R.M., 1996, FORTRAN routines for use with the method of L-moments: Version 3, IBM Research Report RC20525, T.J. Watson Research Center, Yorktown Heights, New York.
+</p>
+<p>Hosking, J.R.M. and Wallis, J.R., 1997, Regional frequency analysis—An approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfgev</code>, <code>quagev</code>, <code>lmomgev</code>, <code>pargev</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  lmr &lt;- lmoms(c(123, 34, 4, 654, 37, 78))
+  gev &lt;- pargev(lmr)
+  x &lt;- quagev(0.5, gev)
+       pdfgev(  x, gev)
+
+## Not run: 
+  # We explore using maximum likelihood for GEV estimation on its density function.
+  # We check the convergence and check on parameters back estimating the mean.
+  small &lt;- .Machine$double.eps
+  for(k in c(-2, -1/2, -small, 0, +small, 1/2, 2)) {
+    names(k) &lt;- "myKappa"
+    gev &lt;- vec2par(c(2, 2, k), type="gev")
+    x &lt;- rlmomco(1000, gev)
+    mu1 &lt;- mean(x); names(mu1) &lt;- "mean"
+    cv1 &lt;-      NA; names(cv1) &lt;- "converge"
+    mle &lt;- mle2par(x, type="gev", init.para=pargev(lmoms(x)),
+             ptransf=function(t) { c(t[1], log(t[2]), t[3]) },
+           pretransf=function(t) { c(t[1], exp(t[2]), t[3]) },
+                      null.on.not.converge=FALSE)
+    mu2 &lt;- lmomgev(mle)$lambdas[1]; names(mu2) &lt;- "backMean"
+    cv2 &lt;- mle$optim$convergence;   names(cv2) &lt;- "converge"
+    print(round(c(k, cv1, mu1, gev$para), digits=5))
+    print(round(c(k, cv2, mu2, mle$para), digits=5))
+  } # 
+## End(Not run)
+</code></pre>
+
+
+</div>

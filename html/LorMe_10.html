@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Deseq_analysis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Deseq Analysis Function</h2>
+
+<h3>Description</h3>
+
+<p>This function performs a differential expression analysis using the DESeq2 package.
+It is designed to work with microbiome data and can handle paired or non-paired samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Deseq_analysis(
+  taxobj,
+  taxlevel,
+  comparison = NULL,
+  cutoff,
+  control_name,
+  paired = FALSE,
+  subject = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>taxobj</code></td>
+<td>
+<p>Configured tax summary objects.See in <code>object_config</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxlevel</code></td>
+<td>
+<p>The taxonomic level for the analysis.Must be one of c("Domain","Phylum","Class","Order","Family","Genus","Species","Base")</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>comparison</code></td>
+<td>
+<p>A vector of conditions to compare. Default: NULL, all unique conditions are compared (only for Two groups).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cutoff</code></td>
+<td>
+<p>The log2 fold change cutoff for considering as differential taxon.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control_name</code></td>
+<td>
+<p>Character. The name of the control group for the comparison.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paired</code></td>
+<td>
+<p>Logical. Should the samples be treated as paired? Default: False</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subject</code></td>
+<td>
+<p>Optional. The subject identifier for paired samples. Default: Null</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame with the results of the differential expression analysis.
+</p>
+
+
+<h3>Note</h3>
+
+
+<ol>
+<li>
+<p> Regulation is judged by cutoff of q-value(adjust p value).Detail see in <code>DESeq</code>
+</p>
+</li>
+<li>
+<p> For more than two groups in taxobj, the 'comparison' must be assigned.
+</p>
+</li>
+<li>
+<p> The function requires the 'DESeq2', 'S4Vectors', and 'tibble' packages.
+</p>
+</li>
+</ol>
+<h3>Author(s)</h3>
+
+<p>Wang Ningqi <a href="mailto:2434066068@qq.com">2434066068@qq.com</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>DESeqDataSetFromMatrix</code>, <code>DESeq</code>, <code>DataFrame</code>, <code>as_tibble</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (requireNamespace("DESeq2", quietly = TRUE) &amp;&amp;
+    requireNamespace("S4Vectors", quietly = TRUE) &amp;&amp;
+    requireNamespace("tibble", quietly = TRUE)) {
+
+    ### Data preparation ###
+    data("Two_group")
+
+    ### Deseq analysis ###
+    deseq_results &lt;- Deseq_analysis(
+      taxobj = Two_group,
+      taxlevel = "Genus",
+      cutoff = 1,
+      control_name = "Control"
+    )
+
+    # Visualization of volcano plot ##
+    volcano_plot &lt;- volcano_plot(
+      inputframe = deseq_results,
+      cutoff = 1,
+      aes_col = Two_group$configuration$treat_col
+    )
+    volcano_plot$FC_FDR
+    volcano_plot$Mean_FC
+
+    # Visualization of Manhattan plot ##
+    manhattan_object &lt;- manhattan(
+      inputframe = deseq_results,
+      taxlevel = "Phylum",
+      control_name = "Control",
+      mode = "most",
+      top_n = 10,
+      rmprefix = "p__"
+    )
+    manhattan_object$manhattan  # Tradition manhattan plot
+    manhattan_object$manhattan_circle  # Circular manhattan plot
+
+    # For object with more than two groups
+    ### Data preparation ###
+    data("Three_group")
+
+    # Specific comparison
+    deseq_results_BFCF &lt;- Deseq_analysis(
+      taxobj = Three_group,
+      taxlevel = "Genus",
+      comparison = c("BF", "CF"),
+      cutoff = 1,
+      control_name = "CF"
+    )
+    volcano_plot &lt;- volcano_plot(
+      inputframe = deseq_results_BFCF,
+      cutoff = 1,
+      aes_col = Three_group$configuration$treat_col
+    )
+    volcano_plot$FC_FDR
+  } else {
+    message(
+      "The 'DESeq2', 'S4Vectors', and/or 'tibble' package(s) are not installed. ",
+      "Please install them to use all features of Deseq_analysis."
+    )
+  }
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,187 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>resample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Inference via Resampling for Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Non-parametric bootstrap or permutation test for Linear Mixed Models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">resample(object, type, ...)
+
+## S3 method for class 'lmm'
+resample(
+  object,
+  type,
+  effects,
+  n.sample = 1000,
+  studentized = TRUE,
+  level = 0.95,
+  correction = TRUE,
+  trace = TRUE,
+  seed = NULL,
+  cpus = 1,
+  export.cpus = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>[character] should permutation test (<code>"perm-var"</code> or <code>"perm-res"</code>) or non-parametric bootstrap (<code>"boot"</code>) be used?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used. For compatibility with the generic method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>[character vector] the variable(s) to be permuted or the effect(s) to be tested via non-parametric bootstrap.
+Can also be a function of the model parameters when performing non-parametric bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.sample</code></td>
+<td>
+<p>[integer] the number of samples used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>studentized</code></td>
+<td>
+<p>[logical] should a studentized boostrap or permutation test be used?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>[numeric,0-1] the confidence level of the confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correction</code></td>
+<td>
+<p>[logical] correction to ensure non-0 p-values, e.g. with permutations the p.value is evaluated as (#more extreme + 1)/(n.sample + 1) instead of (#more extreme)/(n.sample).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>[logical] should the execution of the resampling be traced?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>[integer, &gt;0] Random number generator (RNG) state used when starting resampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>[integer, &gt;0] number of child-processes for parallel evaluation.
+If <code>NULL</code> no state is set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export.cpus</code></td>
+<td>
+<p>[character vector] name of the variables to export to each cluster.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All approach are carried at the cluster level: </p>
+
+<ul>
+<li>
+<p> Bootstrap: sampling with replacement clusters. If a cluster is picked twice then different cluster id is used for each pick.
+</p>
+</li>
+<li>
+<p> Permutation: permuting covariate values between clusters (this only lead to the null hypothesis when the covariate values are constant within clusters)
+or assigning new outcome values by, under the null, permuting the normalized residuals, rescaling to residuals, and adding back the permuted fixed effect (any mean effect under H1 would be 0 because of the permutation if the variance-covariance structure is correct). The later procedure originates from Oliver et al (2012).
+</p>
+</li>
+</ul>
+<p>The studentized bootstrap keep the original estimate and standard error but uses the samples to evaluates the quantiles of the distribution used to form the confidence intervals.
+The studentized permutation test approximate the distribution of the test statistic under the null (instead of the distribution of the estimate under the null.).
+</p>
+<p>P-values for the bootstrap are computed by centering the bootstrap distribution of the estimate or test statistic around 0 and evaluating the frequency at which it takes values more extreme than the observed estimate or test statistics.
+</p>
+
+
+<h3>References</h3>
+
+<p>Oliver E. Lee and Thomas M. Braun (2012), <b>Permutation Tests for Random Effects in Linear Mixed Models</b>. <em>Biometrics</em>, Journal 68(2).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+
+#### univariate linear regression ####
+data(gastricbypassW, package = "LMMstar")
+## rescale to ease optimization
+gastricbypassW$weight1 &lt;- scale(gastricbypassW$weight1)
+gastricbypassW$weight2 &lt;- scale(gastricbypassW$weight2)
+gastricbypassW$glucagonAUC1 &lt;- scale(gastricbypassW$glucagonAUC1)
+
+e.lm &lt;- lmm(weight2~weight1+glucagonAUC1, data = gastricbypassW)
+model.tables(e.lm)
+
+## non-parametric bootstrap
+resample(e.lm, type = "boot", effects = c("weight1","glucagonAUC1"), seed = 10)
+## permutation test
+resample(e.lm, type = "perm-var", effects = "weight1", seed = 10) 
+resample(e.lm, type = "perm-var", effects = "glucagonAUC1", seed = 10)
+## using multiple cores
+resample(e.lm, type = "boot", effects = c("weight1","glucagonAUC1"), cpus = 4)
+
+#### random intercept model ####
+data(gastricbypassL, package = "LMMstar")
+gastricbypassL$weight &lt;- scale(gastricbypassL$weight)
+gastricbypassL$glucagonAUC &lt;- scale(gastricbypassL$glucagonAUC)
+gastricbypassL$gender &lt;- as.numeric(gastricbypassL$id) %% 2
+gastricbypassLR &lt;- na.omit(gastricbypassL)
+
+eCS.lmm &lt;- lmm(weight~glucagonAUC+gender, data = gastricbypassLR,
+               repetition = ~visit|id, structure = "CS")
+model.tables(eCS.lmm)
+
+## non-parametric bootstrap
+resample(eCS.lmm, type = "boot", effects = c("glucagonAUC","gender"), seed = 10, trace = FALSE)
+## permutation test
+resample(eCS.lmm, type = "perm-var", effects = "gender", seed = 10)
+resample(eCS.lmm, type = "perm-res", effects = "glucagonAUC", seed = 10) 
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,112 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>z.par2qua</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Blipping Quantile Functions</h2>
+
+<h3>Description</h3>
+
+<p>This function acts as a front end or dispatcher to the distribution-specific quantile functions but also provides for blipping for zero (or other) threshold according to
+</p>
+<p style="text-align: center;"><code class="reqn">x(F) = 0</code>
+</p>
+
+<p>for <code class="reqn">0 \le F \le p</code> and
+</p>
+<p style="text-align: center;"><code class="reqn">x_G\left(\frac{F-p}{1-p}\right)</code>
+</p>
+
+<p>for <code class="reqn">F &gt; p</code>. This function is generalized for <code class="reqn">z \ne 0</code>. The <code class="reqn">z</code> is not tracked as part of the parameter object. This might arguably be a design flaw, but the function will do its best to test whether the <code class="reqn">z</code> given is compatable (but not necessarily equal to <code class="reqn">\hat{x} = x(0)</code>) with the quantile function <code class="reqn">x(F)</code>.
+</p>
+<p>A recommended practice when working with this function when <code class="reqn">F</code> values are generated for various purposes, such as for graphics, then the value of <code class="reqn">p</code> should be inserted into the vector, and the vector obviously sorted (see the line using the <code>nonexceeds</code> function). This should be considered as well when <code>z.par2cdf</code> is used but with the insertion of the <code class="reqn">x</code> value at <code class="reqn">F=p</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">z.par2qua(f, p, para, z=0, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probabilities (<code class="reqn">0 \le F \le 1</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>Nonexceedance probability of <code>z</code> value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>lmom2par</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>Threshold value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>The additional arguments are passed to the quantile function such as <br><code>paracheck = FALSE</code> for the Generalized Lambda distribution (<code>quagld</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Quantile value for <code class="reqn">f</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>z.par2cdf</code>, <code>par2qua</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># define the real parent (or close)
+the.gpa   &lt;- vec2par(c(100,1000,0.1),type='gpa')
+fake.data &lt;- rlmomco(30,the.gpa) # simulate some data
+fake.data &lt;- sort(c(fake.data, rep(0,10))) # add some zero observations
+
+par(mgp=c(3,0.5,0)) # going to tick to the inside, change some parameters
+# next compute the parameters for the positive data
+gpa.all &lt;- pargpa(lmoms(fake.data))
+gpa.nzo &lt;- pargpa(lmoms(fake.data[fake.data &gt; 0]))
+n   &lt;- length(fake.data) # sample size
+p   &lt;- length(fake.data[fake.data == 0])/n # est. prob of zero value
+F   &lt;- nonexceeds(sig6=TRUE); F &lt;- sort(c(F,p)); qF &lt;- qnorm(F)
+PP  &lt;- pp(fake.data) # compute plotting positions of sim. sample
+plot(qnorm(PP), fake.data, ylim=c(0,4000), xaxt="n", xlab="") # plot the sample
+add.lmomco.axis(las=2, tcl=0.5, twoside=TRUE, side.type="SNV", otherside.type="NA")
+lines(qF,quagpa(F,gpa.all)) # the parent (without zeros)
+lines(qF,z.par2qua(F,p,gpa.nzo),lwd=3) # fitted model with zero conditional
+par(mgp=c(3,1,0)) # restore defaults
+</code></pre>
+
+
+</div>

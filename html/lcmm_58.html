@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gridsearch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Automatic grid search</h2>
+
+<h3>Description</h3>
+
+<p>This function provides an automatic grid search for latent class mixed
+models estimated with <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code> and
+<code>Jointlcmm</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gridsearch(m, rep, maxiter, minit, cl = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>a call of <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>, 
+<code>Jointlcmm</code> or <code>mpjlcmm</code> corresponding to the model to estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>the number of departures from random initial values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>the number of iterations in the optimization algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minit</code></td>
+<td>
+<p>an object of class <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>,
+<code>Jointlcmm</code> or <code>mpjlcmm</code> corresponding to the same model as specified
+in m except for the number of classes (it should be one). This object is used to
+generate random initial values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cl</code></td>
+<td>
+<p>a cluster created by makeCluster from package parallel or an integer
+specifying the number of cores to use for parallel computation</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function permits the estimation of a model from a grid of random initial
+values to reduce the odds of a convergence towards a local maximum.
+</p>
+<p>The function was inspired by the emEM technique described in Biernacki et
+al. (2003). It consists in:
+</p>
+<p>1. randomly generating <code>rep</code> sets of initial values for <code>m</code> from
+the estimates of <code>minit</code> (this is done internally using option
+<code>B=random(minit)</code> <code>rep</code> times)
+</p>
+<p>2. running the optimization algorithm for the model specified in <code>m</code>
+from the <code>rep</code> sets of initial values with a maximum number of
+iterations of <code>maxit</code> each time.
+</p>
+<p>3. retaining the estimates of the random initialization that provides the
+best log-likelihood after <code>maxiter</code> iterations.
+</p>
+<p>4. running the optimization algorithm from these estimates for the final
+estimation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class <code>hlme</code>, <code>lcmm</code>, <code>multlcmm</code>,
+<code>Jointlcmm</code> or <code>mpjlcmm</code> corresponding to the call specified in m.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima and Viviane Philipps
+</p>
+
+
+<h3>References</h3>
+
+<p>Biernacki C, Celeux G, Govaert G (2003). Choosing Starting
+Values for the EM Algorithm for Getting the Highest Likelihood in
+Multivariate Gaussian Mixture models. Computational Statistics and Data
+Analysis, 41(3-4), 561-575.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+# initial model with ng=1 for the random initial values
+m1 &lt;- hlme(Y ~ Time * X1, random =~ Time, subject = 'ID', ng = 1, 
+      data = data_hlme)
+
+# gridsearch with 10 iterations from 50 random departures
+m2d &lt;- gridsearch(rep = 50, maxiter = 10, minit = m1, hlme(Y ~ Time * X1,
+      mixture =~ Time, random =~ Time, classmb =~ X2 + X3, subject = 'ID',
+          ng = 2, data = data_hlme))
+        
+## End(Not run)
+
+</code></pre>
+
+
+</div>

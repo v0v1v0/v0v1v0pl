@@ -1,0 +1,750 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 2: Stichprobenziehung</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 2, <em>Stichprobenziehung</em>, im 
+Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische Grundlagen der 
+österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Details</h3>
+
+
+
+<h4>Vorbereitungen</h4>
+
+<p>Zunächst werden die Datensätze <code>schule</code> mit den 1.327 Schulen der 
+Population und <code>schueler</code> mit den 51.644 Schüler/innen dieser Schulen 
+geladen.
+Durch das Setzen eines festen Startwerts für den Zufallszahlengenerator 
+(<code>set.seed(20150506)</code>) wird erreicht, dass wiederholte Programmdurchläufe 
+immer wieder zur selben Stichprobe führen.
+</p>
+ 
+
+
+<h4>Abschnitt 4.1: Stratifizierung - Schichtung einer Stichprobe</h4>
+
+<p>Die für die explizite Stratifizierung notwendige Information der Anzahl der 
+Schüler/innen pro Stratum wird durch Aggregierung (Summe) aus dem Schuldatensatz 
+in das Objekt <code>strata</code> extrahiert. Die entsprechende Spalte wird aus 
+Gründen der Eindeutigkeit noch in <code>NSchuelerStratum</code> umbenannt.
+</p>
+<p><code style="white-space: pre;">⁠strata &lt;- aggregate(schule[,"NSchueler", drop = FALSE],
+                  by=schule[,"stratum", drop = FALSE], sum)
+colnames(strata)[2] &lt;- "NSchuelerStratum" #Ergänzung zum Buch
+⁠</code>
+
+</p>
+
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 1</h4>
+
+<p>Im Schuldatensatz wird eine Dummyvariable <code>Klassenziehung</code> angelegt, die 
+indiziert, in welchen Schulen mehr als drei Klassen sind, aus denen in Folge 
+gezogen werden muss.
+</p>
+<p><code style="white-space: pre;">⁠schule$Klassenziehung &lt;- 0
+schule[which(schule$NKlassen&gt;3), "Klassenziehung"] &lt;- 1
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 2</h4>
+
+<p>Dann wird der unter Beachtung der Klassenziehung erwartete Beitrag der Schulen 
+(d. h. die Anzahl ihrer Schülerinnen bzw. Schüler) zur Stichprobe in der Spalte 
+<code>NSchueler.erw</code> errechnet.
+</p>
+<p><code style="white-space: pre;">⁠schule$NSchueler.erw &lt;- schule$NSchueler
+ind &lt;- which(schule$Klassenziehung == 1)
+schule[ind, "NSchueler.erw"] &lt;- 
+ schule[ind, "NSchueler"]/schule[ind, "NKlassen"]*3
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 3</h4>
+
+<p>Berechnet man aus der erwarteten Anzahl von Lernenden pro Schule ihren relativen 
+Anteil (Spalte <code>AnteilSchueler</code>) an der Gesamtschülerzahl im Stratum, so 
+kann per Mittelwertbildung die mittlere Anzahl (Spalte 
+<code>NSchueler/Schule.erw</code>) von Lernenden einer Schule pro Stratum bestimmt 
+werden. 
+Die mittlere Anzahl der Schulen im Stratum wird zusätzlich mit den einfachen 
+Ziehungsgewichten der Schulen gewichtet, da große Schulen mit höherer 
+Wahrscheinlichkeit für die Stichprobe gezogen werden.
+</p>
+<p><code style="white-space: pre;">⁠temp &lt;- merge(schule[, c("SKZ","stratum","NSchueler")], 
+             strata[, c("stratum","NSchuelerStratum")])
+schule$AnteilSchueler &lt;- 
+ temp$NSchueler/temp$NSchuelerStratum
+strata$"NSchueler/Schule.erw" &lt;- 
+ rowsum(apply(schule, 1, function(x)
+   x["NSchueler.erw"]*x["AnteilSchueler"]), schule$stratum)
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 4</h4>
+
+<p>Schließlich erfolgt die Berechnung der Anzahl an Schulen 
+(<code>Schulen.zu.ziehen</code>), die in jedem Stratum gezogen werden müssen, um einen 
+Stichprobenumfang von 2500 Schülerinnen bzw. Schülern in etwa einzuhalten.
+</p>
+<p><code style="white-space: pre;">⁠strata$Schulen.zu.ziehen &lt;- 
+  round(2500/strata[,"NSchueler/Schule.erw"])
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 5</h4>
+
+<p>Die Schulenliste wird vorab nach expliziten und impliziten Strata sortiert.
+</p>
+<p><code style="white-space: pre;">⁠schule &lt;- schule[order(schule$stratum, schule$NSchueler),]
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 6</h4>
+
+<p>Das Sampling-Intervall pro Stratum wird bestimmt (<code>Samp.Int</code>).
+</p>
+<p><code style="white-space: pre;">⁠strata$Samp.Int &lt;- 
+  strata$NSchuelerStratum/strata$Schulen.zu.ziehen
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 7</h4>
+
+<p>Ein zufälliger Startwert aus dem Bereich 1 bis <code>Samp.Int</code> wird für jedes 
+Stratum bestimmt (<code>Startwert</code>). Zur Festlegung eines festen Ausgangswertes 
+des Zufallszahlengenerators siehe oben unter "Vorbereitungen".
+</p>
+<p><code style="white-space: pre;">⁠set.seed(20150506)
+strata$Startwert &lt;- 
+  sapply(ceiling(strata$Samp.Int), sample, size = 1)
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 8</h4>
+
+<p>Die Listenpositionen der Lernenden, deren Schulen gezogen werden, werden vom 
+Startwert ausgehend im Sampling-Intervall (pro Stratum) ermittelt. 
+Die Positionen werden im Objekt <code>tickets</code> abgelegt.
+</p>
+<p><code style="white-space: pre;">⁠tickets &lt;- sapply(1:4, function(x)
+  trunc(0:(strata[strata$stratum==x,"Schulen.zu.ziehen"]-1)
+    * strata[strata$stratum==x, "Samp.Int"] +
+    strata$Startwert[x]))
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 9</h4>
+
+<p>Um die Auswahl der Schulen (entsprechend den Tickets der Lernenden) direkt auf 
+der Schulliste durchführen zu können wird in <code>NSchuelerKum</code> die kumulierte 
+Anzahl an Schülerinnen und Schülern nach Sortierung (siehe oben Abschnit 4.2, 
+Listing 5) berechnet.
+</p>
+<p><code style="white-space: pre;">⁠schule$NSchuelerKum &lt;- 
+  unlist(sapply(1:4, function(x)
+    cumsum(schule[schule$stratum==x, "NSchueler"])))
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 10</h4>
+
+<p>Durch die Dummy-Variable <code>SInSamp</code> werden nun jene Schulen als zugehörig 
+zur Stichprobe markiert, von denen wenigstens eine Schülerin oder ein Schüler 
+in Listing 8 dieses Abschnitts ein Ticket erhalten hat.
+</p>
+<p><code style="white-space: pre;">⁠schule$SInSamp &lt;- 0 
+for(s in 1:4) {
+  NSchuelerKumStrat &lt;- 
+    schule[schule$stratum==s, "NSchuelerKum"]
+  inds &lt;- sapply(tickets[[s]], function(x)
+    setdiff(which(NSchuelerKumStrat &lt;= x),
+            which(NSchuelerKumStrat[-1] &lt;= x)))
+  schule[schule$stratum==s, "SInSamp"][inds] &lt;- 1 }
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.2: Schulenziehung, Listing 11</h4>
+
+<p>Die Ziehungswahrscheinlichkeiten der Schulen (<code>Z.Wsk.Schule</code>) werden für 
+die später folgende Gewichtung berechnet.
+</p>
+<p><code style="white-space: pre;">⁠temp &lt;- merge(schule[, c("stratum", "AnteilSchueler")],
+              strata[, c("stratum", "Schulen.zu.ziehen")])
+schule$Z.Wsk.Schule &lt;- 
+  temp$AnteilSchueler*temp$Schulen.zu.ziehen
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.3: Klassenziehung, Listing 1</h4>
+
+<p>Im Objekt <code>schukla</code> werden zunächst notwendige Informationen für die 
+Klassenziehung zusammengetragen. Die Dummy-Variable <code>KlInSamp</code> darin 
+indiziert schließlich gezogene Klassen (aus bereits gezogenen Schulen), wobei 
+aus Schulen mit drei oder weniger Klassen alle Klassen gezogen werden. 
+Daher wird der Aufruf von <code>sample.int</code> mit <code>min(3, length(temp))</code> 
+parametrisiert.
+</p>
+<p><code style="white-space: pre;">⁠schukla &lt;- unique(merge(
+  schule[, c("SKZ","NKlassen", "Klassenziehung", 
+    "Z.Wsk.Schule", "SInSamp")],
+    schueler[, c("SKZ", "idclass")], by="SKZ"))
+schukla$KlInSamp &lt;- 0
+for(skz in unique(schukla[schukla$SInSamp==1,"SKZ"])) {
+  temp &lt;- schukla[schukla$SKZ==skz, "idclass"]
+  schukla[schukla$idclass %in% temp[sample.int
+    (min(3, length(temp)))], "KlInSamp"] &lt;- 1 }
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.3: Klassenziehung, Listing 2</h4>
+
+<p>Die Ziehungswahrscheinlichkeit einer Klasse (<code>Z.Wsk.Klasse</code>) kann 
+entsprechend der Dummy-Variable <code>Klassenziehung</code> (siehe Abschnitt 4.2, 
+Listing 1) berechnet werden. Man beachte, dass entweder der erste oder der 
+zweite Term der Addition Null ergeben muss, sodass die Fallunterscheidung direkt 
+ausgedrückt werden kann.
+</p>
+<p><code style="white-space: pre;">⁠schukla$Z.Wsk.Klasse &lt;- ((1 - schukla$Klassenziehung) * 1 +
+    schukla$Klassenziehung * 3 / schukla$NKlassen) 
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.4: Gewichtung, Listing 1</h4>
+
+<p>Nachdem das Objekt <code>schueler</code> um die Informationen zur Klassenziehung sowie
+den Ziehungswahrscheinlichkeiten von Schule und Klasse ergänzt wird, kann die 
+Ziehungswahrscheinlichkeit einer Schülerin bzw. eines Schülers 
+(<code>Z.Wsk.Schueler</code>) berechnet werden.
+</p>
+<p><code style="white-space: pre;">⁠schueler &lt;- merge(schueler, schukla[, c("idclass", "KlInSamp", "Z.Wsk.Schule", 
+                                        "Z.Wsk.Klasse")],
+                  by="idclass", all.x=T)
+schueler$Z.Wsk.Schueler &lt;- 
+  schueler$Z.Wsk.Schule * schueler$Z.Wsk.Klasse
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.4: Gewichtung, Listing 2</h4>
+
+<p>Nach Reduktion des Objekts <code>schueler</code> auf die gezogenen Lernenden, werden 
+in <code>temp</code> die nonresponse-Raten (Variable <code>x</code>) bestimmt.
+</p>
+<p><code style="white-space: pre;">⁠schueler &lt;- schueler[schueler$KlInSamp==1,]
+temp &lt;- merge(schueler[, c("idclass", 
+                           "Z.Wsk.Schueler")],
+              aggregate(schueler$teilnahme, 
+                        by=list(schueler$idclass),
+                        function(x) sum(x)/length(x)), 
+              by.x="idclass", by.y="Group.1")
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.4: Gewichtung, Listing 3</h4>
+
+<p>Mittels der Ziehungswahrscheinlichkeiten der Schülerinnen und Schüler sowie der 
+nonresponse-Raten (siehe vorangegangenes Listing) werden die (nicht normierten) 
+Schülergewichte (<code>studwgt</code>) bestimmt.
+</p>
+<p><code style="white-space: pre;">⁠schueler$studwgt &lt;- 1/temp$x/temp$Z.Wsk.Schueler
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 4.4: Gewichtung, Listing 4</h4>
+
+<p>Schließlich werden die Schülergewichte in Bezug auf die Anzahl an Schülerinnen 
+und Schülern im jeweiligen Stratum normiert (<code>NormStudwgt</code>), sodass sie in 
+Summe dieser Anzahl entsprechen.
+</p>
+<p><code style="white-space: pre;">⁠Normierung &lt;- strata$NSchuelerStratum / 
+  rowsum(schueler$studwgt * schueler$teilnahme,
+         group = schueler$Stratum)
+schueler$NormStudwgt &lt;- 
+  schueler$studwgt * Normierung[schueler$Stratum]
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 5.3: Anwendung per Jackknife-Repeated-Replication, 
+Listing 1</h4>
+
+<p>Die im Folgenden genutzte Hilfsfunktion <code>zones.within.stratum</code> erzeugt ab einem 
+Offset einen Vektor mit jeweils doppelt vorkommenden IDs zur Bildung der 
+Jackknife-Zonen.
+Nachdem die Schulliste zunächst auf die gezogenen Schulen und nach expliziten 
+und impliziten Strata* sortiert wurde, werden die Strata in Pseudo-Strata mit 
+zwei (oder bei ungerader Anzahl drei) Schulen unterteilt. 
+Dies führt zur Variable <code>jkzone</code>.
+Basierend auf <code>jkzone</code> wird für jeweils eine der Schulen im Pseudo-Stratum 
+der Indikator <code>jkrep</code> auf Null gesetzt, um diese in der jeweiligen 
+Replikation von der Berechnung auszuschließen. 
+Ergänzend zum Buch wird hier eine Fallunterscheidung getroffen, ob in einem 
+Pseudo-Stratum zwei oder drei Schulen sind (s.o): Bei drei Schulen wird zufällig 
+ausgewählt, ob bei ein oder zwei Schulen <code>jkrep=0</code> gesetzt wird.
+</p>
+<p>* Die Sortierung nach dem impliziten Strata Schulgröße erfolgt hier absteigend, 
+nachzulesen im Buch-Kapitel.
+</p>
+<p><code style="white-space: pre;">⁠### Ergänzung zum Buch: Hilfsfunktion zones.within.stratum
+zones.within.stratum &lt;- function(offset,n.str) {
+  maxzone &lt;- offset-1+floor(n.str/2)
+  zones &lt;- sort(rep(offset:maxzone,2))
+  if (n.str %% 2 == 1) zones &lt;- c(zones,maxzone)
+  return(zones) }
+### Ende der Ergänzung
+
+# Sortieren der Schulliste (explizite und implizite Strata)
+schule &lt;- schule[schule$SInSamp==1,]
+schule &lt;- schule[order(schule$stratum,-schule$NSchueler),]
+
+# Unterteilung in Pseudostrata 
+cnt.strata &lt;- length(unique(schule$stratum))
+offset &lt;- 1
+jkzones.vect &lt;- integer()
+for (i in 1:cnt.strata) {
+  n.str &lt;- table(schule$stratum)[i]
+  jkzones.vect &lt;- 
+    c(jkzones.vect,zones.within.stratum(offset,n.str))
+  offset &lt;- max(jkzones.vect)+1 }
+schule$jkzone &lt;- jkzones.vect
+
+# Zufällige Auswahl von Schulen mit Gewicht 0
+schule$jkrep &lt;- 1
+cnt.zones &lt;- max(schule$jkzone)
+jkrep.rows.null &lt;- integer()
+for (i in 1:cnt.zones) {
+  rows.zone &lt;- which(schule$jkzone==i)
+### Ergänzung zum Buch: Fallunterscheidung je nach Anzahl Schulen in der Zone
+  if (length(rows.zone)==2) jkrep.rows.null &lt;- 
+    c(jkrep.rows.null,sample(rows.zone,size=1))
+  else {
+      num.null &lt;- sample(1:2,size=1)
+      jkrep.rows.null &lt;- 
+        c(jkrep.rows.null,sample(rows.zone,size=num.null)) 
+    } }
+schule[jkrep.rows.null,]$jkrep &lt;- 0
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 5.3: Anwendung per Jackknife-Repeated-Replication, 
+Listing 2</h4>
+
+<p>Die Anwendung von Jackknife-Repeated-Replication zur Abschätzung der 
+Stichprobenvarianz wird im folgenden am Schülerdatensatz demonstriert, weswegen 
+<code>jkzone</code> und <code>jkrep</code> zunächst auf diese Aggregatsebene übertragen 
+werden.
+In einer Schleife werden replicate weights mittels <code>jkzone</code> und 
+<code>jkrep</code> generiert. 
+Diese beziehen sich auf das normierte Schülergewicht <code>NormStudwgt</code>.
+Man beachte: Es gilt entweder <code>in.zone==0</code> oder <code>(in.zone-1)==0</code>, 
+sodass Formel 5 aus dem Buch-Kapitel direkt in einer Addition ausgedrückt werden 
+kann. 
+Es entstehen so viele replicate weights (<code>w_fstr1</code> usw.) wie 
+Jackknife-Zonen existieren.
+</p>
+<p><code style="white-space: pre;">⁠# Übertragung auf Schülerebene
+schueler &lt;- 
+  merge(schueler,schule[,c("SKZ","jkzone","jkrep")],all.x=TRUE)
+# Schleife zur Generierung von Replicate Weights
+for (i in 1:cnt.zones) {
+  in.zone &lt;- as.numeric(schueler$jkzone==i)
+  schueler[paste0("w_fstr",i)] &lt;-   # vgl. Formel 5
+    in.zone * schueler$jkrep * schueler$NormStudwgt * 2 +
+    (1-in.zone) * schueler$NormStudwgt }
+⁠</code>
+
+</p>
+ 
+
+
+<h4>Abschnitt 5.3: Anwendung per Jackknife-Repeated-Replication, 
+Listing 3</h4>
+
+<p>Als einfaches Beispiel wird der Anteil Mädchen (<code>perc.female</code>) in der 
+Population aus der Stichprobe heraus geschätzt. Die Schätzung selbst erfolgt als 
+Punktschätzung über das normierte Schülergewicht.
+Zur Bestimmung der Stichprobenvarianz <code>var.jrr</code> wird der Anteil wiederholt
+mit allen replicate weights berechnet und die quadrierte Differenz zur 
+Punktschätzung einfach aufsummiert (Formel 6 aus dem Buch-Kapitel).
+</p>
+<p><code style="white-space: pre;">⁠# Schätzung mittels Gesamtgewicht
+n.female &lt;- sum(schueler[schueler$female==1,]$NormStudwgt)
+perc.female &lt;- n.female / sum(schueler$NormStudwgt)
+# wiederholte Berechnung und Varianz
+var.jrr = 0
+for (i in 1:cnt.zones) {
+  n.female.rep &lt;- 
+    sum(schueler[schueler$female==1,paste0("w_fstr",i)])
+  perc.female.rep &lt;- 
+    n.female.rep / sum(schueler[paste0("w_fstr",i)])
+  var.jrr &lt;-   # vgl. Formel 6
+    var.jrr + (perc.female.rep - perc.female) ^ 2.0 }
+⁠</code>
+
+</p>
+
+
+
+<h3>Author(s)</h3>
+
+<p>Ann Cathrice George, Konrad Oberwimmer, Ursula Itzlinger-Bruneforth
+</p>
+
+
+<h3>References</h3>
+
+<p>George, A. C., Oberwimmer, K. &amp; Itzlinger-Bruneforth, U. (2016). 
+Stichprobenziehung. 
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 51–81). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel02</code>, den im Kapitel verwendeten Daten.<br>
+
+Zurück zu <code>Kapitel 1</code>, Testkonstruktion.<br>
+Zu <code>Kapitel 3</code>, Standard-Setting.<br>
+Zur <code>Übersicht</code>.
+
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(datenKapitel02)
+schueler &lt;- datenKapitel02$schueler
+schule &lt;- datenKapitel02$schule
+set.seed(20150506)
+
+## -------------------------------------------------------------
+## Abschnitt 4.1: Stratifizierung
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 4.1, Listing 1
+
+# Information in Strata
+strata &lt;- aggregate(schule[,"NSchueler", drop = FALSE],
+                    by=schule[,"stratum", drop = FALSE], sum)
+colnames(strata)[2] &lt;- "NSchuelerStratum"
+
+## -------------------------------------------------------------
+## Abschnitt 4.2: Schulenziehung
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 1
+
+# Dummyvariable Klassenziehung
+schule$Klassenziehung &lt;- 0
+schule[which(schule$NKlassen&gt;3), "Klassenziehung"] &lt;- 1
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 2
+
+# erwarteter Beitrag zur Stichprobe pro Schule 
+schule$NSchueler.erw &lt;- schule$NSchueler
+ind &lt;- which(schule$Klassenziehung == 1)
+schule[ind, "NSchueler.erw"] &lt;- 
+  schule[ind, "NSchueler"]/schule[ind, "NKlassen"]*3
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 3
+
+# relativer Anteil Schüler pro Schule
+temp &lt;- merge(schule[, c("SKZ","stratum","NSchueler")], 
+              strata[, c("stratum","NSchuelerStratum")])
+schule$AnteilSchueler &lt;- 
+  temp$NSchueler/temp$NSchuelerStratum
+# mittlere Anzahl von Schülern pro Schule
+strata$"NSchueler/Schule.erw" &lt;- 
+  rowsum(apply(schule, 1, function(x)
+    x["NSchueler.erw"]*x["AnteilSchueler"]), schule$stratum)
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 4
+
+# Bestimmung Anzahl zu ziehender Schulen
+strata$Schulen.zu.ziehen &lt;- 
+  round(2500/strata[,"NSchueler/Schule.erw"])
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 5
+
+# Schulenliste nach Stratum und Groesse ordnen
+schule &lt;- 
+  schule[order(schule$stratum, schule$NSchueler),]
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 6
+
+# Berechnung Sampling-Intervall
+strata$Samp.Int &lt;- 
+  strata$NSchuelerStratum/strata$Schulen.zu.ziehen
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 7
+
+# Startwerte bestimmen
+strata$Startwert &lt;- 
+  sapply(ceiling(strata$Samp.Int), sample, size = 1)
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 8
+
+# Schüler-Tickets
+tickets &lt;- sapply(1:4, function(x)
+  trunc(0:(strata[strata$stratum==x,"Schulen.zu.ziehen"]-1)
+  * strata[strata$stratum==x, "Samp.Int"] +
+    strata$Startwert[x]))
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 9
+
+# kummulierte Schüleranzahl pro Stratum berechnen
+schule$NSchuelerKum &lt;- 
+  unlist(sapply(1:4, function(x)
+    cumsum(schule[schule$stratum==x, "NSchueler"])))
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 10
+
+# Schulen ziehen
+schule$SInSamp &lt;- 0 
+for(s in 1:4) {
+  NSchuelerKumStrat &lt;- 
+    schule[schule$stratum==s, "NSchuelerKum"]
+  inds &lt;- sapply(tickets[[s]], function(x)
+    setdiff(which(NSchuelerKumStrat &lt;= x),
+            which(NSchuelerKumStrat[-1] &lt;= x)))
+  schule[schule$stratum==s, "SInSamp"][inds] &lt;- 1 }
+
+# -------------------------------------------------------------
+# Abschnitt 4.2, Listing 11
+
+# Berechnung Ziehungswahrscheinlichkeit Schule
+temp &lt;- merge(schule[, c("stratum", "AnteilSchueler")],
+  strata[, c("stratum", "Schulen.zu.ziehen")])
+schule$Z.Wsk.Schule &lt;- 
+  temp$AnteilSchueler*temp$Schulen.zu.ziehen
+
+## -------------------------------------------------------------
+## Abschnitt 4.3: Klassenziehung
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 4.3, Listing 1
+
+### Klassenziehung (Alternative 2)
+schukla &lt;- unique(merge(
+  schule[, c("SKZ","NKlassen", "Klassenziehung", 
+    "Z.Wsk.Schule", "SInSamp")],
+    schueler[, c("SKZ", "idclass")], by="SKZ"))
+schukla$KlInSamp &lt;- 0
+for(skz in unique(schukla[schukla$SInSamp==1,"SKZ"])) {
+  temp &lt;- schukla[schukla$SKZ==skz, "idclass"]
+  schukla[schukla$idclass%in%temp[sample.int(
+    min(3, length(temp)))], "KlInSamp"] &lt;- 1 }
+
+# -------------------------------------------------------------
+# Abschnitt 4.3, Listing 2
+
+# Ziehungswahrscheinlichkeit Klasse 
+schukla$Z.Wsk.Klasse &lt;- ((1 - schukla$Klassenziehung) * 1 + 
+     schukla$Klassenziehung * 3 / schukla$NKlassen) 
+
+## -------------------------------------------------------------
+## Abschnitt 4.4: Gewichtung
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 4.4, Listing 1
+
+### Gewichte
+schueler &lt;- merge(schueler, schukla[, c("idclass", "KlInSamp", "Z.Wsk.Schule", 
+                                        "Z.Wsk.Klasse")],
+                  by="idclass", all.x=T)
+# Ziehungswahrscheinlichkeiten Schueler 
+schueler$Z.Wsk.Schueler &lt;- 
+  schueler$Z.Wsk.Schule * schueler$Z.Wsk.Klasse
+
+# -------------------------------------------------------------
+# Abschnitt 4.4, Listing 2
+
+schueler &lt;- schueler[schueler$KlInSamp==1,]
+# Nonresponse Adjustment 
+temp &lt;- merge(schueler[, c("idclass", "Z.Wsk.Schueler")],
+  aggregate(schueler$teilnahme, 
+    by=list(schueler$idclass),
+    function(x) sum(x)/length(x)), 
+  by.x="idclass", by.y="Group.1")
+
+# -------------------------------------------------------------
+# Abschnitt 4.4, Listing 3
+
+# Schülergewichte
+schueler$studwgt &lt;- 1/temp$x/temp$Z.Wsk.Schueler
+
+# -------------------------------------------------------------
+# Abschnitt 4.4, Listing 4
+
+# Normierung
+Normierung &lt;- strata$NSchuelerStratum / 
+  rowsum(schueler$studwgt * schueler$teilnahme,
+         group = schueler$Stratum)
+schueler$NormStudwgt &lt;- 
+  schueler$studwgt * Normierung[schueler$Stratum]
+
+## -------------------------------------------------------------
+## Abschnitt 5.3: Jackknife-Repeated-Replication
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 5.3, Listing 1
+
+### Ergänzung zum Buch: Hilfsfunktion zones.within.stratum
+zones.within.stratum &lt;- function(offset,n.str) {
+  maxzone &lt;- offset-1+floor(n.str/2)
+  zones &lt;- sort(rep(offset:maxzone,2))
+  if (n.str %% 2 == 1) zones &lt;- c(zones,maxzone)
+  return(zones) }
+### Ende der Ergänzung
+
+# Sortieren der Schulliste (explizite und implizite Strata)
+schule &lt;- schule[schule$SInSamp==1,]
+schule &lt;- schule[order(schule$stratum,-schule$NSchueler),]
+
+# Unterteilung in Pseudostrata 
+cnt.strata &lt;- length(unique(schule$stratum))
+offset &lt;- 1
+jkzones.vect &lt;- integer()
+for (i in 1:cnt.strata) {
+  n.str &lt;- table(schule$stratum)[i]
+  jkzones.vect &lt;- 
+    c(jkzones.vect,zones.within.stratum(offset,n.str))
+  offset &lt;- max(jkzones.vect)+1 }
+schule$jkzone &lt;- jkzones.vect
+
+# Zufällige Auswahl von Schulen mit Gewicht 0
+schule$jkrep &lt;- 1
+cnt.zones &lt;- max(schule$jkzone)
+jkrep.rows.null &lt;- integer()
+for (i in 1:cnt.zones) {
+  rows.zone &lt;- which(schule$jkzone==i)
+### Ergänzung zum Buch: Fallunterscheidung je nach Anzahl Schulen in der Zone
+  if (length(rows.zone)==2) jkrep.rows.null &lt;- 
+    c(jkrep.rows.null,sample(rows.zone,size=1))
+  else {
+      num.null &lt;- sample(1:2,size=1)
+      jkrep.rows.null &lt;- 
+        c(jkrep.rows.null,sample(rows.zone,size=num.null)) 
+    } }
+schule[jkrep.rows.null,]$jkrep &lt;- 0
+
+# -------------------------------------------------------------
+# Abschnitt 5.3, Listing 2
+
+# Übertragung auf Schülerebene
+schueler &lt;- 
+  merge(schueler,schule[,c("SKZ","jkzone","jkrep")],all.x=TRUE)
+# Schleife zur Generierung von Replicate Weights
+for (i in 1:cnt.zones) {
+  in.zone &lt;- as.numeric(schueler$jkzone==i)
+  schueler[paste0("w_fstr",i)] &lt;-   # vgl. Formel 5
+    in.zone * schueler$jkrep * schueler$NormStudwgt * 2 +
+    (1-in.zone) * schueler$NormStudwgt }
+
+# -------------------------------------------------------------
+# Abschnitt 5.3, Listing 3
+
+# Schätzung mittels Gesamtgewicht
+n.female &lt;- sum(schueler[schueler$female==1,]$NormStudwgt)
+perc.female &lt;- n.female / sum(schueler$NormStudwgt)
+# wiederholte Berechnung und Varianz
+var.jrr = 0
+for (i in 1:cnt.zones) {
+  n.female.rep &lt;- 
+    sum(schueler[schueler$female==1,paste0("w_fstr",i)])
+  perc.female.rep &lt;- 
+    n.female.rep / sum(schueler[paste0("w_fstr",i)])
+  var.jrr &lt;-   # vgl. Formel 6
+    var.jrr + (perc.female.rep - perc.female) ^ 2.0 }
+
+## End(Not run) 
+</code></pre>
+
+
+</div>

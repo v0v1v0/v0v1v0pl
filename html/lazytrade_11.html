@@ -1,0 +1,93 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>decrypt_mykeys</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Function that decrypt encrypted content</h2>
+
+<h3>Description</h3>
+
+<p>Cryptography facility
+</p>
+<p><a href="https://lifecycle.r-lib.org/articles/stages.html#stable"><img src="../help/figures/lifecycle-stable.svg" alt="[Stable]"></a>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">decrypt_mykeys(path_encrypted_content, path_private_key)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>path_encrypted_content</code></td>
+<td>
+
+<ul><li>
+<p> path to the encrypted content of the API key
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>path_private_key</code></td>
+<td>
+
+<ul><li>
+<p> path to the private RSA key, should be without password
+</p>
+</li></ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is possible to generate private/public key pair using R-Studio Project Options Menu.
+Alternatively possible to use 'openssl' R package
+</p>
+
+
+<h3>Value</h3>
+
+
+<ul><li>
+<p> a string with decrypted key
+</p>
+</li></ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+library(magrittr)
+library(openssl)
+library(readr)
+
+path_ssh &lt;- normalizePath(tempdir(),winslash = "/")
+rsa_keygen() %&gt;% write_pem(path = file.path(path_ssh, 'id_api'))
+# extract and write your public key
+read_key(file = file.path(path_ssh, 'id_api'), password = "") %&gt;%
+`[[`("pubkey") %&gt;% write_pem(path = file.path(path_ssh, 'id_api.pub'))
+
+path_private_key &lt;- file.path(path_ssh, "id_api")
+path_public_key &lt;- file.path(path_ssh, "id_api.pub")
+
+#encrypting string 'my_key'...
+encrypt_api_key(api_key = 'my_key', enc_name = 'api_key.enc.rds',path_ssh = path_ssh)
+
+#encrypted content
+out &lt;- read_rds(file.path(path_ssh, "api_key.enc.rds"))
+
+# Consumer API keys
+ConsumerAPIkeys &lt;- decrypt_mykeys(path_encrypted_content = file.path(path_ssh,
+                                  'api_key.enc.rds'),
+                                  path_private_key = path_private_key)
+
+
+</code></pre>
+
+
+</div>

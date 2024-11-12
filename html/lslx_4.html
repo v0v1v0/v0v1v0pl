@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>plsem</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>S3 interface for semi-confirmatory SEM via PL</h2>
+
+<h3>Description</h3>
+
+<p><code>plsem()</code> is an <code>S3</code> interface for obaining a fitted <code>lslx</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">plsem(
+  model,
+  data,
+  penalty_method = "mcp",
+  lambda_grid = "default",
+  delta_grid = "default",
+  numeric_variable,
+  ordered_variable,
+  weight_variable,
+  auxiliary_variable,
+  group_variable,
+  reference_group,
+  sample_cov,
+  sample_mean,
+  sample_size,
+  sample_moment_acov,
+  verbose = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A <code>character</code> with length one to represent the model specification.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A <code>data.frame</code> of raw data. 
+It must contains variables specified in <code>model</code> (and possibly the variables specified by <code>group_variable</code> and <code>weight_variable</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>penalty_method</code></td>
+<td>
+<p>A <code>character</code> to specify the penalty method.
+The current version supports <code>"none"</code>, <code>"lasso"</code>, <code>"ridge"</code>, <code>"elastic"</code>, and <code>"mcp"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda_grid</code></td>
+<td>
+<p>A non-negative <code>numeric</code> to specify penalty levels for both <code>"lasso"</code> and <code>"mcp"</code>.
+If it is set as <code>"default"</code>, its value will be generated automatically based on the variable scales.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta_grid</code></td>
+<td>
+<p>A non-negative <code>numeric</code> to specify the convexity level for <code>"mcp"</code>.
+If it is set as <code>"default"</code>, its value will be generated automatically based on the variable scales.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numeric_variable</code></td>
+<td>
+<p>A <code>character</code> to specify which response variables should be transfromed into <code>numeric</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ordered_variable</code></td>
+<td>
+<p>A <code>character</code> to specify which response variables should be transfromed into <code>ordered</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight_variable</code></td>
+<td>
+<p>A <code>character</code> with length one to specify what variable is used for sampling weight.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auxiliary_variable</code></td>
+<td>
+<p>A <code>character</code> to specify what variable(s) is used as auxiliary variable(s) for estimating saturated moments when missing data presents and two-step method is implemented. 
+Auxiliary variable(s) must be numeric. If any categorical auxiliary is considered, please transform it into dummy variables before initialization.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group_variable</code></td>
+<td>
+<p>A <code>character</code> with length one to specify what variable is used for labeling group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference_group</code></td>
+<td>
+<p>A <code>character</code> with length one to specify which group is set as reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_cov</code></td>
+<td>
+<p>A numeric <code>matrix</code> (single group case) or a <code>list</code> of numeric <code>matrix</code> (multi-group case) to represent sample covariance matrixs. It must have row and column names that match the variable names specified in <code>model</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_mean</code></td>
+<td>
+<p>A <code>numeric</code> (single group case) or a <code>list</code> of <code>numeric</code> (multi-group case) to represent sample mean vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_size</code></td>
+<td>
+<p>A <code>numeric</code> (single group case) with length one or a <code>list</code> of <code>numeric</code> (multi-group case) to represent the sample sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sample_moment_acov</code></td>
+<td>
+<p>A numeric <code>matrix</code> (single group case) or a <code>list</code> of numeric <code>matrix</code> (multi-group case) to represent asymptotic covariance for moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A <code>logical</code> to specify whether messages made by <code>lslx</code> should be printed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments. For details, please see the documentation of <code>lslx</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A fitted <code>lslx</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## EXAMPLE: Semi-Confirmatory Factor Analysis with lavaan Style ##
+# specify a factor analysis model with lavaan style
+model_fa &lt;- "visual  =~ x1 + x2 + x3
+             textual =~ x4 + x5 + x6
+             speed   =~ x7 + x8 + x9
+             pen() * visual  =~ x4 + x5 + x6 + x7 + x8 + x9
+             pen() * textual =~ x1 + x2 + x3 + x7 + x8 + x9
+             pen() * speed   =~ x1 + x2 + x3 + x4 + x5 + x6
+             visual  ~~ 1 * visual
+             textual ~~ 1 * textual
+             speed   ~~ 1 * speed"
+             
+# fit with mcp under specified penalty levels and convexity levels
+lslx_fa &lt;- plsem(model = model_fa, 
+                 data = lavaan::HolzingerSwineford1939,
+                 penalty_method = "mcp", 
+                 lambda_grid = seq(.02, .60, .02), 
+                 delta_grid = c(1.5, 3.0, Inf))
+
+# summarize fitting result under the penalty level selected by 'bic'
+summary(lslx_fa, selector = "bic")
+
+</code></pre>
+
+
+</div>

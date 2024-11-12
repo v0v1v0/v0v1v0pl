@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>coef.lmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract Coefficients From a Linear Mixed Model</h2>
+
+<h3>Description</h3>
+
+<p>Extract coefficients from a linear mixed model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmm'
+coef(
+  object,
+  effects = NULL,
+  p = NULL,
+  transform.sigma = "none",
+  transform.k = "none",
+  transform.rho = "none",
+  transform.names = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lmm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>[character] Should all coefficients be output (<code>"all"</code>),
+or only coefficients relative to the mean (<code>"mean"</code> or <code>"fixed"</code>),
+or only coefficients relative to the variance structure (<code>"variance"</code>),
+or only coefficients relative to the correlation structure (<code>"correlation"</code>).
+Can also be <code>"ranef"</code> to output random effect (only for <code>CS</code> structure).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>[numeric vector] value of the model coefficients to be used. Only relevant if differs from the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.sigma</code></td>
+<td>
+<p>[character] Transformation used on the variance coefficient for the reference level. One of <code>"none"</code>, <code>"log"</code>, <code>"square"</code>, <code>"logsquare"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.k</code></td>
+<td>
+<p>[character] Transformation used on the variance coefficients relative to the other levels. One of <code>"none"</code>, <code>"log"</code>, <code>"square"</code>, <code>"logsquare"</code>, <code>"sd"</code>, <code>"logsd"</code>, <code>"var"</code>, <code>"logvar"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.rho</code></td>
+<td>
+<p>[character] Transformation used on the correlation coefficients. One of <code>"none"</code>, <code>"atanh"</code>, <code>"cov"</code> - see details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.names</code></td>
+<td>
+<p>[logical] Should the name of the coefficients be updated to reflect the transformation that has been used?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used. For compatibility with the generic method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>transform.sigma</b>: <br></p>
+
+<ul>
+<li> <p><code>"none"</code> ouput residual standard error.
+</p>
+</li>
+<li> <p><code>"log"</code> ouput log-transformed residual standard error.
+</p>
+</li>
+<li> <p><code>"square"</code> ouput residual variance.
+</p>
+</li>
+<li> <p><code>"logsquare"</code> ouput log-transformed residual variance.
+</p>
+</li>
+</ul>
+<p><b>transform.k</b>: <br></p>
+
+<ul>
+<li> <p><code>"none"</code> ouput ratio between the residual standard error of the current level and the reference level.
+</p>
+</li>
+<li> <p><code>"log"</code> ouput log-transformed ratio between the residual standard errors.
+</p>
+</li>
+<li> <p><code>"square"</code> ouput ratio between the residual variances.
+</p>
+</li>
+<li> <p><code>"logsquare"</code> ouput log-transformed ratio between the residual variances.
+</p>
+</li>
+<li> <p><code>"sd"</code> ouput residual standard error of the current level.
+</p>
+</li>
+<li> <p><code>"logsd"</code> ouput residual log-transformed standard error of the current level.
+</p>
+</li>
+<li> <p><code>"var"</code> ouput residual variance of the current level.
+</p>
+</li>
+<li> <p><code>"logvar"</code> ouput residual log-transformed variance of the current level.
+</p>
+</li>
+</ul>
+<p><b>transform.rho</b>: <br></p>
+
+<ul>
+<li> <p><code>"none"</code> ouput correlation coefficient.
+</p>
+</li>
+<li> <p><code>"atanh"</code> ouput correlation coefficient after tangent hyperbolic transformation.
+</p>
+</li>
+<li> <p><code>"cov"</code> ouput covariance coefficient.
+</p>
+</li>
+</ul>
+<p>When using a (pure) compound symmetry covariance structure (<code>structure = "CS"</code>),
+estimated random effects can be extracted by setting argument <code>effects</code> to <code>"ranef"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with the value of the model coefficients.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>confint.lmm</code> or <code>model.tables.lmm</code> for a data.frame containing estimates with their uncertainty. <br></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## simulate data in the long format
+set.seed(10)
+dL &lt;- sampleRem(100, n.times = 3, format = "long")
+
+## fit linear mixed model
+eUN.lmm &lt;- lmm(Y ~ X1 + X2 + X5, repetition = ~visit|id, structure = "UN", data = dL, df = FALSE)
+
+## output coefficients
+coef(eUN.lmm)
+coef(eUN.lmm, effects = "mean")
+coef(eUN.lmm, transform.sigma = "none", transform.k = "none", transform.rho = "none")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,304 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ldfast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fast bias-correction for LD Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the reliability ratios from posterior marginal moments and uses
+these to correct the biases in linkage disequilibrium estimation
+caused by genotype uncertainty. These methods are described in
+Gerard (2021).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ldfast(
+  gp,
+  type = c("r", "r2", "z", "D", "Dprime"),
+  shrinkrr = TRUE,
+  se = TRUE,
+  thresh = TRUE,
+  upper = 10,
+  mode = c("zero", "estimate"),
+  win = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gp</code></td>
+<td>
+<p>A three-way array with dimensions SNPs by individuals by dosage.
+That is, <code>gp[i, j, k]</code> is the posterior probability of
+dosage <code>k-1</code> for individual <code>j</code> at SNP <code>i</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>What LD measure should we estimate?
+</p>
+
+<dl>
+<dt><code>"r"</code></dt>
+<dd>
+<p>The Pearson correlation.</p>
+</dd>
+<dt><code>"r2"</code></dt>
+<dd>
+<p>The squared Pearson correlation.</p>
+</dd>
+<dt><code>"z"</code></dt>
+<dd>
+<p>The Fisher-z transformed Pearson correlation.</p>
+</dd>
+<dt><code>"D"</code></dt>
+<dd>
+<p>The LD coefficient.</p>
+</dd>
+<dt><code>"Dprime"</code></dt>
+<dd>
+<p>The standardized LD coefficient.</p>
+</dd>
+</dl>
+<p>Note that these are all <em>composite</em> measures of LD (see
+the description in <code>ldest()</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrinkrr</code></td>
+<td>
+<p>A logical. Should we use adaptive shrinkage
+(Stephens, 2016) to shrink the reliability ratios (<code>TRUE</code>)
+or keep the raw reliability ratios (<code>FALSE</code>). Defaults
+to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>Should we also return a matrix of standard errors (<code>TRUE</code>)
+or not (<code>FALSE</code>)? It is faster to not return standard errors.
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>A logical. Should we apply an upper bound on the reliability
+ratios (<code>TRUE</code>) or not (<code>FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>The upper bound on the reliability ratios if
+<code>thresh = TRUE</code>. The default is a generous 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mode</code></td>
+<td>
+<p>A character. Only applies if <code>shrinkrr = TRUE</code>. When using
+hierarchical shrinkage on the log of the reliability ratios, should
+we use zero as the mode (<code>mode = "zero"</code>) or estimate it using
+the procedure of Robertson and Cryer (1974)
+(<code>mode = "estimate"</code>)?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>win</code></td>
+<td>
+<p>A positive integer. The window size. This will constrain the
+correlations calculated to those +/- the window size. This will
+only improve speed if the window size is <em>much</em> less than the
+number of SNPs.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with some or all of the following elements:
+</p>
+
+<dl>
+<dt><code>ldmat</code></dt>
+<dd>
+<p>The bias-corrected LD matrix.</p>
+</dd>
+<dt><code>rr</code></dt>
+<dd>
+<p>The estimated reliability ratio for each SNP. This
+is the multiplicative factor applied to the naive LD estimate
+for each SNP.</p>
+</dd>
+<dt><code>rr_raw</code></dt>
+<dd>
+<p>The raw reliability ratios (for the covariance,
+not the correlation). Only returned if <code>shrinkrr = TRUE</code>.</p>
+</dd>
+<dt><code>rr_se</code></dt>
+<dd>
+<p>The standard errors for the <em>log</em>-raw
+reliability ratios for each SNP. That is, we have
+sd(log(rr_raw)) ~ rr_se. Only returned if <code>shrinkrr = TRUE</code>.</p>
+</dd>
+<dt><code>semat</code></dt>
+<dd>
+<p>A matrix of standard errors of the corresponding
+estimators of LD.</p>
+</dd>
+</dl>
+<h3>Details</h3>
+
+<p>Returns consistent and bias-corrected estimates of linkage disequilibrium.
+The usual measures of LD are implemented: D, D', r, r2, and z
+(Fisher-z of r). These are all <em>composite</em> measures of LD, not
+haplotypic measures of LD (see the description in <code>ldest()</code>).
+They are always appropriate measures of association
+between loci, but only correspond to haplotypic measures of LD when
+Hardy-Weinberg equilibrium is fulfilled in autopolyploids.
+</p>
+<p>In order for these estimates to perform well, you need to use
+posterior genotype probabilities that have been calculated using
+adaptive priors, i.e. empirical/hierarchical Bayes approaches. There
+are many approaches that do this, such as
+<a href="https://cran.r-project.org/package=updog"><code>updog</code></a>,
+<a href="https://cran.r-project.org/package=polyRAD"><code>polyRAD</code></a>,
+<a href="https://cran.r-project.org/package=fitPoly"><code>fitPoly</code></a>, or
+<a href="https://github.com/guilherme-pereira/vcf2sm"><code>SuperMASSA</code></a>.
+Note that GATK uses a uniform prior, so would be inappropriate for
+use in <code>ldfast()</code>.
+</p>
+<p>Calculating standard errors and performing hierarchical shrinkage of the
+reliability ratios are both rather slow operations compared to just
+raw method-of-moments based estimation for LD. If you don't need
+standard errors, you can double your speed by setting
+<code>se = FALSE</code>. It is not recommended that you disable the
+hierarchical shrinkage.
+</p>
+<p>Due to sampling variability, the estimates sometime lie outside of the
+theoretical boundaries of the parameters being estimated. In such cases,
+we truncate the estimates at the boundary and return <code>NA</code> for the
+standard errors.
+</p>
+
+
+<h3>Mathematical formulation</h3>
+
+<p>Let
+</p>
+
+<ul>
+<li>
+<p><code class="reqn">r</code> be the sample correlation of posterior mean genotypes
+between loci 1 and 2,
+</p>
+</li>
+<li>
+<p><code class="reqn">a1</code> be the sample variance of posterior means at locus 1,
+</p>
+</li>
+<li>
+<p><code class="reqn">a2</code> be the sample variance of posterior means at locus 2,
+</p>
+</li>
+<li>
+<p><code class="reqn">b1</code> be the sample mean of posterior variances at locus 1, and
+</p>
+</li>
+<li>
+<p><code class="reqn">b2</code> be the sample mean of posterior variances at locus 2.
+</p>
+</li>
+</ul>
+<p>Then the estimated Pearson correlation between the genotypes at
+loci 1 and 2 is
+</p>
+<p style="text-align: center;"><code class="reqn">\sqrt{(a1 + b1)/a1}\sqrt{(a2 + b2)/a2}r.</code>
+</p>
+
+<p>All other LD calculations are based on this equation. In particular,
+the estimated genotype variances at loci 1 and 2 are
+<code class="reqn">a1 + b1</code> and <code class="reqn">a2 + b2</code>, respectively, which can be
+used to calculate D and D'.
+</p>
+<p>The reliability ratio for SNP i is defined by <code class="reqn">(ai + bi)/ai</code>.
+By default, we apply <code>ash()</code> (Stephens, 2016)
+to the log of these reliability ratios before adjusting the
+Pearson correlation. Standard errors are required before using
+<code>ash()</code>, but these are easily obtained
+using the central limit theorem and the delta-method.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David Gerard
+</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Gerard, David. Scalable Bias-corrected Linkage Disequilibrium Estimation Under Genotype Uncertainty. <em>Heredity</em>, 127(4), 357–362, 2021. <a href="https://doi.org/10.1038/s41437-021-00462-5">doi:10.1038/s41437-021-00462-5</a>.
+</p>
+</li>
+<li>
+<p>T. Robertson and J. D. Cryer. An iterative procedure for estimating the mode. <em>Journal of the American Statistical Association</em>, 69(348):1012–1016, 1974. <a href="https://doi.org/10.1080/01621459.1974.10480246">doi:10.1080/01621459.1974.10480246</a>.
+</p>
+</li>
+<li>
+<p>M. Stephens. False discovery rates: a new deal. <em>Biostatistics</em>, 18(2):275–294, 10 2016. <a href="https://doi.org/10.1093/biostatistics/kxw041">doi:10.1093/biostatistics/kxw041</a>.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+
+<dl>
+<dt><code>ash()</code></dt>
+<dd>
+<p>Function used to perform hierarchical
+shrinkage on the log of the reliability ratios.</p>
+</dd>
+<dt>
+<code>ldest()</code>, <code>mldest()</code>, <code>sldest()</code>
+</dt>
+<dd>
+<p>Maximum likelihood estimation of linkage disequilibrium.</p>
+</dd>
+</dl>
+<h3>Examples</h3>
+
+<pre><code class="language-R">data("gp")
+
+ldout &lt;- ldfast(gp, "r")
+ldout$ldmat
+ldout$rr
+ldout$semat
+
+ldout &lt;- ldfast(gp, "D")
+ldout$ldmat
+ldout$rr
+ldout$semat
+
+ldout &lt;- ldfast(gp, "Dprime")
+ldout$ldmat
+ldout$rr
+ldout$semat
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_attribute</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add attributes into a LAS object</h2>
+
+<h3>Description</h3>
+
+<p>A LAS object represents a las file in R. According to the
+<a href="https://www.asprs.org/a/society/committees/standards/LAS_1_4_r13.pdf">LAS specifications</a>
+a las file contains a core of defined attributes, such as XYZ coordinates, intensity, return number,
+and so on, for each point. It is possible to add supplementary attributes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_attribute(las, x, name)
+
+add_lasattribute(las, x, name, desc)
+
+add_lasattribute_manual(
+  las,
+  x,
+  name,
+  desc,
+  type,
+  offset = NULL,
+  scale = NULL,
+  NA_value = NULL
+)
+
+add_lasrgb(las, R, G, B)
+
+add_lasnir(las, NIR)
+
+remove_lasattribute(las, name)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a vector that needs to be added in the LAS object. For <code>add_lasattribute*</code> it can
+be missing (see details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>character. The name of the extra bytes attribute to add in the file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>desc</code></td>
+<td>
+<p>character. A short description of the extra bytes attribute to add in the file (32 characters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>character. The data type of the extra bytes attribute. Can be "uchar", "char", "ushort",
+"short", "uint", "int", "uint64", "int64", "float", "double".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale, offset</code></td>
+<td>
+<p>numeric. The scale and offset of the data. NULL if not relevant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NA_value</code></td>
+<td>
+<p>numeric or integer. NA is not a valid value in a las file. At time of writing it will
+be replaced by this value that will be considered as NA. NULL if not relevant.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R, G, B, NIR</code></td>
+<td>
+<p>integer. RGB and NIR values. Values are automatically scaled to 16 bits if they are
+coded on 8 bits (0 to 255).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Users cannot assign names that are the same as the names of the core attributes. These functions are
+dedicated to adding data that are not part of the LAS specification. For example, <code>add_lasattribute(las, x, "R")</code>
+will fail because <code>R</code> is a name reserved for the red channel of a .las file that contains RGB
+attributes. Use <code>add_lasrgb</code> instead.
+</p>
+
+<dl>
+<dt><code>add_attribute</code></dt>
+<dd>
+<p>Simply adds a new column in the data but does not update the header. Thus the LAS
+object is not strictly valid. These data will be temporarily usable at the R level but will not
+be written in a las file with writeLAS.</p>
+</dd>
+<dt> <code>add_lasattribute</code>
+</dt>
+<dd>
+<p>Does the same as <code>add_attribute</code> but automatically updates the header of
+the LAS object. Thus, the LAS object is valid and the new data is considered as "extra bytes". This new
+data will be written in a las file with writeLAS.</p>
+</dd>
+<dt><code>add_lasattribute_manual</code></dt>
+<dd>
+<p>Allows the user to manually write all the extra bytes metadata.
+This function is reserved for experienced users with a good knowledge of the LAS specifications.
+The function does not perform tests to check the validity of the information.
+When using <code>add_lasattribute</code> and <code>add_lasattribute_manual</code>, <code>x</code> can only be of type numeric,
+(<code>integer</code> or <code>double</code>). It cannot be of type <code>character</code> or <code>logical</code> as these are
+not supported by the LAS specifications. The types that are supported in lidR are types 0 to 10
+(Table 24 on page 25 of the specification). Types greater than 10 are not supported.</p>
+</dd>
+<dt><code>add_lasrgb</code></dt>
+<dd>
+<p>Adds 3 columns named RGB and updates the point format of the LAS object
+for a format that supports RGB attributes. If the RGB values are ranging from 0 to 255 they are
+automatically scaled on 16 bits.</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>An object of class LAS
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "example.laz", package="rlas")
+las &lt;- readLAS(LASfile, select = "xyz")
+
+print(las)
+print(header(las))
+
+x &lt;- 1:30
+
+las &lt;- add_attribute(las, x, "mydata")
+print(las)        # The las object has a new attribute called "mydata"
+print(header(las)) # But the header has not been updated. This new data will not be written
+
+las &lt;- add_lasattribute(las, x, "mydata2", "A new data")
+print(las)        # The las object has a new attribute called "mydata2"
+print(header(las)) # The header has been updated. This new data will be written
+
+# Optionally if the data is already in the LAS object you can update the header skipping the
+# parameter x
+las &lt;- add_attribute(las, x, "newattr")
+las &lt;- add_lasattribute(las, name = "newattr", desc = "Amplitude")
+print(header(las))
+
+# Remove an extra bytes attribute
+las &lt;- remove_lasattribute(las, "mydata2")
+print(las)
+print(header(las))
+
+las &lt;- remove_lasattribute(las, "mydata")
+print(las)
+print(header(las))
+</code></pre>
+
+
+</div>

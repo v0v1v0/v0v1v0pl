@@ -1,0 +1,159 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get_real_depths</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Effective fuel layers depth</h2>
+
+<h3>Description</h3>
+
+<p>This function recalculates fuel layers depth after considering distances greater than the actual height bin step.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get_real_depths (effective_fbh, step=1, min_height=1.5, verbose=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>effective_fbh</code></td>
+<td>
+<p>tree metrics with the recalculated base height of fuel layers after considering distances greater than any number of height bin steps
+(output of [get_real_fbh()] function).An object of the class text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>Numeric value for the actual height bin step (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_height</code></td>
+<td>
+<p>Numeric value for the actual minimum base height (in meters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical, indicating whether to display informational messages (default is TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p># List of tree metrics:
+</p>
+
+<ul>
+<li>
+<p> treeID: tree ID with strings and numeric values
+</p>
+</li>
+<li>
+<p> treeID1: tree ID with only numeric values
+</p>
+</li>
+<li>
+<p> dist: Distance between consecutive fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hdist - Height of the distance between consecutive fuel layers (m)
+</p>
+</li>
+<li>
+<p> Hcbh - Base height of each fuel separated by a distance greater than the certain number of steps
+</p>
+</li>
+<li>
+<p> dptf - Depth of fuel layers (m) after considering distances greater than the actual height bin step
+</p>
+</li>
+<li>
+<p> Hdptf - Height of the depth of fuel layers (m) after considering distances greater than the actual height bin step
+</p>
+</li>
+<li>
+<p> max_height - Maximum height of the tree profile
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A data frame giving new fuel layers depth after considering distances greater than the actual height bin step.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Olga Viedma, Carlos Silva, JM Moreno and A.T. Hudak
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>get_renamed0_df</code>
+</p>
+<p><code>get_real_fbh</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(magrittr)
+library(tidyr)
+library(dplyr)
+
+# Before running this example, make sure to run get_real_fbh().
+if (interactive()) {
+effective_fbh &lt;- get_real_fbh()
+LadderFuelsR::effective_fbh$treeID &lt;- factor(LadderFuelsR::effective_fbh$treeID)
+
+trees_name1 &lt;- as.character(effective_fbh$treeID)
+trees_name2 &lt;- factor(unique(trees_name1))
+
+depth_metrics_corr_list &lt;- list()
+
+for (i in levels(trees_name2)){
+# Filter data for each tree
+tree3 &lt;- effective_fbh |&gt; dplyr::filter(treeID == i)
+# Get real depths for each tree
+depth_metrics_corr &lt;- get_real_depths(tree3, step=1, min_height=1.5,verbose=TRUE)
+depth_metrics_corr_list[[i]] &lt;- depth_metrics_corr
+}
+
+# Combine depth values for all trees
+effective_depth &lt;- dplyr::bind_rows(depth_metrics_corr_list)
+
+# Reorder columns
+original_column_names &lt;- colnames(effective_depth)
+
+# Specify prefixes
+desired_order &lt;- c("treeID", "Hcbh", "dptf", "dist", "Hdist", "Hdptf", "max_height")
+
+# Identify unique prefixes
+prefixes &lt;- unique(sub("^([a-zA-Z]+).*", "\\1", original_column_names))
+# Initialize vector to store new order
+new_order &lt;- c()
+
+# Loop over desired order of prefixes
+for (prefix in desired_order) {
+  # Find column names matching the current prefix
+  matching_columns &lt;- grep(paste0("^", prefix), original_column_names, value = TRUE)
+  # Append to the new order
+  new_order &lt;- c(new_order, matching_columns)
+}
+effective_depth &lt;- effective_depth[, new_order]
+}
+</code></pre>
+
+
+</div>

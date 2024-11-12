@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lyl_diff_ref</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Summarize differences in Life Years Lost.</h2>
+
+<h3>Description</h3>
+
+<p><code>lyl_diff</code> summarizes differences in estimated Life Years Lost
+in two different populations: <code>lyl_estimation1</code> compared to a life table provided in <code>data_ref</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lyl_diff_ref(
+  lyl_population1,
+  data_ref,
+  age,
+  surv,
+  rates,
+  decimals = 2,
+  level = 0.95,
+  weights = NA,
+  lyl_population0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lyl_population1</code></td>
+<td>
+<p>Population of interest: An object of class <code>lyl</code> or <code>lyl_range</code> (obtained with
+functions <code>lyl</code> or <code>lyl_range</code>). Alternatively, an object of class <code>lyl_ci</code> can be provided for
+bootstrapped confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_ref</code></td>
+<td>
+<p>A dataframe, where each raw represents an age, for the population of
+reference The dataframe will contain information on age-specific mortality rates
+or survivial probability (if both parameters are provided, rates will be used).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>Variable in <code>data_ref</code> containing information on age.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>surv</code></td>
+<td>
+<p>Variable in <code>data_ref</code> containing information on age-specific survival probability.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rates</code></td>
+<td>
+<p>Variable in <code>data_ref</code> containing information on age-specific mortality rates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>decimals</code></td>
+<td>
+<p>Number of decimals to be reported (default is 2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Confidence level if <code>lyl_population1</code> or <code>lyl_population0</code> is obtained with the <code>lyl_ci</code>
+function (default is 0.95 for 95% confidence intervals)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Vector with age distribution of disease/condition onset to be used when Life Years Lost are estimated
+over a range of ages (with <code>lyl_range</code> function). If weights are not provided (dafault is <code>weights = NA</code>),
+then the differences in Life Years Lost at each age is provided. If weights are provided, then a weighted average is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lyl_population0</code></td>
+<td>
+<p>Parameter automatically created.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A table with the summary of the differences between two populations.
+</p>
+
+
+<h3>References</h3>
+
+
+<ul><li>
+<p>Plana-Ripoll et al. lillies – An R package for the estimation of excess Life Years Lost among patients with a given disease or condition.
+<em>PLoS ONE</em>. 2020;15(3):e0228073.
+</p>
+</li></ul>
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p><code>lyl</code> for estimation of Life Years Lost at one specific age.
+</p>
+</li>
+<li>
+<p><code>lyl_range</code> for estimation of Life Years Lost for a range of different ages.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load simulated data as example
+data(simu_data)
+data(pop_ref)
+
+# Estimate remaining life expectancy and Life Years
+# Lost due to specific causes of death after age 45
+# years and before age 95 years for those with a disease
+diseased &lt;- simu_data[!is.na(simu_data$age_disease), ]
+lyl_estimation1 &lt;- lyl(data = diseased, t0 = age_disease,
+                       t = age_death, status = cause_death,
+                       age_specific = 45, tau = 95)
+lyl_diff_ref(lyl_estimation1, pop_ref, age = age, surv = survival)
+lyl_diff_ref(lyl_estimation1, pop_ref, age = age, rates = mortality_rates)
+
+# Calculate bootstrapped confidence interval (3 iterations to test; more are necessary)
+lyl_estimation1_ci &lt;- lyl_ci(lyl_estimation1, niter = 3)
+lyl_diff_ref(lyl_estimation1_ci, pop_ref, age = age, surv = survival)
+
+
+# Estimate remaining life expectancy and Life Years
+# Lost due to specific causes of death after each age
+# from 0 to 94 years and before age 95 years
+lyl_estimation2 &lt;- lyl_range(data = diseased, t0 = age_disease,
+                             t = age_death, status = cause_death,
+                             age_begin = 0, age_end = 94, tau = 95)
+lyl_diff_ref(lyl_estimation2, pop_ref, age = age, surv = survival)
+lyl_diff_ref(lyl_estimation2, pop_ref, age = age, surv = survival, weights = diseased$age_disease)
+
+
+</code></pre>
+
+
+</div>

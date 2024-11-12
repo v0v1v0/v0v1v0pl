@@ -1,0 +1,194 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>roc.</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>ROC curve</h2>
+
+<h3>Description</h3>
+
+<p>Compute ROC curve</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">roc.s(X,etime,status,u=NULL,tt,s,vtimes,fc=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>n by S matrix of longitudinal score/biomarker for i-th
+subject at j-th occasion (NA if unmeasured)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>etime</code></td>
+<td>
+<p>n vector with follow-up times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p>n vector with event indicators</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>Lower limit for evaluation of sensitivity and
+specificity. Defaults to <code>max(vtimes[s])</code> (see below)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tt</code></td>
+<td>
+<p>Upper limit (time-horizon) for evaluation of sensitivity
+and specificity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>n vector of measurements/visits to use for each subject. all(s&lt;=S)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vtimes</code></td>
+<td>
+<p>S vector with visit times</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fc</code></td>
+<td>
+<p>Events are defined as fc = 1. Defaults to $I(cup X(t_j)&gt;cutoff)$</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>ROC curve is defined as the curve given by (1-specificities,
+sensitivities). Here these are obtained for a time-dependent multiply-measured
+marker are defined as 
+</p>
+<p>Se(t,c,s,u) = Pr(f_c(X(t_1),X(t_2),...,X(t_s_i))| u &lt;= T &lt;= t),
+</p>
+<p>and
+</p>
+<p>Sp(t,c,s,u) = 1-Pr(f_c(X(t_1),X(t_2),...,X(t_s_i)) | T &gt; t) 
+</p>
+<p>for some fixed f_c, where c is a cutoff. 
+The default for f_c is that a positive diagnosis is given as soon as
+any measurement among the s considered is above the threshold. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with the following columns: 
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+ 	<code>1-spec</code> </td>
+<td style="text-align: left;"> 1-Specificities </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+	<code>sens</code> </td>
+<td style="text-align: left;"> Sensitivities  </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+	</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Alessio Farcomeni <a href="mailto:alessio.farcomeni@uniroma1.it">alessio.farcomeni@uniroma1.it</a></p>
+
+
+<h3>References</h3>
+
+<p>Barbati, G. and Farcomeni, A. (2017) Prognostic assessment of
+repeatedly measured time-dependent biomarkers, with application to
+dilated cardiomuopathy, <em>Statistical Methods \&amp; Applications</em>, in
+press 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><cite>auc</cite>, <cite>butstrap</cite>, <cite>maxauc</cite>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># parameters
+n=100
+tt=3
+Tmax=10
+u=1.5
+s=sample(3,n,replace=TRUE)
+vtimes=c(0,1,2,5)
+
+# generate data 
+
+ngrid=5000
+ts=seq(0,Tmax,length=ngrid)
+X2=matrix(rnorm(n*ngrid,0,0.1),n,ngrid)
+for(i in 1:n) {
+sa=sample(ngrid/6,1)
+vals=sample(3,1)-1
+X2[i,1:sa[1]]=vals[1]+X2[i,1:sa[1]]
+X2[i,(sa[1]+1):ngrid]=vals[1]+sample(c(-2,2),1)+X2[i,(sa[1]+1):ngrid]
+}
+
+S1=matrix(sample(4,n,replace=TRUE),n,length(vtimes))
+S2=matrix(NA,n,length(vtimes))
+
+S2[,1]=X2[,1]
+
+for(j in 2:length(vtimes)) {
+tm=which.min(abs(ts-vtimes[j]))
+S2[,j]=X2[,tm]}
+
+cens=runif(n)
+ripart=1-exp(-0.01*apply(exp(X2),1,cumsum)*ts/1:ngrid)
+
+Ti=rep(NA,n)
+for(i in 1:n) {
+Ti[i]=ts[which.min(abs(ripart[,i]-cens[i]))]
+}
+
+cens=runif(n,0,Tmax*2)
+delta=ifelse(cens&gt;Ti,1,0)
+Ti[cens&lt;Ti]=cens[cens&lt;Ti]
+
+## 
+
+## an important marker 
+
+ro=roc.s(S2,Ti,delta,u,tt,s,vtimes) 
+plot(ro,type="l",col="red")
+abline(a=0,b=1)
+
+## an unrelated marker 
+
+ro=roc.s(S1,Ti,delta,u,tt,s,vtimes) 
+plot(ro,type="l",col="red")
+abline(a=0,b=1)
+
+</code></pre>
+
+
+</div>

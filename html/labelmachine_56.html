@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lama_translate_all</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Assign new labels to all variables of a data.frame</h2>
+
+<h3>Description</h3>
+
+<p>The functions <code>lama_translate_all()</code> and <code>lama_to_factor_all()</code>
+converts all variables (which have a translation in the given lama-dictionary)
+of a data frame <code>.data</code>
+into factor variables with new labels.
+These functions are special versions of the functions <code>lama_translate()</code>
+and <code>lama_to_factor()</code>.
+The difference to <code>lama_translate()</code> and <code>lama_to_factor()</code> is,
+that when using <code>lama_translate_all()</code> and <code>lama_to_factor_all()</code>
+the used translations in <code>dictionary</code> must have the exact
+same names as the corresponding columns in the data frame <code>.data</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lama_translate_all(.data, dictionary, prefix = "", suffix = "",
+  fn_colname = function(x) x, keep_order = FALSE, to_factor = TRUE)
+
+## S3 method for class 'data.frame'
+lama_translate_all(.data, dictionary, prefix = "",
+  suffix = "", fn_colname = function(x) x, keep_order = FALSE,
+  to_factor = TRUE)
+
+lama_to_factor_all(.data, dictionary, prefix = "", suffix = "",
+  fn_colname = function(x) x, keep_order = FALSE)
+
+## S3 method for class 'data.frame'
+lama_to_factor_all(.data, dictionary, prefix = "",
+  suffix = "", fn_colname = function(x) x, keep_order = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>Either a data frame, a factor or a vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dictionary</code></td>
+<td>
+<p>A lama_dictionary object,
+holding the translations for various variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>A character string, which is used as prefix for the new
+column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>suffix</code></td>
+<td>
+<p>A character string, which is used as suffix for the new
+column names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fn_colname</code></td>
+<td>
+<p>A function, which transforms character string into a new
+character string. This function will be used to transform the old column
+names into new column names under which the labeled variables will then
+be stored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keep_order</code></td>
+<td>
+<p>A logical of length one, defining if the original order
+(factor order or alphanumerical order) of the data frame variables should
+be preserved.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>to_factor</code></td>
+<td>
+<p>A logical of length one, defining if the resulting labeled
+variables should be factor variables (<code>to_factor = TRUE</code>) or plain
+character vectors (<code>to_factor = FALSE</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The difference between <code>lama_translate_all()</code> and <code>lama_to_factor_all()</code>
+is the following:
+</p>
+
+<ul>
+<li> <p><code>lama_translate_all()</code>: Assign new labels to the variables
+and turn them into factor variables with the order given in the corresponding
+translations (<code>keep_order = FALSE</code>) or in the same order as the original
+variable (<code>keep_order = TRUE</code>).
+</p>
+</li>
+<li> <p><code>lama_to_factor_all()</code>: The variables are character
+vectors or factors already holding the right label strings. The variables
+are turned into a factor variables with the order given in the corresponding
+translation (<code>keep_order = FALSE</code>) or in the same order as the original
+variable (<code>keep_order = TRUE</code>).
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An extended data.frame, that has a factor variable holding the
+assigned labels.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lama_translate()</code>, <code>lama_to_factor()</code>, <code>new_lama_dictionary()</code>,
+<code>as.lama_dictionary()</code>, <code>lama_rename()</code>, <code>lama_select()</code>, <code>lama_mutate()</code>,
+<code>lama_merge()</code>, <code>lama_read()</code>, <code>lama_write()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## initialize lama_dictinoary
+  dict &lt;- new_lama_dictionary(
+    subject = c(en = "English", ma = "Mathematics"),
+    result = c("1" = "Very good", "2" = "Good", "3" = "Not so good")
+  )
+  ## data frame which should be translated
+  df &lt;- data.frame(
+    pupil = c(1, 1, 2, 2, 3),
+    subject = c("en", "ma", "ma", "en", "en"),
+    result = c(1, 2, 3, 2, 2)
+  )
+  
+  ## Example-1: 'lama_translate_all''
+  df_new &lt;- lama_translate_all(
+    df,
+    dict,
+    prefix = "pre_",
+    fn_colname = toupper,
+    suffix = "_suf"
+  )
+  str(df_new)
+
+  ## Example-2: 'lama_translate_all' with 'to_factor = FALSE'
+  # The resulting variables are plain character vectors
+  df_new &lt;- lama_translate_all(df, dict, suffix = "_new", to_factor = TRUE)
+  str(df_new)
+
+  ## Example-3: 'lama_to_factor_all'
+  # The variables 'subject' and 'result' are turned into factor variables
+  # The ordering is taken from the translations 'subject' and 'result'
+  df_2 &lt;- data.frame(
+    pupil = c(1, 1, 2, 2, 3),
+    subject = c("English", "Mathematics", "Mathematics", "English", "English"),
+    result = c("Very good", "Good", "Good", "Very good", "Good")
+  )
+  df_2_new &lt;- lama_to_factor_all(
+    df_2, dict,
+    prefix = "pre_",
+    fn_colname = toupper,
+    suffix = "_suf"
+  )
+  str(df_new)
+
+</code></pre>
+
+
+</div>

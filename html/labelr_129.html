@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>with_val_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate an Expression in a Value Labels-on Data Environment</h2>
+
+<h3>Description</h3>
+
+<p><code>with_val_labs</code> wraps a data.frame in <code>use_val_labs</code> and wraps the resulting
+data.frame in <code>base::with</code> in support of <code>base::with</code>-like non-standard
+evaluation (see examples).
+</p>
+<p>Note: <code>wvl</code> is a compact alias for <code>with_val_labs</code>: they do the same thing,
+and the former is easier to type
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">with_val_labs(data, ...)
+
+wvl(data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame with value-labeled columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments passed to dots, typically an expression
+involving a function called on unquoted variable(s) (see examples).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>with_val_labs</code> (see also alias <code>wvl</code>) is useful for applying certain
+nominal-variable-friendly functions (chiefly, <code>table</code> and the like) to
+value-labeled data.frames. See also <code>base::with</code>. See also <code>tabl</code>,
+<code>with_name_labs</code>, and <code>with_both_labs</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>the value of the evaluated <code>expr</code>, with value labels
+substituted for variable values.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># make toy demographic (gender, raceth, etc.) data set
+set.seed(555)
+df &lt;- make_demo_data(n = 1000) # another labelr:: function
+# let's add variable VALUE labels for variable "raceth"
+df &lt;- add_val_labs(df,
+  vars = "raceth", vals = c(1:7),
+  labs = c("White", "Black", "Hispanic", "Asian", "AIAN", "Multi", "Other"),
+  max.unique.vals = 50
+)
+
+# let's add variable VALUE labels for variable "gender"
+# note that, if we are labeling a single variable, we can use add_val1()
+# distinction between add_val1() and add_val_labs() will become more meaningful
+# when we get to our Likert example
+df &lt;- add_val1(
+  data = df, gender, vals = c(0, 1, 2, 3, 4),
+  labs = c("M", "F", "TR", "NB", "Diff-Term"), max.unique.vals = 50
+)
+
+# "with_val_labs" - with()-like function that swaps value labels out for value values
+# compare with(df, ...) to with_val_labs(df,...)
+with(df, table(gender, raceth)) # without labels
+
+# the same data (note that presentation order changes d/t alphabetical ordering)
+with_val_labs(df, table(gender, raceth)) # with labels
+with(use_val_labs(df), table(gender, raceth)) # above is shorthand for this
+
+# just raceth
+with(df, table(raceth)) # with
+with_val_labs(df, table(raceth)) # with_val_labs
+
+# another use case
+with(df, unique(raceth)) # with
+with_val_labs(df, unique(raceth)) # with_val_labs
+
+# another
+with(df, modelr::typical(raceth)) # numerical median!
+with_val_labs(df, modelr::typical(raceth)) # modal label (not the median!)
+</code></pre>
+
+
+</div>

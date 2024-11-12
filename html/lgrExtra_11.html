@@ -1,0 +1,298 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LayoutDbi</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Format log events for output to databases</h2>
+
+<h3>Description</h3>
+
+<p>LayoutDbi can contain <code>col_types</code> that AppenderDbi can use to create new
+database tables; however, it is safer and more flexible to set up the log
+table up manually with an <code style="white-space: pre;">⁠SQL CREATE TABLE⁠</code> statement instead.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The LayoutDbi parameters <code>fmt</code>, <code>timestamp_fmt</code>, <code>colors</code> and <code>pad_levels</code>
+are only applied for for console output via the <code style="white-space: pre;">⁠$show()⁠</code> method and do not
+influence database inserts in any way. The inserts are pre-processed by
+the methods <code style="white-space: pre;">⁠$format_data()⁠</code>, <code style="white-space: pre;">⁠$format_colnames⁠</code> and <code style="white-space: pre;">⁠$format_tablenames⁠</code>.
+</p>
+<p>It does not format
+LogEvents directly, but their <code>data.table</code> representations (see
+lgr::as.data.table.LogEvent), as well as column- and table names.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code style="white-space: pre;">⁠$new()⁠</code> method returns an R6::R6 that inherits from
+lgr::Layout and can used as a Layout by an lgr::Appender.
+</p>
+
+
+<h3>Database Specific Layouts</h3>
+
+<p>Different databases have different data types and features. Currently the
+following <code>LayoutDbi</code> subclasses exist that deal with specific databases,
+but this list is expected to grow as lgrExtra matures:
+</p>
+
+<ul>
+<li> <p><code>LayoutSqlite</code>: For SQLite databases
+</p>
+</li>
+<li> <p><code>LayoutPostgres</code>: for Postgres databases
+</p>
+</li>
+<li> <p><code>LayoutMySql</code>: for MySQL databases
+</p>
+</li>
+<li> <p><code>LayoutDb2</code>: for DB2 databases
+</p>
+</li>
+</ul>
+<p>The utility function <code>select_dbi_layout()</code> tries returns the appropriate
+Layout for a DBI connection, but this does not work for odbc and JDBC
+connections where you have to specify the layout manually.
+</p>
+<p>For creating custom DB-specific layouts it should usually be enough to create
+an R6::R6 class that inherits from <code>LayoutDbi</code> and choosing different
+defaults for <code style="white-space: pre;">⁠$format_table_name⁠</code>, <code style="white-space: pre;">⁠$format_colnames⁠</code> and <code style="white-space: pre;">⁠$format_data⁠</code>.
+</p>
+
+
+<h3>Super classes</h3>
+
+<p><code>lgr::Layout</code> -&gt; <code>lgr::LayoutFormat</code> -&gt; <code>LayoutDbi</code>
+</p>
+
+
+<h3>Public fields</h3>
+
+<div class="r6-fields">
+
+<dl>
+<dt><code>format_table_name</code></dt>
+<dd>
+<p>a <code>function</code> to format the table name before
+inserting to the database. The function will be applied to the
+<code style="white-space: pre;">⁠$table_name⁠</code> before inserting into the database. For example some,
+databases prefer all lowercase names, some uppercase. SQL updates
+should be case-agnostic, but sadly in practice not all DBI backends
+behave consistently in this regard.</p>
+</dd>
+<dt><code>format_colnames</code></dt>
+<dd>
+<p>a <code>function</code> to format the column names before
+inserting to the database. The function will be applied to the column
+names of the data frame to be inserted into the database.</p>
+</dd>
+<dt><code>format_data</code></dt>
+<dd>
+<p>a <code>function</code> to format the data before
+inserting into the database. The function will be applied to the whole
+data frame.</p>
+</dd>
+<dt><code>names</code></dt>
+<dd>
+<p>of the columns that contain data that has been serialized
+to JSON strings</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Active bindings</h3>
+
+<div class="r6-active-bindings">
+
+<dl>
+<dt><code>col_types</code></dt>
+<dd>
+<p>a named <code>character</code> vector of column types supported by
+the target database. If not <code>NULL</code> this is used by AppenderDbi or
+similar Appenders to create a new database table on instantiation of
+the Appender. If the target database table already exists, <code>col_types</code>
+is not used.</p>
+</dd>
+<dt><code>names</code></dt>
+<dd>
+<p>of the columns that contain data that has been serialized
+to JSON strings</p>
+</dd>
+<dt><code>col_names</code></dt>
+<dd>
+<p>column names of the target table (the same as
+<code>names(lo$col_types)</code>)</p>
+</dd>
+</dl>
+</div>
+
+
+<h3>Methods</h3>
+
+
+
+<h4>Public methods</h4>
+
+
+<ul>
+<li> <p><a href="#method-LayoutDbi-new"><code>LayoutDbi$new()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LayoutDbi-set_col_types"><code>LayoutDbi$set_col_types()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LayoutDbi-set_serialized_cols"><code>LayoutDbi$set_serialized_cols()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LayoutDbi-sql_create_table"><code>LayoutDbi$sql_create_table()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LayoutDbi-toString"><code>LayoutDbi$toString()</code></a>
+</p>
+</li>
+<li> <p><a href="#method-LayoutDbi-clone"><code>LayoutDbi$clone()</code></a>
+</p>
+</li>
+</ul>
+<details><summary>Inherited methods</summary><ul>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="format_event"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-format_event"><code>lgr::LayoutFormat$format_event()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="read"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-read"><code>lgr::LayoutFormat$read()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="set_colors"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-set_colors"><code>lgr::LayoutFormat$set_colors()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="set_fmt"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-set_fmt"><code>lgr::LayoutFormat$set_fmt()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="set_pad_levels"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-set_pad_levels"><code>lgr::LayoutFormat$set_pad_levels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="lgr" data-topic="LayoutFormat" data-id="set_timestamp_fmt"><a href="../../lgr/html/LayoutFormat.html#method-LayoutFormat-set_timestamp_fmt"><code>lgr::LayoutFormat$set_timestamp_fmt()</code></a></span></li>
+</ul></details><hr>
+<a id="method-LayoutDbi-new"></a>
+
+
+
+<h4>Method <code>new()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$new(
+  col_types = c(level = "integer", timestamp = "timestamp", logger = "varchar(256)",
+    caller = "varchar(256)", msg = "varchar(2048)"),
+  serialized_cols = NULL,
+  fmt = "%L [%t] %m  %f",
+  timestamp_fmt = "%Y-%m-%d %H:%M:%S",
+  colors = getOption("lgr.colors", list()),
+  pad_levels = "right",
+  format_table_name = identity,
+  format_colnames = identity,
+  format_data = data.table::as.data.table
+)</pre></div>
+
+
+<hr>
+<a id="method-LayoutDbi-set_col_types"></a>
+
+
+
+<h4>Method <code>set_col_types()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$set_col_types(x)</pre></div>
+
+
+<hr>
+<a id="method-LayoutDbi-set_serialized_cols"></a>
+
+
+
+<h4>Method <code>set_serialized_cols()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$set_serialized_cols(x)</pre></div>
+
+
+<hr>
+<a id="method-LayoutDbi-sql_create_table"></a>
+
+
+
+<h4>Method <code>sql_create_table()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$sql_create_table(table)</pre></div>
+
+
+<hr>
+<a id="method-LayoutDbi-toString"></a>
+
+
+
+<h4>Method <code>toString()</code>
+</h4>
+
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$toString()</pre></div>
+
+
+<hr>
+<a id="method-LayoutDbi-clone"></a>
+
+
+
+<h4>Method <code>clone()</code>
+</h4>
+
+<p>The objects of this class are cloneable with this method.
+</p>
+
+
+<h5>Usage</h5>
+
+<div class="r"><pre>LayoutDbi$clone(deep = FALSE)</pre></div>
+
+
+
+<h5>Arguments</h5>
+
+<div class="arguments">
+
+<dl>
+<dt><code>deep</code></dt>
+<dd>
+<p>Whether to make a deep clone.</p>
+</dd>
+</dl>
+</div>
+
+
+
+
+<h3>See Also</h3>
+
+<p><code>select_dbi_layout()</code>, DBI::DBI,
+</p>
+<p>Other Layout: 
+<code>LayoutElasticSearch</code>
+</p>
+
+
+</div>

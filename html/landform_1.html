@@ -1,0 +1,242 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>landform</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Landform Classification</h2>
+
+<h3>Description</h3>
+
+<p>This function classifies a landscape into different categories based on the Topographic Position Index (TPI) and slope.
+It offers two types of classifications: Slope Position Classification (Weiss 2001) and Landform Classification (Weiss 2001; Jenness 2003).<br>
+Visit this <a href="https://drive.google.com/file/d/1vjy8_HPtuyKkzSkYwKdQbHJLrVtO79ft/view?usp=sharing">LINK</a> to access the package's vignette.<br></p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">landform(
+  x,
+  scale = 3,
+  sn = 3,
+  ln = 7,
+  class.type = "slope.position",
+  descriptive = FALSE,
+  leg.pos = "topright",
+  leg.cex = 0.65
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A RasterLayer or a SpatRaster object representing the landscape.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale</code></td>
+<td>
+<p>The size of the neighbourhood for calculating the TPI. Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sn</code></td>
+<td>
+<p>The size of the small neighbourhood for calculating the TPI in the Landform Classification. Default is 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ln</code></td>
+<td>
+<p>The size of the large neighbourhood for calculating the TPI in the Landform Classification. Default is 7.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>class.type</code></td>
+<td>
+<p>The type of classification to be performed. Options are "slope.position" for Slope Position Classification
+and "landform.classification" for Landform Classification. Default is "slope.position".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>descriptive</code></td>
+<td>
+<p>A logical parameter (default is FALSE). If set to TRUE, the function will calculate and return
+additional descriptive statistics for each class. These statistics include the count of pixels, total area (in Km2), and percentage
+of the total area for each class. Additionally, a bar plot showing the area of each class will be generated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leg.pos</code></td>
+<td>
+<p>The position of the legend in the plot. Default is "topright".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leg.cex</code></td>
+<td>
+<p>The magnification to be used for sizing the legend relative to the current setting of 'cex'. Default is 0.65.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function internally calculates the Standardised Topographic Position Index (TPI) for the given landscape.
+The TPI is calculated as the difference between the elevation of each cell in the landscape and the mean elevation of
+its neighbouring cells. The TPI is then standardised by dividing the difference between each cell's TPI and the mean TPI
+of its neighbouring cells by the standard deviation of the TPI values within the neighbourhood.
+</p>
+<p>The Slope Position Classification uses the standardised TPI and slope to classify the landscape into
+six categories: Valley, Lower Slope, Flat Slope, Middle Slope, Upper Slope, and Ridge.
+This classification is useful for identifying the position of a location on a slope (Weiss 2001).
+</p>
+<p>The Landform Classification uses two standardised TPI grids at different scales to classify the landscape
+into ten categories: Canyons, Midslope Drainage, Upland Drainage, U-shaped Valleys, Plains, Open Slopes,
+Upper Slopes, Local Ridges, Midslope Ridges, and Mountain Tops. This classification is useful for identifying
+broader landform types (Weiss 2001; Jenness 2003).
+</p>
+<p>As for the descriptive statistics returned by the function, please note that if the input raster layer is not in
+a projected coordinate system, the area calculation for each class (which is based on the resolution of the raster and the
+count of cells in each class) may not accurately represent the true area on the ground. Therefore, it's recommended to use
+a raster layer in a suitable projected coordinate system for your area of interest to ensure accurate area calculations.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The package plots the raster of all the classes combined. If the <code>descriptive</code> parameter is set to <code>TRUE</code>,
+a bar plot showing the area of each class is generated. A list of SpatRaster objects
+representing the different classes of the landscape is also returned. The list will contain an item named
+<code>Descriptive Statistics</code> if the <code>descriptive</code> parameter is set to <code>TRUE</code>. For each class, the item reports the
+cell counts, the corresponding area (in Km2), and the corresponding percentage.<br></p>
+<p>For the "slope.position" classification, the returned layers are:
+</p>
+
+<ul>
+<li>
+<p> "all": all classes combined
+</p>
+</li>
+<li>
+<p> "Valley": TPI &lt;= -1
+</p>
+</li>
+<li>
+<p> "Lower Slope": -1 &lt; TPI &lt;= -0.5
+</p>
+</li>
+<li>
+<p> "Flat Slope": -0.5 &lt; TPI &lt; 0.5 and slope &lt;= 5
+</p>
+</li>
+<li>
+<p> "Middle Slope": -0.5 &lt; TPI &lt; 0.5 and slope &gt; 5
+</p>
+</li>
+<li>
+<p> "Upper Slope": 0.5 &lt; TPI &lt;= 1
+</p>
+</li>
+<li>
+<p> "Ridge": TPI &gt; 1
+</p>
+</li>
+</ul>
+<p>For the "landform.classification", the returned layers are:
+</p>
+
+<ul>
+<li>
+<p> "all": all classes combined
+</p>
+</li>
+<li>
+<p> "Canyons-Deeply Incised Streams": sn &lt;= -1 and ln &lt;= -1
+</p>
+</li>
+<li>
+<p> "Midslope Drainage-Shallow Valleys": sn &lt;= -1 and -1 &lt; ln &lt; 1
+</p>
+</li>
+<li>
+<p> "Upland Drainages-Headwaters": sn &lt;= -1 and ln &gt;= 1
+</p>
+</li>
+<li>
+<p> "U-shaped Valleys": -1 &lt; sn &lt; 1 and ln &lt;= -1
+</p>
+</li>
+<li>
+<p> "Plains": -1 &lt; sn &lt; 1 and -1 &lt; ln &lt; 1 and slope &lt;= 5
+</p>
+</li>
+<li>
+<p> "Open Slopes": -1 &lt; sn &lt; 1 and -1 &lt; ln &lt; 1 and slope &gt; 5
+</p>
+</li>
+<li>
+<p> "Upper Slopes-Mesas": -1 &lt; sn &lt; 1 and ln &gt;= 1
+</p>
+</li>
+<li>
+<p> "Local Ridges-Hills in Valley": sn &gt;= 1 and ln &lt;= -1
+</p>
+</li>
+<li>
+<p> "Midslopes Ridges-Small Hills in Plains": sn &gt;= 1 and -1 &lt; ln &lt; 1
+</p>
+</li>
+<li>
+<p> "Mountain Tops-High Ridges": sn &gt;= 1 and ln &gt;= 1
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Weiss, A. (2001). Topographic Position and Landforms Analysis. Poster presentation, ESRI User Conference, San Diego, CA.
+</p>
+<p>Jenness, J. (2003). TPI ArcView Extension. Jenness Enterprises. Available at: http://www.jennessent.com/arcview/tpi.htm
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>raster</code>, <code>rast</code>, <code>focal</code>, <code>terrain</code>, <code>plot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Create a toy elevation dataset
+# Define the raster dimensions
+nrows &lt;- 100
+ncols &lt;- 100
+
+# Create a matrix with random values
+set.seed(123) # to make the example reproducible
+mat &lt;- matrix(runif(nrows*ncols), nrow=nrows, ncol=ncols)
+
+# Convert the matrix to a raster object
+library(terra)
+elev &lt;- rast(mat)
+
+# EXAMPLE 1
+
+# Run the analysis
+result &lt;- landform(elev, scale = 3, class.type = "slope.position")
+
+# EXAMPLE 2
+
+# Run the analysis
+result &lt;- landform(elev, class.type = "landform.classification", sn=3, ln=11)
+
+
+</code></pre>
+
+
+</div>

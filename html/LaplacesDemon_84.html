@@ -1,0 +1,294 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BayesFactor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bayes Factor</h2>
+
+<h3>Description</h3>
+
+<p>This function calculates Bayes factors for two or more fitted objects
+of class <code>demonoid</code>, <code>iterquad</code>, <code>laplace</code>, <code>pmc</code>,
+or <code>vb</code> that were estimated respectively with the
+<code>LaplacesDemon</code>, <code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>, <code>PMC</code>, or
+<code>VariationalBayes</code> functions, and indicates the strength
+of evidence in favor of the hypothesis (that each model,
+<code class="reqn">\mathcal{M}_i</code>, is better than another model,
+<code class="reqn">\mathcal{M}_j</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BayesFactor(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This is a list of two or more fitted objects of class
+<code>demonoid</code>, <code>iterquad</code>, <code>laplace</code>, <code>pmc</code>, or
+<code>vb</code>. The components are named in order beginning with model 1,
+<code>M1</code>, and <code class="reqn">k</code> models are usually represented as
+<code class="reqn">\mathcal{M}_1,\dots,\mathcal{M}_k</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Introduced by Harold Jeffreys, a 'Bayes factor' is a Bayesian
+alternative to frequentist hypothesis testing that is most often used
+for the comparison of multiple models by hypothesis testing, usually
+to determine which model better fits the data (Jeffreys, 1961). Bayes
+factors are notoriously difficult to compute, and the Bayes factor is
+only defined when the marginal density of <code class="reqn">\textbf{y}</code> under
+each model is proper (see <code>is.proper</code>). However, the Bayes
+factor is easy to approximate with the Laplace-Metropolis estimator
+(Lewis and Raftery, 1997) and other methods of approximating the
+logarithm of the marginal likelihood (for more information, see
+<code>LML</code>).
+</p>
+<p>Hypothesis testing with Bayes factors is more robust than frequentist
+hypothesis testing, since the Bayesian form avoids model selection
+bias, evaluates evidence in favor of the null hypothesis, includes
+model uncertainty, and allows non-nested models to be compared (though
+of course the model must have the same dependent variable). Also,
+frequentist significance tests become biased in favor of rejecting the
+null hypothesis with sufficiently large sample size.
+</p>
+<p>The Bayes factor for comparing two models may be approximated as the
+ratio of the marginal likelihood of the data in model 1 and model
+2. Formally, the Bayes factor in this case is
+</p>
+<p style="text-align: center;"><code class="reqn">B =
+  \frac{p(\textbf{y}|\mathcal{M}_1)}{p(\textbf{y}|\mathcal{M}_2)} =
+  \frac{\int
+    p(\textbf{y}|\Theta_1,\mathcal{M}_1)p(\Theta_1|\mathcal{M}_1)d\Theta_1}{\int
+    p(\textbf{y}|\Theta_2,\mathcal{M}_2)p(\Theta_2|\mathcal{M}_2)d\Theta_2}</code>
+</p>
+
+<p>where <code class="reqn">p(\textbf{y}|\mathcal{M}_1)</code> is the marginal
+likelihood of the data in model 1.
+</p>
+<p>The <code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>, <code>LaplacesDemon</code>,
+<code>PMC</code>, and <code>VariationalBayes</code> functions each
+return the <code>LML</code>, the approximate logarithm of the
+marginal likelihood of the data, in each fitted object of class
+<code>iterquad</code>, <code>laplace</code>, <code>demonoid</code>, <code>pmc</code>, or
+<code>vb</code>. The <code>BayesFactor</code> function calculates matrix <code>B</code>,
+a matrix of Bayes factors, where each element of matrix <code>B</code> is a
+comparison of two models. Each Bayes factor is calculated as the
+exponentiated difference of <code>LML</code> of model 1
+(<code class="reqn">\mathcal{M}_1</code>) and <code>LML</code> of model 2
+(<code class="reqn">\mathcal{M}_2</code>), and the hypothesis for each element of
+matrix <code>B</code> is that the model associated with the row is greater
+than the model associated with the column. For example, element
+<code>B[3,2]</code> is the Bayes factor that model 3 is greater than model
+2. The 'Strength of Evidence' aids in the interpretation (Jeffreys,
+1961).
+</p>
+<p>A table for the interpretation of the strength of evidence for Bayes
+factors is available at
+<a href="https://web.archive.org/web/20150214194051/http://www.bayesian-inference.com/bayesfactors">https://web.archive.org/web/20150214194051/http://www.bayesian-inference.com/bayesfactors</a>.
+</p>
+<p>Each Bayes factor, <code>B</code>, is the posterior odds in favor of the
+hypothesis divided by the prior odds in favor of the hypothesis, where
+the hypothesis is usually
+<code class="reqn">\mathcal{M}_1 &gt; \mathcal{M}_2</code>. For example, when
+<code>B[3,2]=2</code>, the data favor <code class="reqn">\mathcal{M}_3</code> over
+<code class="reqn">\mathcal{M}_2</code> with 2:1 odds.
+</p>
+<p>It is also popular to consider the natural logarithm of the Bayes
+factor. The scale of the logged Bayes factor is the same above and
+below one, which is more appropriate for visual comparisons. For
+example, when comparing two Bayes factors at 0.5 and 2, the logarithm
+of these Bayes factors is -0.69 and 0.69.
+</p>
+<p>Gelman finds Bayes factors generally to be irrelevant, because they
+compute the relative probabilities of the models conditional on one
+of them being true. Gelman prefers approaches that measure the
+distance of the data to each of the approximate models (Gelman et al.,
+2004, p. 180), such as with posterior predictive checks (see the
+<code>predict.iterquad</code> function regarding iterative
+quadrature, <code>predict.laplace</code> function in the context of
+Laplace Approximation, <code>predict.demonoid</code> function in the
+context of MCMC, <code>predict.pmc</code> function in the context
+of PMC, or <code>predict.vb</code> function in the context of
+Variational Bayes). Kass et al. (1995) asserts this can be done
+without assuming one model is the true model.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>BayesFactor</code> returns an object of class <code>bayesfactor</code> that
+is a list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>This is a matrix of Bayes factors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Hypothesis</code></td>
+<td>
+
+<p>This is the hypothesis, and is stated as 'row &gt; column', indicating
+that the model associated with the row of an element in matrix
+<code>B</code> is greater than the model associated with the column of
+that element.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Strength.of.Evidence</code></td>
+<td>
+
+<p>This is the strength of evidence in favor of the hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Posterior.Probability</code></td>
+<td>
+
+<p>This is a vector of the posterior probability of each model, given
+flat priors.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC.</p>
+
+
+<h3>References</h3>
+
+<p>Gelman, A., Carlin, J., Stern, H., and Rubin, D. (2004). "Bayesian
+Data Analysis, Texts in Statistical Science, 2nd ed.". Chapman and
+Hall, London.
+</p>
+<p>Jeffreys, H. (1961). "Theory of Probability, Third Edition". Oxford
+University Press: Oxford, England.
+</p>
+<p>Kass, R.E. and Raftery, A.E. (1995). "Bayes Factors". <em>Journal
+of the American Statistical Association</em>, 90(430), p. 773–795.
+</p>
+<p>Lewis, S.M. and Raftery, A.E. (1997). "Estimating Bayes Factors via
+Posterior Simulation with the Laplace-Metropolis Estimator".
+<em>Journal of the American Statistical Association</em>, 92,
+p. 648–655.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>is.bayesfactor</code>,
+<code>is.proper</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>,
+<code>LML</code>,
+<code>PMC</code>,
+<code>predict.demonoid</code>,
+<code>predict.iterquad</code>,
+<code>predict.laplace</code>,
+<code>predict.pmc</code>,
+<code>predict.vb</code>, and
+<code>VariationalBayes</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># The following example fits a model as Fit1, then adds a predictor, and
+# fits another model, Fit2. The two models are compared with Bayes
+# factors.
+
+library(LaplacesDemon)
+
+##############################  Demon Data  ###############################
+data(demonsnacks)
+J &lt;- 2
+y &lt;- log(demonsnacks$Calories)
+X &lt;- cbind(1, as.matrix(log(demonsnacks[,10]+1)))
+X[,2] &lt;- CenterScale(X[,2])
+
+#########################  Data List Preparation  #########################
+mon.names &lt;- "LP"
+parm.names &lt;- as.parm.names(list(beta=rep(0,J), sigma=0))
+pos.beta &lt;- grep("beta", parm.names)
+pos.sigma &lt;- grep("sigma", parm.names)
+PGF &lt;- function(Data) {
+     beta &lt;- rnorm(Data$J)
+     sigma &lt;- runif(1)
+     return(c(beta, sigma))
+     }
+MyData &lt;- list(J=J, PGF=PGF, X=X, mon.names=mon.names,
+     parm.names=parm.names, pos.beta=pos.beta, pos.sigma=pos.sigma, y=y)
+
+##########################  Model Specification  ##########################
+Model &lt;- function(parm, Data)
+     {
+     ### Parameters
+     beta &lt;- parm[Data$pos.beta]
+     sigma &lt;- interval(parm[Data$pos.sigma], 1e-100, Inf)
+     parm[Data$pos.sigma] &lt;- sigma
+     ### Log-Prior
+     beta.prior &lt;- sum(dnormv(beta, 0, 1000, log=TRUE))
+     sigma.prior &lt;- dhalfcauchy(sigma, 25, log=TRUE)
+     ### Log-Likelihood
+     mu &lt;- tcrossprod(Data$X, t(beta))
+     LL &lt;- sum(dnorm(Data$y, mu, sigma, log=TRUE))
+     ### Log-Posterior
+     LP &lt;- LL + beta.prior + sigma.prior
+     Modelout &lt;- list(LP=LP, Dev=-2*LL, Monitor=LP,
+          yhat=rnorm(length(mu), mu, sigma), parm=parm)
+     return(Modelout)
+     }
+
+############################  Initial Values  #############################
+Initial.Values &lt;- GIV(Model, MyData, PGF=TRUE)
+
+########################  Laplace Approximation  ##########################
+Fit1 &lt;- LaplaceApproximation(Model, Initial.Values, Data=MyData,
+     Iterations=10000)
+Fit1
+
+##############################  Demon Data  ###############################
+data(demonsnacks)
+J &lt;- 3
+y &lt;- log(demonsnacks$Calories)
+X &lt;- cbind(1, as.matrix(demonsnacks[,c(7,8)]))
+X[,2] &lt;- CenterScale(X[,2])
+X[,3] &lt;- CenterScale(X[,3])
+
+#########################  Data List Preparation  #########################
+mon.names &lt;- c("sigma","mu[1]")
+parm.names &lt;- as.parm.names(list(beta=rep(0,J), sigma=0))
+pos.beta &lt;- grep("beta", parm.names)
+pos.sigma &lt;- grep("sigma", parm.names)
+PGF &lt;- function(Data) return(c(rnormv(Data$J,0,10), rhalfcauchy(1,5)))
+MyData &lt;- list(J=J, PGF=PGF, X=X, mon.names=mon.names,
+     parm.names=parm.names, pos.beta=pos.beta, pos.sigma=pos.sigma, y=y)
+
+############################  Initial Values  #############################
+Initial.Values &lt;- GIV(Model, MyData, PGF=TRUE)
+
+########################  Laplace Approximation  ##########################
+Fit2 &lt;- LaplaceApproximation(Model, Initial.Values, Data=MyData,
+     Iterations=10000)
+Fit2
+
+#############################  Bayes Factor  ##############################
+Model.list &lt;- list(M1=Fit1, M2=Fit2)
+BayesFactor(Model.list)
+</code></pre>
+
+
+</div>

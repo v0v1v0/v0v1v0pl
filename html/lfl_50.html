@@ -1,0 +1,276 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fcut</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform data into a <code>fsets</code> S3 class using shapes derived from
+triangles or raised cosines</h2>
+
+<h3>Description</h3>
+
+<p>This function creates a set of fuzzy attributes from crisp data. Factors,
+numeric vectors, matrix or data frame columns are transformed into a set of
+fuzzy attributes, i.e. columns with membership degrees. Unlike
+<code>lcut()</code>, for transformation is not used the linguistic linguistic
+approach, but partitioning using regular shapes of the fuzzy sets (such as
+triangle, raised cosine).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fcut(x, ...)
+
+## Default S3 method:
+fcut(x, ...)
+
+## S3 method for class 'factor'
+fcut(x, name = deparse(substitute(x)), ...)
+
+## S3 method for class 'logical'
+fcut(x, name = deparse(substitute(x)), ...)
+
+## S3 method for class 'numeric'
+fcut(
+  x,
+  breaks,
+  name = deparse(substitute(x)),
+  type = c("triangle", "raisedcos"),
+  merge = 1,
+  parallel = FALSE,
+  ...
+)
+
+## S3 method for class 'data.frame'
+fcut(
+  x,
+  breaks = NULL,
+  name = NULL,
+  type = c("triangle", "raisedcos"),
+  merge = 1,
+  parallel = FALSE,
+  ...
+)
+
+## S3 method for class 'matrix'
+fcut(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Data to be transformed: a vector, matrix, or data frame.
+Non-numeric data are allowed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameters to some methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>A name to be added as a suffix to the created fuzzy attribute
+names. This parameter can be used only if <code>x</code> is a vector. If <code>x</code>
+is a matrix or data frame, <code>name</code> should be NULL because the fuzzy
+attribute names are taken from column names of the argument <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breaks</code></td>
+<td>
+<p>This argument determines the break-points of the positions of
+the fuzzy sets (see also <code>equidist()</code>. It should be an ordered vector of
+numbers such that the <code class="reqn">i</code>-th index specifies the beginning,
+<code class="reqn">(i+1)</code>-th the center, and <code class="reqn">(i+2)</code>-th the ending of the <code class="reqn">i</code>-th
+fuzzy set.
+</p>
+<p>I.e. the minimum number of breaks-points is 3; <code class="reqn">n-2</code> elementary fuzzy
+sets would be created for <code class="reqn">n</code> break-points.
+</p>
+<p>If considering an i-th fuzzy set (of <code>type='triangle'</code>), <code>x</code>
+values lower than <code class="reqn">i</code>-th break (and greater than <code class="reqn">(i+2)</code>-th break)
+would result in zero membership degree, values equal to <code class="reqn">(i+1)</code>-th break
+would have membership degree equal 1 and values between them the appropriate
+membership degree between 0 and 1.
+</p>
+<p>The resulting fuzzy sets would be named after the original data by adding
+dot (".") and a number <code class="reqn">i</code> of fuzzy set.
+</p>
+<p>Unlike <code>base::cut()</code>, <code>x</code> values, that are lower or greater than
+the given break-points, will have all membership degrees equal to zero.
+</p>
+<p>For non-numeric data, this argument is ignored. For <code>x</code> being a numeric
+vector, it must be a vector of numeric values. For <code>x</code> being a numeric
+matrix or data frame, it must be a named list containing a numeric vector
+for each column - if not, the values are repeated for each column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of fuzzy sets to create. Currently, <code>'triangle'</code> or
+<code>'raisedcos'</code> may be used. The <code>type</code> argument may be also a
+function with 3 or 4 arguments:
+</p>
+
+<ul>
+<li>
+<p> if <code>type</code> is a 4-argument function, it is assumed that that it computes
+membership degrees from values of the first argument while considering
+the boundaries given by the next 3 arguments;
+</p>
+</li>
+<li>
+<p> if <code>type</code> is a 3-argument function, it is assumed that it is a factory
+function similar to <code>triangular()</code> or <code>raisedcosine()</code>, which, from given
+three boundaries, creates a function that computes membership degrees.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>merge</code></td>
+<td>
+<p>This argument determines whether to derive additional fuzzy
+sets by merging the elementary fuzzy sets (whose position is determined with
+the <code>breaks</code> argument) into super-sets.  The argument is ignored for
+non-numeric data in <code>x</code>.
+</p>
+<p><code>merge</code> may contain any integer number from <code>1</code> to
+<code>length(breaks) - 2</code>.  Value <code>1</code> means that the elementary fuzzy
+sets should be present in the output.  Value <code>2</code> means that the two
+consecutive elementary fuzzy sets should be combined by using the Lukasiewic
+t-conorm, value <code>3</code> causes combining three consecutive elementary fuzzy
+sets etc.
+</p>
+<p>The names of the derived (merged) fuzzy sets is derived from the names of
+the original elementary fuzzy sets by concatenating them with the "|" (pipe)
+separator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Whether the processing should be run in parallel or not.
+Parallelization is implemented using the <code>foreach::foreach()</code> function.
+The parallel environment must be set properly in advance, e.g. with
+the <code>doMC::registerDoMC()</code> function.  Currently this argument is
+applied only if <code>x</code> is a matrix or data frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The aim of this function is to transform numeric data into a set of fuzzy
+attributes.  The result is in the form of the object of class "fsets", i.e.
+a numeric matrix whose columns represent fuzzy sets (fuzzy attributes) with
+values being the membership degrees.
+</p>
+<p>The function behaves differently to the type of input <code>x</code>.
+</p>
+<p>If <code>x</code> is a factor or a logical vector (or other non-numeric data) then
+for each distinct value of an input, a fuzzy set is created, and data would
+be transformed into crisp membership degrees 0 or 1 only.
+</p>
+<p>If <code>x</code> is a numeric vector then fuzzy sets are created accordingly to
+break-points specified in the <code>breaks</code> argument with 1st, 2nd and 3rd
+break-point specifying the first fuzzy set, 2nd, 3rd and 4th break-point
+specifying th second fuzzy set etc. The shape of the fuzzy set is determined
+by the <code>type</code> argument that may be equal either to a string
+<code>'triangle'</code> or <code>'raisedcos'</code> or it could be a function that
+computes the membership degrees for itself (see <code>triangular()</code> or
+<code>raisedcosine()</code> functions for details). Additionally, super-sets of
+these elementary sets may be created by specifying the <code>merge</code>
+argument. Values of this argument specify how many consecutive fuzzy sets
+should be combined (by using the Lukasiewic's t-conorm) to produce
+super-sets - see the description of <code>merge</code> above.
+</p>
+<p>If a matrix (resp. data frame) is provided to this function instead of
+single vector, all columns are processed separately as described above and
+the result is combined with the <code>cbind.fsets()</code> function.
+</p>
+<p>The function sets up properly the <code>vars()</code> and <code>specs()</code>
+properties of the result.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "fsets" is returned, which is a numeric matrix
+with columns representing the fuzzy attributes. Each source column of the
+<code>x</code> argument corresponds to multiple columns in the resulting matrix.
+Columns have names that indicate the name of the source as well as a index
+<code class="reqn">i</code> of fuzzy set(s) – see the description of arguments <code>breaks</code>
+and <code>merge</code> above.
+</p>
+<p>The resulting object would also have set the <code>vars()</code> and
+<code>specs()</code> properties with the former being created from original
+column names (if <code>x</code> is a matrix or data frame) or the <code>name</code>
+argument (if <code>x</code> is a numeric vector). The <code>specs()</code>
+incidency matrix would be created to reflect the superset-hood of the merged
+fuzzy sets.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lcut()</code>, <code>equidist()</code>, <code>farules()</code>, <code>pbld()</code>, <code>vars()</code>, <code>specs()</code>,
+<code>cbind.fsets()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# fcut on non-numeric data
+ff &lt;- factor(substring("statistics", 1:10, 1:10), levels = letters)
+fcut(ff)
+
+# transform a single vector into a single fuzzy set
+x &lt;- runif(10)
+fcut(x, breaks=c(0, 0.5, 1), name='age')
+
+# transform single vector into a partition of the interval 0-1
+# (the boundary triangles are right-angled)
+fcut(x, breaks=c(0, 0, 0.5, 1, 1), name='age')
+
+# also create supersets
+fcut(x, breaks=c(0, 0, 0.5, 1, 1), name='age', merge=c(1, 2))
+
+# transform all columns of a data frame
+# with different breakpoints
+data &lt;- CO2[, c('conc', 'uptake')]
+fcut(data, breaks=list(conc=c(95, 95, 350, 1000, 1000),
+                       uptake=c(7, 7, 28.3, 46, 46)))
+
+# using a custom 3-argument function (a function factory):
+f &lt;- function(a, b, c) {
+  return(function(x) ifelse(a &lt;= x &amp; x &lt;= b, 1, 0))
+}
+fcut(x, breaks=c(0, 0.5, 1), name='age', type=f)
+
+# using a custom 4-argument function:
+f &lt;- function(x, a, b, c) {
+  return(ifelse(a &lt;= x &amp; x &lt;= b, 1, 0))
+}
+fcut(x, breaks=c(0, 0.5, 1), name='age', type=f)
+
+</code></pre>
+
+
+</div>

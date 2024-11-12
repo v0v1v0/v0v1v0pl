@@ -1,0 +1,273 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>liferegr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parametric regression models for failure time data</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the parameter estimates from parametric
+regression models with uncensored, right censored, left censored, or
+interval censored data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">liferegr(
+  data,
+  rep = "rep",
+  stratum = "stratum",
+  time = "time",
+  time2 = "time2",
+  event = "event",
+  covariates = "treat",
+  weight = "weight",
+  id = "id",
+  dist = "weibull",
+  robust = 0L
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The input data frame that contains the following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication for by-group processing.
+</p>
+</li>
+<li> <p><code>stratum</code>: The stratum.
+</p>
+</li>
+<li> <p><code>time</code>: The follow-up time for right censored data, or
+the left end of each interval for interval censored data.
+</p>
+</li>
+<li> <p><code>time2</code>: The right end of each interval for interval
+censored data.
+</p>
+</li>
+<li> <p><code>event</code>: The event indicator, normally 1=event, 0=no event.
+</p>
+</li>
+<li> <p><code>covariates</code>: The values of baseline covariates.
+This is the full-rank design matrix (excluding the intercept)
+for the regression model, assuming that factor variables
+have already been expanded into dummy variables.
+The intercept will be added automatically.
+</p>
+</li>
+<li> <p><code>weight</code>: The weight for each observation.
+</p>
+</li>
+<li> <p><code>id</code>: The optional subject ID to group the score residuals
+in computing the robust sandwich variance.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rep</code></td>
+<td>
+<p>The name of the replication variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stratum</code></td>
+<td>
+<p>The name of the stratum variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>The name of the time variable or the left end of each
+interval for interval censored data in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time2</code></td>
+<td>
+<p>The name of the right end of each interval for
+interval censored data in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event</code></td>
+<td>
+<p>The name of the event variable in the input data
+for right censored data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>The vector of names of baseline covariates
+in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>The name of the weighting variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>The name of the id variable in the input data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist</code></td>
+<td>
+<p>The assumed distribution for time to event. Options include
+"exponential", "weibull", "lognormal", and "loglogistic" to be
+modeled on the log-scale, and "normal" and "logistic" to be modeled
+on the original scale.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Whether a robust sandwich variance estimate should be
+computed. The default is TRUE if there are fractional weights or
+there is at least 1 id with &gt;1 event. In the presence of the id
+variable, the score residual will be aggregated for each id when
+computing the robust sandwich variance estimate.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are two ways to specify the model, one for right censored
+data through the time and event variables, and the other for interval
+censored data through the time and time2 variables. For the second form,
+we follow the convention used in SAS PROC LIFEREG:
+</p>
+
+<ul>
+<li>
+<p> If lower is not missing, upper is not missing, and lower is equal
+to upper, then there is no censoring and the event occurred at
+time lower.
+</p>
+</li>
+<li>
+<p> If lower is not missing, upper is not missing, and lower &lt; upper,
+then the event time is censored within the interval (lower, upper).
+</p>
+</li>
+<li>
+<p> If lower is missing, but upper is not missing, then upper will be
+used as the left censoring value.
+</p>
+</li>
+<li>
+<p> If lower is not missing, but upper is missing, then lower will be
+used as the right censoring value.
+</p>
+</li>
+<li>
+<p> If lower is not missing, upper is not missing, but lower &gt; upper,
+or if both lower and upper are missing, then the observation will
+not be used.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+
+<ul>
+<li> <p><code>sumstat</code>: The data frame of summary statistics of model fit
+with the following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication.
+</p>
+</li>
+<li> <p><code>n</code>: The number of observations.
+</p>
+</li>
+<li> <p><code>nevents</code>: The number of events.
+</p>
+</li>
+<li> <p><code>loglik0</code>: The log-likelihood under null.
+</p>
+</li>
+<li> <p><code>loglik1</code>: The maximum log-likelihood.
+</p>
+</li>
+<li> <p><code>scoretest</code>: The score test statistic.
+</p>
+</li>
+</ul>
+</li>
+<li> <p><code>parest</code>: The data frame of parameter estimates with the
+following variables:
+</p>
+
+<ul>
+<li> <p><code>rep</code>: The replication.
+</p>
+</li>
+<li> <p><code>param</code>: The name of the covariate for the parameter estimate.
+</p>
+</li>
+<li> <p><code>beta</code>: The parameter estimate.
+</p>
+</li>
+<li> <p><code>sebeta</code>: The standard error of parameter estimate.
+</p>
+</li>
+<li> <p><code>z</code>: The Wald test statistic.
+</p>
+</li>
+<li> <p><code>expbeta</code>: The exponentiated parameter.
+</p>
+</li>
+<li> <p><code>vbeta</code>: The covariance matrix for parameter estimates.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(dplyr)
+
+# right censored data
+liferegr(data = rawdata %&gt;% mutate(treat = 1*(treatmentGroup == 1)),
+         rep = "iterationNumber", stratum = "stratum",
+         time = "timeUnderObservation", event = "event",
+         covariates = "treat", dist = "weibull")
+
+# tobit regression for left censored data
+liferegr(data = tobin %&gt;% mutate(time = ifelse(durable&gt;0, durable, NA)),
+         time = "time", time2 = "durable",
+         covariates = c("age", "quant"), dist = "normal")
+
+</code></pre>
+
+
+</div>

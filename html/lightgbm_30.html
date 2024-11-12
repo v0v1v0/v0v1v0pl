@@ -1,0 +1,81 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.restore_handle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Restore the C++ component of a de-serialized LightGBM model</h2>
+
+<h3>Description</h3>
+
+<p>After a LightGBM model object is de-serialized through functions such as <code>save</code> or
+<code>saveRDS</code>, its underlying C++ object will be blank and needs to be restored to able to use it. Such
+object is restored automatically when calling functions such as <code>predict</code>, but this function can be
+used to forcibly restore it beforehand. Note that the object will be modified in-place.
+</p>
+<p><em>New in version 4.0.0</em>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.restore_handle(model)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p><code>lgb.Booster</code> object which was de-serialized and whose underlying C++ object and R handle
+need to be restored.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Be aware that fast single-row prediction configurations are not restored through this
+function. If you wish to make fast single-row predictions using a <code>lgb.Booster</code> loaded this way,
+call lgb.configure_fast_predict on the loaded <code>lgb.Booster</code> object.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>lgb.Booster</code> (the same 'model' object that was passed as input, invisibly).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>lgb.make_serializable, lgb.drop_serialized.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(lightgbm)
+
+
+data("agaricus.train")
+model &lt;- lightgbm(
+  agaricus.train$data
+  , agaricus.train$label
+  , params = list(objective = "binary")
+  , nrounds = 5L
+  , verbose = 0
+  , num_threads = 2L
+)
+fname &lt;- tempfile(fileext="rds")
+saveRDS(model, fname)
+
+model_new &lt;- readRDS(fname)
+model_new$check_null_handle()
+lgb.restore_handle(model_new)
+model_new$check_null_handle()
+
+</code></pre>
+
+
+</div>

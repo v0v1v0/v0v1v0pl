@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fliplmoms</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Flip L-moments by Flip Attribute in L-moment Vector</h2>
+
+<h3>Description</h3>
+
+<p>This function flips the L-moments by a flip attribute within an L-moment object such as that returned by <code>lmomsRCmark</code>. The function will attempt to identify the L-moment object and <code>lmorph</code> as necessary, but this support is not guaranteed.  The flipping process is used to support left-tail censoring using the right-tail censoring alogrithms of <span class="pkg">lmomco</span>. The odd order (<code>seq(3,n,by2)</code>) <code class="reqn">\lambda_r</code> and <code class="reqn">\tau_r</code> are negated. The mean <code class="reqn">\hat\lambda_1</code> is computed by subtracting the <code class="reqn">\lambda_1</code> from the <var>lmom</var> argument from the flip <var>M</var>: <code class="reqn">\hat\lambda_1 = M - \lambda_1</code> and the <code class="reqn">\tau_2</code> is subsequently adjusted by the new mean. This function is written to provide a convenient method to re-transform or back flip the L-moments computed by <code>lmomsRCmark</code>. Detailed review of the example problem listed here is recommended.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fliplmoms(lmom, flip=NULL, checklmom=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>A L-moment object created by <code>lmomsRCmark</code> or other vectorize L-moment list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flip</code></td>
+<td>
+<p><code>lmomsRCmark</code> provides the flip, but for other vectorized L-moment list support, the flip can be set by this argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned that matches the structure of the <var>lmom</var> argument (unless an <code>lmorph</code> was attempted). The structure is intended to match that coming from <code>lmomsRCmark</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Wang, Dongliang, Hutson, A.D., and Miecznikowski, J.C., 2010,  L-moment estimation for parametric survival models given censored data: Statistical Methodology, v. 7, no. 6, pp. 655–667.
+</p>
+<p>Helsel, D.R., 2005, Nondetects and data analysis—Statistics for censored environmental data: Hoboken, New Jersey, John Wiley, 250 p.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomsRCmark</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create some data with **multiple detection limits**
+# This is a left-tail censoring problem, and flipping will be required.
+fakedat1 &lt;- rnorm(50, mean=16, sd=5)
+fake1.left.censor.indicator &lt;- fakedat1 &lt;  14
+fakedat1[fake1.left.censor.indicator]   &lt;- 14
+
+fakedat2 &lt;- rnorm(50, mean=16, sd=5)
+fake2.left.censor.indicator &lt;- fakedat2 &lt;  10
+fakedat2[fake2.left.censor.indicator]   &lt;- 10
+
+# combine the data sets
+fakedat &lt;- c(fakedat1, fakedat2);
+fake.left.censor.indicator &lt;- c(fake1.left.censor.indicator,
+                                fake2.left.censor.indicator)
+ix &lt;- order(fakedat)
+fakedat &lt;- fakedat[ix]
+fake.left.censor.indicator &lt;- fake.left.censor.indicator[ix]
+
+lmr.usual       &lt;- lmoms(fakedat)
+lmr.flipped     &lt;- lmomsRCmark(fakedat, flip=TRUE,
+                               rcmark=fake.left.censor.indicator)
+lmr.backflipped &lt;- fliplmoms(lmr.flipped); # re-transform
+pch &lt;- as.numeric(fake.left.censor.indicator)*15 + 1
+F &lt;- nonexceeds()
+plot(pp(fakedat), sort(fakedat), pch=pch,
+     xlab="NONEXCEEDANCE PROBABILITY", ylab="DATA VALUE")
+lines(F, qlmomco(F, parnor(lmr.backflipped)), lwd=2)
+lines(F, qlmomco(F, parnor(lmr.usual)), lty=2)
+legend(0,20, c("Uncensored", "Left-tail censored"), pch=c(1,16))
+# The solid line represented the Normal distribution fit by
+# censoring indicator on the multiple left-tail detection limits.
+## Not run: 
+# see example in pwmRC
+H &lt;- c(3,4,5,6,6,7,8,8,9,9,9,10,10,11,11,11,13,13,13,13,13,
+       17,19,19,25,29,33,42,42,51.9999,52,52,52)
+# 51.9999 was really 52, a real (noncensored) data point.
+flip &lt;- 100
+F &lt;- flip - H #
+RCpwm &lt;- pwmRC(H, threshold=52)
+lmorph(pwm2lmom(vec2pwm(RCpwm$Bbetas))) # OUTPUT1 STARTS HERE
+
+LCpwm &lt;- pwmLC(F, threshold=(flip - 52))
+LClmr &lt;- pwm2lmom(vec2pwm(LCpwm$Bbetas))
+LClmr &lt;- lmorph(LClmr)
+#LClmr$flip &lt;- 100; fliplmoms(LClmr) # would also work
+fliplmoms(LClmr, flip=flip) # OUTPUT2 STARTS HERE
+
+# The two outputs are the same showing how the flip argument works 
+## End(Not run)
+</code></pre>
+
+
+</div>

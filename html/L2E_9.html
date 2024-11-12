@@ -1,0 +1,120 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>L2E_multivariate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L2E multivariate regression</h2>
+
+<h3>Description</h3>
+
+<p><code>L2E_multivariate</code> performs multivariate regression under the L2 criterion. Available methods include proximal gradient descent (PG) and majorization-minimization (MM).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">L2E_multivariate(
+  y,
+  X,
+  beta,
+  tau,
+  method = "MM",
+  max_iter = 100,
+  tol = 1e-04,
+  Show.Time = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>Initial vector of regression coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tau</code></td>
+<td>
+<p>Initial precision estimate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Available methods include PG and MM. MM by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_iter</code></td>
+<td>
+<p>Maximum number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Relative tolerance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Show.Time</code></td>
+<td>
+<p>Report the computing time</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list object containing the estimates for beta (vector) and tau (scalar),
+the number of outer block descent iterations until convergence (scalar),
+and the number of inner iterations per outer iteration for updating beta (vector) and tau or eta (vector)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Bank data example
+y &lt;- bank$y
+X &lt;- as.matrix(bank[,1:13])
+X0 &lt;- as.matrix(cbind(rep(1,length(y)), X))
+
+tau &lt;- 1/mad(y)
+b &lt;- matrix(0, 14, 1)
+
+# MM method
+sol_mm &lt;- L2E_multivariate(y, X0, b, tau)
+r_mm &lt;- y - X0 %*% sol_mm$beta
+ix_mm &lt;- which(abs(r_mm) &gt; 3/sol_mm$tau)
+l2e_fit_mm &lt;- X0 %*% sol_mm$beta
+
+# PG method
+sol_pg &lt;- L2E_multivariate(y, X0, b, tau, method="PG")
+r_pg &lt;- y - X0 %*% sol_pg$beta
+ix_pg &lt;- which(abs(r_pg) &gt; 3/sol_pg$tau)
+l2e_fit_pg &lt;- X0 %*% sol_pg$beta
+
+plot(y, l2e_fit_mm, ylab='Predicted values', main='MM', pch=16, cex=0.8) # MM
+points(y[ix_mm], l2e_fit_mm[ix_mm], pch=16, col='blue', cex=0.8) # MM
+plot(y, l2e_fit_pg, ylab='Predicted values', main='PG', pch=16, cex=0.8) # PG
+points(y[ix_pg], l2e_fit_pg[ix_pg], pch=16, col='blue', cex=0.8) # PG
+
+</code></pre>
+
+
+</div>

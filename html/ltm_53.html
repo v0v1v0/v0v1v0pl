@@ -1,0 +1,306 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rasch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Rasch Model </h2>
+
+<h3>Description</h3>
+
+<p>Fit the Rasch model under the Item Response Theory approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rasch(data, constraint = NULL, IRT.param = TRUE, start.val = NULL, 
+    na.action = NULL, control = list(), Hessian = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>data.frame</code> (that will be converted to a numeric matrix using 
+<code>data.matrix()</code>) or a numeric <code>matrix</code> of manifest variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraint</code></td>
+<td>
+<p>a two-column numeric matrix with at most <code class="reqn">p</code> rows (where <code class="reqn">p</code> is the number of items), 
+specifying fixed-value constraints. The first column represents the item (i.e., <code class="reqn">1</code> denotes the first item,
+<code class="reqn">2</code> the second, etc., and <code class="reqn">p+1</code> the discrimination parameter) and the second column the 
+value at which the corresponding parameter should be fixed. See <b>Examples</b> for more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IRT.param</code></td>
+<td>
+<p>logical; if <code>TRUE</code> then the coefficients' estimates are reported under the 
+usual IRT parameterization. See <b>Details</b> for more info.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.val</code></td>
+<td>
+<p> the character string "random" or a numeric vector of <code class="reqn">p+1</code> starting values, 
+where the first <code class="reqn">p</code> values correspond to the easiness parameters while the last value corresponds to the 
+discrimination parameter. If "random", random starting values are used. If <code>NULL</code> starting values
+are automatically computed. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p> the <code>na.action</code> to be used on <code>data</code>. In case of missing data, if 
+<code>na.action = NULL</code> the model uses the available cases, i.e., it takes into account the observed 
+part of sample units with missing values (valid under MAR mechanisms if the model is correctly specified). 
+If you want to apply a complete case analysis then use <code>na.action = na.exclude</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control values,
+</p>
+
+<dl>
+<dt>iter.qN</dt>
+<dd>
+<p> the number of quasi-Newton iterations. Default 150.</p>
+</dd>
+<dt>GHk</dt>
+<dd>
+<p> the number of Gauss-Hermite quadrature points. Default 21.</p>
+</dd>
+<dt>method</dt>
+<dd>
+<p> the optimization method to be used in <code>optim()</code>. Default "BFGS".</p>
+</dd>
+<dt>verbose</dt>
+<dd>
+<p> logical; if <code>TRUE</code> info about the optimization procedure are printed.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Hessian</code></td>
+<td>
+<p>logical; if <code>TRUE</code>, then the Hessian matrix is computed. Warning: setting this argument to <code>FALSE</code>
+will cause many methods (e.g., <code>summary()</code>) to fail; setting to <code>FALSE</code> is intended for simulation 
+purposes in order <code>rasch()</code> to run faster.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+ 
+<p>The Rasch model is a special case of the unidimensional latent trait model when all the discrimination 
+parameters are equal. This model was first discussed by Rasch (1960) and it is mainly used in educational 
+testing where the aim is to study the abilities of a particular set of individuals.
+</p>
+<p>The model is defined as follows </p>
+<p style="text-align: center;"><code class="reqn">\log\left(\frac{\pi_i}{1-\pi_i}\right) = \beta_{i} + \beta z,</code>
+</p>
+<p> where <code class="reqn">\pi_i</code> denotes the conditional probability of responding correctly 
+to the <code class="reqn">i</code>th item given <code class="reqn">z</code>, <code class="reqn">\beta_{i}</code> is the easiness parameter for the <code class="reqn">i</code>th 
+item, <code class="reqn">\beta</code> is the discrimination parameter (the same for all the items) and <code class="reqn">z</code> denotes the latent 
+ability.
+</p>
+<p>If <code>IRT.param = TRUE</code>, then the parameters estimates are reported under the usual IRT parameterization,
+i.e., </p>
+<p style="text-align: center;"><code class="reqn">\log\left(\frac{\pi_i}{1-\pi_i}\right) = \beta (z - \beta_i^*).</code>
+</p>
+
+<p>The fit of the model is based on approximate marginal Maximum Likelihood, using the Gauss-Hermite quadrature rule 
+for the approximation of the required integrals.
+</p>
+
+
+<h3>Value</h3>
+
+<p> An object of class <code>rasch</code> with components,
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>a matrix with the parameter values at convergence. These are always the estimates of 
+<code class="reqn">\beta_i, \beta</code> parameters, even if <code>IRT.param = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log.Lik</code></td>
+<td>
+<p>the log-likelihood value at convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>the convergence identifier returned by <code>optim()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>the approximate Hessian matrix at convergence returned by <code>optim()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>the number of function and gradient evaluations used by the quasi-Newton algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patterns</code></td>
+<td>
+<p>a list with two components: (i) <code>X</code>: a numeric matrix 
+that contains the observed response patterns, and (ii) <code>obs</code>: a numeric vector that contains the observed 
+frequencies for each observed response pattern.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>GH</code></td>
+<td>
+<p>a list with two components used in the Gauss-Hermite rule: (i) <code>Z</code>: a numeric matrix that contains 
+the abscissas, and (ii) <code>GHw</code>: a numeric vector that contains the corresponding  weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.sc</code></td>
+<td>
+<p>the maximum absolute value of the score vector at convergence.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constraint</code></td>
+<td>
+<p>the value of the <code>constraint</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IRT.param</code></td>
+<td>
+<p>the value of the <code>IRT.param</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>a copy of the response data matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>the values used in the <code>control</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>the value of the <code>na.action</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+</table>
+<h3>Warning</h3>
+
+ 
+<p>In case the Hessian matrix at convergence is not positive definite, try to re-fit the model using 
+<code>rasch(..., start.val = "random")</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Although the common formulation of the Rasch model assumes that the discrimination parameter is fixed to 1,
+<code>rasch()</code> estimates it. If you wish to fit the constrained version of the model, use the <code>constraint</code> 
+argument accordingly. See <b>Examples</b> for more info.
+</p>
+<p>The optimization algorithm works under the constraint that the discrimination parameter 
+<code class="reqn">\beta</code> is always positive.
+</p>
+<p>When the coefficients' estimates are reported under the usual IRT parameterization (i.e., <code>IRT.param = TRUE</code>),
+their standard errors are calculated using the Delta method.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dimitris Rizopoulos <a href="mailto:d.rizopoulos@erasmusmc.nl">d.rizopoulos@erasmusmc.nl</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Baker, F. and Kim, S-H. (2004) <em>Item Response Theory</em>, 2nd ed. 
+New York: Marcel Dekker.
+</p>
+<p>Rasch, G. (1960) <em>Probabilistic Models for Some 
+Intelligence and  Attainment Tests</em>. Copenhagen: Paedagogiske 
+Institute.
+</p>
+<p>Rizopoulos, D. (2006) <b>ltm</b>: An R package for latent variable modelling and item response theory analyses. 
+<em>Journal of Statistical Software</em>, <b>17(5)</b>, 1–25. URL doi: <a href="https://doi.org/10.18637/jss.v017.i05">10.18637/jss.v017.i05</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>coef.rasch</code>,
+<code>fitted.rasch</code>,
+<code>summary.rasch</code>,
+<code>anova.rasch</code>,
+<code>plot.rasch</code>,
+<code>vcov.rasch</code>,
+<code>GoF.rasch</code>,
+<code>item.fit</code>,
+<code>person.fit</code>,  
+<code>margins</code>,
+<code>factor.scores</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## The common form of the Rasch model for the 
+## LSAT data, assuming that the discrimination
+## parameter equals 1
+rasch(LSAT, constraint = cbind(ncol(LSAT) + 1, 1))
+
+
+## The Rasch model for the LSAT data under the 
+## normal ogive; to do that fix the discrimination
+## parameter to 1.702
+rasch(LSAT, constraint = cbind(ncol(LSAT) + 1, 1.702))
+
+## The Rasch model for the LSAT data with
+## unconstraint discrimination parameter
+rasch(LSAT)
+
+## The Rasch model with (artificially created) 
+## missing data
+data &lt;- LSAT
+data[] &lt;- lapply(data, function(x){
+    x[sample(1:length(x), sample(15, 1))] &lt;- NA
+    x
+})
+rasch(data)
+</code></pre>
+
+
+</div>

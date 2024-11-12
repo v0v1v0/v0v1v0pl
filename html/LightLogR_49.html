@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nvRC_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Performance metrics for circadian response</h2>
+
+<h3>Description</h3>
+
+<p>These functions compare the non-visual circadian response (see <code>nvRC</code>)
+for measured personal light exposure to the nvRC for a reference light exposure pattern,
+such as daylight.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nvRC_circadianDisturbance(nvRC, nvRC.ref, as.df = FALSE)
+
+nvRC_circadianBias(nvRC, nvRC.ref, as.df = FALSE)
+
+nvRC_relativeAmplitudeError(nvRC, nvRC.ref, as.df = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>nvRC</code></td>
+<td>
+<p>Time series of non-visual circadian response
+(see <code>nvRC</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nvRC.ref</code></td>
+<td>
+<p>Time series of non-visual circadian response
+circadian response (see <code>nvRC</code> for a reference light exposure
+pattern (e.g., daylight). Must be the same length as <code>nvRC</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.df</code></td>
+<td>
+<p>Logical. Should the output be returned as a data frame? Defaults
+to TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>nvRC_circadianDisturbance()</code> calculates the circadian disturbance (CD).
+It is expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">CD(i,T)=\frac{1}{T}\int_{t_{i}}^{t_{i}+T}
+   {\lvert r_{C}(t)-r_{C}^{ref}(t)\rvert dt},</code>
+</p>
+
+<p>and quantifies the total difference between the measured circadian response
+and the circadian response to a reference profile.
+</p>
+<p><code>nvRC_circadianBias()</code> calculates the circadian bias (CB).
+It is expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">CB(i,T)=\frac{1}{T}\int_{t_{i}}^{t_{i}+T}
+   {(r_{C}(t)-r_{C}^{ref}(t))dt},</code>
+</p>
+
+<p>and provides a measure of the overall trend for the difference in
+circadian response, i.e. positive values for overestimating and negative
+for underestimating between the measured circadian response
+and the circadian response to a reference profile.
+</p>
+<p><code>nvRC_relativeAmplitudeError()</code> calculates the relative amplitude error (RAE).
+It is expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">RAE(i,T)=r_{C,max}-r_{C,max}^{ref},</code>
+</p>
+
+<p>and quantifies the difference between the maximum response achieved in a period
+to the reference signal.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numeric value or single column data frame.
+</p>
+
+
+<h3>References</h3>
+
+<p>Amundadottir, M.L. (2016). Light-driven model for identifying
+indicators of non-visual health potential in the built environment
+[Doctoral dissertation, EPFL]. EPFL infoscience.
+<a href="https://doi.org/10.5075/epfl-thesis-7146">doi:10.5075/epfl-thesis-7146</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+dataset1 &lt;- 
+  tibble::tibble(
+    Id = rep("B", 60 * 24),
+    Datetime = lubridate::as_datetime(0) + lubridate::minutes(0:(60*24-1)),
+    Illuminance = c(rep(0, 60*8), rep(sample(1:1000, 16, replace = TRUE), each = 60)),
+    MEDI = Illuminance * rep(sample(0.5:1.5, 24, replace = TRUE), each = 60),
+  ) %&gt;%
+  dplyr::mutate(
+    nvRC = nvRC(MEDI, Illuminance, Datetime, sleep.onset = hms::as_hms("22:00:00"))
+  )
+
+dataset.reference &lt;-
+  tibble::tibble(
+    Id = rep("Daylight", 60 * 24),
+    Datetime = lubridate::as_datetime(0) + lubridate::minutes(0:(60*24-1)),
+    Illuminance = c(rep(0, 60*6), rep(10000, 12*60), rep(0, 60*6)),
+    MEDI = Illuminance
+  ) %&gt;%
+  dplyr::mutate(
+    nvRC = nvRC(MEDI, Illuminance, Datetime, sleep.onset = hms::as_hms("22:00:00"))
+  )
+
+# Circadian disturbance
+nvRC_circadianDisturbance(dataset1$nvRC, dataset.reference$nvRC)
+
+# Circadian bias
+nvRC_circadianBias(dataset1$nvRC, dataset.reference$nvRC)
+
+# Relative amplitude error
+nvRC_relativeAmplitudeError(dataset1$nvRC, dataset.reference$nvRC)
+</code></pre>
+
+
+</div>

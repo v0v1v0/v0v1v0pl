@@ -1,0 +1,122 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lol.xval.split</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-Validation Data Splitter</h2>
+
+<h3>Description</h3>
+
+<p>A function to split a dataset into training and testing sets for cross validation. The procedure for cross-validation
+is to split the data into k-folds. The k-folds are then rotated individually to form a single held-out testing set the model will be validated on,
+and the remaining (k-1) folds are used for training the developed model. Note that this cross-validation function includes functionality to be used for
+low-rank cross-validation. In that case, instead of using the full (k-1) folds for training, we subset <code>min((k-1)/k*n, d)</code> samples to ensure that
+the resulting training sets  are all low-rank. We still rotate properly over the held-out fold to ensure that the resulting testing sets
+do not have any shared examples, which would add a complicated  dependence structure to inference we attempt to infer on the testing sets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lol.xval.split(X, Y, k = "loo", rank.low = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p><code>[n, d]</code> the data with <code>n</code> samples in <code>d</code> dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p><code>[n]</code> the labels of the samples with <code>K</code> unique labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the cross-validated method to perform. Defaults to <code>'loo'</code>.
+</p>
+
+<ul>
+<li>
+<p>if <code>k == round(k)</code>, performed k-fold cross-validation.
+</p>
+</li>
+<li>
+<p>if <code>k == 'loo'</code>, performs leave-one-out cross-validation.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank.low</code></td>
+<td>
+<p>whether to force the training set to low-rank. Defaults to <code>FALSE</code>.
+</p>
+
+<ul>
+<li>
+<p>if <code>rank == FALSE</code>, uses default cross-validation method with standard <code>k</code>-fold validation. Training sets are <code>k-1</code> folds, and testing sets are <code>1</code> fold, where the fold held-out for testing is rotated to ensure no dependence of potential downstream inference in the cross-validated misclassification rates.
+</p>
+</li>
+<li>
+<p>if <code>rank == TRUE</code>, users cross-validation method with <code>ntrain = min((k-1)/k*n, d)</code> sample training sets, where <code>d</code>  is the number of dimensions in <code>X</code>. This ensures that the training data is always low-rank, <code>ntrain &lt; d + 1</code>. Note that the resulting training sets may have <code>ntrain &lt; (k-1)/k*n</code>, but the resulting testing sets will always be properly rotated <code>ntest = n/k</code> to ensure no dependencies in fold-wise testing.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>optional args.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>sets the cross-validation sets as an object of class <code>"XV"</code> containing the following:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>train</code></td>
+<td>
+<p>length <code>[ntrain]</code> vector indicating the indices of the training examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p> length <code>[ntest]</code> vector indicating the indices of the testing examples.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Eric Bridgeford
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># prepare data for 10-fold validation
+library(lolR)
+data &lt;- lol.sims.rtrunk(n=200, d=30)  # 200 examples of 30 dimensions
+X &lt;- data$X; Y &lt;- data$Y
+sets.xval.10fold &lt;- lol.xval.split(X, Y, k=10)
+
+# prepare data for loo validation
+sets.xval.loo &lt;- lol.xval.split(X, Y, k='loo')
+
+</code></pre>
+
+
+</div>

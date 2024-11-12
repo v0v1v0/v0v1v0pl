@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cvLDS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross validate LDS model. This is a wrapper for LDS_reconstruction</h2>
+
+<h3>Description</h3>
+
+<p>Cross validate LDS model. This is a wrapper for LDS_reconstruction
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cvLDS(
+  Qa,
+  u,
+  v,
+  start.year,
+  method = "EM",
+  transform = "log",
+  num.restarts = 50,
+  Z = make_Z(Qa$Qa),
+  metric.space = "transformed",
+  use.raw = FALSE,
+  ub = NULL,
+  lb = NULL,
+  num.islands = 4,
+  pop.per.island = 100,
+  niter = 1000,
+  tol = 1e-05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Qa</code></td>
+<td>
+<p>Observations: a data.frame of annual streamflow with at least two columns: year and Qa.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>Input matrix for a single-model reconstruction, or a list of input matrices for an ensemble reconstruction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>Same as u.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start.year</code></td>
+<td>
+<p>Starting year of the climate proxies, i.e, the first year of the paleo period. <code>start.year + nrow(pc) - 1</code> will determine the last year of the study horizon, which must be greater than or equal to the last year in <code>Qa</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>By default this is "EM". There are experimental methods but you should not try.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>Flow transformation, either "log", "boxcox" or "none". Note that if the Box-Cox transform is used, the confidence interval after back-transformation is simply the back-transform of the trained onfidence interval; this is hackish and not entirely accurate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.restarts</code></td>
+<td>
+<p>The number of initial conditions to start the EM search; ignored if <code>init</code> is provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>A list of cross-validation folds. If <code>NULL</code>, will be created with <code>make_Z()</code> with default settings. Users are advised to use <code>make_Z()</code> to create the cross-validation folds beforehand. See make_Z for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metric.space</code></td>
+<td>
+<p>Either "transformed" or "original", the space to calculate the performance metrics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.raw</code></td>
+<td>
+<p>Whether performance metrics are calculated on the raw time series. Experimental; don't use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ub</code></td>
+<td>
+<p>Upper bounds, a vector whose length is the number of parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lb</code></td>
+<td>
+<p>Lower bounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.islands</code></td>
+<td>
+<p>Number of islands (if method is GA; experimental)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop.per.island</code></td>
+<td>
+<p>Initial population per island (if method is GA; experimental)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>Maximum number of iterations, default 1000</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Tolerance for likelihood convergence, default 1e-5. Note that the log-likelihood is normalized by dividing by the number of observations.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of cross validation results
+</p>
+
+<ul>
+<li>
+<p> metrics.dist: distribution of performance metrics across all cross-validation runs; a matrix, one column for each metric, with column names.
+</p>
+</li>
+<li>
+<p> metrics: average performance metrics; a named vector.
+</p>
+</li>
+<li>
+<p> target: the (transformed) observations used for cross-validation; a data.table with two columns (year, y)
+</p>
+</li>
+<li>
+<p> Ycv: the predicted streamflow in each cross validation run; a matrix, one column for each cross-validation run
+</p>
+</li>
+<li>
+<p> Z: the cross-validation
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Make a shorter time horizon so that this example runs fast
+u &lt;- v &lt;- t(NPpc[601:813])
+# We run this example without parallelism.
+foreach::registerDoSEQ()
+cvLDS(NPannual, u, v, start.year = 1800, num.restarts = 2,
+      Z = make_Z(NPannual$Qa, nRuns = 1))
+# Please refer to the vignette for the full run with parallel options. It takes a minute or two.
+</code></pre>
+
+
+</div>

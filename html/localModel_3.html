@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>individual_surrogate_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LIME-like explanations based on Ceteris Paribus curves</h2>
+
+<h3>Description</h3>
+
+<p>This function fits a LIME-type explanation of a single prediction.
+Interpretable binary features that describe the local impact of features on
+the prediction are created based on Ceteris Paribus Profiles.
+Thend, a new dataset of similar observations is created and black box model
+predictions (scores in case of classification) are calculated for this dataset
+and LASSO regression model is fitted to them.
+This way, explanations are simplified and include only the most important features.
+More details about the methodology can be found in the vignettes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">individual_surrogate_model(
+  x,
+  new_observation,
+  size,
+  seed = NULL,
+  kernel = identity_kernel,
+  sampling = "uniform",
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an explainer created with the function DALEX::explain().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_observation</code></td>
+<td>
+<p>an observation to be explained. Columns in should correspond to columns in the data argument to x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>size</code></td>
+<td>
+<p>number of similar observation to be sampled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>If not NULL, seed will be set to this value for reproducibility.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kernel</code></td>
+<td>
+<p>Kernel function which will be used to weight simulated observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampling</code></td>
+<td>
+<p>Parameter that controls sampling while creating new observations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments that will be passed to ingredients::ceteris_paribus.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame of class local_surrogate_explainer
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example based on apartments data from DALEX package.
+library(DALEX)
+library(randomForest)
+library(localModel)
+data('apartments')
+mrf &lt;- randomForest(m2.price ~., data = apartments, ntree = 50)
+explainer &lt;- explain(model = mrf,
+                     data = apartments[, -1])
+model_lok &lt;- individual_surrogate_model(explainer, apartments[5, -1],
+                                        size = 500, seed = 17)
+model_lok
+plot(model_lok)
+
+</code></pre>
+
+
+</div>

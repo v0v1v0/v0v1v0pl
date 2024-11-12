@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fuse_book</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fuse multiple R Markdown documents to a single output file</h2>
+
+<h3>Description</h3>
+
+<p>This is a helper function to <code>fuse()</code> <code>.Rmd</code> files and convert all their
+Markdown output to a single output file, which is similar to
+<code>bookdown::render_book()</code>, but one major differences is that all HTML output
+is written to one file, instead of one HTML file per chapter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fuse_book(input = ".", output = NULL, envir = parent.frame())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>A directory or a vector of file paths. By default, all
+<code>.Rmd</code>/<code>.md</code> files under the current working directory are used as the
+input, except for filenames that start with <code>.</code> or <code style="white-space: pre;">⁠_⁠</code> (e.g., <code style="white-space: pre;">⁠_foo.Rmd⁠</code>),
+or <code>.md</code> files with the same base names as <code>.Rmd</code> files (e.g., <code>bar.md</code>
+will not be used if <code>bar.Rmd</code> exists). For a directory <code>input</code>, the file
+search will be recursive if <code>input</code> ends with a slash (i.e.,
+sub-directories will also be searched). If a file named <code>index.Rmd</code> or
+<code>index.md</code> exists, it will always be treated as the first input file. Input
+files can also be specified in the config file <code style="white-space: pre;">⁠_litedown.yml⁠</code> (in the
+<code>input</code> field under <code>book</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>An output file path or a filename extension (e.g., <code>.html</code>,
+<code>.tex</code>, <code>.xml</code>, <code>.man</code>, <code>.markdown</code>, or <code>.txt</code>). In the latter case, the
+output file path will use the extension on the same base filename as the
+input file if the <code>input</code> is a file. If <code>output</code> is not character (e.g.,
+<code>NA</code>), the results will be returned as a character vector instead of being
+written to a file. If <code>output</code> is <code>NULL</code> or an extension, and the input is
+a file path, the output file path will have the same base name as the input
+file, with an extension corresponding to the output format. The output
+format is retrieved from the first value in the <code>output</code> field of the YAML
+metadata of the <code>input</code> (e.g., <code>litedown::html_format</code> will generate HTML
+output). The <code>output</code> argument can also take an output format name
+(possible values are <code>html</code>, <code>latex</code>, <code>xml</code>, <code>man</code>, <code>commonmark</code>, and
+<code>text</code>). If no output format is detected or provided, the default is HTML.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>envir</code></td>
+<td>
+<p>An environment in which the code is to be evaluated. It can be
+accessed via <code>fuse_env()</code> inside <code>fuse()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If the output format (<code>html_format()</code> or <code>latex_format()</code>) needs to be
+customized, the settings should be written in the config file
+<code style="white-space: pre;">⁠_litedown.yml⁠</code>, e.g.,
+</p>
+<div class="sourceCode"><pre>---
+output:
+  litedown::html_format:
+    options:
+      toc:
+        depth: 4
+  litedown::latex_format:
+    meta:
+      documentclass: "book"
+</pre></div>
+<p>In addition, you can configure the book via the <code>book</code> field, e.g.,
+</p>
+<div class="sourceCode"><pre>---
+book:
+  new_session: true
+  subdir: false
+  pattern: "[.]R?md$"
+  chapter_before: "Information before a chapter."
+  chapter_after: "This chapter was generated from `$input$`."
+---
+</pre></div>
+<p>The option <code>new_session</code> specifies whether to render each input file in the
+current R session or a separate new R session; <code>chapter_before</code> and
+<code>chapter_after</code> specify text to be added to the beginning and end of each
+file, respectively, which accepts some variables (e.g., <code style="white-space: pre;">⁠$input$⁠</code> is the
+current input file path).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An output file path or the output content, depending on the <code>output</code>
+argument.
+</p>
+
+
+</div>

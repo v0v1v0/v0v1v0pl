@@ -1,0 +1,234 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lsbclust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Least-squares Bilinear Clustering of Three-way Data</h2>
+
+<h3>Description</h3>
+
+<p>This function clusters along one way of a three-way array (as specified by <code>margin</code>) while
+decomposing along the other two dimensions. Four types of clusterings are allowed based on the
+respective two-way slices of the array: on the overall means, row margins, column margins and the 
+interactions between rows and columns. Which clusterings can be fit is determined by the vector
+<code>delta</code>, with four binary elements. All orthogonal models are fitted. 
+The nonorthogonal case <code>delta = (1, 1, 0, 0)</code> returns an error. See the reference for further details.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lsbclust(data, margin = 3L, delta = c(1L, 1L, 1L, 1L), nclust,
+  ndim = 2L, fixed = c("none", "rows", "columns"), nstart = 20L,
+  starts = NULL, nstart.kmeans = 500L, alpha = 0.5,
+  parallel = FALSE, maxit = 100L, verbose = 1, method = "diag",
+  type = NULL, sep.nclust = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A three-way array representing the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin</code></td>
+<td>
+<p>An integer giving the single subscript of <code>data</code> over which the clustering 
+will be applied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>A four-element binary vector (logical or numeric) indicating which sum-to-zero 
+constraints must be enforced.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nclust</code></td>
+<td>
+<p>A vector of length four giving the number of clusters for the overall mean, the row
+margins, the column margins and the interactions (in that order) respectively. Alternatively, a
+vector of length one, in which case all components will have the same number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ndim</code></td>
+<td>
+<p>The required rank for the approximation of the interactions (a scalar).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fixed</code></td>
+<td>
+<p>One of <code>"none"</code>, <code>"rows"</code> or <code>"columns"</code> indicating whether to fix neither
+sets of coordinates, or whether to fix the row or column coordinates across clusters respectively.
+If a vector is supplied, only the first element will be used (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart</code></td>
+<td>
+<p>The number of random starts to use for the interaction clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>starts</code></td>
+<td>
+<p>A list containing starting configurations for the cluster membership vector. If not
+supplied, random initializations will be generated (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nstart.kmeans</code></td>
+<td>
+<p>The number of random starts to use in <code>kmeans</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>Numeric value in [0, 1] which determines how the singular values are distributed
+between rows and columns (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Logical indicating whether to parallel over different starts or not 
+(passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>The maximum number of iterations allowed in the interaction clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Integer controlling the amount of information printed: 0 = no information, 
+1 = Information on random starts and progress, and 2 = information is printed after
+each iteration for the interaction clustering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>The method for calculating cluster agreement across random starts, passed on
+to <code>cl_agreement</code> (passed to <code>int.lsbclust</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>One of <code>"rows"</code>, <code>"columns"</code> or <code>"overall"</code> (or a unique abbreviation of 
+one of these) indicating whether clustering should be done on row margins, column margins or
+the overall means of the two-way slices respectively. If more than one opion are supplied, the
+algorithm is run for all (unique) options supplied (passed to <code>orc.lsbclust</code>). This
+is an optional argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep.nclust</code></td>
+<td>
+<p>Logical indicating how nclust should be used across different <code>type</code>'s.
+If <code>sep.nclust</code> is <code>TRUE</code>, <code>nclust</code> is recycled so that each <code>type</code> can
+have a different number of clusters. If <code>sep.nclust</code> is <code>FALSE</code>, the same vector
+<code>nclust</code> is used for all <code>type</code>'s.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>kmeans</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of S3 class <code>lsbclust</code> which has slots:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>overall</code></td>
+<td>
+<p>Object of class <code>ovl.kmeans</code> for the overall means clustering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rows</code></td>
+<td>
+<p>Object of class <code>row.kmeans</code> for the row means clustering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>columns</code></td>
+<td>
+<p>Object of class <code>col.kmeans</code> for the column means clustering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interactions</code></td>
+<td>
+<p>Object of class <code>int.lsbclust</code> for the interaction clustering</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The function call used to create the object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta</code></td>
+<td>
+<p>The value of <code>delta</code> in the fit</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Breakdown of the degrees-of-freedom across the different subproblems</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loss</code></td>
+<td>
+<p>Breakdown of the loss across subproblems</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time</code></td>
+<td>
+<p>Time taken in seconds to calculate the solution</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>Matrix of cluster membership per observation for all cluster types</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Schoonees, P.C., Groenen, P.J.F., Van de Velden, M. Least-squares Bilinear Clustering
+of Three-way Data. Econometric Institute Report, EI2014-23.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>int.lsbclust</code>, <code>orc.lsbclust</code>
+</p>
+
+
+</div>

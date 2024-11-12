@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gnd_pmf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ground Segmentation Algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function is made to be used in classify_ground. It implements an algorithm for segmentation
+of ground points based on a progressive morphological filter. This method is an implementation of
+the Zhang et al. (2003) algorithm (see reference). Note that this is not a strict implementation
+of Zhang et al. This algorithm works at the point cloud level without any rasterization process.
+The morphological operator is applied on the point cloud, not on a raster. Also, Zhang et al.
+proposed some formulas (eq. 4, 5 and 7) to compute the sequence of windows sizes and thresholds.
+Here, these parameters are free and specified by the user. The function util_makeZhangParam
+enables computation of the parameters according to the original paper.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pmf(ws, th)
+
+util_makeZhangParam(
+  b = 2,
+  dh0 = 0.5,
+  dhmax = 3,
+  s = 1,
+  max_ws = 20,
+  exp = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>ws</code></td>
+<td>
+<p>numeric. Sequence of windows sizes to be used in filtering ground returns.
+The values must be positive and in the same units as the point cloud (usually meters, occasionally
+feet).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>th</code></td>
+<td>
+<p>numeric. Sequence of threshold heights above the parameterized ground surface to be
+considered a ground return. The values must be positive and in the same units as the point cloud.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>numeric. This is the parameter <code class="reqn">b</code> in Zhang et al. (2003) (eq. 4 and 5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dh0</code></td>
+<td>
+<p>numeric. This is <code class="reqn">dh_0</code> in Zhang et al. (2003) (eq. 7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dhmax</code></td>
+<td>
+<p>numeric. This is <code class="reqn">dh_{max}</code> in Zhang et al. (2003) (eq. 7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>numeric. This is <code class="reqn">s</code> in Zhang et al. (2003) (eq. 7).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_ws</code></td>
+<td>
+<p>numeric. Maximum window size to be used in filtering ground returns. This limits
+the number of windows created.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exp</code></td>
+<td>
+<p>logical. The window size can be increased linearly or exponentially (eq. 4 or 5).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The progressive morphological filter allows for any sequence of parameters. The 'util_makeZhangParam'
+function enables computation of the sequences using equations (4),
+(5) and (7) from Zhang et al. (see reference and details).
+</p>
+<p>In the original paper the windows size sequence is given by eq. 4 or 5:<br><br><code class="reqn">w_k = 2kb + 1</code> <br><br>
+or<br><br><code class="reqn">w_k = 2b^k + 1</code><br><br>
+In the original paper the threshold sequence is given by eq. 7:<br><br><code class="reqn">th_k = s*(w_k - w_{k-1})*c + th_0</code><br><br>
+Because the function classify_ground applies the morphological operation at the point
+cloud level the parameter <code class="reqn">c</code> is set to 1 and cannot be modified.
+</p>
+
+
+<h3>References</h3>
+
+<p>Zhang, K., Chen, S. C., Whitman, D., Shyu, M. L., Yan, J., &amp; Zhang, C. (2003). A progressive
+morphological filter for removing nonground measurements from airborne LIDAR data. IEEE
+Transactions on Geoscience and Remote Sensing, 41(4 PART I), 872–882. http:#doi.org/10.1109/TGRS.2003.810682.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other ground segmentation algorithms: 
+<code>gnd_csf</code>,
+<code>gnd_mcc</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile, select = "xyzrn", filter = "-inside 273450 5274350 273550 5274450")
+
+ws &lt;- seq(3,12, 3)
+th &lt;- seq(0.1, 1.5, length.out = length(ws))
+
+las &lt;- classify_ground(las, pmf(ws, th))
+#plot(las, color = "Classification")
+</code></pre>
+
+
+</div>

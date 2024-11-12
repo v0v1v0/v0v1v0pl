@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>SCLOP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Similarity/Stability of multiple sets of Objects using Clustering with Local Pruning</h2>
+
+<h3>Description</h3>
+
+<p>The function <code>SCLOP</code> calculates the S-CLOP value for the best possible
+local pruning state of a dendrogram from <code>dendTopics</code>.
+The function <code>pruneSCLOP</code> supplies the corresponding pruning state itself.<br>
+To get all pairwise S-CLOP scores of two LDA runs, the function <code>SCLOP.pairwise</code>
+can be used. It returns a matrix of the pairwise S-CLOP scores.<br>
+All three functions use the function <code>disparitySum</code> to calculate the
+least possible sum of disparities (on the best possible local pruning state)
+on a given dendrogram.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">SCLOP(dend)
+
+disparitySum(dend)
+
+SCLOP.pairwise(sims)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dend</code></td>
+<td>
+<p>[<code>dendrogram</code>]<br>
+Output from <code>dendTopics</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sims</code></td>
+<td>
+<p>[<code>TopicSimilarity</code> object
+or <code>lower triangular named matrix</code>]<br><code>TopicSimilarity</code> object or
+pairwise jaccard similarities of underlying topics as the <code>sims</code> element
+from <code>TopicSimilarity</code> objects. The topic names should be
+formatted as &lt;<em>Run X</em>&gt;.&lt;<em>Topic Y</em>&gt;, so that the name before the
+first dot identifies the LDA run.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For one specific cluster <code class="reqn">g</code> and <code class="reqn">R</code> LDA Runs the disparity is calculated by
+</p>
+<p style="text-align: center;"><code class="reqn">U(g) := \frac{1}{R} \sum_{r=1}^R \vert t_r^{(g)} - 1 \vert \cdot \sum_{r=1}^R t_r^{(g)},</code>
+</p>
+
+<p>while <code class="reqn">\bm t^{(g)} = (t_1^{(g)}, ..., t_R^{(g)})^T</code>
+contains the number of topics that belong to the different LDA runs and that
+occur in cluster <code class="reqn">g</code>.
+</p>
+<p>The function <code>disparitySum</code> returns the least possible sum of disparities
+<code class="reqn">U_{\Sigma}(G^*)</code> for the best possible pruning state <code class="reqn">G^*</code>
+with <code class="reqn">U_{\Sigma}(G) = \sum_{g \in G} U(g) \to \min</code>.
+The highest possible value for <code class="reqn">U_{\Sigma}(G^*)</code> is limited by
+</p>
+<p style="text-align: center;"><code class="reqn">U_{\Sigma,\textsf{max}} := \sum_{g \in \tilde{G}} U(g) = N \cdot \frac{R-1}{R},</code>
+</p>
+
+<p>with <code class="reqn">\tilde{G}</code> denotes the corresponding worst case pruning state. This worst
+case scenario is useful for normalizing the SCLOP scores.
+</p>
+<p>The function <code>SCLOP</code> then calculates the value
+</p>
+<p style="text-align: center;"><code class="reqn">\textsf{S-CLOP}(G^*) := 1 - \frac{1}{U_{\Sigma,\textsf{max}}} \cdot \sum_{g \in G^*} U(g) ~\in [0,1],</code>
+</p>
+
+<p>where <code class="reqn">\sum\limits_{g \in G^*} U(g) = U_{\Sigma}(G^*)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+
+<dl>
+<dt><code>SCLOP</code></dt>
+<dd>
+<p>[0,1] value specifying the S-CLOP for the best possible
+local pruning state of the given dendrogram.</p>
+</dd>
+<dt><code>disparitySum</code></dt>
+<dd>
+<p>[<code>numeric(1)</code>] value specifying the least
+possible sum of disparities on the given dendrogram.</p>
+</dd>
+<dt><code>SCLOP.pairwise</code></dt>
+<dd>
+<p>[<code>symmetrical named matrix</code>] with all
+pairwise S-CLOP scores of the given LDA runs.</p>
+</dd>
+</dl>
+<h3>See Also</h3>
+
+<p>Other SCLOP functions: 
+<code>pruneSCLOP()</code>
+</p>
+<p>Other workflow functions: 
+<code>LDARep()</code>,
+<code>dendTopics()</code>,
+<code>getPrototype()</code>,
+<code>jaccardTopics()</code>,
+<code>mergeTopics()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">res = LDARep(docs = reuters_docs, vocab = reuters_vocab, n = 4, K = 10, num.iterations = 30)
+topics = mergeTopics(res, vocab = reuters_vocab)
+jacc = jaccardTopics(topics, atLeast = 2)
+dend = dendTopics(jacc)
+
+SCLOP(dend)
+disparitySum(dend)
+
+SCLOP.pairwise(jacc)
+SCLOP.pairwise(getSimilarity(jacc))
+
+</code></pre>
+
+
+</div>

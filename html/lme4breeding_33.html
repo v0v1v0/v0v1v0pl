@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getMME</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Build the mixed model equations from a lmebreed object
+</h2>
+
+<h3>Description</h3>
+
+<p>Uses the lmebreed object and builds the coefficient matrix (C) and returns its inverse and the solutions to the mixed model equations.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getMME(object, vc=NULL, recordsToKeep=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>an object of class lmebreed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vc</code></td>
+<td>
+
+<p>optional variance components to force in the mixed model equations. This this to be the outpur of the <code>VarCorr</code> function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recordsToKeep</code></td>
+<td>
+
+<p>a numeric vector of indices to say which records should be kept for forming the mixed model equations and get solutions. This is particularly useful when we want to predict new individuals.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Uses the lmebreed object and builds the coefficient matrix (C) and returns its inverse and the solutions to the mixed model equations. It is internally used by the ranef function when the user wants standard errors for the BLUPs.
+</p>
+
+
+<h3>Value</h3>
+
+
+<dl>
+<dt>$Ci</dt>
+<dd>
+<p>inverse of the coefficient matrix.</p>
+</dd>
+<dt>$bu</dt>
+<dd>
+<p>solutions to the mixed model equations</p>
+</dd>
+</dl>
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmebreed</code>– the core function of the package </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_example)
+DT &lt;- DT_example
+A &lt;- A_example
+
+ansMain &lt;- lmebreed(Yield ~ Env + (1|Name),
+                    relmat = list(Name = A ),
+                    data=DT)
+mme &lt;- getMME(ansMain)
+
+
+
+##########################################
+## showing how to predict the individuals
+## that didn't have records in the dataset
+##########################################
+data(DT_cpdata)
+DT &lt;- DT_cpdata
+GT &lt;- GT_cpdata
+MP &lt;- MP_cpdata
+#### create the variance-covariance matrix
+A &lt;- A.mat(GT) # additive relationship matrix
+A &lt;- A + diag(1e-4, ncol(A), ncol(A))
+#### look at the data and fit the model
+head(DT)
+mix1 &lt;- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=A),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+
+vc &lt;- VarCorr(mix1); print(vc,comp=c("Variance"))
+# the new dataset includes more individuals
+DT2 &lt;- DT
+DT2$Yield &lt;- imputev(DT2$Yield)
+mix1expanded &lt;- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=A),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore",
+                   calc.derivs=TRUE,
+                   optCtrl=list(maxeval=1)
+                 ),
+                 data=DT2)
+
+vc &lt;- VarCorr(mix1expanded); print(vc,comp=c("Variance"))
+# predict the individuals that didn't have records in the dataset
+res &lt;- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToKeep = which(!is.na(DT$Yield)) )
+
+
+
+
+
+</code></pre>
+
+
+</div>

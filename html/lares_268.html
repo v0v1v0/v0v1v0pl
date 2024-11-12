@@ -1,0 +1,208 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>x2y</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Ranked Predictive Power of Cross-Features (x2y)</h2>
+
+<h3>Description</h3>
+
+<p>The relative reduction in error when we go from a baseline model
+(average for continuous and most frequent for categorical features) to
+a predictive model, can measure the strength of the relationship between
+two features. In other words, <code>x2y</code> measures the ability of <code>x</code>
+to predict <code>y</code>. We use CART (Classification And Regression Trees) models
+to be able to 1) compare numerical and non-numerical features, 2) detect
+non-linear relationships, and 3) because they are easy/quick to train.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">x2y(
+  df,
+  target = NULL,
+  symmetric = FALSE,
+  target_x = FALSE,
+  target_y = FALSE,
+  plot = FALSE,
+  top = 20,
+  quiet = "auto",
+  ohse = FALSE,
+  corr = FALSE,
+  ...
+)
+
+x2y_metric(x, y, confidence = FALSE, bootstraps = 20, max_cat = 20)
+
+## S3 method for class 'x2y_preds'
+plot(x, corr = FALSE, ...)
+
+## S3 method for class 'x2y'
+plot(x, type = 1, ...)
+
+x2y_preds(x, y, max_cat = 10)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>data.frame. Note that variables with no variance will be ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target</code></td>
+<td>
+<p>Character vector. If you are only interested in the <code>x2y</code>
+values between particular variable(s) in <code>df</code>, set
+name(s) of the variable(s) you are interested in. Keep <code>NULL</code>
+to calculate for every variable (column). Check <code>target_x</code> and
+<code>target_y</code> parameters as well.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symmetric</code></td>
+<td>
+<p>Boolean. <code>x2y</code> metric is not symmetric with respect to
+<code>x</code> and <code>y</code>. The extent to which <code>x</code> can predict <code>y</code> can
+be different from the extent to which <code>y</code> can predict <code>x</code>. Set
+<code>symmetric=TRUE</code> if you wish to average both numbers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>target_x, target_y</code></td>
+<td>
+<p>Boolean. Force target features to be part of
+<code>x</code> OR <code>y</code>?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>Boolean. Return a plot? If not, only a data.frame with calculated
+results will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top</code></td>
+<td>
+<p>Integer. Show/plot only top N predictive cross-features. Set
+to <code>NULL</code> to return all.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Boolean. Keep quiet? If not, show progress bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ohse</code></td>
+<td>
+<p>Boolean. Use <code>lares::ohse()</code> to pre-process the data?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr</code></td>
+<td>
+<p>Boolean. Add correlation and pvalue data to compare with? For
+more custom studies, use <code>lares::corr_cross()</code> directly.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to <code>x2y_metric()</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x, y</code></td>
+<td>
+<p>Vectors. Categorical or numerical vectors of same length.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confidence</code></td>
+<td>
+<p>Boolean. Calculate 95% confidence intervals estimated
+with N <code>bootstraps</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstraps</code></td>
+<td>
+<p>Integer. If <code>confidence=TRUE</code>, how many bootstraps?
+The more iterations we run the more precise the confidence internal will be.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_cat</code></td>
+<td>
+<p>Integer. Maximum number of unique <code>x</code> or <code>y</code> values
+when categorical. Will select then most frequent values and the rest will
+be passed as <code>""</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Integer. Plot type: <code>1</code> for tile plot,
+<code>2</code> for ranked bar plot.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This <code>x2y</code> metric is based on Rama Ramakrishnan's
+<a href="https://bit.ly/3sOVbei">post</a>: An Alternative to the Correlation
+Coefficient That Works For Numeric and Categorical Variables. This analysis
+complements our <code>lares::corr_cross()</code> output.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Depending on <code>plot</code> input, a plot or a data.frame with x2y results.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(dft) # Titanic dataset
+x2y_results &lt;- x2y(dft, quiet = TRUE, max_cat = 10, top = NULL)
+head(x2y_results, 10)
+plot(x2y_results, type = 2)
+
+# Confidence intervals with 10 bootstrap iterations
+x2y(dft,
+  target = c("Survived", "Age"),
+  confidence = TRUE, bootstraps = 10, top = 8
+)
+
+# Compare with mean absolute correlations
+x2y(dft, "Fare", corr = TRUE, top = 6, target_x = TRUE)
+
+# Plot (symmetric) results
+symm &lt;- x2y(dft, target = "Survived", symmetric = TRUE)
+plot(symm, type = 1)
+
+# Symmetry: x2y vs y2x
+on.exit(set.seed(42))
+x &lt;- seq(-1, 1, 0.01)
+y &lt;- sqrt(1 - x^2) + rnorm(length(x), mean = 0, sd = 0.05)
+
+# Knowing x reduces the uncertainty about the value of y a lot more than
+# knowing y reduces the uncertainty about the value of x. Note correlation.
+plot(x2y_preds(x, y), corr = TRUE)
+plot(x2y_preds(y, x), corr = TRUE)
+
+</code></pre>
+
+
+</div>

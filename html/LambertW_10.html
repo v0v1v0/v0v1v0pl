@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>beta-utils</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Utilities for parameter vector beta of the input distribution</h2>
+
+<h3>Description</h3>
+
+<p>The parameter <code class="reqn">\boldsymbol \beta</code> specifies the input distribution
+<code class="reqn">X \sim F_X(x \mid \boldsymbol \beta)</code>.
+</p>
+<p><code>beta2tau</code> converts <code class="reqn">\boldsymbol \beta</code> to the transformation vector
+<code class="reqn">\tau = (\mu_x, \sigma_x, \gamma = 0, \alpha = 1, \delta = 0)</code>, which
+defines the Lambert W<code class="reqn">\times</code> F random variable mapping from <code class="reqn">X</code>
+to <code class="reqn">Y</code> (see <code>tau-utils</code>). Parameters <code class="reqn">\mu_x</code> and
+<code class="reqn">\sigma_x</code> of <code class="reqn">X</code> in general depend on <code class="reqn">\boldsymbol \beta</code>
+(and may not even exist for <code>use.mean.variance = TRUE</code>; in this case
+<code>beta2tau</code> will throw an error).
+</p>
+<p><code>check_beta</code> checks if <code class="reqn">\boldsymbol \beta</code> defines a
+valid distribution, e.g., for normal distribution <code>'sigma'</code> must be
+positive.
+</p>
+<p><code>estimate_beta</code> estimates <code class="reqn">\boldsymbol \beta</code> for a given
+<code class="reqn">F_X</code> using MLE or methods of moments.  Closed form solutions
+are used if they exist; otherwise the MLE is obtained numerically using 
+<code>fitdistr</code>.
+</p>
+<p><code>get_beta_names</code> returns (typical) names for each component of
+<code class="reqn">\boldsymbol \beta</code>.
+</p>
+<p>Depending on the distribution 
+<code class="reqn">\boldsymbol \beta</code> has different length and names: e.g., 
+for a <code>"normal"</code> distribution <code>beta</code> is of length 
+<code class="reqn">2</code> (<code>"mu"</code>, <code>"sigma"</code>); for an <code>"exp"</code>onential 
+distribution <code>beta</code> is a scalar (rate <code>"lambda"</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">beta2tau(beta, distname, use.mean.variance = TRUE)
+
+check_beta(beta, distname)
+
+estimate_beta(x, distname)
+
+get_beta_names(distname)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>numeric; vector <code class="reqn">\boldsymbol \beta</code> of the input
+distribution; specifications as they are for the R implementation of this
+distribution. For example, if <code>distname = "exp"</code>, then <code>beta = 2</code>
+means that the rate of the exponential distribution equals <code class="reqn">2</code>; if
+<code>distname = "normal"</code> then <code>beta = c(1,2)</code> means that the mean and
+standard deviation are 1 and 2, respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>distname</code></td>
+<td>
+<p>character; name of input distribution; see
+<code>get_distnames</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use.mean.variance</code></td>
+<td>
+<p>logical; if <code>TRUE</code> it uses mean and variance
+implied by <code class="reqn">\boldsymbol \beta</code> to do the transformation (Goerg 2011).
+If <code>FALSE</code>, it uses the alternative definition from Goerg (2016)
+with location and scale parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector of real values (the <em>input</em> data).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>estimate_beta</code> does not do any data transformation as part of the
+Lambert W<code class="reqn">\times</code> F input/output framework.  For an initial estimate
+of <code class="reqn">\theta</code> for Lambert W<code class="reqn">\times</code> F distributions see
+<code>get_initial_theta</code> and <code>get_initial_tau</code>.
+</p>
+<p>A quick initial estimate of <code class="reqn">\theta</code> is obtained by first finding the
+(approximate) input <code class="reqn">\widehat{\boldsymbol x}_{\widehat{\theta}}</code> by
+<code>IGMM</code>, and then getting the MLE of <code class="reqn">\boldsymbol \beta</code>
+for this input data <code class="reqn">\widehat{\boldsymbol x}_{\widehat{\theta}} \sim
+    F_X(x \mid \boldsymbol \beta)</code> (usually using
+<code>fitdistr</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>beta2tau</code> returns a numeric vector, which is <code class="reqn">\tau =
+    \tau(\boldsymbol \beta)</code> implied by <code>beta</code> and <code>distname</code>.
+</p>
+<p><code>check_beta</code> throws an error if <code class="reqn">\boldsymbol \beta</code> is not
+appropriate for the given distribution; e.g., if it has too many values
+or if they are not within proper bounds (e.g., <code>beta['sigma']</code> of a
+<code>"normal"</code> distribution must be positive).
+</p>
+<p><code>estimate_beta</code> returns a named vector with estimates for
+<code class="reqn">\boldsymbol \beta</code> given <code>x</code>.
+</p>
+<p><code>get_beta_names</code> returns a vector of characters.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>tau-utils</code>, <code>theta-utils</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># By default: delta = gamma = 0 and alpha = 1
+beta2tau(c(1, 1), distname = "normal") 
+## Not run: 
+  beta2tau(c(1, 4, 1), distname = "t")
+
+## End(Not run)
+beta2tau(c(1, 4, 1), distname = "t", use.mean.variance = FALSE)
+beta2tau(c(1, 4, 3), distname = "t") # no problem
+
+
+## Not run: 
+check_beta(beta = c(1, 1, -1), distname = "normal")
+
+## End(Not run)
+
+
+set.seed(124)
+xx &lt;- rnorm(100)^2
+estimate_beta(xx, "exp")
+estimate_beta(xx, "chisq")
+
+</code></pre>
+
+
+</div>

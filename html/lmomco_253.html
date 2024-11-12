@@ -1,0 +1,140 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>partexp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate the Parameters of the Truncated Exponential Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function estimates the parameters of the Truncated Exponential distribution given
+the L-moments of the data in an L-moment object such as that returned by <code>lmoms</code>. The parameter <code class="reqn">\psi</code> is the right truncation of the distribution, and <code class="reqn">\alpha</code> is a scale parameter, letting <code class="reqn">\beta = 1/\alpha</code> to match nomenclature of Vogel and others (2008), and recalling the L-moments in terms of the parameters and letting <code class="reqn">\eta = \exp(-\beta\psi)</code> are
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda_1 = \frac{1 - \eta + \eta\log(\eta)}{\beta(1-\eta)}\mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\lambda_2 = \frac{1 + 2\eta\log(\eta) - \eta^2}{2\beta(1-\eta)^2}\mbox{, and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\tau_2 = \frac{\lambda_2}{\lambda_1} = \frac{1 + 2\eta\log(\eta) - \eta^2}{2(1-\eta)[1-\eta+\eta\log(\eta)]}\mbox{,}</code>
+</p>
+
+<p>and <code class="reqn">\tau_2</code> is a monotonic function of <code class="reqn">\eta</code> is decreasing from <code class="reqn">\tau_2 = 1/2</code> at <code class="reqn">\eta = 0</code> to <code class="reqn">\tau_2 = 1/3</code> at <code class="reqn">\eta = 1</code> the parameters are readily solved given <code class="reqn">\tau_2 = [1/3, 1/2]</code>, the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>uniroot</code>  can be used to solve for <code class="reqn">\eta</code> with a starting interval of <code class="reqn">(0, 1)</code>, then the parameters in terms of the parameters are
+</p>
+<p style="text-align: center;"><code class="reqn">\alpha = \frac{1 - \eta + \eta\log(\eta)}{(1 - \eta)\lambda_1}\mbox{, and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\psi = -\log(\eta)/\alpha\mbox{.}</code>
+</p>
+
+<p>If the <code class="reqn">\eta</code> is rooted as equaling zero, then it is assumed that <code class="reqn">\hat\tau_2 \equiv \tau_2</code> and the exponential distribution triggered, or if the <code class="reqn">\eta</code> is rooted as equaling unity, then it is assumed that <code class="reqn">\hat\tau_2 \equiv \tau_2</code> and the uniform distribution triggered (see below).
+</p>
+<p>The distribution is restricted to a narrow range of L-CV (<code class="reqn">\tau_2 = \lambda_2/\lambda_1</code>). If <code class="reqn">\tau_2 = 1/3</code>, the process represented is a stationary Poisson for which the probability density function is simply the uniform distribution and <code class="reqn">f(x) = 1/\psi</code>. If <code class="reqn">\tau_2 = 1/2</code>, then the distribution is represented as the usual exponential distribution with a location parameter of zero and a scale parameter <code class="reqn">1/\beta</code>. Both of these limiting conditions are supported.
+</p>
+<p>If the distribution shows to be uniform (<code class="reqn">\tau_2 = 1/3</code>), then the third element in the returned parameter vector is used as the <code class="reqn">\psi</code> parameter for the uniform distribution, and the first and second elements are <code>NA</code> of the returned parameter vector.
+</p>
+<p>If the distribution shows to be exponential (<code class="reqn">\tau_2 = 1/2</code>), then the second element in the returned parameter vector is the inverse of the rate parameter for the exponential distribution, and the first element is <code>NA</code> and the third element is <code>0</code> (a numeric <code>FALSE</code>) of the returned parameter vector.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">partexp(lmom, checklmom=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>An L-moment object created by <code>lmoms</code> or
+<code>vec2lmom</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>checklmom</code></td>
+<td>
+<p>Should the <code>lmom</code> be checked for validity using the <code>are.lmom.valid</code> function. Normally this should be left as the default and it is very unlikely that the L-moments will not be viable (particularly in the <code class="reqn">\tau_4</code> and <code class="reqn">\tau_3</code> inequality). However, for some circumstances or large simulation exercises then one might want to bypass this check.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to pass.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of distribution: <code>texp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail</code></td>
+<td>
+<p>A logical value expressed in numeric form indicating the failure or success state of the parameter estimation. A value of two indicates that the <code class="reqn">\tau_2 &lt; 1/3</code> whereas a value of three indicates that the <code class="reqn">\tau_2 &gt; 1/2</code>; for each of these inequalities a fuzzy tolerance of one part in one million is used. Successful parameter estimation, which includes the uniform and exponential boundaries, is indicated by a value of zero.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ifail.message</code></td>
+<td>
+<p>Various messages for successful and failed parameter estimations are reported. In particular, there are two conditions for which each distributional boundary (uniform or exponential) can be obtained. First, for the uniform distribution, one message would indicate if the <code class="reqn">\tau_2 = 1/3</code> is assumed within a one part in one million will be identified or if <code class="reqn">\eta</code> is rooted to 1. Second, for the exponential distribution, one message would indicate if the <code class="reqn">\tau_2 = 1/2</code> is assumed within a one part in one million will be identified or if <code class="reqn">\eta</code> is rooted to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>The value for <code class="reqn">\eta</code>. The value is set to either unity or zero if the <code class="reqn">\tau_2</code> fuzzy tests as being equal to 1/3 or 1/2, respectively. The value is set to the rooted value of <code class="reqn">\eta</code> for all other valid solutions. The value is set to <code>NA</code> if <code class="reqn">\tau_2</code> tests as being outside the 1/3 and 1/2 limits.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “partexp”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Vogel, R.M., Hosking, J.R.M., Elphick, C.S., Roberts, D.L., and Reed, J.M., 2008, Goodness of fit of probability distributions for sightings as species approach extinction: Bulletin of Mathematical Biology, DOI 10.1007/s11538-008-9377-3, 19 p.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmomtexp</code>, <code>cdftexp</code>, <code>pdftexp</code>, <code>quatexp</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># truncated exponential is a nonstationary poisson process
+A  &lt;- partexp(vec2lmom(c(100, 1/2),   lscale=FALSE)) # pure exponential
+B  &lt;- partexp(vec2lmom(c(100, 0.499), lscale=FALSE)) # almost exponential
+BB &lt;- partexp(vec2lmom(c(100, 0.45),  lscale=FALSE)) # truncated exponential
+C  &lt;- partexp(vec2lmom(c(100, 1/3),   lscale=FALSE)) # stationary poisson process
+D  &lt;- partexp(vec2lmom(c(100, 40))) # truncated exponential
+</code></pre>
+
+
+</div>

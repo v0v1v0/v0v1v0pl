@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GEI.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Test the interaction between an environemental exposure and a region/gene by a generalized score type test.
+</h2>
+
+<h3>Description</h3>
+
+<p>Once the preliminary work is done using "GEI.prelim()", this function tests a specifc region/gene. Single SNP analyses are also incorporated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GEI.test(result.prelim,G,Gsub.id=NULL,G.method='wPCA',G.df=floor(sqrt(nrow(G))),
+bootstrap=NULL,MinP.adjust=NULL,impute.method='fixed')
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>result.prelim</code></td>
+<td>
+
+<p>The output of function "GEI.prelim()"
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G</code></td>
+<td>
+
+<p>Genetic variants in the target region/gene, an m*q matrix where m is the subject ID and q is the total number of genetic variables. Note that the number of rows in Z should be same as the number of subjects.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gsub.id</code></td>
+<td>
+
+<p>The subject id corresponding to the genotype matrix, an m dimensional vector. This is in order to match the phenotype and genotype matrix. The default is NULL, where the order is assumed to be matched with Y, X and time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G.method</code></td>
+<td>
+
+<p>The dimension reduction method for main effect adjustment of G. The following are permitted: "wPCA" for weighted principal component analysis; "PCA" for principal component analysis; "R2" for ordering the principal components by their R-squares. The dimension reduction method is in order to analyze large regions, i.e., the number of variants is close to or larger than the number of subjects. The default is "wPCA".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G.df</code></td>
+<td>
+
+<p>Number of components selected by the dimension reduction method. The default is sqrt(m).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap</code></td>
+<td>
+
+<p>Whether to use bootstrap for small sample size adjustement. This is recommended when the number of subjects is small, or the set contains rare variants. The default is NULL, but a suggested number is 10000 when it is needed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MinP.adjust</code></td>
+<td>
+
+<p>If the users would like to compare with the MinP test, this parameter specify the adjustment thereshold as in Gao, et al. (2008) "A multiple testing correction method for genetic association studies using correlated single nucleotide polymorphisms". Values from 0 to 1 are permitted. The default is NULL, i.e., no comparison. The value suggested by Gao, et al. (2008) is 0.95.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute.method</code></td>
+<td>
+
+<p>Choose the imputation method when there is missing genotype. Can be "random", "fixed" or "bestguess". Given the estimated allele frequency, "random" simulates the genotype from binomial distribution; "fixed" uses the genotype expectation; "Best guess" uses the genotype with highest probability.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+
+<p>P-value of the set based generalized score type test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.single</code></td>
+<td>
+
+<p>P-values of the incorporated single SNP analyses
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.MinP</code></td>
+<td>
+
+<p>P-value of the MinP test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.marker</code></td>
+<td>
+
+<p>number of heterozygous SNPs in the SNP set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E.df</code></td>
+<td>
+
+<p>number of tested SNPs in the SNP set.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G.df</code></td>
+<td>
+
+<p>number of tested SNPs in the SNP set.
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## GEI.prelim does the preliminary data management.
+# Input: Y, time, E, X (covariates)
+## GEI.test tests a region.
+# Input: G (genetic variants) and result of GEI.prelim
+
+library(LGEWIS)
+
+# Load data example
+# Y: outcomes, n by 1 matrix where n is the total number of observations
+# X: covariates, n by p matrix
+# E: environmental exposure, n by 1 matrix
+# time: describe longitudinal structure, n by 2 matrix
+# G: genotype matrix, m by q matrix where m is the total number of subjects
+
+data(LGEWIS.example)
+Y&lt;-LGEWIS.example$Y
+X&lt;-LGEWIS.example$X
+E&lt;-LGEWIS.example$E
+time&lt;-LGEWIS.example$time
+G&lt;-LGEWIS.example$G
+
+# Preliminary data management
+result.prelim&lt;-GEI.prelim(Y,time,E,X=X)
+
+# test without the MinP test
+result&lt;-GEI.test(result.prelim,G,MinP.adjust=NULL)
+
+# test with the MinP test
+result&lt;-GEI.test(result.prelim,G,MinP.adjust=0.95)
+
+# test with the MinP test and the small sample adjustment
+result&lt;-GEI.test(result.prelim,G,MinP.adjust=0.95,bootstrap=1000)
+</code></pre>
+
+
+</div>

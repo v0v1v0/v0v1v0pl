@@ -1,0 +1,94 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>smooth.periodogram</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Smoothing periodogram</h2>
+
+<h3>Description</h3>
+
+<p>This function returns the smoothing periodogram of a stationary
+time serie, its plot and its Fourier frequency.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">smooth.periodogram(y, plot = TRUE, spar = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>(type: numeric) data vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+<p>(type: logical) logical argument which allows to plot the
+periodogram. Defaults to TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>spar</code></td>
+<td>
+<p>(type: numeric) smoothing parameter, typically (but not
+necessarily) in <code class="reqn">(0,1].</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>smooth.periodogram</code> computes the periodogram from <code>y</code> vector and
+then smooth it with <em>smoothing spline</em> method, which basically
+approximates a curve using a cubic spline (see more details in
+<code>smooth.spline</code>). <code class="reqn">\lambda</code> is the Fourier frequency
+obtained through <code>periodogram</code>.
+It must have caution with the minimum length of <code>y</code>, because
+<code>smooth.spline</code> requires the entered vector has at least length 4 and
+the length of <code>y</code> does not equal to the length of the data of the
+periodogram that <code>smooth.spline</code> receives.
+If it presents problems with tol (<b>tol</b>erance), see
+<code>smooth.spline</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with with the smooth periodogram and the lambda values
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>smooth.spline</code>, <code>periodogram</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># AR(1) simulated
+require(ggplot2)
+set.seed(1776)
+ts.sim &lt;- arima.sim(n = 1000, model = list(order = c(1, 0, 0), ar = 0.7))
+per &lt;- periodogram(ts.sim)
+aux &lt;- smooth.periodogram(ts.sim, plot = FALSE, spar = .7)
+sm_p &lt;- data.frame(x = aux$lambda, y = aux$smooth.periodogram)
+sp_d &lt;- data.frame(
+  x = aux$lambda,
+  y = spectral.density(ar = 0.7, lambda = aux$lambda)
+)
+g &lt;- per$plot
+g +
+  geom_line(data = sm_p, aes(x, y), color = "#ff7f0e") +
+  geom_line(data = sp_d, aes(x, y), color = "#d31244")
+</code></pre>
+
+
+</div>

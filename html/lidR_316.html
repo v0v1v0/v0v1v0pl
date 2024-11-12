@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>range_correction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Intensity normalization algorithm</h2>
+
+<h3>Description</h3>
+
+<p>This function is made to be used in normalize_intensity. It corrects intensity with a
+range correction according to the formula (see references):
+</p>
+<p style="text-align: center;"><code class="reqn">I_{norm} = I_{obs} \left(\frac{R}{Rs}\right)^f</code>
+</p>
+
+<p>To achieve the range correction the position of the sensor must be known at different discrete times.
+Using the 'gpstime' of each point, the position of the sensor is interpolated from the reference
+and a range correction is applied.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">range_correction(sensor, Rs, f = 2.3, gpstime = "gpstime", elevation = "Z")
+
+get_range(las, sensor, gpstime = "gpstime", elevation = "Z")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sensor</code></td>
+<td>
+<p>'SpatialPointsDataDrame' or 'sf' object containing the coordinates of
+the sensor at different timepoints t. The time and elevation are stored as attributes
+(default names are 'gpstime' and 'Z'). Z can also come from the geometry if the input records XYZ
+coordinates. It can be computed with track_sensor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rs</code></td>
+<td>
+<p>numeric. Range of reference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>numeric. Exponent. Usually between 2 and 3 in vegetation contexts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpstime, elevation</code></td>
+<td>
+<p>character. The name of the attributes that store the gpstime of the
+position and the elevation of the sensor respectively. If the input contains 3 coordinates points,
+'elevation' is not considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>an object of class LAS. <code>get_range()</code> is a regular function documented here for
+convenience.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Gatziolis, D. (2011). Dynamic Range-based Intensity Normalization for Airborne, Discrete Return
+Lidar Data of Forest Canopies. Photogrammetric Engineering &amp; Remote Sensing, 77(3), 251–259.
+https://doi.org/10.14358/pers.77.3.251
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A valid file properly populated
+LASfile &lt;- system.file("extdata", "Topography.laz", package="lidR")
+las &lt;- readLAS(LASfile)
+
+# pmin = 15 because it is an extremely tiny file
+# strongly decimated to reduce its size. There are
+# actually few multiple returns
+sensor &lt;- track_sensor(las, Roussel2020(pmin = 15))
+
+# Here the effect is virtually null because the size of
+# the sample is too small to notice any effect of range
+las &lt;- normalize_intensity(las, range_correction(sensor, Rs = 2000))
+
+# This might be useful for some applications
+R = get_range(las, sensor)
+</code></pre>
+
+
+</div>

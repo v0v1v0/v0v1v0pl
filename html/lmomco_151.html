@@ -1,0 +1,131 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Lcomoment.correlation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L-correlation Matrix (L-correlation through Sample L-comoments) </h2>
+
+<h3>Description</h3>
+
+<p>Compute the L-correlation from an L-comoment matrix of order <code class="reqn">k = 2</code>. This function assumes that the 2nd order matrix is already computed by the function <code>Lcomoment.matrix</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Lcomoment.correlation(L2)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>L2</code></td>
+<td>
+<p>A <code class="reqn">k = 2</code> L-comoment matrix from <code>Lcomoment.matrix(Dataframe,k=2)</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>L-correlation is computed by <code>Lcomoment.coefficients(L2,L2)</code> where <code>L2</code> is second order L-comoment matrix. The usual L-scale values as seen from <code>lmom.ub</code> or <code>lmoms</code> are along the diagonal. This function does not make use of <code>lmom.ub</code> or <code>lmoms</code> and can be used to verify  computation of <code class="reqn">\tau</code> (coefficient of L-variation).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of L-comoment representation in the matrix: “Lcomoment.coefficients”.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>The order of the matrix—extracted from the first matrix in arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matrix</code></td>
+<td>
+<p>A <code class="reqn">k \ge 2</code> L-comoment coefficient matrix.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>The function begins with a capital letter. This is intentionally done so that lower case namespace is preserved. By using a capital letter now, then <code>lcomoment.correlation</code> remains an available name in future releases.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Asquith, W.H., 2011, Distributional analysis with L-moment statistics using the R environment for statistical computing: Createspace Independent Publishing Platform, ISBN 978–146350841–8.
+</p>
+<p>Serfling, R., and Xiao, P., 2007, A contribution to multivariate L-moments—L-comoment matrices: Journal of Multivariate Analysis, v. 98, pp. 1765–1781.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lcomoment.matrix</code>, <code>Lcomoment.correlation</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">D   &lt;- data.frame(X1=rnorm(30), X2=rnorm(30), X3=rnorm(30))
+L2  &lt;- Lcomoment.matrix(D,k=2)
+RHO &lt;- Lcomoment.correlation(L2)
+## Not run: 
+"SerfXiao.eq17" &lt;-
+ function(n=25, A=10, B=2, k=4,
+          method=c("pearson","lcorr"), wrt=c("12", "21")) {
+   method &lt;- match.arg(method); wrt &lt;- match.arg(wrt)
+   # X1 is a linear regression on X2
+   X2 &lt;- rnorm(n); X1 &lt;- A + B*X2 + rnorm(n)
+   r12p &lt;- cor(X1,X2) # Pearson's product moment correlation
+   XX &lt;- data.frame(X1=X1, X2=X2) # for the L-comoments
+   T2 &lt;- Lcomoment.correlation(Lcomoment.matrix(XX, k=2))$matrix
+   LAMk &lt;- Lcomoment.matrix(XX, k=k)$matrix # L-comoments of order k
+   if(wrt == "12") { # is X2 the sorted variable?
+      lmr &lt;- lmoms(X1, nmom=k); Lamk &lt;- LAMk[1,2]; Lcor &lt;- T2[1,2]
+   } else {          # no X1 is the sorted variable (21)
+      lmr &lt;- lmoms(X2, nmom=k); Lamk &lt;- LAMk[2,1]; Lcor &lt;- T2[2,1]
+   }
+   # Serfling and Xiao (2007, eq. 17) state that
+   # L-comoment_k[12] = corr.coeff * Lmoment_k[1] or
+   # L-comoment_k[21] = corr.coeff * Lmoment_k[2]
+   # And with the X1, X2 setup above, Pearson corr. == L-corr.
+   # There will be some numerical differences for any given sample.
+   ifelse(method == "pearson",
+             return(lmr$lambdas[k]*r12p - Lamk),
+             return(lmr$lambdas[k]*Lcor - Lamk))
+   # If the above returns a expected value near zero then, their eq.
+   # is numerically shown to be correct and the estimators are unbiased.
+}
+
+# The means should be near zero.
+nrep &lt;- 2000; seed &lt;- rnorm(1); set.seed(seed)
+mean(replicate(n=nrep, SerfXiao.eq17(method="pearson", k=4)))
+set.seed(seed)
+mean(replicate(n=nrep, SerfXiao.eq17(method="lcorr", k=4)))
+# The variances should nearly be equal.
+seed &lt;- rnorm(1); set.seed(seed)
+var(replicate(n=nrep, SerfXiao.eq17(method="pearson", k=6)))
+set.seed(seed)
+var(replicate(n=nrep, SerfXiao.eq17(method="lcorr", k=6)))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

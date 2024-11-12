@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lcarsSweep</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LCARS sweep</h2>
+
+<h3>Description</h3>
+
+<p>Create an LCARS sweep; the 'S' or reverse-'S' shape comprised of two LCARS
+elbows pointing in opposite directions.
+The sweep is effectively two adjacent LCARS boxes separated by an input
+column and some specific styling to achieve the sweep display.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lcarsSweep(
+  column_inputs = NULL,
+  left_inputs = NULL,
+  right_inputs = NULL,
+  title = NULL,
+  subtitle = NULL,
+  color = "atomic-tangerine",
+  reverse = FALSE,
+  expand = c(0, 0),
+  column_width = 150,
+  left_width = 0.5,
+  width = "100%"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>column_inputs</code></td>
+<td>
+<p>optional input column for right side, for example a
+column of buttons made with <code>inputColumn()</code>. See details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left_inputs</code></td>
+<td>
+<p>content on the left side of the sweep.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>right_inputs</code></td>
+<td>
+<p>content on the right side of the sweep.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>title</code></td>
+<td>
+<p>character, title for box with header.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subtitle</code></td>
+<td>
+<p>character, subtitle for box with footer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>sweep elbow colors. Any hex color or a named LCARS color.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reverse</code></td>
+<td>
+<p>logical, create a reverse sweep.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expand</code></td>
+<td>
+<p>integer, length-2 vector, the number of pixels to expand the
+left and right content containers above or below the implicit border; the
+top or bottom border where no sweep is present. See example.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>column_width</code></td>
+<td>
+<p>integer, width of the sweep column section in pixels.
+Must be in pixels, 150 maximum. Smaller is permitted but will not conform as
+well to LCARS style.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left_width</code></td>
+<td>
+<p>numeric, number between 0 and 1 giving the proportional
+width of the left content section.
+The right section is 1 - <code>left_width</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>a valid CSS unit, the width of the entire sweep. Fixed pixel
+width recommended. See details.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>There are limitations to the container responsiveness of the LCARS box and
+sweep. In some cases, using percentage width, e.g., <code>width = "100%"</code> will
+work, but it may respond sluggishly or may not work at all. Fixed pixel width
+is recommended for <code>lcarsBox()</code> and <code>lcarsSweep()</code>. Regardless of
+responsiveness, these widgets are also not intended to fit very small displays.
+</p>
+
+
+<h3>Value</h3>
+
+<p>an HTML widget
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lcarsBox()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Only run examples in interactive R sessions
+if (interactive()) {
+
+  library(ggplot2)
+  d &lt;- data.frame(x = rnorm(500))
+  g &lt;- ggplot(d, aes(x)) + theme_lcars_dark()
+  g1 &lt;- g + geom_histogram(color = "black", fill = "#9999FF", bins = 20) +
+    ggtitle("Plot 1")
+  left &lt;- div(h4("Some text"), p("The fine print."))
+
+  ui &lt;- lcarsPage(
+    lcarsHeader("LCARS sweep"),
+    h4("Change colors and relative widths of content sections"),
+    h4("Add title and subtitle, input column padding, and content"),
+    lcarsSweep(
+      inputColumn(
+        lcarsButton("x1", "Button"),
+        lcarsRect(color = "hopbush", height = 80)
+      ),
+      left, plotOutput("plot1", height = 650), # plot taller than sweep box
+      title = "Title", subtitle = "Subtitle",
+      color = "pale-canary", left_width = 0.3, width = 900,
+      expand = c(0, 350) # negative bottom margin added to right side div
+    ),
+    lcarsSweep( # content from sweep box above extends into sweep box below
+      inputColumn(
+        lcarsButton("x2", "Button A"),
+        lcarsButton("x3", "Button B"),
+        lcarsRect(color = "lilac")
+      ),
+      left, title = "Title 2", subtitle = "Subtitle 2",
+      color = "anakiwa", reverse = TRUE, left_width = 0.3, width = 900
+    )
+  )
+
+  server &lt;- function(input, output) {
+    output$plot1 &lt;- renderPlot(g1)
+  }
+
+  shinyApp(ui, server)
+}
+</code></pre>
+
+
+</div>

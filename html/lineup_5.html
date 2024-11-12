@@ -1,0 +1,239 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>disteg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate distance between two gene expression data sets</h2>
+
+<h3>Description</h3>
+
+<p>Calculate a distance between all pairs of individuals for two gene
+expression data sets
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">disteg(
+  cross,
+  pheno,
+  pmark,
+  min.genoprob = 0.99,
+  k = 20,
+  min.classprob = 0.8,
+  classprob2drop = 1,
+  repeatKNN = TRUE,
+  max.selfd = 0.3,
+  phenolabel = "phenotype",
+  weightByLinkage = FALSE,
+  map.function = c("haldane", "kosambi", "c-f", "morgan"),
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cross</code></td>
+<td>
+<p>An object of class <code>"cross"</code> containing data for a QTL
+experiment.  See the help file for <code>qtl::read.cross()</code> in the
+R/qtl package (<a href="https://rqtl.org">https://rqtl.org</a>).  There must be a phenotype named
+<code>"id"</code> or <code>"ID"</code> that contains the individual identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pheno</code></td>
+<td>
+<p>A data frame of phenotypes (generally gene expression data),
+stored as individuals x phenotypes.  The row names must contain individual
+identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmark</code></td>
+<td>
+<p>Pseudomarkers that are closest to the genes in <code>pheno</code>, as
+output by <code>find.gene.pseudomarker()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.genoprob</code></td>
+<td>
+<p>Threshold on genotype probabilities; if maximum
+probability is less than this, observed genotype taken as <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of nearest neighbors to consider in forming a k-nearest
+neighbor classifier.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.classprob</code></td>
+<td>
+<p>Minimum proportion of neighbors with a common class to
+make a class prediction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classprob2drop</code></td>
+<td>
+<p>If an individual is inferred to have a genotype
+mismatch with classprob &gt; this value, treat as an outlier and drop from the
+analysis and then repeat the KNN construction without it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repeatKNN</code></td>
+<td>
+<p>If TRUE, repeat k-nearest neighbor a second time, after
+omitting individuals who seem to not be self-self matches</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max.selfd</code></td>
+<td>
+<p>Min distance from self (as proportion of mismatches between
+observed and predicted eQTL genotypes) to be excluded from the second round
+of k-nearest neighbor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phenolabel</code></td>
+<td>
+<p>Label for expression phenotypes to place in the output
+distance matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightByLinkage</code></td>
+<td>
+<p>If TRUE, weight the eQTL to account for their
+relative positions (for example, two tightly linked eQTL would each count
+about 1/2 of an isolated eQTL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>map.function</code></td>
+<td>
+<p>Used if <code>weightByLinkage</code> is TRUE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>if TRUE, give verbose output.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We consider the expression phenotypes in batches, by which pseudomarker they
+are closest to.  For each batch, we pull the genotype probabilities at the
+corresponding pseudomarker and use the individuals that are in common
+between <code>cross</code> and <code>pheno</code> and whose maximum genotype probability
+is above <code>min.genoprob</code>, to form a classifier of eQTL genotype from
+expression values, using k-nearest neighbor (the function
+<code>class::knn()</code>). The classifier is applied to all individuals with
+expression data, to give a predicted eQTL genotype. (If the proportion of
+the k nearest neighbors with a common class is less than
+<code>min.classprob</code>, the predicted eQTL genotype is left as <code>NA</code>.)
+</p>
+<p>If <code>repeatKNN</code> is TRUE, we repeat the construction of the k-nearest
+neighbor classifier after first omitting individuals whose proportion of
+mismatches between observed and inferred eQTL genotypes is greater than
+<code>max.selfd</code>.
+</p>
+<p>Finally, we calculate the distance between the observed eQTL genotypes for
+each individual in <code>cross</code> and the inferred eQTL genotypes for each
+individual in <code>pheno</code>, as the proportion of mismatches between the
+observed and inferred eQTL genotypes.
+</p>
+<p>If <code>weightByLinkage</code> is <code>TRUE</code>, we use weights on the mismatch
+proportions for the various eQTL, taking into account their linkage. Two
+tightly linked eQTL will each be given half the weight of a single isolated
+eQTL.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with <code>nind(cross)</code> rows and <code>nrow(pheno)</code>
+columns, containing the distances.  The individual IDs are in the row and
+column names.  The matrix is assigned class <code>"lineupdist"</code>.
+</p>
+<p>The names of the genes that were used to construct the classifier are saved
+in an attribute <code>"retained"</code>.
+</p>
+<p>The observed and inferred eQTL genotypes are saved as attributes
+<code>"obsg"</code> and <code>"infg"</code>.
+</p>
+<p>The denominators of the proportions that form the inter-individual distances
+are in the attribute <code>"denom"</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl W Broman, <a href="mailto:broman@wisc.edu">broman@wisc.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>distee()</code>, <code>summary.lineupdist()</code>,
+<code>pulldiag()</code>, <code>omitdiag()</code>, <code>findCommonID()</code>,
+<code>find.gene.pseudomarker()</code>, <code>calc.locallod()</code>,
+<code>plot.lineupdist()</code>, <code>class::knn()</code>,
+<code>plotEGclass()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(qtl)
+
+# load example data
+data(f2cross, expr1, pmap, genepos)
+
+
+# calculate QTL genotype probabilities
+f2cross &lt;- calc.genoprob(f2cross, step=1)
+
+# find nearest pseudomarkers
+pmark &lt;- find.gene.pseudomarker(f2cross, pmap, genepos)
+
+# line up individuals
+id &lt;- findCommonID(f2cross, expr1)
+
+# calculate LOD score for local eQTL
+locallod &lt;- calc.locallod(f2cross[,id$first], expr1[id$second,], pmark)
+
+# take those with LOD &gt; 25
+expr1s &lt;- expr1[,locallod&gt;25,drop=FALSE]
+
+# calculate distance between individuals
+#     (prop'n mismatches between obs and inferred eQTL geno)
+d &lt;- disteg(f2cross, expr1s, pmark)
+
+# plot distances
+plot(d)
+
+# summary of apparent mix-ups
+summary(d)
+
+# plot of classifier for and second eQTL
+par(mfrow=c(2,1), las=1)
+plotEGclass(d)
+plotEGclass(d, 2)
+
+</code></pre>
+
+
+</div>

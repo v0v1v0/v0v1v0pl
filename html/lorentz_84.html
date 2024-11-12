@@ -1,0 +1,229 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>boost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Lorentz transformations</h2>
+
+<h3>Description</h3>
+
+<p>Lorentz transformations: boosts and rotations</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">boost(u=0)
+rot(u,v,space=TRUE)
+is.consistent.boost(L, give=FALSE, TOL=1e-10)
+is.consistent.boost.galilean(L, give=FALSE, TOL=1e-10)
+pureboost(L,include_sol=TRUE)
+orthog(L)
+pureboost.galilean(L, tidy=TRUE)
+orthog.galilean(L)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>u,v</code></td>
+<td>
+<p>Three-velocities, coerced to  class <code>3vel</code>.  In
+function <code>boost()</code>, if <code>u</code> takes the special default value
+<code>0</code>, this is interpreted as zero three velocity</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>Lorentz transform expressed as a <code class="reqn">4\times 4</code> matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TOL</code></td>
+<td>
+<p>Numerical tolerance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>give</code></td>
+<td>
+<p>Boolean with <code>TRUE</code> meaning to return the transformed
+metric tensor (which should be the flat-space <code>eta()</code>; qv) and
+default <code>FALSE</code> meaning to return whether the matrix is a
+consistent boost or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>space</code></td>
+<td>
+<p>Boolean, with default <code>TRUE</code> meaning to return just
+the spatial component of the rotation matrix and <code>FALSE</code>
+meaning to return the full <code class="reqn">4\times 4</code> matrix
+transformation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tidy</code></td>
+<td>
+<p>In <code>pureboost.galilean()</code>, Boolean with default
+<code>TRUE</code> meaning to return a “tidy” boost matrix with
+spatial components forced to be a <code class="reqn">3\times 3</code> identity
+matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include_sol</code></td>
+<td>
+<p>In function <code>pureboost()</code>, Boolean with
+default <code>TRUE</code> meaning to correctly account for the speed of
+light, and <code>FALSE</code> meaning to assume <code class="reqn">c=1</code>. See details</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Arguments <code>u,v</code> are coerced to three-velocities.
+</p>
+<p>A rotation-free Lorentz transformation is known as a <dfn>boost</dfn>
+(sometimes a <dfn>pure boost</dfn>), here expressed in matrix form.  Pure
+boost matrices are symmetric if <code class="reqn">c=1</code>.  Function <code>boost(u)</code>
+returns a <code class="reqn">4\times 4</code> matrix giving the Lorentz transform of
+an arbitrary three-velocity <code>u</code>.
+</p>
+<p>Boosts can be successively applied with regular matrix multiplication.
+However, composing two successive pure boosts does not in general
+return a pure boost matrix: the product is not symmetric in general.
+Also note that boost matrices do not commute.  The resulting matrix
+product represents a <dfn>Lorentz transform</dfn>.
+</p>
+<p>It is possible to decompose a Lorentz transform <code class="reqn">L</code> into a pure
+boost and a spatial rotation.  Thus <code class="reqn">L=OP</code> where <code class="reqn">O</code> is an
+orthogonal matrix and <code class="reqn">P</code> a pure boost matrix; these are returned by
+functions <code>orthog()</code> and <code>pureboost()</code> respectively.  If the 
+speed of light is not equal to 1, the functions still work but can be
+confusing.
+</p>
+<p>Functions <code>pureboost.galilean()</code> and <code>orthog.galilean()</code> are
+the Newtonian equivalents of <code>pureboost()</code> and <code>orthog()</code>,
+intended to be used when the speed of light is infinite (which causes
+problems for the relativistic functions).
+</p>
+<p>As noted above, the composition of two pure Lorentz boosts is not
+necessarily pure.  If we have two successive boosts corresponding to
+<code class="reqn">u</code> and <code class="reqn">v</code>, then the composed boost may be decomposed into a
+pure boost of <code>boost(u+v)</code> and a rotation of <code>rot(u,v)</code>.
+</p>
+<p>The reason argument <code>include_sol</code> exists is that function
+<code>orthog()</code> needs to call <code>pureboost()</code> in an environment
+where we pretend that <code class="reqn">c=1</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function <code>boost()</code> returns a <code class="reqn">4\times 4</code>
+matrix; function <code>rot()</code> returns an orthogonal matrix.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Function <code>rot()</code> uses <code>crossprod()</code> for efficiency reasons
+but is algebraically equivalent to
+</p>
+<p><code>boost(-u-v) %*% boost(u) %*% boost(v)</code>. 
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin K. S. Hankin</p>
+
+
+<h3>References</h3>
+
+
+<ul>
+<li>
+<p>Ungar 2006. “Thomas precession: a kinematic
+effect...”. European Journal of Physics, 27:L17-L20
+</p>
+</li>
+<li>
+<p>Sbitneva 2001. “Nonassociative geometry of special relativity”.
+International Journal of Theoretical Physics, volume 40, number 1,
+pages 359–362
+</p>
+</li>
+<li>
+<p> Wikipedia contributors 2018.  “Wigner rotation”,
+Wikipedia, The Free Encyclopedia.
+<a href="https://en.wikipedia.org/w/index.php?title=Wigner_rotation&amp;oldid=838661305">https://en.wikipedia.org/w/index.php?title=Wigner_rotation&amp;oldid=838661305</a>.  Online; accessed 23 August 2018
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">boost(as.3vel(c(0.4,-0.2,0.1)))
+
+u &lt;- r3vel(1)
+v &lt;- r3vel(1)
+w &lt;- r3vel(1)
+
+boost(u) - solve(boost(-u))  # should be zero
+
+boost(u) %*% boost(v)   # not a pure boost (not symmetrical)
+boost(u+v)  # not the same!
+boost(v+u)  # also not the same!
+
+u+v  # returns a three-velocity
+
+
+boost(u) %*% boost(v) %*% boost(w)  # associative, no brackets needed
+boost(u+(v+w))  # not the same!
+boost((u+v)+w)  # also not the same!
+
+
+rot(u,v)
+rot(v,u)    # transpose (=inverse) of rot(u,v)
+
+
+rot(u,v,FALSE) %*% boost(v) %*% boost(u)
+boost(u+v)     # should be the same.
+
+
+orthog(boost(u) %*% boost(v)) - rot(u,v,FALSE)  # zero to numerical precision
+pureboost(boost(v) %*% boost(u)) - boost(u+v)   # ditto
+
+
+## Define a random-ish Lorentz transform
+L &lt;- boost(r3vel(1)) %*% boost(r3vel(1)) %*% boost(r3vel(1))
+
+## check it:
+
+
+## Not run:    # needs emulator package
+quad.form(eta(),L)  # should be eta()
+
+## End(Not run)
+
+## More concisely:
+is.consistent.boost(L)     # should be TRUE
+
+## Decompose L into a rotation and a pure boost:
+U &lt;- orthog(L)
+P &lt;- pureboost(L)
+
+L - U %*% P              # should be zero (L = UP)
+crossprod(U)               # should be identity (U is orthogonal)
+P - t(P)                   # should be zero (P is symmetric)
+
+## First row of P should be a consistent 4-velocity:
+is.consistent.4vel(P[1,,drop=FALSE],give=TRUE)
+</code></pre>
+
+
+</div>

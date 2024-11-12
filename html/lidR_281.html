@@ -1,0 +1,385 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>aggregate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Metric derivation at different levels of regularization</h2>
+
+<h3>Description</h3>
+
+<p><code>template_metrics()</code> computes a series of user-defined descriptive statistics for a LiDAR dataset
+within each element of a template. Depending on the template it can be for each pixel of a raster
+(area-based approach), or each polygon, or each segmented tree, or on the whole point cloud. Other
+functions are convenient and simplified wrappers around <code>template_metrics()</code> and are expected to be
+the actual functions used. See Details and Examples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cloud_metrics(las, func, ...)
+
+crown_metrics(
+  las,
+  func,
+  geom = "point",
+  concaveman = c(3, 0),
+  attribute = "treeID",
+  ...
+)
+
+hexagon_metrics(las, func, area = 400, ...)
+
+pixel_metrics(las, func, res = 20, start = c(0, 0), ...)
+
+plot_metrics(las, func, geometry, ..., radius)
+
+polygon_metrics(las, func, geometry, ...)
+
+template_metrics(las, func, template, filter = NULL, by_echo = "all", ...)
+
+voxel_metrics(las, func, res = 1, ..., all_voxels = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class LAS or LAScatalog.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>formula or expression. An expression to be applied to each element of the template (see
+section "Parameter func").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>propagated to <code>template_metrics</code> i.e. <code>filter</code> and <code>by_echo</code>. <code>pixel_metrics()</code> also
+supports <code>pkg = "terra|raster|stars"</code> to get an output in <code>SpatRaster</code>, <code style="white-space: pre;">⁠Raster*⁠</code>
+or <code>stars</code> format. Default is <code>getOption("lidR.raster.default")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geom</code></td>
+<td>
+<p>character. Geometry type of the output. Can be 'point', 'convex', 'concave' or 'bbox'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>concaveman</code></td>
+<td>
+<p>numeric. Only if <code>type = "concave"</code>. Vector with the two parameters of the
+function concaveman.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attribute</code></td>
+<td>
+<p>character. The column name of the attribute containing tree IDs. Default is
+<code>"treeID"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>area</code></td>
+<td>
+<p>numeric. Area of the hexagons</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p>numeric. The resolution of the output. Can optionally be a <code>RasterLayer</code> or a <code>stars</code> or
+a <code>SpatRaster</code>. In that case the raster is used as the template.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>vector of x and y coordinates for the reference raster. Default is (0,0) meaning that the
+grid aligns on (0,0). Not consiered if <code>res</code> is a raster</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>geometry</code></td>
+<td>
+<p>A spatial vector object. <code>sp</code> and <code>sf</code>' objects are supported. <code>plot_metrics()</code>
+supports point and polygons but <code>polygon_metrics()</code> supports only polygons.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>radius</code></td>
+<td>
+<p>numeric. If the geometry is spatial points a radius must be defined. Support one
+radius or a vector of radii for variable plot sizes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>template</code></td>
+<td>
+<p>can be of many types and corresponds to the different levels of regularization.
+<code>RasterLayer/stars/SpatRaster</code>, <code>sf/sfc</code> (polygons), <code>numeric</code>, <code>bbox</code>, <code>NULL</code>. The metrics are
+computed for each element of the template. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>formula of logical predicates. Enables the function to run only on points of interest
+in an optimized way. See examples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_echo</code></td>
+<td>
+<p>characters. The metrics are computed multiple times for different echo types. Can
+be one or more of "all", "first", "intermediate", "lastofmany", "single", and "multiple". See examples.
+Default is "all" meaning that it computes metrics with all points provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>all_voxels</code></td>
+<td>
+<p>boolean. By default the function returns only voxels that
+contain 1 or more points. Empty voxels do not exist as the metrics are undefined.
+If <code>all_voxels = TRUE</code> all the voxels are returned and metrics are NA for
+voxels with 0 points.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt><code>pixel_metrics</code></dt>
+<dd>
+<p>Area-based approach. Computes metrics in a square tessellation. The output is a
+raster.</p>
+</dd>
+<dt><code>hexagon_metrics</code></dt>
+<dd>
+<p>Computes metrics in an hexagon tessellation. The output is a <code>sf/sfc_POLYGON</code></p>
+</dd>
+<dt><code>plot_metrics</code></dt>
+<dd>
+<p>Computes metrics for each plot of a ground inventory by 1. clipping the plot
+inventories with clip_roi, 2. computing the user's metrics for each plot with  cloud_metrics, and
+3. combining spatial data and metrics into one data.frame ready for statistical modelling with
+<code>cbind</code>. The output is of the class of the input.</p>
+</dd>
+<dt><code>cloud_metrics</code></dt>
+<dd>
+<p>Computes a series of user-defined descriptive statistics for an entire point cloud.
+The output is a <code>list</code></p>
+</dd>
+<dt><code>crown_metrics</code></dt>
+<dd>
+<p>Once the trees are segmented, i.e. attributes exist in the
+point cloud that reference each tree, computes a set of user-defined descriptive statistics for
+each individual tree. The output can be spatial points or spatial polygons (<code>sf/sfc_POINT</code> or <code>sf/sfc_POLYGON</code>)</p>
+</dd>
+<dt><code>voxel_metrics</code></dt>
+<dd>
+<p>Is a 3D version of <code>pixel_metrics</code>. It creates a 3D matrix of voxels with a given
+resolution. It creates a voxel from the cloud of points if there is at least one point. The output is
+a <code>data.frame</code></p>
+</dd>
+<dt><code>point_metrics</code></dt>
+<dd>
+<p>Is a bit more complex and is documented in point_metrics</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>Depends on the function, the template and the number of metrics. Can be a <code>RasterLayer</code>,
+a <code>RasterBrick</code>, a <code>stars</code>, a <code>SpatRaster</code> a <code>sf/sfc</code>, a <code>list</code>, a <code>SpatialPolygonDataFrame</code>, or
+a <code>data.table</code>. Functions are supposed to return an object that is best suited for storing the level
+of regularization needed.
+</p>
+
+
+<h3>Parameter <code>func</code>
+</h3>
+
+<p>The function to be applied to each cell is a classical function (see examples) that
+returns a labelled list of metrics. For example, the following function <code>f</code> is correctly formed.
+</p>
+<pre>
+f = function(x) {list(mean = mean(x), max = max(x))}
+</pre>
+<p>And could be applied either on the <code>Z</code> coordinates or on the intensities. These two
+statements are valid:
+</p>
+<pre>
+pixel_metrics(las, f(Z), res = 20)
+voxel_metrics(las, f(Intensity), res = 2)
+</pre>
+<p>The following existing functions allow the user to
+compute some predefined metrics: stdmetrics
+entropy, VCI, LAD. But usually users must write their own
+functions to create metrics. <code>template_metrics</code> will dispatch the point cloud in the user's
+function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+las &lt;- readLAS(LASfile, filter = "-keep_random_fraction 0.5")
+col &lt;- sf::sf.colors(15)
+fun1 &lt;- ~list(maxz = max(Z))
+fun2 &lt;- ~list(q85 = quantile(Z, probs = 0.85))
+
+set_lidr_threads(1) ; data.table::setDTthreads(1) # for cran only
+
+# ================
+# CLOUD METRICS
+# ================
+
+cloud_metrics(las, .stdmetrics_z)
+
+# ================
+# PIXEL METRICS
+# ================
+
+m &lt;- pixel_metrics(las, fun1, 20)
+#plot(m, col = col)
+
+# ================
+# PLOT METRICS
+# ================
+
+shpfile &lt;- system.file("extdata", "efi_plot.shp", package="lidR")
+inventory &lt;- sf::st_read(shpfile, quiet = TRUE)
+inventory # contains an ID and a Value Of Interest (VOI) per plot
+
+m &lt;- plot_metrics(las, fun2, inventory, radius = 11.28)
+#plot(header(las))
+#plot(m["q85"], pch = 19, cex = 3, add = TRUE)
+
+
+# Works with polygons as well
+inventory &lt;- sf::st_buffer(inventory, 11.28)
+#plot(header(las))
+#plot(sf::st_geometry(inventory), add = TRUE)
+m &lt;- plot_metrics(las, .stdmetrics_z, inventory)
+#plot(m["zq85"], pch = 19, cex = 3, add = TRUE)
+
+
+# ================
+# VOXEL METRICS
+# ================
+
+m &lt;- voxel_metrics(las, length(Z), 8)
+m &lt;- voxel_metrics(las, mean(Intensity), 8)
+#plot(m, color = "V1", colorPalette = heat.colors(50), trim = 60)
+#plot(m, color = "V1", colorPalette = heat.colors(50), trim = 60, voxel = TRUE)
+
+# ================
+# CROWN METRICS
+# ================
+
+# Already tree-segmented point cloud
+LASfile &lt;- system.file("extdata", "MixedConifer.laz", package="lidR")
+trees &lt;- readLAS(LASfile, filter = "-drop_z_below 0")
+
+metrics &lt;- crown_metrics(trees, .stdtreemetrics)
+#plot(metrics["Z"], pch = 19)
+
+metrics &lt;- crown_metrics(trees, .stdtreemetrics, geom = "convex")
+#plot(metrics["Z"])
+
+metrics &lt;- crown_metrics(trees, .stdtreemetrics, geom = "bbox")
+#plot(metrics["Z"])
+
+
+metrics &lt;- crown_metrics(trees, .stdtreemetrics, geom = "concave")
+#plot(metrics["Z"])
+
+# ================
+# ARGUMENT FILTER
+# ================
+
+# Compute using only some points: basic
+first = filter_poi(las, ReturnNumber == 1)
+metrics = pixel_metrics(first, mean(Z), 20)
+
+# Compute using only some points: optimized
+# faster and uses less memory. No intermediate object
+metrics = pixel_metrics(las, mean(Z), 20, filter = ~ReturnNumber == 1)
+
+# Compute using only some points: best
+# ~50% faster and uses ~10x less memory
+las = readLAS(LASfile, filter = "-keep_first")
+metrics = pixel_metrics(las, mean(Z), 20)
+
+# ================
+# ARGUMENT BY_ECHO
+# ================
+
+func = ~list(avgI = mean(Intensity))
+echo = c("all", "first","multiple")
+
+# func defines one metric but 3 are computed respectively for: (1) all echo types,
+# (2) for first returns only and (3) for multiple returns only
+metrics &lt;- pixel_metrics(las, func, 20, by_echo = echo)
+#plot(metrics, col = heat.colors(25))
+
+cloud_metrics(las, func, by_echo = echo)
+
+## Not run: 
+# ================
+# TEMPLATE METRICS
+# ================
+
+# a raster as template
+template &lt;- raster::raster(extent(las), nrow = 15, ncol = 15)
+raster::crs(template) &lt;- crs(las)
+m &lt;- template_metrics(las, fun1, template)
+#plot(m, col = col)
+
+# a sfc_POLYGON as template
+sfc &lt;- sf::st_as_sfc(st_bbox(las))
+template &lt;- sf::st_make_grid(sfc, cellsize = 20, square = FALSE)
+m &lt;- template_metrics(las, fun1, template)
+#plot(m)
+
+# a bbox as template
+template &lt;- st_bbox(las) + c(50,30,-50,-70)
+plot(sf::st_as_sfc(st_bbox(las)), col = "gray")
+plot(sf::st_as_sfc(template), col = "darkgreen", add = TRUE)
+m &lt;- template_metrics(las, fun2, template)
+print(m)
+
+# ================
+# CUSTOM METRICS
+# ================
+
+# Define a function that computes custom metrics
+# in an R&amp;D perspective.
+myMetrics = function(z, i) {
+  metrics = list(
+     zwimean = sum(z*i)/sum(i), # Mean elevation weighted by intensities
+     zimean  = mean(z*i),       # Mean products of z by intensity
+     zsqmean = sqrt(mean(z^2))) # Quadratic mean
+
+   return(metrics)
+}
+
+# example with a stars template
+template &lt;- stars::st_as_stars(st_bbox(las), dx = 10, dy = 10)
+m &lt;- template_metrics(las, myMetrics(Z, Intensity), template)
+#plot(m, col = col)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

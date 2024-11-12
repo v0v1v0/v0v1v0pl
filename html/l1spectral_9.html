@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PenOpt</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Solve the internal minimization problem</h2>
+
+<h3>Description</h3>
+
+<p>This internal function of the l1-spectral clustering algorithm solves the l1-minimization problem and recover the community indicators of the clusters.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PenOpt(U, n, elements, iteration, pen, k)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>The eigenvector matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The number of nodes of the connected component to cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elements</code></td>
+<td>
+<p>The representative elements of the connected component to cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iteration</code></td>
+<td>
+<p>The cluster we aim at recovering.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty (to be chosen among "lasso" and "thresholdedLS").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of clusters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>v</code> The community indicator of cluster <code>iteration</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Camille Champion, Magali Champion
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>l1_spectralclustering</code>, <code>l1_spectral</code>, <code>l1spectral</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> ###################################
+ # Solving the minimization problem
+ ###################################
+
+ # 1st: create data
+ Data &lt;- CreateDataSet(k=3, n=20, p=list(p_inside=0.1,p_outside=0.1))
+
+ # 2nd: find the structure, the opt number of clusters and the representative elements
+ Structure &lt;- FindStructure(Data$A_hat)
+ Clusters &lt;- FindNbrClusters(A = Data$A_hat, structure = Structure)
+ Elements &lt;- FindElement(A = Data$A_hat, structure = Structure, clusters = Clusters)
+
+ Structure_tmp &lt;- Structure$groups[[1]] # the first component
+ A_tmp &lt;- Data$A_hat[Structure$groups[[1]],Structure$groups[[1]]]
+ n &lt;- ncol(A_tmp)
+ k &lt;- Clusters$nbr_clusters$Component1 # number of clusters to create
+ Elements_tmp &lt;- Elements$indices$Component1 # the elements of the first component
+
+ # 3rd: perform svd
+ svd &lt;- eigen(A_tmp)
+ eigenvalues &lt;- sort(svd$values,index.return=TRUE)
+ eigenvectors &lt;- svd$vectors[,eigenvalues$ix]
+
+ # 4th: solve the minimization problem
+ i &lt;- 1 # the cluster we aim at recovering
+ U &lt;- t(eigenvectors[,1:(n-k+i-1)])
+ v &lt;- PenOpt(U, n, elements = Elements_tmp, iteration = i, pen = "lasso", k) # for lasso
+
+ # the same with the least-squared threshold
+ v &lt;- PenOpt(U, n, elements = Elements_tmp, iteration = i, pen = "thresholdedLS", k)
+</code></pre>
+
+
+</div>

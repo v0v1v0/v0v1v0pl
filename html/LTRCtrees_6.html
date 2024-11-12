@@ -1,0 +1,83 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Pred.rpart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Prediction function for rpart.object</h2>
+
+<h3>Description</h3>
+
+<p>The output of <code>LTRCART</code> is an rpart object, and as a result the
+usual predict function on such an object returns the predicted
+relative risk on the test set. <code>Pred.rpart</code> returns the predicted
+Kaplan-Meier curves and median survival times on the test set,
+which in some circumstances might be desirable in practice.
+Note that this function can be applied to any rpart survival tree
+object, not just one produced by <code>LTRCART</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Pred.rpart(formula, train, test)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A formula used to fit the survival tree. The response
+is a Surv object. If it has the form Surv(time1, time2, event),
+then <code>LTRCART</code> is called internally; if response has the form Surv(time, event),
+then the rpart is called internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>train</code></td>
+<td>
+<p>Training set</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>Test set</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of predicted KM curves and median survival times.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## The Assay of serum free light chain data in survival package
+## Adjust data &amp; clean data
+library(survival)
+library(LTRCtrees)
+Data &lt;- flchain
+Data &lt;- Data[!is.na(Data$creatinine),]
+Data$End &lt;- Data$age + Data$futime/365
+DATA &lt;- Data[Data$End &gt; Data$age,]
+names(DATA)[6] &lt;- "FLC"
+
+## Setup training set and test set
+Train = DATA[1:500,]
+Test = DATA[1000:1020,]
+
+## Predict median survival time and Kaplan Meier survival curve
+## on test data using Pred.rpart
+LTRCART.pred &lt;- Pred.rpart(Surv(age, End, death) ~ sex + FLC + creatinine, Train, Test)
+LTRCART.pred$KMcurves  ## list of predicted KM curves
+LTRCART.pred$Medians  ## vector of predicted median survival time
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,389 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lsprobust</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partitioning-Based Least Squares Regression with Robust Inference.</h2>
+
+<h3>Description</h3>
+
+<p><code>lsprobust</code> implements partitioning-based least squares point estimators for the regression function and its derivatives. It also provides robust bias-corrected (pointwise and uniform) inference, including simulation-based confidence bands. Three series methods are supported: B-splines, compact supported wavelets, and piecewise polynomials.
+See <a href="https://sites.google.com/site/nppackages/lspartition/Cattaneo-Farrell_2013_JoE.pdf?attredirects=0">Cattaneo and Farrell (2013)</a> and <a href="https://arxiv.org/abs/1804.04916">Cattaneo, Farrell and Feng (2019a)</a> for complete details.
+</p>
+<p>Companion commands: <code>lspkselect</code> for data-driven IMSE-optimal selection of the number of knots on rectangular partitions; <code>lsprobust.plot</code> for plotting results; <code>lsplincom</code> for multiple sample estimation and inference.
+</p>
+<p>A detailed introduction to this command is given in <a href="https://arxiv.org/abs/1906.00202">Cattaneo, Farrell and Feng (2019b)</a>.
+</p>
+<p>For more details, and related Stata and R packages useful for empirical analysis,
+visit <a href="https://sites.google.com/site/nppackages/">https://sites.google.com/site/nppackages/</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lsprobust(y, x, eval = NULL, neval = NULL, method = "bs", m = NULL,
+  m.bc = NULL, deriv = NULL, smooth = NULL, bsmooth = NULL,
+  ktype = "uni", knot = NULL, nknot = NULL, same = TRUE,
+  bknot = NULL, bnknot = NULL, J = NULL, bc = "bc3", proj = TRUE,
+  kselect = "imse-dpi", vce = "hc2", level = 95, uni.method = NULL,
+  uni.grid = NULL, uni.ngrid = 50, uni.out = FALSE, band = FALSE,
+  B = 1000, subset = NULL, rotnorm = TRUE)
+
+## S3 method for class 'lsprobust'
+print(x, ...)
+
+## S3 method for class 'lsprobust'
+summary(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Outcome variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Independent variable. A matrix or data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval</code></td>
+<td>
+<p>Evaluation points. A matrix or data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neval</code></td>
+<td>
+<p>Number of quantile-spaced evaluating points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Type of basis used for expansion. Options are <code>"bs"</code> for B-splines,
+<code>"wav"</code> for compactly supported wavelets (Cohen, Daubechies and Vial, 1993),
+and <code>"pp"</code> for piecewise polynomials. Default is <code>method="bs"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Order of basis used in the main regression. Default is <code>m=2</code>. For B-splines,
+if <code>smooth</code> is specified but <code>m</code> is unspecified, default is <code>m=smooth+2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m.bc</code></td>
+<td>
+<p>Order of basis used to estimate leading bias. Default is <code>m.bc=m+1</code>. For B-splines,
+if <code>bsmooth</code> is specified but <code>m.bc</code> is unspecified, default is <code>m.bc=bsmooth+2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>Derivative order of the regression function to be estimated. A vector object of the same
+length as <code>ncol(x)</code>. Default is <code>deriv=c(0,...,0)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smooth</code></td>
+<td>
+<p>Smoothness of B-splines for point estimation. When <code>smooth=s</code>, B-splines have <code>s</code>-order
+continuous derivatives. Default is <code>smooth=m-2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bsmooth</code></td>
+<td>
+<p>Smoothness of B-splines for bias correction. Default is <code>bsmooth=m.bc-2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ktype</code></td>
+<td>
+<p>Knot placement. Options are <code>"uni"</code> for evenly-spaced knots over the
+support of <code>x</code> and <code>"qua"</code> for quantile-spaced knots. Default is <code>ktype="uni"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knot</code></td>
+<td>
+<p>A list of numeric vectors giving the knot positions (including boundary knots) for each dimension
+which are used in the main regression. The length of the list is equal to <code>ncol(x)</code>.
+If not specified, it uses the number of knots either specified by users
+or computed by the companion command <code>lspkselect</code> to generate the
+corresponding knots according to the rule specified by <code>ktype</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nknot</code></td>
+<td>
+<p>A numeric vector of the same length as <code>ncol(x)</code>. Each element corresponds to
+the number of <em>inner</em> partitioning knots for each dimension used in the main regression.
+If not specified, <code>nknot</code> is computed by the companion command <code>lspkselect</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>same</code></td>
+<td>
+<p>If <code>TRUE</code>, the same knots are used for bias correction as that for the
+main regression. Default is <code>same=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bknot</code></td>
+<td>
+<p>A list of numeric vectors giving knot positions used for bias correction. If not
+specified and <code>same=FALSE</code>, it uses the number of knots either specified by
+users or computed by the companion command <code>lspkselect</code> to generate
+knots according to the rule specified by <code>ktype</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bnknot</code></td>
+<td>
+<p>A numeric vector of the same length as <code>ncol(x)</code>. Each element corresponds
+to the number of <em>inner</em> partitioning knots for each dimension used for bias
+correction. If not specified, <code>bnknot</code> is computed by the companion command <code>lspkselect</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>A numeric vector containing resolution levels of father wavelets for each dimension.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bc</code></td>
+<td>
+<p>Bias correction method. Options are <code>"bc1"</code> for higher-order-basis bias correction,
+<code>"bc2"</code> for least squares bias correction, and <code>"bc3"</code> for plug-in bias correction.
+Default are <code>"bc3"</code> for splines and piecewise polynomials and <code>"bc2"</code>
+for wavelets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proj</code></td>
+<td>
+<p>If <code>TRUE</code>, projection of leading approximation error onto the lower-order approximation space
+is included for bias correction (splines and piecewise polynomials only). Default is
+<code>proj=TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kselect</code></td>
+<td>
+<p>Method for selecting the number of <em>inner</em> knots used by <code>lspkselect</code>. Options
+are <code>"imse-rot"</code> for ROT implementation of IMSE-optimal number of knots and
+<code>"imse-dpi"</code> for second generation of DPI implementation of IMSE-optimal number
+of knots. Default is <code>kselect="imse-dpi"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vce</code></td>
+<td>
+<p>Procedure to compute the heteroskedasticity-consistent (HCk) variance-covariance matrix estimator with plug-in residuals. Options are
+</p>
+
+<ul>
+<li> <p><code>"hc0"</code> for unweighted residuals (HC0).
+</p>
+</li>
+<li> <p><code>"hc1"</code> for HC1 weights.
+</p>
+</li>
+<li> <p><code>"hc2"</code> for HC2 weights. Default.
+</p>
+</li>
+<li> <p><code>"hc3"</code> for HC3 weights.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>Confidence level used for confidence intervals; default is <code>level=95</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uni.method</code></td>
+<td>
+<p>Method used to implement uniform inference. Options are <code>"pl"</code> for
+a simulation-based plug-in procedure, <code>"wb"</code> for a wild bootstrap
+procedure. If unspecified, neither procedure is
+implemented. Default is <code>uni.method=NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uni.grid</code></td>
+<td>
+<p>A matrix containing all grid points used to implement uniform inference. Each row
+correponds to the coordinates of one grid point.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uni.ngrid</code></td>
+<td>
+<p>A numeric vector of the same length as <code>ncol(x)</code>. Each element corresponds to
+the number of grid points for each dimension used to implement uniform inference.
+Default is <code>uni.ngrid=50</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uni.out</code></td>
+<td>
+<p>If <code>TRUE</code>, the quantities used to implement uniform inference is outputted. Default is
+<code>uni.out=FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>band</code></td>
+<td>
+<p>If <code>TRUE</code>, the critical value for constructing confidence band is calculated. Default
+is <code>band=FALSE</code>. If <code>band=TRUE</code> with <code>uni.method</code> unspecified,
+default is <code>uni.method="pl"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>Number of simulated samples used to obtain the critical value for confidence bands.
+Default is <code>B=1000</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>Optional rule specifying a subset of observations to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rotnorm</code></td>
+<td>
+<p>If <code>TRUE</code>, ROT selection is adjusted using normal densities.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>class <code>lsprobust</code> objects.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Estimate</code></td>
+<td>
+<p> A matrix containing eval (grid points), N (effective sample sizes),
+tau.cl (point estimates with a basis of order <code>m</code>), tau.bc (bias corrected point
+estimates with a basis of order <code>m.bc</code>), se.cl (standard error corresponding
+to tau.cl), and se.rb (robust standard error).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k.num</code></td>
+<td>
+<p> A matrix containing the number of inner partitioning knots used in the main
+regression and bias correction for each covariate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knot</code></td>
+<td>
+<p> A list of knots for point estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bknot</code></td>
+<td>
+<p> A list of knots for bias correction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sup.cval</code></td>
+<td>
+<p> Critical value for constructing confidence band.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uni.output</code></td>
+<td>
+<p> A list containing quantities used to implement uniform inference.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p> A list containing options passed to the function.</p>
+</td>
+</tr>
+</table>
+<h3>Methods (by generic)</h3>
+
+
+<ul>
+<li> <p><code>print</code>: <code>print</code> method for class "<code>lsprobust</code>"
+</p>
+</li>
+<li> <p><code>summary</code>: <code>summary</code> method for class "<code>lsprobust</code>"
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Matias D. Cattaneo, Princeton University, Princeton, NJ. <a href="mailto:cattaneo@princeton.edu">cattaneo@princeton.edu</a>.
+</p>
+<p>Max H. Farrell, University of Chicago, Chicago, IL. <a href="mailto:max.farrell@chicagobooth.edu">max.farrell@chicagobooth.edu</a>.
+</p>
+<p>Yingjie Feng (maintainer), Princeton University, Princeton, NJ. <a href="mailto:yingjief@princeton.edu">yingjief@princeton.edu</a>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Cattaneo, M. D., and M. H. Farrell (2013): <a href="https://sites.google.com/site/nppackages/lspartition/Cattaneo-Farrell_2013_JoE.pdf?attredirects=0">Optimal convergence rates, Bahadur representation, and asymptotic normality of partitioning estimators</a>. Journal of Econometrics 174(2): 127-143.
+</p>
+<p>Cattaneo, M. D., M. H. Farrell, and Y. Feng (2019a): <a href="https://arxiv.org/abs/1804.04916">Large Sample Properties of Partitioning-Based Series Estimators</a>. Annals of Statistics, forthcoming. arXiv:1804.04916.
+</p>
+<p>Cattaneo, M. D., M. H. Farrell, and Y. Feng (2019b): <a href="https://arxiv.org/abs/1906.00202">lspartition: Partitioning-Based Least Squares Regression</a>. R Journal, forthcoming. arXiv:1906.00202.
+</p>
+<p>Cohen, A., I. Daubechies, and P.Vial (1993): Wavelets on the Interval and Fast Wavelet Transforms. Applied and Computational Harmonic Analysis 1(1): 54-81.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lspkselect</code>, <code>lsprobust.plot</code>, <code>lsplincom</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x   &lt;- data.frame(runif(500), runif(500))
+y   &lt;- sin(4*x[,1])+cos(x[,2])+rnorm(500)
+est &lt;- lsprobust(y, x)
+summary(est)
+
+</code></pre>
+
+
+</div>

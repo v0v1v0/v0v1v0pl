@@ -1,0 +1,219 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getDesignAgreement</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Power and sample size for Cohen's kappa</h2>
+
+<h3>Description</h3>
+
+<p>Obtains the power given sample size or obtains the sample
+size given power for Cohen's kappa.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getDesignAgreement(
+  beta = NA_real_,
+  n = NA_real_,
+  ncats = NA_integer_,
+  kappaH0 = NA_real_,
+  kappa = NA_real_,
+  p1 = NA_real_,
+  p2 = NA_real_,
+  rounding = TRUE,
+  alpha = 0.025
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+<p>The type II error.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The total sample size.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncats</code></td>
+<td>
+<p>The number of categories.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappaH0</code></td>
+<td>
+<p>The kappa coefficient under the null hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>kappa</code></td>
+<td>
+<p>The kappa coefficient under the alternative hypothesis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p1</code></td>
+<td>
+<p>The marginal probabilities for the first rater.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p2</code></td>
+<td>
+<p>The marginal probabilities for the second rater.
+Defaults to be equal to the marginal probabilities for the first
+rater if not provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rounding</code></td>
+<td>
+<p>Whether to round up sample size. Defaults to 1 for
+sample size rounding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>The one-sided significance level. Defaults to 0.025.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The kappa coefficient is defined as
+</p>
+<p style="text-align: center;"><code class="reqn">\kappa = \frac{\pi_o - \pi_e}{1 - \pi_e},</code>
+</p>
+<p> where
+<code class="reqn">\pi_o = \sum_i \pi_{ii}</code> is the observed agreement, and
+<code class="reqn">\pi_e = \sum_i \pi_{i.} \pi_{.i}</code> is the expected agreement
+by chance.
+</p>
+<p>By Fleiss et al. (1969), the variance of <code class="reqn">\hat{\kappa}</code> is given by
+</p>
+<p style="text-align: center;"><code class="reqn">Var(\hat{\kappa}) = \frac{v_1}{n},</code>
+</p>
+<p> where
+</p>
+<p style="text-align: center;"><code class="reqn">v_1 = \frac{Q_1 + Q_2 - Q3 - Q4}{(1-\pi_e)^4},</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Q_1 = \pi_o(1-\pi_e)^2,</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Q_2 = (1-\pi_o)^2 \sum_i \sum_j \pi_{ij}(\pi_{i.} + \pi_{.j})^2,</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Q_3 = 2(1-\pi_o)(1-\pi_e) \sum_i \pi_{ii}(\pi_{i.} + \pi_{.i}),</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Q_4 = (\pi_o \pi_e - 2\pi_e + \pi_o)^2.</code>
+</p>
+
+<p>Given <code class="reqn">\kappa</code> and marginals
+<code class="reqn">\{(\pi_{i.}, \pi_{.i}): i=1,\ldots,k\}</code>,
+we obtain <code class="reqn">\pi_o</code>. The only unknowns are the double summation
+in <code class="reqn">Q_2</code> and the single summation in <code class="reqn">Q_3</code>.
+</p>
+<p>We find the optimal configuration of cell probabilities that yield the
+maximum variance of <code class="reqn">\hat{\kappa}</code> by treating the problem as a
+linear programming problem with constraints to match the given
+marginal probabilities and the observed agreement and ensure that
+the cell probabilities are nonnegative. This is an extension of
+Flack et al. (1988) by allowing unequal marginal probabilities
+of the two raters.
+</p>
+<p>We perform the optimization under both the null and alternative
+hypotheses to obtain <code class="reqn">\max Var(\hat{\kappa} | \kappa = \kappa_0)</code>
+and <code class="reqn">\max Var(\hat{\kappa} | \kappa = \kappa_1)</code> for a
+single subject, and then calculate the sample size or power
+according to the following equation:
+</p>
+<p style="text-align: center;"><code class="reqn">\sqrt{n} |\kappa - \kappa_0| = z_{1-\alpha}
+\sqrt{\max Var(\hat{\kappa} | \kappa = \kappa_0)} +
+z_{1-\beta} \sqrt{\max Var(\hat{\kappa} | \kappa = \kappa_1)}.</code>
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>An S3 class <code>designAgreement</code> object with the
+following components:
+</p>
+
+<ul>
+<li> <p><code>power</code>: The power to reject the null hypothesis.
+</p>
+</li>
+<li> <p><code>alpha</code>: The one-sided significance level.
+</p>
+</li>
+<li> <p><code>n</code>: The total sample size.
+</p>
+</li>
+<li> <p><code>ncats</code>: The number of categories.
+</p>
+</li>
+<li> <p><code>kappaH0</code>: The kappa coefficient under the null hypothesis.
+</p>
+</li>
+<li> <p><code>kappa</code>: The kappa coefficient under the alternative hypothesis.
+</p>
+</li>
+<li> <p><code>p1</code>: The marginal probabilities for the first rater.
+</p>
+</li>
+<li> <p><code>p2</code>: The marginal probabilities for the second rater.
+</p>
+</li>
+<li> <p><code>piH0</code>: The cell probabilities that maximize the
+variance of estimated kappa under H0.
+</p>
+</li>
+<li> <p><code>pi</code>: The cell probabilities that maximize the
+variance of estimated kappa under H1.
+</p>
+</li>
+<li> <p><code>rounding</code>: Whether to round up sample size.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kaifeng Lu, <a href="mailto:kaifenglu@gmail.com">kaifenglu@gmail.com</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>V. F. Flack, A. A. Afifi, and P. A. Lachenbruch.
+Sample size determinations for the two rater kappa statistic.
+Psychometrika 1988; 53:321-325.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+(design1 &lt;- getDesignAgreement(
+  beta = 0.2, n = NA, ncats = 4, kappaH0 = 0.4, kappa = 0.6,
+  p1 = c(0.1, 0.2, 0.3, 0.4), p2 = c(0.15, 0.2, 0.24, 0.41),
+  rounding = TRUE, alpha = 0.05))
+
+</code></pre>
+
+
+</div>

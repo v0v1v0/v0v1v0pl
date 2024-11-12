@@ -1,0 +1,203 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gxe.test</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gene-environment interaction test</h2>
+
+<h3>Description</h3>
+
+<p>Using a fitted <code>logicDT</code> model, a general GxE interaction
+test can be performed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gxe.test(model, X, y, Z, perm.test = TRUE, n.perm = 10000)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A fitted <code>logicDT</code> model with 4pL models in its leaves.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>Binary predictor data for testing the interaction effect.
+This can be equal to the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Response vector for testing the interaction effect.
+This can be equal to the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+<p>Quantitative covariable for testing the interaction effect.
+This can be equal to the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.test</code></td>
+<td>
+<p>Should additionally permutation testing be performed?
+Useful if likelihood ratio test asymptotics cannot be justified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.perm</code></td>
+<td>
+<p>Number of random permutations for permutation testing</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The testing is done by fitting one shared 4pL model
+for all tree branches with different offsets, i.e., allowing main effects
+of SNPs. This shared model is compared to the individual 4pL models fitted
+in the <code>logicDT</code> procedure using a likelihood ratio test which
+is asymptotically <code class="reqn">\chi^2</code> distributed. The degrees of freedom are
+equal to the difference in model parameters.
+For regression tasks, alternatively, a F-test can be utilized.
+</p>
+<p>The shared 4pL model is given by
+</p>
+<p style="text-align: center;"><code class="reqn">Y = \tilde{f}(x, z, b, c, d, e, \beta_1, \ldots, \beta_{G-1})
+  + \varepsilon = c + \frac{d-c}{1+\exp(b \cdot (x-e))}
+  + \sum_{g=1}^{G-1} \beta_g \cdot 1(z = g) + \varepsilon</code>
+</p>
+
+<p>with <code class="reqn">z \in \lbrace 1, \ldots, G \rbrace</code> being a grouping variable,
+<code class="reqn">\beta_1, \ldots, \beta_{G-1}</code> being the offsets for the different
+groups, and <code class="reqn">\varepsilon</code> being a random error term.
+Note that the last group <code class="reqn">G</code> does not have an offset parameter, since
+the model is calibrated such that the curve without any <code class="reqn">\beta</code>'s
+fits to the last group.
+</p>
+<p>The likelihood ratio test statistic is given by
+</p>
+<p style="text-align: center;"><code class="reqn">\Lambda = -2(\ell_{\mathrm{shared}} - \ell_{\mathrm{full}})</code>
+</p>
+
+<p>for the log likelihoods of the shared and full 4pL models, respectively.
+In the regression case, the test statistic can be calculated as
+</p>
+<p style="text-align: center;"><code class="reqn">\Lambda = N(\log(\mathrm{RSS}_{\mathrm{shared}}) -
+  \log(\mathrm{RSS}_{\mathrm{full}}))</code>
+</p>
+
+<p>with <code class="reqn">\mathrm{RSS}</code> being the residual sum of squares for the
+respective model.
+</p>
+<p>For regression tasks, the alternative F test statistic is given by
+</p>
+<p style="text-align: center;"><code class="reqn">f = \frac{\frac{1}{\mathrm{df}_1}(\mathrm{RSS}_{\mathrm{shared}} -
+  \mathrm{RSS}_{\mathrm{full}})}
+  {\frac{1}{\mathrm{df}_2} \mathrm{RSS}_{\mathrm{full}}}</code>
+</p>
+
+<p>with
+</p>
+<p style="text-align: center;"><code class="reqn">\mathrm{df}_1 = \mathrm{Difference\ in\ the\ number\ of\ model\
+parameters} = 3 \cdot n_{\mathrm{scenarios}} - 3,</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\mathrm{df}_2 = \mathrm{Degrees\ of\ freedom\ of\ the\ full\ model}
+= N - 4 \cdot n_{\mathrm{scenarios}},</code>
+</p>
+
+<p>and <code class="reqn">n_{\mathrm{scenarios}}</code> being the number of identified predictor
+scenarios/groups by <code>logicDT</code>.
+</p>
+<p>Alternatively, if linear models were fitted in the supplied <code>logicDT</code>
+model, shared linear models can be used to test for a GxE interaction.
+For continuous outcomes, the shared linear model is given by
+</p>
+<p style="text-align: center;"><code class="reqn">Y = \tilde{f}(x, z, \alpha, \beta_1, \ldots, \beta_{G})
+  + \varepsilon = \alpha \cdot x
+  + \sum_{g=1}^{G} \beta_g \cdot 1(z = g) + \varepsilon.</code>
+</p>
+
+<p>For binary outcomes, LDA (linear discriminant analysis) models are fitted.
+In contrast to the 4pL-based test for binary outcomes, varying offsets for
+the individual groups are injected to the linear predictor instead of to
+the probability (response) scale.
+</p>
+<p>If only few samples are available and the asymptotics of likelihood ratio
+tests cannot be justified, alternatively, a permutation test approach
+can be employed by setting <code>perm.test = TRUE</code> and specifying an
+appropriate number of random permutations via <code>n.perm</code>.
+For this approach, computed likelihoods of the shared and (paired) full
+likelihood groups are randomly interchanged approximating the null
+distribution of equal likelihoods. A p-value can be computed by determining
+the fraction of more extreme null samples compared to the original
+likelihood ratio test statistic, i.e., using the fraction of higher
+likelihood ratios in the null distribution than the original likelihood
+ratio.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>p.chisq</code></td>
+<td>
+<p>The p-value of the chi-squared test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.f</code></td>
+<td>
+<p>The p-value of the F test statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.perm</code></td>
+<td>
+<p>The p-value of the optional permutation test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll.shared</code></td>
+<td>
+<p>Log likelihood of the shared parameters 4pL model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll.full</code></td>
+<td>
+<p>Log likelihood of the full <code>logicDT</code> model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rss.shared</code></td>
+<td>
+<p>Residual sum of squares of the shared parameters
+4pL model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rss.full</code></td>
+<td>
+<p>Residual sum of squares of the full <code>logicDT</code>
+model.</p>
+</td>
+</tr>
+</table>
+</div>

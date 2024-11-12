@@ -1,0 +1,244 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>randLine</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Generate two-dimensional random paths
+</h2>
+
+<h3>Description</h3>
+
+<p>Generate two-dimensional random paths (one-dimensional manifolds in 2d)
+comprising of different randomly chosen line types: linear, quadratic,
+cubic, exponential, and natural logarithm. If the input dimensionality 
+is higher than 2, then a line in two randomly chosen input coordinates 
+is generated </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">  randLine(a, D, N, smin, res)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p> a fixed two-element vector denoting the range of the bounding box (lower bound and upper bound) of all input coordinates </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>D</code></td>
+<td>
+<p> a scalar denoting the dimensionality of input space </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p> a scalar denoting the desired total number of random lines </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>smin</code></td>
+<td>
+<p> a scalar denoting the minimum absolute scaling constant, i.e., the length of the shortest line that could be generated </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res</code></td>
+<td>
+<p> a scalar denoting the number of data points, i.e., the resolution on the random path </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This two-dimensional random line generating function produces different
+types of <code>2d</code> random paths, including linear, quadratic, cubic,
+exponential, and natural logarithm.
+</p>
+<p>First, one of these line types is chosen uniformly at random. The line is
+then drawn, via a collection of discrete points, from the origin according 
+to the arguments, e.g., resolution and length, provided by the user. The
+discrete set of coordinates are then shifted and scaled, uniformly at
+random, into the specified 2d rectangle, e.g., <code class="reqn">[-2,2]^2</code>, with
+the restriction that at least half of the points comprising the line lie
+within the rectangle.
+</p>
+<p>For a quick visualization, see Figure 15 in Sun, et al. (2017). Figure 7 
+in the same manuscript illustrates the application of this function in
+out-of-sample prediction using <code>laGPsep</code>, in <code>2d</code> and <code>4d</code>, respectively.
+</p>
+<p><code>randLine</code> returns different types of random paths and the indices of
+the randomly selected pair, i.e., subset, of input coordinates (when <code>D &gt; 2</code>).
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>randLine</code> returns a <code>list</code> of <code>list</code>s.  The outer list is of
+length six, representing each of the five possible line types (linear, quadratic, 
+cubic, exponential, and natural logarithm), with the sixth entry providing the 
+randomly chosen input dimensions.
+</p>
+<p>The inner <code>list</code>s are comprised of <code class="reqn">res \times 2</code>
+<code>data.frame</code>s, the number of which span <code>N</code> samples across all
+inner <code>list</code>s.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Users should scale each coordinate of global input space to the same coded
+range, e.g., <code class="reqn">[-2,2]^D</code>, in order to avoid computational burden
+caused by passing global input space argument. Users may convert back to the 
+natural units when necessary.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Furong Sun <a href="mailto:furongs@vt.edu">furongs@vt.edu</a> and Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>F. Sun, R.B. Gramacy, B. Haaland, E. Lawrence, and A. Walker (2019).
+<em>Emulating satellite drag from large simulation experiments</em>,
+SIAM/ASA Journal on Uncertainty Quantification, 7(2), pp. 720-759;
+preprint on arXiv:1712.00182;
+<a href="https://arxiv.org/abs/1712.00182">https://arxiv.org/abs/1712.00182</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>laGPsep</code>, <code>aGPsep</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## 1. visualization of the randomly generated paths
+
+## generate the paths
+D &lt;- 4
+a &lt;- c(-2, 2)
+N &lt;- 30
+smin &lt;- 0.1
+res &lt;- 100
+line.set &lt;- randLine(a=a, D=D, N=N, smin=smin, res=res)
+  
+## the indices of the randomly selected pair of input coordinates
+d &lt;- line.set$d
+
+## visualization
+
+## first create an empty plot
+par(mar=c(5, 4, 6, 2) + 0.1)
+plot(0, xlim=a, ylim=a, type="l", xlab=paste("factor ", d[1], sep=""), 
+     ylab=paste("factor ", d[2], sep=""), main="2d random paths", 
+     cex.lab=1.5, cex.main=2)
+abline(h=(a[1]+a[2])/2, v=(a[1]+a[2])/2, lty=2)
+
+## merge each path type together
+W &lt;- unlist(list(line.set$lin, line.set$qua, line.set$cub, line.set$ep, line.set$ln), 
+  recursive=FALSE)
+
+## calculate colors to retain 
+n &lt;- unlist(lapply(line.set, length)[-6])
+cols &lt;- rep(c("orange", "blue", "forestgreen", "magenta", "cornflowerblue"), n)
+
+## plot randomly generated paths with a centering dot in red at the midway point
+for(i in 1:N){
+  lines(W[[i]][,1], W[[i]][,2], col=cols[i])
+  points(W[[i]][res/2,1], W[[i]][res/2,2], col=2, pch=20)
+}
+
+## add legend
+legend("top", legend=c("lin", "qua", "cub", "exp", "log"), cex=1.5, bty="n",
+       xpd=TRUE, horiz=TRUE, inset=c(0, -0.085), lty=rep(1, 5), lwd=rep(1, 5),
+       col=c("orange", "blue", "forestgreen", "magenta", "cornflowerblue"))
+
+## 2. use the random paths for out-of-sample prediction via laGPsep
+
+## test function (same 2d function as in other examples package)
+## (ignoring 4d nature of path generation above)
+f2d &lt;- function(x, y=NULL){
+  if(is.null(y)){
+     if(!is.matrix(x) &amp;&amp; !is.data.frame(x)) x &lt;- matrix(x, ncol=2)
+     y &lt;- x[,2]; x &lt;- x[,1]
+  }
+  g &lt;- function(z)
+  return(exp(-(z-1)^2) + exp(-0.8*(z+1)^2) - 0.05*sin(8*(z+0.1)))
+  z &lt;- -g(x)*g(y)
+}
+    
+## generate training data using 2d input space
+x &lt;- seq(a[1], a[2], by=0.02)
+X &lt;- as.matrix(expand.grid(x, x))
+Y &lt;- f2d(X)
+
+## example of joint path calculation folowed by RMSE calculation
+## on the first random path
+WW &lt;- W[[sample(1:N, 1)]]
+WY &lt;- f2d(WW)
+
+## exhaustive search via ``joint" ALC
+j.exh &lt;- laGPsep(WW, 6, 100, X, Y, method="alcopt", close=10000, lite=FALSE)
+sqrt(mean((WY - j.exh$mean)^2)) ## RMSE
+
+## repeat for all thirty path elements (way too slow for checking) and other
+## local design choices and visualize RMSE distribution(s) side-by-side
+## Not run:    
+  ## pre-allocate to save RMSE
+  rmse.exh &lt;- rmse.opt &lt;- rmse.nn &lt;- rmse.pw &lt;- rmse.pwnn &lt;- rep(NA, N)
+  for(t in 1:N){
+     
+    WW &lt;- W[[t]]
+    WY &lt;- f2d(WW)
+       
+    ## joint local design exhaustive search via ALC
+    j.exh &lt;- laGPsep(WW, 6, 100, X, Y, method="alc", close=10000, lite=FALSE)
+    rmse.exh[t] &lt;- sqrt(mean((WY - j.exh$mean)^2))
+     
+    ## joint local design gradient-based search via ALC
+    j.opt &lt;- laGPsep(WW, 6, 100, X, Y, method="alcopt", close=10000, lite=FALSE)
+    rmse.opt[t] &lt;- sqrt(mean((WY - j.opt$mean)^2))
+    
+    ## joint local design exhaustive search via NN
+    j.nn &lt;- laGPsep(WW, 6, 100, X, Y, method="nn", close=10000, lite=FALSE)
+    rmse.nn[t] &lt;- sqrt(mean((WY - j.nn$mean)^2))
+     
+    ## pointwise local design via ALC
+    pw &lt;- aGPsep(X, Y, WW, start=6, end=50, d=list(max=20), method="alc", verb=0)
+    rmse.pw[t] &lt;- sqrt(mean((WY - pw$mean)^2))
+     
+    ## pointwise local design via NN
+    pw.nn &lt;- aGPsep(X, Y, WW, start=6, end=50, d=list(max=20), method="nn", verb=0)   
+    rmse.pwnn[t] &lt;- sqrt(mean((WY - pw.nn$mean)^2))
+     
+    ## progress meter
+    print(t)
+  }
+  
+  ## justify the y range
+  ylim_RMSE &lt;- log(range(rmse.exh, rmse.opt, rmse.nn, rmse.pw, rmse.pwnn))
+     
+  ## plot the distribution of RMSE output
+  boxplot(log(rmse.exh), log(rmse.opt), log(rmse.nn), log(rmse.pw), log(rmse.pwnn),
+          xaxt='n', xlab="", ylab="log(RMSE)", ylim=ylim_RMSE, main="")
+  axis(1, at=1:5, labels=c("ALC-ex", "ALC-opt", "NN", "ALC-pw", "NN-pw"), las=1)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

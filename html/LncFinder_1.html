@@ -1,0 +1,206 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>build_model</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Build Users' Own Model</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to build new models with users' own data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">build_model(
+  lncRNA.seq,
+  mRNA.seq,
+  frequencies.file,
+  SS.features = FALSE,
+  lncRNA.format = "DNA",
+  mRNA.format = "DNA",
+  parallel.cores = 2,
+  folds.num = 10,
+  seed = 1,
+  gamma.range = (2^seq(-5, 0, 1)),
+  cost.range = c(1, 4, 8, 16, 24, 32),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lncRNA.seq</code></td>
+<td>
+<p>Long non-coding sequences. Can be a FASTA file loaded by
+<code>seqinr-package</code> or secondary structure
+sequences file (Dot-Bracket Notation) obtained from function
+<code>run_RNAfold</code>. If <code>lncRNA.seq</code> is secondary structure
+sequences file, parameter <code>lncRNA.format</code> should be defined as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mRNA.seq</code></td>
+<td>
+<p>mRNA sequences. FASTA file loaded by <code>read.fasta</code> or
+secondary structure sequences (Dot-Bracket Notation) obtained from function
+<code>run_RNAfold</code>. If <code>mRNA.seq</code> is secondary structure sequences
+file, parameter <code>mRNA.format</code> should be defined as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequencies.file</code></td>
+<td>
+<p>String or a list obtained from function
+<code>make_frequencies</code>. Input species name <code>"human"</code>,
+<code>"mouse"</code> or <code>"wheat"</code> to use pre-build frequencies files. Or assign
+a users' own frequencies file (Please refer to function
+<code>make_frequencies</code> for more information).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SS.features</code></td>
+<td>
+<p>Logical. If <code>SS.features = TRUE</code>, secondary structure
+features will be used to build the model. In this case, <code>lncRNA.seq</code> and
+<code>mRNA.seq</code> should be secondary structure sequences (Dot-Bracket Notation)
+obtained from function <code>run_RNAfold</code> and parameter
+<code>lncRNA.format</code> and <code>mRNA.format</code> should be set as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lncRNA.format</code></td>
+<td>
+<p>String. Define the format of <code>lncRNA.seq</code>. <code>"DNA"</code>
+for DNA sequences and <code>"SS"</code> for secondary structure sequences. Only when
+both <code>mRNA.format</code> and <code>lncRNA.format</code> are set as <code>"SS"</code>, can
+the model with secondary structure features be built (<code>SS.features = TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mRNA.format</code></td>
+<td>
+<p>String. Define the format of <code>mRNA.seq</code>. Can be
+<code>"DNA"</code> or <code>"SS"</code>. <code>"DNA"</code> for DNA sequences and <code>"SS"</code>
+for secondary structure sequences. When this parameter is defined as <code>"DNA"</code>,
+only the model without secondary structure features can be built. In this case,
+parameter <code>SS.features</code> should be set as <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>, users can set as <code>-1</code> to run
+this function with all cores. During the process of svm tuning, if the number
+of <code>parallel.cores</code> is more than the <code>folds.num</code> (number of the folds
+for cross-validation), the number of <code>parallel.cores</code> will be set as
+<code>folds.num</code> automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds.num</code></td>
+<td>
+<p>Integer. Specify the number of folds for cross-validation.
+(Default: <code>10</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Integer. Used to set the seed for cross-validation. (Default: <code>1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma.range</code></td>
+<td>
+<p>The range of gamma. (Default: <code>2 ^ seq(-5, 0, 1)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cost.range</code></td>
+<td>
+<p>The range of cost. (Default: <code>c(1, 4, 8, 16, 24, 32)</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to function <code>svm_tune</code> for customised SVM model training.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is used to build a new model with users' own sequences.
+Users can use function <code>lnc_finder</code> to predict the sequences with
+new models.
+</p>
+<p>For the details of <code>frequencies.file</code>, please refer to function
+<code>make_frequencies</code>.
+</p>
+<p>For the details of the features, please refer to function
+<code>extract_features</code>.
+</p>
+<p>For the details of svm tuning, please refer to function <code>svm_tune</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a svm model.
+</p>
+
+
+<h3>References</h3>
+
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>make_frequencies</code>, <code>lnc_finder</code>,
+<code>extract_features</code>, <code>svm_tune</code>,
+<code>svm</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(demo_DNA.seq)
+Seqs &lt;- demo_DNA.seq
+
+### Build the model with pre-build frequencies.file:
+my_model &lt;- build_model(lncRNA.seq = Seqs[1:5], mRNA.seq = Seqs[6:10],
+                        frequencies.file = "human", SS.features = FALSE,
+                        lncRNA.format = "DNA", mRNA.format = "DNA",
+                        parallel.cores = 2, folds.num = 2, seed = 1,
+                        gamma.range = (2 ^ seq(-5, -1, 2)),
+                        cost.range = c(2, 6, 12, 20))
+
+### Users can use default values of gamma.range and cost.range to find the
+### best parameters.
+### Use your own frequencies file by assigning frequencies list to parameter
+### "frequencies.file".
+
+## End(Not run)
+</code></pre>
+
+
+</div>

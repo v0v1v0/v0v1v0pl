@@ -1,0 +1,177 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Estimate temporal coefficients of selection
+</h2>
+
+<h3>Description</h3>
+
+<p><code>fs</code> is a function which estimates the temporal covariance matrix (i.e.
+fluctuating selection) and the temporal mean alpha coefficients (i.e. directional
+selection) through a numerical maximization of a loglikelihood function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fs(At, at, npar, nyear, method, control, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>At</code></td>
+<td>
+<p>a list containing the named yearly variance-covariance matrices.
+Sorted by year.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>at</code></td>
+<td>
+<p>a list containing the named yearly vectors of the estimated selection
+coefficients. Sorted by year.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npar</code></td>
+<td>
+<p>the number of parameters in the model for the estimates selection
+coefficients.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nyear</code></td>
+<td>
+<p>the number of years with estimates of selection.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>defines what optimalization algorithm to be used in the maximization of the
+loglikelihood. Alternatives are: "Nelder-Mead", "BFGS" (default), "CG",
+"L-BFGS-B" and "SANN". Not all are applicable here. See <code>?optim</code> for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>a list of control parameters for the maximization of the likelihood.
+<code>maxit</code> sets the maximum number of iterations to use before convergence
+and <code>reltol</code> sets the relative threshold for improvement in the likelihood
+which desides whether to continue maximation or end. See <code>?optim</code>
+for details.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments to be passed to optim for the maximization of the
+loglikelihood. See <code>?optim</code> for options.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fs</code> is used internally in <code>lmf</code> when estimating temporal coefficients
+of selection, but given the right data can be executed as a standalone. The input
+to the arguments At and at are estimated within <code>lmf</code> by correctly combining
+estimates of coefficients and variance-covariance within each age class and year
+to a estimate for each year.
+</p>
+<p><code>fs</code> used <code>optim</code> for the numerical maximization of the
+log likelihood function <code>lnL.M</code>. Problems of non-positive definite matrices
+appearing as maximas, due to numerical rounding, are solved with <code>nearPD</code>,
+which implement the smallest possible numerical changes of some componets of the
+matrices to achive positive definiteness. These changes does not affect the
+results in any significant way.
+</p>
+<p>Engen et al. 2012 describe the maximum likelihood method in details.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>fs</code> returns a list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>"yes" indicates that the numerical maximation of the
+likelihood successfully converged before reaching the iteration limit <code>maxit</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iterations</code></td>
+<td>
+<p>the number of iterations of the function in the numerical
+maximation of the likelihood.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+<p>the estimated temporal covariance matrix (fluctuating selection).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aM</code></td>
+<td>
+<p>the estimated temporal mean selection coefficients.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Thomas Kvalnes
+</p>
+
+
+<h3>References</h3>
+
+<p>Engen, S., Saether, B.-E., Kvalnes, T. and Jensen, H. 2012. Estimating fluctuating
+selection in age-structured populations. Journal of Evolutionary Biology, 25, 1487-1499.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmf</code>, <code>lnL.M</code>, <code>nearPD</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Data set from Engen et al. 2012
+data(sparrowdata)
+#Fit model
+lmf.1 &lt;- lmf(formula = cbind(recruits, survival) ~ weight + tars,
+               age = age, year = year, data = sparrowdata)
+#Extract At and at
+At &lt;- lmf.1$At
+at &lt;- lmf.1$at
+#Estimate temporal selection coefficients
+flusel &lt;- fs(At = At, at = at, npar = 3, nyear = 7, method = "BFGS",
+  control = list(maxit = 500, reltol = sqrt(.Machine$double.eps)))
+#View output
+str(flusel)
+flusel
+</code></pre>
+
+
+</div>

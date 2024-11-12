@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>application</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate the bootstrap LSE for a long memory model</h2>
+
+<h3>Description</h3>
+
+<p>Bootstrap procedure to approximate the sampling distribution of the LSE for
+time series linear regression with errors following a Locally Stationary process.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">application(
+  formula,
+  data,
+  start,
+  d.order,
+  s.order,
+  N,
+  S,
+  B = 1,
+  nr.cores = 1,
+  seed = 123
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>(type: formula) an object of class "formula" (or one that can be coerced to that class): a symbolic description of the model to be fitted. The details of model specification are given under ‘Details’.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>(type: data.frame) data frame, list or environment (or object coercible by as.data.frame to a data frame) containing the variables in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>(type: numeric) numeric vector, initial values for parameters to run the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d.order</code></td>
+<td>
+<p>(type: numeric) polynomial order, where d is the ARFIMA parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s.order</code></td>
+<td>
+<p>(type: numeric) polynomial order noise scale factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>(type: numeric) sample size of each block.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>(type: numeric) shifting places from block to block. Observe that the number of blocks M is determined by the following formula <code class="reqn">M = \left\lfloor \frac{T-N}{S} + 1 \right\rfloor</code>, where <code class="reqn">\left\lfloor . \right\rfloor</code> takes a single numeric argument <code>x</code> and returns a numeric vector containing the integers formed by truncating the values in <code>x</code> toward <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>(type: numeric) bootstrap replicates, 1 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nr.cores</code></td>
+<td>
+<p>(type: numeric) number of CPU cores to be used for parallel processing. 1 by default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>(type: numeric) random number generator seed to generate the bootstrap samples.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function estimates the parameters in the linear regression model for <code class="reqn">t = 1, ..., T</code>,
+</p>
+<p style="text-align: center;"><code class="reqn">Y_{t,T} = X_{t,T} \beta + \epsilon_{t,T},</code>
+</p>
+
+<p>where the error term <code class="reqn">\epsilon_{t,T}</code> follows a Locally Stationary Autoregressive Fractionally Integrated Moving Average (LS-ARFIMA) structure, given by:
+</p>
+<p style="text-align: center;"><code class="reqn">\epsilon_{t,T} =(1 - B)^{-d(u)} \sigma(u)\eta_t,</code>
+</p>
+
+<p>where u=t/T in [0,1], <code class="reqn">d(u)</code> represents the long-memory parameter, <code class="reqn">\sigma(u)</code> is the noise scale factor, and <code class="reqn">\{\eta_t\}</code> is a white noise sequence with zero mean and unit variance.
+</p>
+<p>Particularly, we model <code class="reqn">d(u)</code> and <code class="reqn">\sigma(u)</code> as polynomials of order <code class="reqn">d.order</code> and <code class="reqn">s.order</code> respectively.
+</p>
+<p style="text-align: center;"><code class="reqn">d(u) = \sum_{i=0}^{d.order} \delta_i u^i,</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\sigma(u) = \sum_{j=0}^{s.order} \alpha_j u^j,</code>
+</p>
+
+<p>For more details, see references.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following elements:
+</p>
+
+<ul>
+<li> <p><code>coeff</code>: A tibble of estimated model coefficients, including intercepts, regression coefficients (<code class="reqn">\beta</code>), and coefficients of the <code class="reqn">\delta</code> and <code class="reqn">\alpha</code> polynomials. Contains columns for coefficient name, estimate, t-value and p-value.
+</p>
+</li>
+<li> <p><code>estimation</code>: A matrix of bootstrap replicates for regression coefficients (<code class="reqn">\beta</code>).
+</p>
+</li>
+<li> <p><code>delta</code>: A matrix of bootstrap replicates for the <code class="reqn">\delta</code> polynomial coefficients.
+</p>
+</li>
+<li> <p><code>alpha</code>: A matrix of bootstrap replicates for the <code class="reqn">\alpha</code> polynomial coefficients.
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Ferreira G., Mateu J., Vilar J.A., Muñoz J. (2020). Bootstrapping regression models with locally stationary disturbances. TEST, 30, 341-363.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n    &lt;- length(USinf)
+shift&lt;-201
+u1&lt;-c((1:shift)/shift,rep(0, n-shift))
+u2&lt;-c(rep(0, shift),(1:(n-shift))/(n-shift))
+u&lt;-(1:n)/n
+switch &lt;- c(rep(1,shift), rep(0, n-shift))
+x1&lt;-switch*u
+x2&lt;-(1-switch)*u
+
+test &lt;- data.frame(USinf, x1=x1, x2=x2)
+
+application(formula=USinf~x1+x2,data=test,N=150,S=50,B=10,
+start = c(0.16,2.0,-7,8,-3,0.25,-0.25,0.01),
+d.order=4,s.order=2,nr.cores=1)
+
+</code></pre>
+
+
+</div>

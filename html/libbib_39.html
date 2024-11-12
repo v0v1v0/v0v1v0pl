@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>marc_008_get_info</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get info from MARC control field 008</h2>
+
+<h3>Description</h3>
+
+<p>Takes one or more MARC 008 fields (string/strings) and returns a
+<code>data.table</code> containing the publication date, publication
+place code, and language code.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">marc_008_get_info(
+  x,
+  original.pub.date = FALSE,
+  include.questionable.dates = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A string (or vector of strings) of LCCNs</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>original.pub.date</code></td>
+<td>
+<p>If <code>TRUE</code> and if applicable,
+return the original publication date, not
+the re-issue publication date. (Default
+is <code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.questionable.dates</code></td>
+<td>
+<p>A logical indicating whether "questionable"
+dates should be replaced with <code>NA</code>.
+Questionable dates are when the "type of
+date" in character position 06 is "q".
+(default is <code>FALSE</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>If any date element is "unknown" (contains a "u"), the returned
+date is NA. The returned date is always an integer.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.table</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# reissue publication date
+marc_008_get_info("950622r19701880ru            000 0 rus d")
+#     pub_date pub_place_code lang_code
+#        &lt;int&gt;         &lt;char&gt;    &lt;char&gt;
+#  1:     1970             ru       rus
+
+# The Brothers Karamazov (1970 reissue but original publication date)
+marc_008_get_info("950622r19701880ru            000 0 rus d",
+                  original.pub.date=TRUE)
+#    pub_date pub_place_code lang_code
+#       &lt;int&gt;         &lt;char&gt;    &lt;char&gt;
+# 1:     1880             ru       rus
+
+# vectorized
+marc_008_get_info(c("101106s1992    gr            000 1 gre d", NA,
+                    "180528s2017    ag            000 j spa d"))
+#      pub_date pub_place_code lang_code
+#         &lt;int&gt;         &lt;char&gt;    &lt;char&gt;
+#   1:     1992             gr       gre
+#   2:       NA           &lt;NA&gt;      &lt;NA&gt;
+#   3:     2017             ag       spa
+
+</code></pre>
+
+
+</div>

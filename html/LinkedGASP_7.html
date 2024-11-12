@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>link</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Linking two emulators
+</h2>
+
+<h3>Description</h3>
+
+<p>Function constructs a linked GASP emulator of a composite computer model f2(f1).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">link(f1_MLEs, f2_MLEs, test_input)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f1_MLEs</code></td>
+<td>
+
+<p>Parameters of the emulator of a simulator f1.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f2_MLEs</code></td>
+<td>
+
+<p>Parameters of the emulator of a simulator f2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_input</code></td>
+<td>
+
+<p>Testing inputs.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See examples which illustrate inputs specification to the function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Four types of the linked GASP.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>em1</code></td>
+<td>
+<p>Type 1 emulator, which uses MAP estimates of parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>em2</code></td>
+<td>
+<p>Type 2 emulator within partial objective Bayesian (POB) implementation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>emT</code></td>
+<td>
+<p>T-GASP emulator within objective Bayesian (OB) implementation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>em3</code></td>
+<td>
+<p>Approximated T-GASP emulator with the Gaussian distribution.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Ksenia N. Kyzyurova, kseniak.ucoz.net
+</p>
+
+
+<h3>References</h3>
+
+<p> Ksenia N. Kyzyurova, James O. Berger, and Robert L. Wolpert. Coupling computer models through linking their statistical emulators. SIAM/ASA Journal on Uncertainty Quantification, 6(3): 1151-1171, 2018</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Function f1 is a simulator
+f1&lt;-function(x){sin(pi*x)}
+## Function f2 is a simulator
+f2&lt;-function(x){cos(5*x)}
+
+## Function f2(f1) is a simulator of a composite model
+f2f1 &lt;- function(x){f2(f1(x))}
+
+## One-dimensional inputs are x1
+x1 &lt;- seq(-1,1,.37)
+
+## The following contains the list of data inputs (training) and outputs (fD) together with 
+## the assumed fixed smoothness of a computer model output.
+data.f1 &lt;- list(training = x1,fD = f1(x1), smooth = 1.99)
+
+## Evaluation of GASP parameters
+f1_MLEs = eval_GASP_RFP(data.f1,list(function(x){x^0},function(x){x^1}),1,FALSE)
+
+## Evaluate the emulator
+xn = seq(-1,1,.01)
+GASP_type2_f1 &lt;- eval_type2_GASP(as.matrix(xn),f1_MLEs)
+
+par(mfrow = c(1,1))
+par(mar = c(6.1, 6.1, 5.1, 2.1))
+ylim = c(-1.5,1.5)
+GASP_plot(GASP_type2_f1,f1,data.f1,"Type 2 GASP",ylab = " f",xlab = "x",
+ylim = ylim, plot_training = TRUE)
+
+s = GASP_type2_f1$mu
+s.var = diag(GASP_type2_f1$var)
+
+x2 = seq(-0.95,0.95,length = 6)#f1(x1)
+data.f2 &lt;- list(training = x2,fD = f2(x2), smooth = 2) # linking requires this emulator 
+# to have smoothness parameter equal to 2
+
+f2_MLEs = eval_GASP_RFP(data.f2,list(function(x){x^0},function(x){x^1}),1,FALSE)
+
+GASP_type1_f2 &lt;- eval_type1_GASP(as.matrix(seq(-3.5,3.5,.01)),f2_MLEs)
+GASP_type2_f2 &lt;- eval_type2_GASP(as.matrix(seq(-1,1,.01)),f2_MLEs)
+TGASP_f2 &lt;- eval_TGASP(as.matrix(seq(-1,1,.01)),f2_MLEs)
+
+ylim = c(-1.5,1.5)
+# labels = c(expression(phantom(x)*phantom(x)*phantom(x)*f(x[1])),
+# expression(f(x[2])*phantom(x)*phantom(x)*phantom(x)),
+# expression(f(x[3])),expression(f(x[4])),
+# expression(f(x[5])),expression(f(x[6])))
+
+par(mar = c(6.1, 6.1, 5.1, 2.1))
+GASP_plot(GASP_type2_f2,f2,data.f2, "Type 2 GASP",labels = x2,xlab= "z",ylab = " g",
+ylim = ylim,plot_training = TRUE)
+
+le &lt;- link(f1_MLEs, f2_MLEs, as.matrix(xn))
+
+## Plot second type of the linked GASP
+data.f2f1 &lt;- list(training = x1,fD = f2f1(x1), smooth = 2)
+
+par(mar = c(6.1, 6.1, 5.1, 2.1))
+GASP_plot(le$em2,f2f1,data.f2f1,"Linked",labels = x1,
+ylab = expression("g" ~ scriptscriptstyle(O) ~ "f"),xlab = "x",ylim = ylim)
+</code></pre>
+
+
+</div>

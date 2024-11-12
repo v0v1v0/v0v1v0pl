@@ -1,0 +1,179 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get.data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Transform and Prepare Data for Analysis</h2>
+
+<h3>Description</h3>
+
+<p>This function prepares a data matrix for analysis. It applies a Box-Cox transformation to the endogenous variables, adds an intercept column, and optionally includes new rows with exogenous data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get.data(
+  data,
+  endogenous = 1,
+  equations = NULL,
+  weights = NULL,
+  lambdas = NULL,
+  newData = NULL,
+  addIntercept = TRUE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data.frame or a numeric matrix that serves as the primary data source.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>endogenous</code></td>
+<td>
+<p>A single number indicating the number of endogenous variables in the first columns, or a list of names specifying the endogenous variables. The remaining variables will be treated as exogenous.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equations</code></td>
+<td>
+<p>A formula or a list of formula objects that represent the equations to be used instead of <code>endogenous</code>. If provided, the final data will be a matrix where the response variables are in the first columns and the predictor variables are in the subsequent columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>A numeric vector or a column matrix representing weights of observations. Not all applications implement this parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>A numeric vector, a single number, NA, or NULL indicating the lambda parameter(s) for the Box-Cox transformation. Use <code>NULL</code> for no transformation, <code>NA</code> for estimating the lambda parameter for each variable, a single number for an equal lambda parameter for all variables, and a numeric vector for distinct lambda parameters for corresponding variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newData</code></td>
+<td>
+<p>A data.frame or a numeric matrix representing new data for exogenous variables. It should have a structure similar to <code>data</code>, excluding endogenous or response variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addIntercept</code></td>
+<td>
+<p>A logical value indicating whether to add an intercept column to the final matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters for the <code>MASS::boxcox</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function is designed to prepare a data matrix for model search (or screening) analysis. It performs several operations to transform and structure the data appropriately.
+</p>
+<p>The function first checks if the input data is a matrix or a data frame. If new data is provided, it also checks its type. It then extracts the frequency of the first observation from the <code>ldtf</code> attribute of the data, if available.
+</p>
+<p>If no equations are provided, the function assumes that the endogenous variables are in the first columns of the data. It checks if an intercept is already present and throws an error if one is found and <code>addIntercept</code> is set to TRUE. It then validates the number of endogenous variables and converts the data to a numeric matrix.
+</p>
+<p>If column names are missing, they are added based on the number of endogenous and exogenous variables. If new data is provided, it checks its structure and matches it with the exogenous part of the original data.
+</p>
+<p>If equations are provided, they are used to transform the original data into a matrix where response variables are in the first columns and predictor variables in subsequent columns. The new data is also transformed accordingly.
+</p>
+<p>The function then applies a Box-Cox transformation to the endogenous variables if lambda parameters are provided. Weights are added if provided, and an intercept column is added if <code>addIntercept</code> is set to TRUE.
+</p>
+<p>Finally, the function returns a list containing all relevant information for further analysis. This includes the final data matrix, number of endogenous and exogenous variables, number of observations in original and new data, lambda parameters used in Box-Cox transformation, and flags indicating whether an intercept or weights were added.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list suitable for use in <code>ldt::search.?</code> functions. The list contains:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The final data matrix. Endogenous variables are in the first columns, followed by weights (if provided), then the intercept (if added), and finally the exogenous variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numEndo</code></td>
+<td>
+<p>The number of endogenous variables in the data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numExo</code></td>
+<td>
+<p>The number of exogenous variables in the data (including 'intercept' if it is added).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newX</code></td>
+<td>
+<p>The matrix of new observations for exogenous variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>The lambda parameters used in the Box-Cox transformation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hasIntercept</code></td>
+<td>
+<p>Indicates whether an intercept column is added to the final matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hasWeight</code></td>
+<td>
+<p>Indicates whether there is a weight column in the final matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startFrequency</code></td>
+<td>
+<p>Frequency of the first observation, extracted from <code>ldtf</code> attribute of <code>data</code>, if available. This will be used in time-series analysis such as VARMA estimation.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example 1:
+data &lt;- matrix(1:24, ncol = 6)
+result &lt;- get.data(data, endogenous = 1)
+print(result$data)
+
+# Example 2:
+data &lt;- matrix(1:24, ncol = 6,
+               dimnames = list(NULL,c("V1", "V2", "V3", "V4", "V5", "V6")))
+result &lt;- get.data(data, endogenous = c("V6", "V1"))
+print(result$data)
+
+# Example 3:
+data &lt;- data.frame(matrix(1:24, ncol = 6))
+colnames(data) &lt;- c("X1", "X2", "Y2", "X3", "Y1", "X4")
+equations &lt;- list(
+   Y1 ~ X2 + X1,
+   Y2 ~ X4 + X3)
+result &lt;- get.data(data, equations = equations)
+print(result$data)
+
+</code></pre>
+
+
+</div>

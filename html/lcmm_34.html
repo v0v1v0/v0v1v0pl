@@ -1,0 +1,221 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>epoce</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimators of the Expected Prognostic Observed Cross-Entropy (EPOCE) for
+evaluating predictive accuracy of joint latent class models estimated using
+<code>Jointlcmm</code>
+</h2>
+
+<h3>Description</h3>
+
+<p>This function computes estimators of the Expected Prognostic Observed
+Cross-Entropy (EPOCE) for evaluating the predictive accuracy of joint latent
+class models estimated using <code>Jointlcmm</code>. On the same data as used for
+estimation of the <code>Jointlcmm</code> object, this function computes both the
+Mean Prognostic Observed Log-Likelihood (MPOL) and the Cross-Validated
+Observed Log-Likelihood (CVPOL), two estimators of EPOCE. The latter
+corrects the MPOL estimate for over-optimism by approximated
+cross-validation. On external data, this function only computes the Mean
+Prognostic Observed Log-Likelihood (MPOL).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">epoce(
+  model,
+  pred.times,
+  var.time,
+  fun.time = identity,
+  newdata = NULL,
+  subset = NULL,
+  na.action = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>an object inheriting from class <code>Jointlcmm</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.times</code></td>
+<td>
+<p>Vector of times of prediction, from which predictive
+accuracy is evaluated (only subjects still at risk at the time of prediction
+are included in the computation, and only information before the time of
+prediction is considered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.time</code></td>
+<td>
+<p>Name of the variable indicating time in the dataset</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun.time</code></td>
+<td>
+<p>an optional function. This is only required if the time
+scales in the longitudinal part of the model and the survival part are
+different. In that case, <code>fun.time</code> is the function that translates the
+times from the longitudinal part into the time scale of the survival part.
+The default is the identity function which means that the two time scales
+are the same.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>optional. When missing, the data used for estimating the
+<code>Jointlcmm</code> object are used, and CVPOL and MPOL are computed (internal
+validation). When newdata is specified, only MPOL is computed on this
+newdataset (external validation).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>a specification of the rows to be used: defaults to all rows.
+This can be any valid indexing vector for the rows of data or if that is not
+supplied, a data frame made up of the variable used in formula.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>Integer indicating how NAs are managed. The default is 1
+for 'na.omit'. The alternative is 2 for 'na.fail'. Other options such as
+'na.pass' or 'na.exclude' are not implemented in the current version.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function does not apply for the moment with multiple causes of event
+(competing risks).
+</p>
+<p>EPOCE assesses the prognostic information of a joint latent class model. It
+relies on information theory.
+</p>
+<p>MPOL computed at time s equals minus the mean individual contribution to the
+conditional log-likelihood of the time to event given the longitudinal data
+up to the time of prediction s and given the subject is still at risk of
+event in s.
+</p>
+<p>CVPOL computed at time s equals MPOL at time s plus a penalty term that
+corrects for over-optimism when computing predictive accuracy measures on
+the same dataset as used for estimation. This penalty term is computed from
+the inverse of the Hessian of the joint log-likelihood and the product of
+the gradients of the contributions to respectively the joint log-likelihood
+and the conditional log-likelihood.
+</p>
+<p>The theory of EPOCE and its estimators MPOL and CVPOL is given in Commenges
+et al. (2012), and further detailed and illustrated for joint models in
+Proust-Lima et al. (2013).
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>call.Jointlcmm</code></td>
+<td>
+<p>the <code>Jointlcmm</code> call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call.epoce</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>EPOCE</code></td>
+<td>
+<p>Dataframe containing, for
+each prediction time s, the number of subjects still at risk at s (and with
+at least one measure before s), the number of events after time s, the MPOL,
+and the CVPOL when computation is done on the dataset used for
+<code>Jointlcmm</code> estimation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>IndivContrib</code></td>
+<td>
+<p>Individual contributions to
+the prognostic observed log-likelihood at each time of prediction. Used for
+computing tracking intervals of EPOCE differences between models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new.data</code></td>
+<td>
+<p>a boolean for internal use only, which is FALSE if
+computation is done on the same data as for <code>Jointlcmm</code> estimation, and
+TRUE otherwise.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Cecile Proust-Lima and Amadou Diakite
+</p>
+
+
+<h3>References</h3>
+
+<p>Commenges, Liquet and Proust-Lima (2012). Choice of prognostic
+estimators in joint models by estimating differences of expected conditional
+Kullback-Leibler risks. Biometrics 68(2), 380-7.
+</p>
+<p>Proust-Lima, Sene, Taylor and Jacqmin-Gadda (2014). Joint latent class
+models of longitudinal and time-to-event data: a review. Statistical Methods
+in Medical Research 23, 74-90.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Jointlcmm</code>, <code>print.epoce</code>, <code>summary.epoce</code>, <code>plot.epoce</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+## estimation of a joint latent class model with 2 latent classes (ng=2)
+# (see the example section of Jointlcmm for details about
+#  the model specification)
+
+m &lt;- Jointlcmm(fixed= Ydep1~Time*X1,random=~Time,mixture=~Time,subject='ID'
+,survival = Surv(Tevent,Event)~ X1+X2 ,hazard="Weibull"
+,hazardtype="PH",ng=2,data=data_lcmm,logscale=TRUE,
+B=c(0.7608, -9.4974 , 1.0242,  1.4331 , 0.1063 , 0.6714, 10.4679, 11.3178,
+ -2.5671, -0.5386,  1.4616, -0.0605,  0.9489,  0.1020 , 0.2079,  1.5045))
+summary(m)
+
+## Computation of the EPOCE on the same dataset as used for
+# estimation of m with times at predictions from 1 to 15 
+VecTime &lt;- c(1,3,5,7,9,11,13,15)
+cvpl &lt;- epoce(m,var.time="Time",pred.times=VecTime)
+summary(cvpl)
+plot(cvpl,bty="l",ylim=c(0,2))
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

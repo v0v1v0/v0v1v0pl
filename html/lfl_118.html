@@ -1,0 +1,136 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>quantifier</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A quantifier is a function that computes a fuzzy truth value of a claim about
+the quantity. This function creates the &lt;1&gt;-type quantifier. (See the examples
+below on how to use it as a quantifier of the &lt;1,1&gt; type.)</h2>
+
+<h3>Description</h3>
+
+<p>A quantifier is a function that computes a fuzzy truth value of a claim about
+the quantity. This function creates the &lt;1&gt;-type quantifier. (See the examples
+below on how to use it as a quantifier of the &lt;1,1&gt; type.)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">quantifier(
+  quantity = c("all", "almost.all", "most", "many", "some", "at.least"),
+  n = NULL,
+  alg = c("lukasiewicz", "goedel", "goguen")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>quantity</code></td>
+<td>
+<p>the quantity to be evaluated. 'all' computes the degree of
+truth to which all elements of the universe have the given property,
+'almost.all', #'   'most', and 'many' evaluate whether the property is
+present in extremely big, very big, or not small number of elements from
+the universe, where these linguistic expressions are internally modeled
+using the <code>lingexpr()</code> function. 'at.least' quantity requires the 'n'
+argument to be specified, as it computes the truth value that at least
+<code class="reqn">n</code> elements from the universe have the given property.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>the number of elements in the 'at.least n' quantifier</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg</code></td>
+<td>
+<p>the underlying algebra in which to compute the quantifier.
+Note that the algebra must have properly defined the <code>order</code> function,
+as in the case of 'goedel', 'goguen', or 'lukasiewicz' algebra, (see the
+<code>algebra()</code> function) or as in the <code>dragonfly()</code> or <code>lowerEst()</code> algebra.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A two-argument function, which expects two numeric vectors of equal length
+(the vector elements are recycled to ensure equal lengths). The first argument, <code>x</code>,
+is a vector of membership degrees to be measured, the second argument, <code>w</code>, is
+the vector of weights to which the element belongs to the universe.
+</p>
+<p>Let <code class="reqn">U</code> be the set of input vector indices (1 to <code>length(x)</code>). Then the quantifier
+computes the truth values accordingly to the following formula:
+<code class="reqn">\vee_{z \subseteq U} \wedge_{u \in z} (x[u]) \wedge measure(m_z)</code>,
+where
+<code class="reqn">m_z = sum(w)</code> for <code>"some"</code> and <code style="white-space: pre;">⁠"at.least⁠</code> and <code class="reqn">m_z = sum(w[z]) / sum(w)</code> otherwise.
+See <code>sugeno()</code> for more details on how the quantifier is evaluated.
+</p>
+<p>Setting <code>w</code> to 1 yields to operation of the &lt;1&gt; quantifier as developed by Dvořák et al.
+To compute the &lt;1,1&gt; quantifier as developed by Dvořák et al., e.g. "almost all A are B", <code>w</code> must
+be set again to 1 and <code>x</code> to the result of the implication <code class="reqn">A \Rightarrow B</code>.
+To compute the &lt;1,1&gt; quantifier as proposed by Murinová et al., e.g. "almost all A are B",
+<code>x</code> must be set to the result of the implication <code class="reqn">A \Rightarrow B</code> and <code>w</code> to the membership
+degrees of <code class="reqn">A</code>. See the examples below.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>References</h3>
+
+<p>Dvořák, A., Holčapek, M. L-fuzzy quantifiers of type &lt;1&gt; determined by fuzzy measures.
+Fuzzy Sets and Systems vol.160, issue 23, 3425-3452, 2009.
+</p>
+<p>Dvořák, A., Holčapek, M. Type &lt;1,1&gt; fuzzy quantifiers determined by fuzzy measures.
+IEEE International Conference on Fuzzy Systems (FuzzIEEE), 2010.
+</p>
+<p>Murinová, P., Novák, V. The theory of intermediate quantifiers in fuzzy natural logic
+revisited and the model of "Many". Fuzzy Sets and Systems, vol 388, 2020.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sugeno()</code>, <code>lingexpr()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Dvorak &lt;1&gt; "almost all" quantifier
+  q &lt;- quantifier('almost.all')
+  a &lt;- c(0.9, 1, 1, 0.2, 1)
+  q(x=a, w=1)
+
+  # Dvorak &lt;1,1&gt; "almost all" quantifier (w set to 1)
+  a &lt;- c(0.9, 1, 1, 0.2, 1)
+  b &lt;- c(0.2, 1, 0, 0.5, 0.8)
+  q &lt;- quantifier('almost.all')
+  q(x=lukas.residuum(a, b), w=1)
+
+  # Murinová &lt;1,1&gt; "almost all" quantifier (note w set to a)
+  a &lt;- c(0.9, 1, 1, 0.2, 1)
+  b &lt;- c(0.2, 1, 0, 0.5, 0.8)
+  q &lt;- quantifier('almost.all')
+  q(x=lukas.residuum(a, b), w=a)
+
+  # Murinová &lt;1,1&gt; "some" quantifier
+  a &lt;- c(0.9, 1, 1, 0.2, 1)
+  b &lt;- c(0.2, 1, 0, 0.5, 0.8)
+  q &lt;- quantifier('some')
+  q(x=plukas.tnorm(a, b), w=a)
+</code></pre>
+
+
+</div>

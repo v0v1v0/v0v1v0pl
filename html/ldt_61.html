@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>search.bin</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a Model Set for Binary Choice Models</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to create a binary choice model set and search for the best models (and other information) based on in-sample and out-of-sample evaluation metrics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">search.bin(
+  data,
+  combinations,
+  metrics = get.search.metrics(),
+  modelChecks = get.search.modelchecks(),
+  items = get.search.items(),
+  options = get.search.options(),
+  costMatrices = NULL,
+  searchLogit = TRUE,
+  searchProbit = FALSE,
+  optimOptions = get.options.newton(),
+  aucOptions = get.options.roc()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A list that determines data and other required information for the search process.
+Use <code>get.data()</code> function to generate it from a <code>matrix</code> or a <code>data.frame</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>combinations</code></td>
+<td>
+<p>A list that determines the combinations of the exogenous variables in the search process.
+Use <code>get.combinations()</code> function to define it.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metrics</code></td>
+<td>
+<p>A list of options for measuring performance. Use get.search.metrics function to get them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelChecks</code></td>
+<td>
+<p>A list of options for excluding a subset of the model set. Use get.search.modelchecks function to get them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>items</code></td>
+<td>
+<p>A list of options for specifying the purpose of the search. Use get.search.items function to get them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>A list of extra options for performing the search. Use get.search.options function to get them.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>costMatrices</code></td>
+<td>
+<p>A list of numeric matrices where each one determines how to score the calculated probabilities.
+Given the number of choices <code>n</code>, a frequency cost matrix is an <code>m x n+1</code> matrix.
+The first column determines the thresholds.
+Elements in the <code>j</code>-th column determine the costs corresponding to the <code>j-1</code>-th choice in <code>y</code>.
+It can be <code>NULL</code> if it is not selected in <code>metrics</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>searchLogit</code></td>
+<td>
+<p>If <code>TRUE</code>, logit regressions are added to the model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>searchProbit</code></td>
+<td>
+<p>If <code>TRUE</code>, probit regressions are added to the model set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimOptions</code></td>
+<td>
+<p>A list for Newton optimization options.
+Use get.options.newton function to get the options.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aucOptions</code></td>
+<td>
+<p>A list for AUC calculation options.
+Use get.options.roc function to get the options.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A nested list with the following members:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>counts</code></td>
+<td>
+<p>Information about the expected number of models, number of estimated models, failed estimations, and some details about the failures.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>results</code></td>
+<td>
+<p>A data frame with requested information in <code>items</code> list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>info</code></td>
+<td>
+<p>The arguments and some general information about the search process such as the elapsed time.</p>
+</td>
+</tr>
+</table>
+<p>Note that the output does not contain any estimation results, but minimum required data to estimate the models (Use <code>summary()</code> function to get the estimation).
+</p>
+
+
+<h3>See Also</h3>
+
+<p>estim.bin
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># We simulate some data for this example:
+# sample data:
+n = 50 # number of observations
+num_x_r &lt;- 3L # number of relevant explanatory variables
+num_x_ir &lt;- 20 # (relatively large) number of irrelevant explanatory variables
+set.seed(340)
+sample &lt;- sim.bin(num_x_r, n)
+x_ir &lt;- lapply(1:num_x_ir, function(x) rnorm(n))
+
+# prepare data:
+data &lt;- data.frame(sample$y, sample$x, x_ir)
+colnames(data) &lt;- c("Y", colnames(sample$x), paste0("z", 1:num_x_ir))
+
+# Use glm function to estimate and analyse:
+fit &lt;- glm(Y ~ . - Y, data = data, family = binomial())
+summary(fit)
+
+# You can also use this package estimation function:
+data0 &lt;- get.data(data,
+                equations = list(Y ~ . - Y),
+                addIntercept = FALSE)
+fit &lt;- estim.bin(data = data0)
+# format and print coefficients:
+print(fit)
+
+# Alternatively, You can define a binary choice model set:
+x_sizes = c(1:3) # assuming we know the number of relevant explanatory variables is less than 3
+metric_options &lt;- get.search.metrics(typesIn = c("sic")) # We use SIC for searching
+search_res &lt;- search.bin(data = data0,
+                         combinations = get.combinations(sizes = x_sizes),
+                         metrics = metric_options)
+print(search_res)
+
+# Use summary function to estimate the best model:
+search_sum &lt;- summary(search_res, y = sample$y, x = data[,3:ncol(data)])
+
+# format and print coefficients:
+s_fit &lt;- summary(search_res)
+print(s_fit$results[[1]]$value)
+
+# Try a step-wise search for creating a larger model set:
+search_res &lt;- search.bin(data = data0,
+                         combinations = get.combinations(
+                           sizes = list(c(1, 2, 3), c(4)),
+                           stepsNumVariables = c(NA, 7)),
+                         metrics = metric_options)
+# combinations argument is different
+
+print(search_res)
+# Use summary like before.
+
+</code></pre>
+
+
+</div>

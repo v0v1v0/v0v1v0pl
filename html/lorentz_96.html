@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reflect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mirrors</h2>
+
+<h3>Description</h3>
+
+<p>Plane mirrors in special relativity</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">reflect(P,m,ref=1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>Vector of four-momenta</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>Orientation of mirror, expressed as a three-vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ref</code></td>
+<td>
+<p>Coefficient of reflectivity of the mirror</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Takes a four-momentum and returns the four-momentum after reflection.
+Will handle objects or photons.
+</p>
+
+
+<h3>Note</h3>
+
+<p>All four-momenta are measured in the rest frame of the mirror, but it
+is easy to reflect from moving mirrors; see examples.
+</p>
+<p>However, note that the <code>ref</code> argument is designed to work with
+photons only, where it is conceptually the percentage of photons
+reflected and not absorbed by the mirror.  If <code>ref</code> is less than
+unity, odd results are given for four momenta of nonzero restmass
+objects.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin K. S. Hankin</p>
+
+
+<h3>See Also</h3>
+
+<p><code>photon</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## We will reflect some photons from an oblique mirror moving at half
+## the speed of light.
+
+## First create 'A', a bunch of photons all moving roughly along the x-axis:
+A &lt;- as.photon(as.3vel(cbind(0.9,runif(10)/1000,runif(10)/1000)))
+
+## Now create 'm', a mirror oriented perpendicular to c(1,1,1):
+m &lt;- c(1,1,1)
+
+## Reflect the photons in the mirror:
+reflect(A,m)
+
+## Reflect the photons in a series of mirrors:
+A |&gt; reflect(m) |&gt; reflect(1:3) |&gt; reflect(3:1) 
+
+
+## To reflect from a moving mirror we need to transform to a frame in
+## which the mirror is at rest, then transform back to the original
+## frame.  First create B, a boost representing the mirror's movement
+## along the x-axis at speed c/2:
+
+B &lt;- boost(as.3vel(c(0.5,0,0)))
+
+
+## Transform to the mirror's rest frame:
+A %*% t(B)    
+
+## NB: in the above, take a transpose because the *rows* of A are 4-vectors.
+
+## Then reflect the photons in the mirror:
+reflect(A %*% t(B),m)
+
+
+## Now transform back to the original rest frame (NB: active transform):
+A |&gt; tcrossprod(B) |&gt; reflect(m) |&gt; tcrossprod(solve(B))
+
+
+</code></pre>
+
+
+</div>

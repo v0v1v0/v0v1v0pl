@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>set_dim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Reshape an array</h2>
+
+<h3>Description</h3>
+
+<p>Pipe friendly <code style="white-space: pre;">⁠dim&lt;-()⁠</code>, with option to pad to necessary length. Also allows
+for filling the array using C style row-major semantics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">set_dim(
+  x,
+  new_dim,
+  pad = getOption("listarrays.autopad_arrays_with", NULL),
+  order = c("F", "C"),
+  verbose = getOption("verbose")
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector or array to set dimensions on</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>new_dim</code></td>
+<td>
+<p>The desired dimensions (an integer(ish) vector)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pad</code></td>
+<td>
+<p>The value to pad the vector with. <code>NULL</code> (the default) performs no
+padding.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>whether to use row-major (C) or column major (F) style
+semantics. The default, "F", corresponds to the default behavior of R's
+<code style="white-space: pre;">⁠dim&lt;-()⁠</code>, while "C" corresponds to the default behavior of
+<code>reticulate::array_reshape()</code>, numpy, reshaping semantics commonly
+encountered in the python world.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Whether to emit a message if padding. By default, <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object with dimensions set
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>set_dim2()</code>, <code>`dim&lt;-`()</code>, <code>reticulate::array_reshape()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">set_dim(1:10, c(2, 5))
+try( set_dim(1:7, c(2, 5)) ) # error by default, just like `dim&lt;-`()
+     set_dim(1:7, c(2, 5), pad = 99)
+     set_dim(1:7, c(2, 5), pad = 99, order = "C") # fills row-wise
+
+y &lt;- x &lt;- 1:4
+# base::dim&lt;- fills the array column wise
+dim(x) &lt;- c(2, 2)
+x
+
+# dim2 will fill the array row-wise
+dim2(y) &lt;- c(2, 2)
+y
+
+identical(x, set_dim(1:4, c(2,2)))
+identical(y, set_dim(1:4, c(2,2), order = "C"))
+
+## Not run: 
+py_reshaped &lt;- reticulate::array_reshape(1:4, c(2,2))
+storage.mode(py_reshaped) &lt;- "integer" # reticulate coerces to double
+identical(y, py_reshaped)
+# if needed, see listarrays:::array_reshape() for
+# a drop-in pure R replacement for reticulate::array_reshape()
+
+## End(Not run)
+</code></pre>
+
+
+</div>

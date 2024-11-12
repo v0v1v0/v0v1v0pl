@@ -1,0 +1,82 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>kfold.vld</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>K-fold model cross-validation</h2>
+
+<h3>Description</h3>
+
+<p><code>kfold.vld</code> performs k-fold model cross-validation.
+The main goal of this procedure is to generate main model performance metrics such as absolute mean
+square error, root mean square error or R-squared based on resampling method. Note that functions' argument
+model accepts <code>"lm"</code> and <code>"glm"</code> class but for <code>"glm"</code> only <code>"quasibinomial("logit")"</code>
+family will be considered.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">kfold.vld(model, k = 10, seed = 1984)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model in use, an object of class inheriting from <code>"lm"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of folds. If <code>k</code> is equal or greater than the number of observations of
+modeling data frame, then validation procedure is equivalent to leave one out cross-validation (LOOCV)
+method. For LOOCV, R-squared is not calculated. Default is set to 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Random seed needed for ensuring the result reproducibility. Default is 1984.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The command <code>kfold.vld</code> returns a list of two objects.<br>
+The first object (<code>iter</code>), returns iteration performance metrics.<br>
+The second object (<code>summary</code>), is the data frame of iterations averages of performance metrics.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(monobin)
+library(LGDtoolkit)
+data(lgd.ds.c)
+#discretized some risk factors
+num.rf &lt;- c("rf_01", "rf_02", "rf_03", "rf_09", "rf_16")
+for	(i in 1:length(num.rf)) {
+num.rf.l &lt;- num.rf[i]
+lgd.ds.c[, num.rf.l] &lt;- sts.bin(x = lgd.ds.c[, num.rf.l], y = lgd.ds.c[, "lgd"])[[2]]	
+}
+str(lgd.ds.c)
+#run linear regression model
+reg.mod.1 &lt;- lm(lgd ~ ., data = lgd.ds.c[, c(num.rf, "lgd")])
+summary(reg.mod.1)$coefficients
+#perform k-fold validation
+LGDtoolkit::kfold.vld(model = reg.mod.1 , k = 10, seed = 1984)
+#run fractional logistic regression model
+lgd.ds.c$lgd[lgd.ds.c$lgd &gt; 1] &lt;- 1
+reg.mod.2 &lt;- glm(lgd ~ ., family = quasibinomial("logit"), data = lgd.ds.c[, c(num.rf, "lgd")])
+summary(reg.mod.2)$coefficients
+LGDtoolkit::kfold.vld(model = reg.mod.2 , k = 10, seed = 1984)
+</code></pre>
+
+
+</div>

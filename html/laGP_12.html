@@ -1,0 +1,416 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>alcGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Improvement statistics for sequential or local design
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the active learning Cohn (ALC) statistic, mean-squared predictive
+error (MSPE) or expected Fisher information (fish) for a Gaussian
+process (GP) predictor relative to a set of reference locations, towards
+sequential design or local search for Gaussian process regression
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">alcGP(gpi, Xcand, Xref = Xcand, parallel = c("none", "omp", "gpu"), 
+      verb = 0)
+alcGPsep(gpsepi, Xcand, Xref = Xcand, parallel = c("none", "omp", "gpu"), 
+      verb = 0)
+alcrayGP(gpi, Xref, Xstart, Xend, verb = 0)
+alcrayGPsep(gpsepi, Xref, Xstart, Xend, verb = 0)
+ieciGP(gpi, Xcand, fmin, Xref = Xcand, w = NULL, nonug = FALSE, verb = 0)
+ieciGPsep(gpsepi, Xcand, fmin, Xref = Xcand, w = NULL, nonug = FALSE, verb = 0)
+mspeGP(gpi, Xcand, Xref = Xcand, fi = TRUE, verb = 0)
+fishGP(gpi, Xcand)
+alcoptGP(gpi, Xref, start, lower, upper, maxit = 100, verb = 0)
+alcoptGPsep(gpsepi, Xref, start, lower, upper, maxit = 100, verb = 0)
+dalcGP(gpi, Xcand, Xref = Xcand, verb = 0)
+dalcGPsep(gpsepi, Xcand, Xref = Xcand, verb = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gpi</code></td>
+<td>
+
+<p>a C-side GP object identifier (positive integer);
+e.g., as returned by <code>newGP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpsepi</code></td>
+<td>
+
+<p>a C-side separable GP object identifier (positive integer);
+e.g., as returned by <code>newGPsep</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xcand</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+a design of candidate predictive locations at which the ALC
+(or other) criteria is (are) evaluated.  In the context of
+<code>laGP</code>, these are the possible locations for adding
+into the current local design
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fmin</code></td>
+<td>
+<p> for <code>ieci*</code> only: a scalar value indicating the 
+value of the best minimum found so far.  This is usually set to 
+the minimum of the <code>Z</code>-values stored in the <code>gpi</code> or 
+<code>gpsepi</code> reference (for deterministic/low nugget settings),
+or otherwise the predicted mean value at the <code>X</code> locations  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xref</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing a design of
+reference locations for ALC or MSPE.  I.e., these are the locations
+at which the reduction in variance, or mean squared predictive error,
+are calculated.  In the context of <code>laGP</code>, this is
+the single location, or set of reference locations,
+around which a local design (for accurate prediction) is sought.  
+For <code>alcrayGP</code> and <code>alcrayGPsep</code> the 
+<code>matrix</code> may only have one row, i.e., one reference location
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+
+<p>a switch indicating if any parallel calculation of 
+the criteria (<code>method</code>) is desired.    
+For <code>parallel = "omp"</code>, the package must be compiled with OpenMP flags; 
+for <code>parallel = "gpu"</code>, the package must be compiled with CUDA
+flags (only the ALC criteria is supported on the GPU); see README/INSTALL
+in the package source for more details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xstart</code></td>
+<td>
+
+<p>a <code>1</code>-by-<code>ncol(Xref)</code> starting location for a search along
+a ray between <code>Xstart</code> and <code>Xend</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xend</code></td>
+<td>
+
+<p>a <code>1</code>-by-<code>ncol(Xref)</code> ending location for a search along
+a ray between <code>Xstart</code> and <code>Xend</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fi</code></td>
+<td>
+
+<p>a scalar logical indicating if the expected Fisher information portion
+of the expression (MSPE is essentially <code>ALC + c(x)*EFI</code>) should be
+calculated (<code>TRUE</code>) or set to zero (<code>FALSE</code>).  This flag is mostly
+for error checking against the other functions, <code>alcGP</code> and <code>fishGP</code>,
+since the constituent parts are separately available via those functions
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p> weights on the reference locations <code>Xref</code> for IECI calculations;
+IECI, which stands for Integrated Expected Conditional Improvement, is not fully documented at this 
+time.  See Gramacy &amp; Lee (2010) for more details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonug</code></td>
+<td>
+<p> a scalar logical indicating if a (nonzero) nugget should be used in the predictive
+equations behind IECI calculations; this allows the user to toggle improvement via predictive
+mean uncertainty versus full predictive uncertainty. The latter (default <code>nonug = FALSE</code>) 
+is the standard approach, but the former may work better (citation forthcoming)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer specifying the verbosity level; <code>verb = 0</code>
+is quiet, and larger values cause more progress information to be
+printed to the screen
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p> initial values to the derivative-based search via <code>"L-BFGS-B"</code> 
+within <code>alcoptGP</code> and <code>alcoptGPsep</code>; a nearest neighbor often
+represents a sensible initialization </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+<p> bounds on the derivative-based search via <code>"L-BFGS-B"</code>
+within <code>alcoptGP</code> and <code>alcoptGPsep</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p> the maximum number of iterations (default <code>maxit=100</code>) in <code>"L-BFGS-B"</code>
+search within <code>alcoptGP</code> and <code>alcoptGPsep</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The best way to see how these functions are used in the context of local
+approximation is to inspect the code in the <code>laGP.R</code> function.
+</p>
+<p>Otherwise they are pretty self-explanatory.  They evaluate the ALC, MSPE,
+and EFI quantities outlined in Gramacy &amp; Apley (2015).  ALC is originally
+due to Seo, et al. (2000).  The ray-based search is described by Gramacy &amp; Haaland (2015).
+</p>
+<p>MSPE and EFI calculations are not supported for separable GP models, i.e.,
+there are no <code>mspeGPsep</code> or <code>fishGPsep</code> functions.
+</p>
+<p><code>alcrayGP</code> and <code>alcrayGPsep</code> allow only one reference location 
+(<code>nrow(Xref) = 1</code>).  <code>alcoptGP</code> and <code>alcoptGPsep</code> allow multiple 
+reference locations. These optimize a continuous ALC analog in its natural logarithm 
+using the starting locations, bounding boxes and (stored) GP provided by <code>gpi</code> or <code>gpisep</code>, 
+and finally snaps the solution back to the candidate grid.  For details, see
+Sun, et al. (2017).
+</p>
+<p>Note that <code>ieciGP</code> and <code>ieciGPsep</code>, which are for optimization via 
+integrated expected conditional improvement (Gramacy &amp; Lee, 2011) are 
+“alpha” functionality and are not fully documented at this time.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Except for <code>alcoptGP</code>, <code>alcoptGPsep</code>, <code>dalcGP</code>, and <code>dalcGPsep</code>, a vector of length <code>nrow(Xcand)</code> is returned 
+filled with values corresponding to the desired statistic
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>the best set of parameters/input configuration found on optimization</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p>the optimized objective value corresponding to output <code>par</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>its</code></td>
+<td>
+<p>a two-element integer vector giving the number of calls to the object function and the gradient respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>msg</code></td>
+<td>
+<p>a character string giving any additional information returned by the optimizer, or <code>NULL</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>An integer code. <code>0</code> indicates successful completion. For the other error codes,
+see the documentation for <code>optim</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alcs</code></td>
+<td>
+<p>reduced predictive variance averaged over the reference locations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dalcs</code></td>
+<td>
+<p>the derivative of <code>alcs</code> with respect to the new location</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a> and Furong Sun <a href="mailto:furongs@vt.edu">furongs@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+ 
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 9.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>F. Sun, R.B. Gramacy, B. Haaland, E. Lawrence, and A. Walker (2019).
+<em>Emulating satellite drag from large simulation experiments</em>,
+SIAM/ASA Journal on Uncertainty Quantification, 7(2), pp. 720-759;
+preprint on arXiv:1712.00182;
+<a href="https://arxiv.org/abs/1712.00182">https://arxiv.org/abs/1712.00182</a>
+</p>
+<p>R.B. Gramacy (2016). <em><span class="pkg">laGP</span>: Large-Scale Spatial Modeling via 
+Local Approximate Gaussian Processes in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span></em>, Journal of Statistical 
+Software, 72(1), 1-46; <a href="https://doi.org/10.18637/jss.v072.i01">doi:10.18637/jss.v072.i01</a> 
+or see <code>vignette("laGP")</code>
+</p>
+<p>R.B. Gramacy and B. Haaland (2016).
+<em>Speeding up neighborhood search in local Gaussian process prediction</em>,
+Technometrics, 58(3), pp. 294-303;
+preprint on arXiv:1409.0074; 
+<a href="https://arxiv.org/abs/1409.0074">https://arxiv.org/abs/1409.0074</a>
+</p>
+<p>R.B. Gramacy and D.W. Apley (2015).
+<em>Local Gaussian process approximation for large computer
+experiments</em>, Journal of Computational and Graphical Statistics, 
+24(2), pp. 561-678; 
+preprint on arXiv:1303.0383;
+<a href="https://arxiv.org/abs/1303.0383">https://arxiv.org/abs/1303.0383</a>
+</p>
+<p>R.B. Gramacy, J. Niemi, R.M. Weiss (2014).
+<em>Massively parallel approximate Gaussian process regression</em>,
+SIAM/ASA Journal on Uncertainty Quantification, 2(1), pp. 568-584;
+preprint on arXiv:1310.5182;
+<a href="https://arxiv.org/abs/1310.5182">https://arxiv.org/abs/1310.5182</a>
+</p>
+<p>R.B. Gramacy, H.K.H. Lee (2011). 
+<em>Optimization under unknown constraints</em>, Valencia discussion paper, in Bayesian Statistics 9. 
+Oxford University Press; 
+preprint on arXiv:1004.4027; 
+<a href="https://arxiv.org/abs/1004.4027">https://arxiv.org/abs/1004.4027</a>
+</p>
+<p>S. Seo, M., Wallat, T. Graepel, K. Obermayer (2000).
+<em>Gaussian Process Regression: Active Data Selection and Test Point Rejection</em>,
+In Proceedings of the International Joint Conference on Neural Networks, 
+vol. III, 241-246. IEEE
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>laGP</code>, <code>aGP</code>, <code>predGP</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## this follows the example in predGP, but only evaluates 
+## information statistics documented here
+
+## Simple 2-d test function used in Gramacy &amp; Apley (2015);
+## thanks to Lee, Gramacy, Taddy, and others who have used it before
+f2d &lt;- function(x, y=NULL)
+  {
+    if(is.null(y)) {
+      if(!is.matrix(x) &amp;&amp; !is.data.frame(x)) x &lt;- matrix(x, ncol=2)
+      y &lt;- x[,2]; x &lt;- x[,1]
+    }
+    g &lt;- function(z)
+      return(exp(-(z-1)^2) + exp(-0.8*(z+1)^2) - 0.05*sin(8*(z+0.1)))
+    z &lt;- -g(x)*g(y)
+  }
+
+## design with N=441
+x &lt;- seq(-2, 2, length=11)
+X &lt;- expand.grid(x, x)
+Z &lt;- f2d(X)
+
+## fit a GP
+gpi &lt;- newGP(X, Z, d=0.35, g=1/1000, dK=TRUE)
+
+## predictive grid with NN=400
+xx &lt;- seq(-1.9, 1.9, length=20)
+XX &lt;- expand.grid(xx, xx)
+
+## predict
+alc &lt;- alcGP(gpi, XX)
+mspe &lt;- mspeGP(gpi, XX)
+fish &lt;- fishGP(gpi, XX)
+
+## visualize the result
+par(mfrow=c(1,3))
+image(xx, xx, matrix(sqrt(alc), nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="sqrt ALC")
+image(xx, xx, matrix(sqrt(mspe), nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="sqrt MSPE")
+image(xx, xx, matrix(log(fish), nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="log fish")
+
+## clean up
+deleteGP(gpi)
+
+
+## 
+## Illustrating some of the other functions in a sequential design context, 
+## using X and XX above
+## 
+
+## new, much bigger design
+x &lt;- seq(-2, 2, by=0.02)
+X &lt;- expand.grid(x, x)
+Z &lt;- f2d(X)
+
+## first build a local design of size 25, see laGP documentation
+out &lt;- laGP.R(XX, start=6, end=25, X, Z, method="alc", close=10000)
+
+## extract that design and fit GP
+XC &lt;- X[out$Xi,] ## inputs
+ZC &lt;- Z[out$Xi]  ## outputs
+gpi &lt;- newGP(XC, ZC, d=out$mle$d, g=out$g$start)
+
+## calculate the ideal "next" location via continuous ALC optimization
+alco &lt;- alcoptGP(gpi=gpi, Xref=XX, start=c(0,0), lower=range(x)[1], upper=range(x)[2])
+
+## alco$par is the "new" location; calculate distances between candidates (remaining
+## unchosen X locations) and this solution
+Xcan &lt;- X[-out$Xi,]
+D &lt;- distance(Xcan, matrix(alco$par, ncol=ncol(Xcan))) 
+
+## snap the new location back to the candidate set
+lab &lt;- which.min(D) 
+xnew &lt;- Xcan[lab,] 
+## add xnew to the local design, remove it from Xcan, and repeat
+
+## evaluate the derivative at this new location
+dalc &lt;- dalcGP(gpi=gpi, Xcand=matrix(xnew, nrow=1), Xref=XX)
+
+## clean up
+deleteGP(gpi)
+</code></pre>
+
+
+</div>

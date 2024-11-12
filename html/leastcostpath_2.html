@@ -1,0 +1,76 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_global_stochasticity</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add global stochasticity to a conductanceMatrix</h2>
+
+<h3>Description</h3>
+
+<p>Add stochasticity to a conductanceMatrix based on a global value. This method is based on 'Multiple shortest paths (MSPs)' as proposed by Pinto and Keitt (2009)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_global_stochasticity(x, percent_quantile = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p><code>conductanceMatrix</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>percent_quantile</code></td>
+<td>
+<p><code>numeric</code> value between 0 and 1. See details for more information</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The add_global_stochasticity to a conductanceMatrix is based on the method proposed by Pinto and Keitt (2009). Rather than using a static neighbourhood (for example as supplied in the neighbours function in the create_slope_cs), the neighbourhood is redefined such that the adjacency is non-deterministic and is instead determined randomly based on the threshold value.
+</p>
+<p>The algorithm proceeds as follows:
+</p>
+<p>1. With a percent_quantile supplied, draw a random value between the minimum value in the conductanceMatrix and the supplied percent quantile
+</p>
+<p>2. Replace values in conductanceMatrix below this random value with 0. This ensures that the conductance between the neighbours are 0, and thus deemed non-adjacent
+</p>
+<p>Supplying a percent_quantile of 0 is equivalent to incorporating no stochasticity into the conductanceMatrix. That is, if the supplied percent_quantile is 0, then no values are below this value and thus no values will be replaced with 0 (see step 2). This therefore does not change the neigbourhood adjacency
+</p>
+<p>The closer the percent_quantile is to 0, the less stochasticity is incorporated. For example, a percent_quantile value of 0.2 will result in the threshold being a random value between the minimum value in the conductanceMatrix and the 0.2 percent quantile of the values in the conductanceMatrix. All values in the conductanceMatrix below the random value will be replaced with 0 (i.e. the neighbours are no longer adjacent). In contrast, a percent_quantile value of 0.8 will result in the threshold being a random value between the minimum value in the conductanceMatrix and the 0.8 percent quantile of the values in the conductanceMatrix. In this case, there is greater probability that the random value will result in an increased number of values in the conductanceMatrix being replaced with 0.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Joseph Lewis
+</p>
+
+
+<h3>References</h3>
+
+<p>Pinto, N., &amp; Keitt, T. H. (2009). Beyond the least-cost path: evaluating corridor redundancy using a graph-theoretic approach. Landscape Ecology, 24(2), 253-266. https://doi.org/10.1007/s10980-008-9303-y
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+r &lt;- terra::rast(system.file("extdata/SICILY_1000m.tif", package="leastcostpath"))
+
+slope_cs &lt;- create_slope_cs(x = r, cost_function = "tobler", neighbours = 4)
+
+slope_cs2 &lt;- add_global_stochasticity(slope_cs, percent_quantile = 0.2)
+</code></pre>
+
+
+</div>

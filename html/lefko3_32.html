@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>hist_null</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Historical MPMs Assuming No Influence of Individual History</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>hist_null()</code> uses ahistorical MPMs to create the equivalent
+MPMs in the structure of historical MPMs. These MPMs have the same
+dimensions and stage structure of hMPMs but assume no influence of
+individual history, and so can be compared to actual hMPMs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">hist_null(mpm, format = 1L, err_check = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mpm</code></td>
+<td>
+<p>An ahistorical MPM of class <code>lefkoMat</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>An integer stipulating whether historical matrices should be
+produced in Ehrlen format (<code>1</code>) or deVries format (<code>2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err_check</code></td>
+<td>
+<p>A logical value indicating whether to output the main index
+data frames used to sort elements in the matrices.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>lefkoMat</code>, with the same list structure as
+the input object, but with <code>A</code>, <code>U</code>, and <code>F</code> elements
+replaced with lists of historically-structured matrices, and with element
+<code>hstages</code> changed from <code>NA</code> to an index of stage pairs
+corresponding to the rows and columns of the new matrices. If
+<code>err_check = TRUE</code>, then a list of three data frames showing the values
+used to determine matrix element index values is also exported.
+</p>
+
+
+<h3>Notes</h3>
+
+<p>This function does not currently identify biologically impossible
+transitions. Ahistorical transition values are placed in all theoretically
+possible historical transitions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">sizevector &lt;- c(1, 1, 2, 3)
+stagevector &lt;- c("Sdl", "Veg", "SmFlo", "LFlo")
+repvector &lt;- c(0, 0, 1, 1)
+obsvector &lt;- c(1, 1, 1, 1)
+matvector &lt;- c(0, 1, 1, 1)
+immvector &lt;- c(1, 0, 0, 0)
+propvector &lt;- c(0, 0, 0, 0)
+indataset &lt;- c(1, 1, 1, 1)
+binvec &lt;- c(0.5, 0.5, 0.5, 0.5)
+
+anthframe &lt;- sf_create(sizes = sizevector, stagenames = stagevector,
+  repstatus = repvector, obsstatus = obsvector, matstatus = matvector,
+  immstatus = immvector, indataset = indataset, binhalfwidth = binvec,
+  propstatus = propvector)
+
+# POPN C 2003-2004
+XC3 &lt;- matrix(c(0, 0, 1.74, 1.74,
+0.208333333, 0, 0, 0.057142857,
+0.041666667, 0.076923077, 0, 0,
+0.083333333, 0.076923077, 0.066666667, 0.028571429), 4, 4, byrow = TRUE)
+
+# 2004-2005
+XC4 &lt;- matrix(c(0, 0, 0.3, 0.6,
+0.32183908, 0.142857143, 0, 0,
+0.16091954, 0.285714286, 0, 0,
+0.252873563, 0.285714286, 0.5, 0.6), 4, 4, byrow = TRUE)
+
+mats_list &lt;- list(XC3, XC4)
+yr_ord &lt;- c(1, 2)
+pch_ord &lt;- c(1, 1)
+
+anth_lefkoMat &lt;- create_lM(mats_list, anthframe, hstages = NA, historical = FALSE,
+  poporder = 1, patchorder = pch_ord, yearorder = yr_ord)
+  
+nullmodel1 &lt;- hist_null(anth_lefkoMat, 1) # Ehrlen format
+nullmodel2 &lt;- hist_null(anth_lefkoMat, 2) # deVries format
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,735 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ictregBayes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Item Count Technique</h2>
+
+<h3>Description</h3>
+
+<p>Function to conduct multivariate regression analyses of survey data with the
+item count technique, also known as the list experiment and the unmatched
+count technique.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ictregBayes(
+  formula,
+  data = parent.frame(),
+  treat = "treat",
+  J,
+  constrained.single = "full",
+  constrained.multi = TRUE,
+  fit.start = "lm",
+  n.draws = 10000,
+  burnin = 5000,
+  thin = 0,
+  delta.start,
+  psi.start,
+  Sigma.start,
+  Phi.start,
+  delta.mu0,
+  psi.mu0,
+  delta.A0,
+  psi.A0,
+  Sigma.df,
+  Sigma.scale,
+  Phi.df,
+  Phi.scale,
+  delta.tune,
+  psi.tune,
+  gamma.tune,
+  zeta.tune,
+  formula.mixed,
+  group.mixed,
+  verbose = TRUE,
+  sensitive.model = "logit",
+  df = 5,
+  endorse.options,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An object of class "formula": a symbolic description of the
+model to be fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame containing the variables in the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat</code></td>
+<td>
+<p>Name of treatment indicator as a string. For single sensitive
+item models, this refers to a binary indicator, and for multiple sensitive
+item models it refers to a multi-valued variable with zero representing the
+control condition. This can be an integer (with 0 for the control group) or
+a factor (with "control" for the control group).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>Number of non-sensitive (control) survey items. This will be set
+automatically to the maximum value of the outcome variable in the treatment
+group if no input is sent by the user.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrained.single</code></td>
+<td>
+<p>A string indicating whether the control group
+parameters are constrained to be equal in the single sensitive item design,
+either setting all parameters to be equal (<code>full</code>) or only the
+intercept (<code>intercept</code>). If neither, set to <code>none</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrained.multi</code></td>
+<td>
+<p>A logical value indicating whether the
+non-sensitive item count is included as a predictor in the sensitive item
+fits for the multiple sensitive item design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit.start</code></td>
+<td>
+<p>Fit method for starting values. The options are <code>lm</code>,
+<code>glm</code>, <code>nls</code>, and <code>ml</code>, which use OLS, logistic regression,
+non-linear least squares, and maximum likelihood estimation to generate
+starting values, respectively. The default is <code>lm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.draws</code></td>
+<td>
+<p>Number of MCMC iterations after the burnin.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burnin</code></td>
+<td>
+<p>The number of initial MCMC iterations that are discarded.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thin</code></td>
+<td>
+<p>The interval of thinning, in which every other (<code>thin</code> = 1)
+or more iterations are discarded in the output object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.start</code></td>
+<td>
+<p>Optional starting values for the sensitive item fit. This
+should be a vector with the length of the number of covariates for the
+single sensitive item design, and either a vector or a list with a vector of
+starting values for each of the sensitive items. The default runs an
+<code>ictreg</code> fit with the method set by the <code>fit.start</code> option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.start</code></td>
+<td>
+<p>Optional starting values for the control items fit. This
+should be a vector of length the number of covariates for the constrained
+models. The default runs an <code>ictreg</code> fit with the method set by the
+<code>fit.start</code> option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma.start</code></td>
+<td>
+<p>Optional starting values for Sigma parameter for mixed
+effects models for sensitive item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi.start</code></td>
+<td>
+<p>Optional starting values for the Phi parameter for mixed
+effects models for control item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.mu0</code></td>
+<td>
+<p>Optional vector of prior means for the sensitive item fit
+parameters, a vector of length the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.mu0</code></td>
+<td>
+<p>Optional vector of prior means for the control item fit
+parameters, a vector of length the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.A0</code></td>
+<td>
+<p>Optional matrix of prior precisions for the sensitive item
+fit parameters, a matrix of dimension the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.A0</code></td>
+<td>
+<p>Optional matrix of prior precisions for the control items fit
+parameters, a matrix of dimension the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma.df</code></td>
+<td>
+<p>Optional prior degrees of freedom parameter for mixed
+effects models for sensitive item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma.scale</code></td>
+<td>
+<p>Optional prior scale parameter for mixed effects models
+for sensitive item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi.df</code></td>
+<td>
+<p>Optional prior degress of freedom parameter for mixed effects
+models for control item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Phi.scale</code></td>
+<td>
+<p>Optional prior scale parameter for mixed effects models for
+control item.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.tune</code></td>
+<td>
+<p>A required vector of tuning parameters for the Metropolis
+algorithm for the sensitive item fit. This must be set and refined by the
+user until the acceptance ratios are approximately .4 (reported in the
+output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.tune</code></td>
+<td>
+<p>A required vector of tuning parameters for the Metropolis
+algorithm for the control item fit. This must be set and refined by the user
+until the acceptance ratios are approximately .4 (reported in the output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma.tune</code></td>
+<td>
+<p>An optional vector of tuning parameters for the Metropolis
+algorithm for the control item fit for the random effects. This can be set
+and refined by the user until the acceptance ratios are approximately .4
+(reported in the output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zeta.tune</code></td>
+<td>
+<p>An optional vector of tuning parameters for the Metropolis
+algorithm for the sensitive item fit for the random effects. This can be set
+and refined by the user until the acceptance ratios are approximately .4
+(reported in the output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula.mixed</code></td>
+<td>
+<p>To specify a mixed effects model, include this formula
+object for the group-level fit. ~1 allows intercepts to vary, and including
+covariates in the formula allows the slopes to vary also.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group.mixed</code></td>
+<td>
+<p>A numerical group indicator specifying which group each
+individual belongs to for a mixed effects model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical value indicating whether model diagnostics are
+printed out during fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sensitive.model</code></td>
+<td>
+<p>A logical value indicating which model is used for
+the sensitive item fit, logistic regression (<code>logit</code>, default), robit
+regression (<code>robit</code>), or probit regression (<code>probit</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>Degrees of freedom for the robit model for the sensitive item fit,
+only used if <code>robit</code> is set to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>endorse.options</code></td>
+<td>
+<p>A list of inputs and options for running the combined
+list experiment and endorsement experiment model. Options documented more
+fully in <code>endorse</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>further arguments to be passed to NLS regression commands.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function allows the user to perform regression analysis on data from
+the item count technique, also known as the list experiment and the
+unmatched count technique using a Bayesian MCMC algorithm.
+</p>
+<p>Unlike the maximum likelihood and least squares estimators in the
+<code>ictreg</code> function, the Metropolis algorithm for the Bayesian MCMC
+estimators in this function must be tuned to work correctly. The
+<code>delta.tune</code> and <code>psi.tune</code> are required, and the values, one for
+each estimated parameter, will need to be manipulated. The output of the
+<code>ictregBayes</code> function, and of the <code>summary</code> function run on an
+<code>ictregBayes</code> object display the acceptance ratios from the Metropolis
+algorithm. If these values are far from 0.4, the tuning parameters should be
+changed until the ratios approach 0.4.
+</p>
+<p>For the single sensitive item design, the model can constrain all control
+parameters to be equal (<code>constrained = "full"</code>), or just the intercept
+(<code>constrained = "intercept"</code>) or all the control fit parameters can be
+allowed to vary across the potential sensitive item values
+(<code>constrained = "none"</code>).
+</p>
+<p>For the multiple sensitive item design, the model can include the estimated
+number of affirmative responses to the control items as a covariate in the
+sensitive item model fit (<code>constrained</code> set to <code>TRUE</code>) or exclude
+it (<code>FALSE</code>).
+</p>
+<p>The function also allows the user to perform combined list experiment and
+endorsement experiment regression. Setting <code>endorse.options</code> to a list
+with the options from the <code>endorse</code> package for endorsement experiment
+regression, the function will return the combined model in which the
+relationship between covariates and the sensitive item in the list
+experiment model is set to be identical to the relationship between
+covariates and support for endorsers in the endorsement experiment model.
+For more details on endorsement experiment regression, see the help for the
+<code>endorse</code> package.
+</p>
+<p>Convergence is at times difficult to achieve, so we recommend running
+multiple chains from overdispersed starting values by, for example, running
+an MLE or linear model using the ictreg() function, and then generating a
+set of overdispersed starting values using those estimates and their
+estimated variance-covariance matrix. An example is provided below for each
+of the possible designs. Running <code>summary()</code> after such a procedure
+will output the Gelman-Rubin convergence statistics in addition to the
+estimates. If the G-R statistics are all below 1.1, the model is said to
+have converged.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>ictregBayes</code> returns an object of class "ictregBayes".  The
+function <code>summary</code> is used to obtain a table of the results, using the
+<code>coda</code> package. Two attributes are also included, the data ("x"), the
+call ("call"), which can be extracted using the command, e.g.,
+attr(ictregBayes.object, "x").
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mcmc</code></td>
+<td>
+<p>an object of class "mcmc" that can be analyzed using the
+<code>coda</code> package.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the design matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>multi</code></td>
+<td>
+<p>a logical
+value indicating whether the data included multiple sensitive items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constrained</code></td>
+<td>
+<p>a logical or character value indicating whether the
+control group parameters are constrained to be equal in the single sensitive
+item design, and whether the non-sensitive item count is included as a
+predictor in the sensitive item fits for the multiple sensitive item
+design.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.start</code></td>
+<td>
+<p>Optional starting values for the sensitive item
+fit. This should be a vector with the length of the number of covariates.
+The default runs an <code>ictreg</code> fit with the method set by the
+<code>fit.start</code> option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.start</code></td>
+<td>
+<p>Optional starting values for the
+control items fit. This should be a vector of length the number of
+covariates. The default runs an <code>ictreg</code> fit with the method set by the
+<code>fit.start</code> option.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.mu0</code></td>
+<td>
+<p>Optional vector of prior means
+for the sensitive item fit parameters, a vector of length the number of
+covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.mu0</code></td>
+<td>
+<p>Optional vector of prior means for the control
+item fit parameters, a vector of length the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.A0</code></td>
+<td>
+<p>Optional matrix of prior precisions for the sensitive item
+fit parameters, a matrix of dimension the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.A0</code></td>
+<td>
+<p>Optional matrix of prior precisions for the control items fit
+parameters, a matrix of dimension the number of covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>delta.tune</code></td>
+<td>
+<p>A required vector of tuning parameters for the Metropolis
+algorithm for the sensitive item fit. This must be set and refined by the
+user until the acceptance ratios are approximately .4 (reported in the
+output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi.tune</code></td>
+<td>
+<p>A required vector of tuning parameters for the
+Metropolis algorithm for the control item fit. This must be set and refined
+by the user until the acceptance ratios are approximately .4 (reported in
+the output).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>J</code></td>
+<td>
+<p>Number of non-sensitive (control) survey items set by
+the user or detected.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>treat.labels</code></td>
+<td>
+<p>a vector of the names used by the
+<code>treat</code> vector for the sensitive item or items. This is the names from
+the <code>treat</code> indicator if it is a factor, or the number of the item if
+it is numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control.label</code></td>
+<td>
+<p>a vector of the names used by the
+<code>treat</code> vector for the control items. This is the names from the
+<code>treat</code> indicator if it is a factor, or the number of the item if it is
+numeric.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call</p>
+</td>
+</tr>
+</table>
+<p>If the data includes multiple sensitive items, the following object is also
+included: </p>
+<table><tr style="vertical-align: top;">
+<td><code>treat.values</code></td>
+<td>
+<p>a vector of the values used in the
+<code>treat</code> vector for the sensitive items, either character or numeric
+depending on the class of <code>treat</code>. Does not include the value for the
+control status</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p>Graeme Blair, UCLA, <a href="mailto:graeme.blair@ucla.edu">graeme.blair@ucla.edu</a>
+and Kosuke Imai, Princeton University, <a href="mailto:kimai@princeton.edu">kimai@princeton.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Blair, Graeme and Kosuke Imai. (2012) “Statistical Analysis of
+List Experiments."  Political Analysis, Vol. 20, No 1 (Winter). available at
+<a href="http://imai.princeton.edu/research/listP.html">http://imai.princeton.edu/research/listP.html</a>
+</p>
+<p>Imai, Kosuke. (2011) “Multivariate Regression Analysis for the Item Count
+Technique.” Journal of the American Statistical Association, Vol. 106, No.
+494 (June), pp. 407-416. available at
+<a href="http://imai.princeton.edu/research/list.html">http://imai.princeton.edu/research/list.html</a>
+</p>
+<p>Blair, Graeme, Jason Lyall and Kosuke Imai. (2013) “Comparing and Combining
+List and Experiments: Evidence from Afghanistan."  Working paper. available
+at <a href="http://imai.princeton.edu/research/comp.html">http://imai.princeton.edu/research/comp.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>predict.ictreg</code> for fitted values
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+data(race)
+
+## Not run: 
+
+## Multiple chain MCMC list experiment regression
+## starts with overdispersed MLE starting values
+
+## Standard single sensitive-item design
+
+## Control item parameters fully constrained
+
+mle.estimates &lt;- ictreg(y ~ male + college + age + south, data = race)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates), 
+  Sigma = vcov(mle.estimates) * 9)
+
+bayesDraws.1 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[1, 1:5], psi.start = draws[1, 6:10], burnin = 10000, 
+  n.draws = 100000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full")
+
+bayesDraws.2 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[2, 1:5], psi.start = draws[2, 6:10], burnin = 10000, 
+  n.draws = 100000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full")
+
+bayesDraws.3 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[3, 1:5], psi.start = draws[3, 6:10], burnin = 10000, 
+  n.draws = 100000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full")
+
+bayesSingleConstrained &lt;- as.list(bayesDraws.1, bayesDraws.2, bayesDraws.3)
+
+summary(bayesSingleConstrained)
+
+## Control item parameters unconstrained
+
+mle.estimates &lt;- ictreg(y ~ male + college + age + south, data = race,
+  constrained = FALSE)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates), 
+  Sigma = vcov(mle.estimates) * 9)
+
+bayesDraws.1 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[1, 1:5], psi.start = list(psi0 = draws[1, 6:10], 
+  psi1 = draws[1, 11:15]), burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), 
+  psi.tune = list(psi0 = diag(.0017, 5), psi1 = diag(.00005, 5)),
+  constrained.single = "none")
+
+bayesDraws.2 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[2, 1:5], psi.start = list(psi0 = draws[2, 6:10], 
+  psi1 = draws[2, 11:15]), burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), 
+  psi.tune = list(psi0 = diag(.0017, 5), psi1 = diag(.00005, 5)),
+  constrained.single = "none")
+
+bayesDraws.3 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[3, 1:5], psi.start = list(psi0 = draws[3, 6:10], 
+  psi1 = draws[3, 11:15]), burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), 
+  psi.tune = list(psi0 = diag(.0017, 5), psi1 = diag(.00005, 5)),
+  constrained.single = "none")
+
+bayesSingleUnconstrained &lt;- as.list(bayesDraws.1, bayesDraws.2, bayesDraws.3)
+
+summary(bayesSingleUnconstrained)
+
+## Control item parameters constrained except intercept
+
+mle.estimates &lt;- ictreg(y ~ male + college + age + south, data = race,
+  constrained = TRUE)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates), 
+  Sigma = vcov(mle.estimates) * 9)
+
+bayesDraws.1 &lt;-  ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[1, 1:5], psi.start = c(draws[1, 6:10],0),
+  burnin = 10000, n.draws = 100000, delta.tune = diag(.002, 5),
+  psi.tune = diag(.0004, 6), constrained.single = "intercept")
+
+bayesDraws.2 &lt;-  ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[2, 1:5], psi.start = c(draws[2, 6:10],0),
+  burnin = 10000, n.draws = 100000, delta.tune = diag(.002, 5),
+  psi.tune = diag(.0004, 6), constrained.single = "intercept")
+
+bayesDraws.3 &lt;-  ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[3, 1:5], psi.start = c(draws[3, 6:10],0),
+  burnin = 10000, n.draws = 100000, delta.tune = diag(.002, 5),
+  psi.tune = diag(.0004, 6), constrained.single = "intercept")
+
+bayesSingleInterceptOnly &lt;- as.list(bayesDraws.1, bayesDraws.2, bayesDraws.3)
+
+summary(bayesSingleInterceptOnly)
+
+## Multiple sensitive item design
+
+## Constrained (estimated control item count not included in sensitive fit)
+
+mle.estimates.multi &lt;- ictreg(y ~ male + college + age + south, data = multi,
+  constrained = TRUE)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates.multi), 
+  Sigma = vcov(mle.estimates.multi) * 9)
+
+bayesMultiDraws.1 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[1, 6:10], draws[1, 11:15]), 
+  psi.start = draws[1, 1:5], burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), psi.tune = diag(.001, 5), 
+  constrained.multi = TRUE)
+
+bayesMultiDraws.2 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[2, 6:10], draws[2, 11:15]), 
+  psi.start = draws[2, 1:5], burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), psi.tune = diag(.001, 5), 
+  constrained.multi = TRUE)
+
+bayesMultiDraws.3 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[3, 6:10], draws[3, 11:15]), 
+  psi.start = draws[3, 1:5], burnin = 10000, n.draws = 100000, 
+  delta.tune = diag(.002, 5), psi.tune = diag(.001, 5), 
+  constrained.multi = TRUE)
+
+bayesMultiConstrained &lt;- as.list(bayesMultiDraws.1, bayesMultiDraws.2, 
+  bayesMultiDraws.3)
+
+summary(bayesMultiConstrained)
+
+## Unconstrained (estimated control item count is included in sensitive fit)
+
+mle.estimates.multi &lt;- ictreg(y ~ male + college + age + south, data = multi,
+  constrained = FALSE)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates.multi), 
+  Sigma = vcov(mle.estimates.multi) * 9)
+
+bayesMultiDraws.1 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[1, 6:10], draws[1, 11:15]), 
+  psi.start = draws[1, 1:5], burnin = 50000, n.draws = 300000, 
+  delta.tune = diag(.0085, 6), psi.tune = diag(.00025, 5), 
+  constrained.multi = FALSE)
+
+bayesMultiDraws.2 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[2, 6:10], draws[2, 11:15]), 
+  psi.start = draws[2, 1:5], burnin = 50000, n.draws = 300000, 
+  delta.tune = diag(.0085, 6), psi.tune = diag(.00025, 5), 
+  constrained.multi = FALSE)
+
+bayesMultiDraws.3 &lt;- ictregBayes(y ~ male + college + age + south, 
+  data = multi, delta.start = list(draws[3, 6:10], draws[3, 11:15]), 
+  psi.start = draws[3, 1:5], burnin = 50000, n.draws = 300000, 
+  delta.tune = diag(.0085, 6), psi.tune = diag(.00025, 5), 
+  constrained.multi = FALSE)
+
+bayesMultiUnconstrained &lt;- as.list(bayesMultiDraws.1, bayesMultiDraws.2, 
+  bayesMultiDraws.3)
+
+summary(bayesMultiUnconstrained)
+
+## Mixed effects models
+
+## Varying intercepts
+
+mle.estimates &lt;- ictreg(y ~ male + college + age + south, data = race)
+
+draws &lt;- mvrnorm(n = 3, mu = coef(mle.estimates), 
+  Sigma = vcov(mle.estimates) * 9)
+
+bayesDraws.1 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[1, 1:5], psi.start = draws[1, 6:10], burnin = 100, 
+  n.draws = 1000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full", group.mixed = "state", formula.mixed = ~ 1)
+
+bayesDraws.2 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[2, 1:5], psi.start = draws[2, 6:10], burnin = 10000, 
+  n.draws = 100000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full", group.mixed = "state", formula.mixed = ~ 1)
+
+bayesDraws.3 &lt;- ictregBayes(y ~ male + college + age + south, data = race, 
+  delta.start = draws[3, 1:5], psi.start = draws[3, 6:10], burnin = 10000, 
+  n.draws = 100000, delta.tune = diag(.002, 5), psi.tune = diag(.00025, 5),
+  constrained.single = "full", group.mixed = "state", formula.mixed = ~ 1)
+
+bayesMixed &lt;- as.list(bayesDraws.1, bayesDraws.2, bayesDraws.3)
+
+summary(bayesMixed)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

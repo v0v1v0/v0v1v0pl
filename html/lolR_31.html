@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lol.xval.optimal_dimselect</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal Cross-Validated Number of Embedding Dimensions</h2>
+
+<h3>Description</h3>
+
+<p>A function for performing leave-one-out cross-validation for a given embedding model, that allows users to determine the optimal number of embedding dimensions for
+their algorithm-of-choice. This function produces fold-wise cross-validated misclassification rates for standard embedding techniques across a specified selection of
+embedding dimensions. Optimal embedding dimension is selected as the dimension with the lowest average misclassification rate across all folds.
+Users can optionally specify custom embedding techniques with proper configuration of <code>alg.*</code> parameters and hyperparameters.
+Optional classifiers implementing the S3 <code>predict</code> function can be used for classification, with hyperparameters to classifiers for
+determining misclassification rate specified in <code>classifier.*</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lol.xval.optimal_dimselect(
+  X,
+  Y,
+  rs,
+  alg,
+  sets = NULL,
+  alg.dimname = "r",
+  alg.opts = list(),
+  alg.embedding = "A",
+  alg.structured = TRUE,
+  classifier = lda,
+  classifier.opts = list(),
+  classifier.return = "class",
+  k = "loo",
+  rank.low = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p><code>[n, d]</code> the data with <code>n</code> samples in <code>d</code> dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p><code>[n]</code> the labels of the samples with <code>K</code> unique labels. Defaults to <code>NaN</code>.#' @param alg.opts any extraneous options to be passed to the classifier function, as a list. Defaults to an empty list. For example, this could be the embedding dimensionality to investigate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rs</code></td>
+<td>
+<p><code>[r.n]</code> the embedding dimensions to investigate over, where <code>max(rs) &lt;= d</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg</code></td>
+<td>
+<p>the algorithm to use for embedding. Should be a function that accepts inputs <code>X</code> and <code>Y</code> and embedding dimension <code>r</code> if <code>alg</code> is supervised, or just <code>X</code> and embedding dimension <code>r</code> if <code>alg</code> is unsupervised.This algorithm should return a list containing a matrix that embeds from d to r &lt; d dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sets</code></td>
+<td>
+<p>a user-defined cross-validation set. Defaults to <code>NULL</code>.
+</p>
+
+<ul>
+<li>
+<p><code>is.null(sets)</code> randomly partition the inputs <code>X</code> and <code>Y</code> into training and testing sets.
+</p>
+</li>
+<li>
+<p><code>!is.null(sets)</code> use a user-defined partitioning of the inputs <code>X</code> and <code>Y</code> into training and testing sets. Should be in the format of the outputs from <code>lol.xval.split</code>. That is, a <code>list</code> with each element containing <code>X.train</code>, an <code>[n-k][d]</code> subset of data to test on, <code>Y.train</code>, an <code>[n-k]</code> subset of class labels for <code>X.train</code>; <code>X.test</code>, an <code>[n-k][d]</code> subset of data to test the model on, <code>Y.train</code>, an <code>[k]</code> subset of class labels for <code>X.test</code>.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg.dimname</code></td>
+<td>
+<p>the name of the parameter accepted by <code>alg</code> for indicating the embedding dimensionality desired. Defaults to <code>r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg.opts</code></td>
+<td>
+<p>the hyper-parameter options to pass to your algorithm as a keyworded list. Defaults to <code>list()</code>, or no hyper-parameters. This should not include the number of embedding dimensions, <code>r</code>, which are passed separately in the <code>rs</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg.embedding</code></td>
+<td>
+<p>the attribute returned by <code>alg</code> containing the embedding matrix. Defaults to assuming that <code>alg</code> returns an embgedding matrix as <code>"A"</code>.
+</p>
+
+<ul>
+<li> <p><code>!is.nan(alg.embedding)</code> Assumes that <code>alg</code> will return a list containing an attribute, <code>alg.embedding</code>, a <code>[d, r]</code> matrix that embeds <code>[n, d]</code> data from <code>[d]</code> to <code>[r &lt; d]</code> dimensions.
+</p>
+</li>
+<li> <p><code>is.nan(alg.embedding)</code> Assumes that <code>alg</code> returns a <code>[d, r]</code> matrix that embeds <code>[n, d]</code> data from <code>[d]</code> to <code>[r &lt; d]</code> dimensions.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alg.structured</code></td>
+<td>
+<p>a boolean to indicate whether the embedding matrix is structured. Provides performance increase by not having to compute the embedding matrix <code>xv</code> times if unnecessary. Defaults to <code>TRUE</code>.
+</p>
+
+<ul>
+<li> <p><code>TRUE</code> assumes that if <code>Ar: R^d -&gt; R^r</code> embeds from <code>d</code> to <code>r</code> dimensions and <code>Aq: R^d -&gt; R^q</code> from <code>d</code> to <code>q &gt; r</code> dimensions, that <code>Aq[, 1:r] == Ar</code>,
+</p>
+</li>
+<li> <p><code>TRUE</code> assumes that if <code>Ar: R^d -&gt; R^r</code> embeds from <code>d</code> to <code>r</code> dimensions and <code>Aq: R^d -&gt; R^q</code> from <code>d</code> to <code>q &gt; r</code> dimensions, that <code>Aq[, 1:r] != Ar</code>,
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classifier</code></td>
+<td>
+<p>the classifier to use for assessing performance. The classifier should accept <code>X</code>, a <code>[n, d]</code> array as the first input, and <code>Y</code>, a <code>[n]</code> array of labels, as the first 2 arguments. The class should implement a predict function, <code>predict.classifier</code>, that is compatible with the <code>stats::predict</code> <code>S3</code> method. Defaults to <code>MASS::lda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classifier.opts</code></td>
+<td>
+<p>any extraneous options to be passed to the classifier function, as a list. Defaults to an empty list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classifier.return</code></td>
+<td>
+<p>if the return type is a list, <code>class</code> encodes the attribute containing the prediction labels from <code>stats::predict</code>. Defaults to the return type of <code>MASS::lda</code>, <code>class</code>.
+</p>
+
+<ul>
+<li>
+<p><code>!is.nan(classifier.return)</code> Assumes that <code>predict.classifier</code> will return a list containing an attribute, <code>classifier.return</code>, that encodes the predicted labels.
+</p>
+</li>
+<li>
+<p><code>is.nan(classifier.return)</code> Assumes that <code>predict.classifer</code> returns a <code>[n]</code> vector/array containing the prediction labels for <code>[n, d]</code> inputs.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the cross-validated method to perform. Defaults to <code>'loo'</code>. If <code>sets</code> is provided, this option is ignored. See <code>lol.xval.split</code> for details.
+</p>
+
+<ul>
+<li>
+<p><code>'loo'</code> Leave-one-out cross validation
+</p>
+</li>
+<li>
+<p><code>isinteger(k)</code>  perform <code>k</code>-fold cross-validation with <code>k</code> as the number of folds.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rank.low</code></td>
+<td>
+<p>whether to force the training set to low-rank. Defaults to <code>FALSE</code>. If <code>sets</code> is provided, this option is ignored. See <code>lol.xval.split</code> for details.
+</p>
+
+<ul>
+<li>
+<p>if <code>rank.low == FALSE</code>, uses default cross-validation method with standard <code>k</code>-fold validation. Training sets are <code>k-1</code> folds, and testing sets are <code>1</code> fold, where the fold held-out for testing is rotated to ensure no dependence of potential downstream inference in the cross-validated misclassification rates.
+</p>
+</li>
+<li>
+<p>if ]coderank.low == TRUE, users cross-validation method with <code>ntrain = min((k-1)/k*n, d)</code> sample training sets, where <code>d</code>  is the number of dimensions in <code>X</code>. This ensures that the training data is always low-rank, <code>ntrain &lt; d + 1</code>. Note that the resulting training sets may have <code>ntrain &lt; (k-1)/k*n</code>, but the resulting testing sets will always be properly rotated <code>ntest = n/k</code> to ensure no dependencies in fold-wise testing.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>trailing args.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>folds.data</code></td>
+<td>
+<p>the results, as a data-frame, of the per-fold classification accuracy.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>foldmeans.data</code></td>
+<td>
+<p>the results, as a data-frame, of the average classification accuracy for each <code>r</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>optimal.lhat</code></td>
+<td>
+<p>the classification error of the optimal <code>r</code></p>
+</td>
+</tr>
+</table>
+<p>.
+</p>
+<table><tr style="vertical-align: top;">
+<td><code>optimal.r</code></td>
+<td>
+<p>the optimal number of embedding dimensions from <code>rs</code></p>
+</td>
+</tr></table>
+<p>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>the model trained on all of the data at the optimal number of embedding dimensions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classifier</code></td>
+<td>
+<p>the classifier trained on all of the data at the optimal number of embedding dimensions.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For more details see the help vignette:
+<code>vignette("xval", package = "lolR")</code>
+</p>
+<p>For  extending cross-validation techniques shown here to arbitrary embedding algorithms, see the vignette:
+<code>vignette("extend_embedding", package = "lolR")</code>
+</p>
+<p>For  extending cross-validation techniques shown here to arbitrary classification algorithms, see the vignette:
+<code>vignette("extend_classification", package = "lolR")</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Eric Bridgeford
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># train model and analyze with loo validation using lda classifier
+library(lolR)
+data &lt;- lol.sims.rtrunk(n=200, d=30)  # 200 examples of 30 dimensions
+X &lt;- data$X; Y &lt;- data$Y
+# run cross-validation with the nearestCentroid method and
+# leave-one-out cross-validation, which returns only
+# prediction labels so we specify classifier.return as NaN
+xval.fit &lt;- lol.xval.optimal_dimselect(X, Y, rs=c(5, 10, 15), lol.project.lol,
+                          classifier=lol.classify.nearestCentroid,
+                          classifier.return=NaN, k='loo')
+
+# train model and analyze with 5-fold validation using lda classifier
+data &lt;- lol.sims.rtrunk(n=200, d=30)  # 200 examples of 30 dimensions
+X &lt;- data$X; Y &lt;- data$Y
+xval.fit &lt;- lol.xval.optimal_dimselect(X, Y, rs=c(5, 10, 15), lol.project.lol, k=5)
+
+# pass in existing cross-validation sets
+sets &lt;- lol.xval.split(X, Y, k=2)
+xval.fit &lt;- lol.xval.optimal_dimselect(X, Y, rs=c(5, 10, 15), lol.project.lol, sets=sets)
+</code></pre>
+
+
+</div>

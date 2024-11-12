@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nstdmetrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predefined non standard metrics</h2>
+
+<h3>Description</h3>
+
+<p>Functions and metrics from the literature. See details and references
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rumple_index(x, y = NULL, z = NULL, ...)
+
+gap_fraction_profile(z, dz = 1, z0 = 2)
+
+LAD(z, dz = 1, k = 0.5, z0 = 2)
+
+entropy(z, by = 1, zmax = NULL)
+
+VCI(z, zmax, by = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A <code>RasterLayer</code>, a <code>stars</code> a <code>SpatRaster</code> or a vector of x coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>numeric. If <code>x</code> is a vector of coordinates: the associated y coordinates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z</code></td>
+<td>
+<p>vector of positive z coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>unused</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>z0</code></td>
+<td>
+<p>numeric. The bottom limit of the profile</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>numeric. is the extinction coefficient</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by, dz</code></td>
+<td>
+<p>numeric. The thickness of the layers used (height bin)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zmax</code></td>
+<td>
+<p>numeric. Maximum elevation for an entropy normalized to zmax.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+
+<dl>
+<dt>rumple_index</dt>
+<dd>
+<p>Computes the roughness of a surface as the ratio between its area and its
+projected area on the ground. If the input is a gridded object (raster) the function computes the
+surfaces using Jenness's algorithm (see references). If the input is a point cloud the function
+uses a Delaunay triangulation of the points and computes the area of each triangle.</p>
+</dd>
+<dt>gap_fraction_profile</dt>
+<dd>
+<p>Computes the gap fraction profile using the method of Bouvier et al.
+(see reference). The function assesses the number of laser points that actually reached the layer
+z+dz and those that passed through the layer [z, z+dz]. By definition the layer 0
+will always return 0 because no returns pass through the ground. Therefore, the layer 0 is removed
+from the returned results.</p>
+</dd>
+<dt>LAD</dt>
+<dd>
+<p>Computes a leaf area density profile based on the method of Bouvier et al. (see reference)
+The function assesses the number of laser points that actually reached the layer z+dz and those that
+passed through the layer [z, z+dz] (see gap_fraction_profile).
+Then it computes the log of this quantity and divides it by the extinction coefficient k as
+described in Bouvier et al. By definition the layer 0 will always return infinity because no returns
+pass through the ground. Therefore, the layer 0 is removed from the returned results.</p>
+</dd>
+<dt>entropy</dt>
+<dd>
+<p>A normalized Shannon vertical complexity index. The Shannon diversity index is a
+measure for quantifying diversity and is based on the number and frequency of species present. This index,
+developed by Shannon and Weaver for use in information theory, was successfully transferred
+to the description of species diversity in biological systems (Shannon 1948). Here it is applied
+to quantify the diversity and the evenness of an elevational distribution of las points. It
+makes bins between 0 and the maximum elevation. If there are negative values the function
+returns NA.</p>
+</dd>
+<dt>VCI</dt>
+<dd>
+<p>Vertical Complexity Index. A fixed normalization of the entropy function from van Ewijk
+et al. (2011) (see references)</p>
+</dd>
+</dl>
+<h3>Value</h3>
+
+<p>numeric. The computed Rumple index.
+</p>
+<p>A data.frame containing the bin elevations (z) and the gap fraction for each bin (gf)
+</p>
+<p>A number between 0 and 1
+</p>
+<p>A number between 0 and 1
+</p>
+
+
+<h3>References</h3>
+
+<p>Jenness, J. S. (2004). Calculating landscape surface area from digital elevation
+models. Wildlife Society Bulletin, 32(3), 829–839.
+</p>
+<p>Bouvier, M., Durrieu, S., Fournier, R. a, &amp; Renaud, J. (2015).  Generalizing predictive
+models of forest inventory attributes using an area-based approach with airborne las data. Remote
+Sensing of Environment, 156, 322-334. http://doi.org/10.1016/j.rse.2014.10.004
+</p>
+<p>Pretzsch, H. (2008). Description and Analysis of Stand Structures. Springer Berlin Heidelberg. http://doi.org/10.1007/978-3-540-88307-4 (pages 279-280)
+Shannon, Claude E. (1948), "A mathematical theory of communication," Bell System Tech. Journal 27, 379-423, 623-656.
+</p>
+<p>van Ewijk, K. Y., Treitz, P. M., &amp; Scott, N. A. (2011). Characterizing Forest Succession in Central Ontario using LAS-derived Indices. Photogrammetric Engineering and Remote Sensing, 77(3), 261-269. Retrieved from &lt;Go to ISI&gt;://WOS:000288052100009
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- runif(20, 0, 100)
+y &lt;- runif(20, 0, 100)
+
+if (require(geometry, quietly = TRUE))
+{
+# Perfectly flat surface, rumple_index = 1
+z &lt;- rep(10, 20)
+rumple_index(x, y, z)
+
+# Rough surface, rumple_index &gt; 1
+z &lt;- runif(20, 0, 10)
+rumple_index(x, y, z)
+
+# Rougher surface, rumple_index increases
+z &lt;- runif(20, 0, 50)
+rumple_index(x, y, z)
+
+# Measure of roughness is scale-dependent
+rumple_index(x, y, z)
+rumple_index(x/10, y/10, z)
+}
+z &lt;- c(rnorm(1e4, 25, 6), rgamma(1e3, 1, 8)*6, rgamma(5e2, 5,5)*10)
+z &lt;- z[z&lt;45 &amp; z&gt;0]
+
+hist(z, n=50)
+
+gapFraction = gap_fraction_profile(z)
+
+plot(gapFraction, type="l", xlab="Elevation", ylab="Gap fraction")
+z &lt;- c(rnorm(1e4, 25, 6), rgamma(1e3, 1, 8)*6, rgamma(5e2, 5,5)*10)
+z &lt;- z[z&lt;45 &amp; z&gt;0]
+
+lad &lt;- LAD(z)
+
+plot(lad, type="l", xlab="Elevation", ylab="Leaf area density")
+z &lt;- runif(10000, 0, 10)
+
+# expected to be close to 1. The highest diversity is given for a uniform distribution
+entropy(z, by = 1)
+
+ z &lt;- runif(10000, 9, 10)
+
+# Must be 0. The lowest diversity is given for a unique possibility
+entropy(z, by = 1)
+
+z &lt;- abs(rnorm(10000, 10, 1))
+
+# expected to be between 0 and 1.
+entropy(z, by = 1)
+z &lt;- runif(10000, 0, 10)
+
+VCI(z, by = 1, zmax = 20)
+
+z &lt;- abs(rnorm(10000, 10, 1))
+
+# expected to be closer to 0.
+VCI(z, by = 1, zmax = 20)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lvnetSearch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Step-wise exploratory search for optimal fitting model
+</h2>
+
+<h3>Description</h3>
+
+<p>Performs stepwise search to optimize the structure of omega_theta, omega_psi, theta or psi. Starts at empty or full structure and iteratively adds or removes edges to optimize the criterion.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lvnetSearch(data, matrix = c("omega_theta", "omega_psi", "theta", "psi"), 
+          criterion = c("bic", "ebic","chisq","aic"), 
+          start =  c("default","empty","full"),  alpha = 0.05, lambda, sampleSize, 
+          maxIter,  nCores = 1, maxChange = 1, ...,  verbose = TRUE, file, 
+          startValues = list())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data argument as used in <code>lvnet</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matrix</code></td>
+<td>
+
+<p>Character string indicating the matrix to be optimized. Can be <code>"omega_theta"</code>, <code>"omega_psi"</code>, <code>"theta"</code> and <code>"psi"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+
+<p>Character string indicating the criterion to be used. <code>"AIC"</code> and <code>"BIC"</code> optimize the AIC or BIC respectively, and <code>"chisq"</code> performs chi-square tests to see if adding an edge significantly improves model fit or removing an edges does not significantly reduce model fit.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>A character string indicating the structure of the matrix at the start of the algorithm. <code>"empty"</code> starts with a matrix with only zeroes and <code>"full"</code> starts with a matrix in which all elements are free to estimate. <code>"lvglasso"</code> employs the lvglasso algorithm (<code>EBIClvglasso</code> to find a starting structure for omega_theta and <code>"glasso"</code> employs the glasso algorithm to find a starting point for omega_psi (<code>EBICglasso</code>). <code>"default"</code> will lead to a full matrix if omega_psi or psi is optimized, and an empty matrix if omega_theta or theta is optimized.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+
+<p>The alpha level for chi-square significance testing.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p>The lambda argument as used in <code>lvnet</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampleSize</code></td>
+<td>
+
+<p>The sample size, only used if <code>data</code> is a covariance matrix.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+
+<p>The maximum number of edges to test. Defaults to M(M-1)/2
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nCores</code></td>
+<td>
+
+<p>Number of cores to use in parallel estimation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxChange</code></td>
+<td>
+
+<p>Set to higher than one to change multiple edges in each run. Each iteration, maxChange is reset to max(number of changed edges - 1, 1). Can result in instable results when searching <code>"omega_theta"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments sent to <code>lvnet</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+
+<p>Logical if progress should be printed to the consile.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>file</code></td>
+<td>
+
+<p>An optional character string containing a file name to store temporary results in.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startValues</code></td>
+<td>
+
+<p>A list containing start values as used in <code>lvnet</code>
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class <code>lvnetSearch</code>, which is a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>best</code></td>
+<td>
+<p>The <code>lvnet</code> object of the best fitting model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modList</code></td>
+<td>
+<p>A list containing the chain of fitted models</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>niter</code></td>
+<td>
+<p>The number of iterations used</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Sacha Epskamp &lt;mail@sachaepskamp.com&gt;
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lvnet</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Load dataset:
+library("lavaan")
+data(HolzingerSwineford1939)
+Data &lt;- HolzingerSwineford1939[,7:15]
+
+# Measurement model:
+Lambda &lt;- matrix(0, 9, 3)
+Lambda[1:3,1] &lt;- NA
+Lambda[4:6,2] &lt;- NA
+Lambda[7:9,3] &lt;- NA
+
+# Search best fitting omega_psi:
+## Not run: 
+res &lt;- lvnetSearch(Data, "omega_psi", lambda = Lambda)
+res$best
+
+## End(Not run)
+</code></pre>
+
+
+</div>

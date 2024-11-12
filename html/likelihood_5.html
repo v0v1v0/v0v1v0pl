@@ -1,0 +1,196 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>likeli</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Likelihood</h2>
+
+<h3>Description</h3>
+
+<p>Calculate likelihood of a model, given a dataset.  Typically this is
+log likelihood. See the Likelihood Calculation page for details on how
+likelihood is calculated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">likeli(model, par, var, source_data, pdf, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model function for which to calculate likelihood.  See details for 
+how to set up this function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>List object of parameters for which to calculate likelihood. The 
+name of each component in <code>par</code> matches the name of an argument in one
+of the functions passed to <code>likeli</code> (either <code>model</code>, <code>pdf</code>, or
+another function that does initial calculations). All elements in <code>par</code>
+must be numeric vectors. This is the same as the argument that you pass to 
+<code>anneal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>List object with the source for all other non-parameter arguments and
+data used by <code>model</code>, <code>pdf</code>, and any other functions. This is the 
+same as the argument that you pass to <code>anneal</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_data</code></td>
+<td>
+<p>Data frame containing any needed source data. You can 
+reference the data frame columns by name to <code>likeli</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>Probability density function to use in the likelihood calculation.
+If you want a log likelihood value, which is usual and matches what 
+<code>anneal</code> does, instruct <code>pdf</code> to calculate the log of its 
+result.  This is an option with all of R's built-in PDFs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any other data that may be needed by <code>model</code>, <code>pdf</code>, or
+any other function to be called by <code>likeli</code>.  This is an alternative to 
+providing the data in <code>var</code>; however, passing values in <code>var</code> is
+strongly recommended.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See the Likelihood Calculation page for details on how
+likelihood is calculated. <code>anneal</code> uses the same parameters and
+is set up in the same way.
+</p>
+<p>The <code>model</code> function is the scientific model, which generally takes as
+arguments the parameters for which to estimate maximum likelihood.  It 
+returns a predicted value of the dependent variable for each record in the
+<code>source_data</code> dataset, which is compared to the actual (observed) value
+when likelihood is calculated.  Write <code>model</code> so that it returns a
+vector of numeric values, one for each record in the dataset.
+</p>
+<p>The probability density function calculates the likelihood using the
+predicted and observed values of the dependent variable.  You can provide 
+your own function, but R has many built-in functions that you can use. You 
+can read more about R's probability density functions in the help file
+“An Introduction to R”, but here is a brief list: <code>dbeta</code>
+(beta), <code>dexp</code> (exponential), <code>dgamma</code> (gamma),
+<code>dlnorm</code> (lognormal), <code>dnbinom</code> (negative binomial),
+<code>dnorm</code> (normal), and <code>dpois</code> (poisson).  These all
+take a <code>log</code> argument which you should set to TRUE in <code>var</code> in
+order to calculate the log likelihood.  If you write your own probability
+density function, it should return a vector of values, one for each record
+in the dataset.
+</p>
+<p>If you wish, some of the arguments passed to <code>model</code> or <code>pdf</code> by
+<code>likeli</code> can be the results of other functions.
+</p>
+<p><code>likeli</code> handles all function calls and data.  You tell <code>likeli</code>
+how to use your functions and data using <code>par</code> and <code>var</code>.
+Use <code>par</code> to give <code>likeli</code> the list of parameters for the model.
+Use <code>var</code> to tell <code>likeli</code> where all other functions and data come
+from.  <code>var</code> and <code>var</code> are lists, and each component's name matches
+the function argument it should be used for.  For example, if the 
+<code>model</code> function takes an argument called “<code>a</code>”, there 
+should be a <code>par$a</code> or a <code>var$a</code> with the value of <code>a</code>.  For
+<code>par</code>, all values must be numeric vectors.  For <code>var</code>, the values 
+can be of any data type that makes sense to the function.  To indicate that 
+the source of a function argument is a column of data from a dataset, set 
+that value of <code>var</code> to the name of the data frame's column, as a 
+character string (for example, <code>var$dbh&lt;-"DBH"</code>).  Case matters!  You 
+will get the best results if all function arguments and column names are 
+unique, so that there is no ambiguity. You are also free to reference values directly from the global environment in your functions if you prefer.
+</p>
+<p>The difference between <code>par</code> and <code>var</code> is important to
+<code>anneal</code> but not to <code>likeli</code>.
+</p>
+<p>The reserved character string “predicted”, used in <code>var</code>, means
+the predicted value of the dependent variable, as calculated by <code>model</code>.
+</p>
+<p>If you want <code>likeli</code> to pass the results of another function as an
+argument to the <code>model</code> or <code>pdf</code> functions, define the function
+and then set the appropriate argument in <code>var</code> to the name of the
+function.  Then provide all arguments to the sub-function in <code>var</code> as
+well.  For instance, if your model function takes an argument called
+<code>x</code>, and you wish <code>x</code> to be the result of function <code>fun1</code>,
+then set <code>var$x &lt;- fun1</code>, and add any arguments to <code>fun1</code> to
+<code>var</code>.  <code>likeli</code> will ensure that all functions are evaluated in
+the proper order.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A single numeric value for the likelihood.  It is possible for this to be 
+<code>NaN</code> or <code>Inf</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(likelihood)
+
+## Use the included crown_rad dataset
+data( crown_rad )
+
+## Create our model function - crown radius is a linear function of DBH.
+## DBH is a column of data from the crown_rad dataset; a and b are single
+## parameter values.
+model &lt;- function (a, b, DBH) {a + b * DBH}
+
+## Create our parameters list and set values for a and b
+par &lt;- list(a = 1.12, b = 0.07)
+
+## Create a place to put all the other data needed by
+## the model and PDF, and indicate that DBH comes from 
+## the column marked "DBH" in the dataset
+var &lt;- list(DBH = "DBH")
+
+## We'll use the normal probability density function dnorm - add its
+## arguments to our parameter list
+
+## "x" value in PDF is observed value
+var$x &lt;- "Radius"
+
+## The mean is the predicted value, the outcome of the model statement. Use
+## the reserved word "predicted"
+var$mean &lt;- "predicted"
+## Use a fixed value of the standard deviation for this example
+var$sd &lt;- 0.815585
+
+## Have dnorm calculate log likelihood
+var$log &lt;- TRUE
+
+result &lt;- likeli(model, par, var, crown_rad, dnorm)
+
+## Alternately: reference crown_rad$DBH directly in the function without
+## using var
+model &lt;- function (a, b) {a + b * crown_rad$DBH}
+var &lt;- list(x = "Radius",
+            mean = "predicted",
+            sd = 0.815585,
+            log = TRUE)
+result &lt;- likeli(model, par, var, crown_rad, dnorm)
+</code></pre>
+
+
+</div>

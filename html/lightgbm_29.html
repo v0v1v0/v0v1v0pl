@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.plot.interpretation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Plot feature contribution as a bar graph</h2>
+
+<h3>Description</h3>
+
+<p>Plot previously calculated feature contribution as a bar graph.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.plot.interpretation(
+  tree_interpretation_dt,
+  top_n = 10L,
+  cols = 1L,
+  left_margin = 10L,
+  cex = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tree_interpretation_dt</code></td>
+<td>
+<p>a <code>data.table</code> returned by <code>lgb.interprete</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>top_n</code></td>
+<td>
+<p>maximal number of top features to include into the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>the column numbers of layout, will be used only for multiclass classification feature contribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>left_margin</code></td>
+<td>
+<p>(base R barplot) allows to adjust the left margin size to fit feature names.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cex</code></td>
+<td>
+<p>(base R barplot) passed as <code>cex.names</code> parameter to <code>barplot</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The graph represents each feature as a horizontal bar of length proportional to the defined
+contribution of a feature. Features are shown ranked in a decreasing contribution order.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>lgb.plot.interpretation</code> function creates a <code>barplot</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+Logit &lt;- function(x) {
+  log(x / (1.0 - x))
+}
+data(agaricus.train, package = "lightgbm")
+labels &lt;- agaricus.train$label
+dtrain &lt;- lgb.Dataset(
+  agaricus.train$data
+  , label = labels
+)
+set_field(
+  dataset = dtrain
+  , field_name = "init_score"
+  , data = rep(Logit(mean(labels)), length(labels))
+)
+
+data(agaricus.test, package = "lightgbm")
+
+params &lt;- list(
+  objective = "binary"
+  , learning_rate = 0.1
+  , max_depth = -1L
+  , min_data_in_leaf = 1L
+  , min_sum_hessian_in_leaf = 1.0
+  , num_threads = 2L
+)
+model &lt;- lgb.train(
+  params = params
+  , data = dtrain
+  , nrounds = 5L
+)
+
+tree_interpretation &lt;- lgb.interprete(
+  model = model
+  , data = agaricus.test$data
+  , idxset = 1L:5L
+)
+lgb.plot.interpretation(
+  tree_interpretation_dt = tree_interpretation[[1L]]
+  , top_n = 3L
+)
+
+</code></pre>
+
+
+</div>

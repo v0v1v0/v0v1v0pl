@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_callback_auto_resume</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Resume training callback</h2>
+
+<h3>Description</h3>
+
+<p>This callback allows you to resume training a model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_callback_auto_resume(path = "./state.pt")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>path</code></td>
+<td>
+<p>Path to save state files for the model.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>When using it, model weights, optimizer state are serialized at the end of
+each epoch. If something fails during training simply re-running the same
+script will restart the model training from the epoch right after the last
+epoch that was serialized.
+</p>
+
+
+<h3>Customizing serialization</h3>
+
+<p>By default model, optimizer state and records are serialized. Callbacks can
+be used to customize serialization by implementing the <code>state_dict()</code> and
+<code>load_state_dict()</code> methods.
+If those methods are implemented, then <code>state_dict()</code> is called at the end of
+each epoch and <code>load_state_dict()</code> is called when the model is resumed.
+</p>
+
+
+<h3>Note</h3>
+
+<p>In general you will want to add this callback as the last in the callbacks
+list, this way, the serialized state is likely to contain all possible changes
+that other callbacks could have made at <code>'on_epoch_end'</code>. The default <code>weight</code>
+attribute of this callback is <code>Inf</code>.
+</p>
+<p>Read the checkpointing article in the pkgdown website for more
+information.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other luz_callbacks: 
+<code>luz_callback_csv_logger()</code>,
+<code>luz_callback_early_stopping()</code>,
+<code>luz_callback_interrupt()</code>,
+<code>luz_callback_keep_best_model()</code>,
+<code>luz_callback_lr_scheduler()</code>,
+<code>luz_callback_metrics()</code>,
+<code>luz_callback_mixup()</code>,
+<code>luz_callback_model_checkpoint()</code>,
+<code>luz_callback_profile()</code>,
+<code>luz_callback_progress()</code>,
+<code>luz_callback_resume_from_checkpoint()</code>,
+<code>luz_callback_train_valid()</code>,
+<code>luz_callback()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (torch::torch_is_installed()) {
+library(torch)
+library(luz)
+
+x &lt;- torch_randn(1000, 10)
+y &lt;- torch_randn(1000, 1)
+
+model &lt;- nn_linear %&gt;%
+  setup(optimizer = optim_sgd, loss = nnf_mse_loss) %&gt;%
+  set_hparams(in_features = 10, out_features = 1) %&gt;%
+  set_opt_hparams(lr = 0.01)
+
+
+# simulate a failure in the middle of epoch 5 happening only once.
+callback_stop &lt;- luz_callback(
+  "interrupt",
+  failed = FALSE,
+  on_epoch_end = function() {
+    if (ctx$epoch == 5 &amp;&amp; !self$failed) {
+      self$failed &lt;- TRUE
+      stop("Error on epoch 5")
+    }
+  }
+)
+
+path &lt;- tempfile()
+autoresume &lt;- luz_callback_auto_resume(path = path)
+interrupt &lt;- callback_stop()
+
+# try once and the model fails
+try({
+  results &lt;- model %&gt;% fit(
+    list(x, y),
+    callbacks = list(autoresume, interrupt),
+    verbose = FALSE
+  )
+})
+
+# model resumes and completes
+results &lt;- model %&gt;% fit(
+  list(x, y),
+  callbacks = list(autoresume, interrupt),
+  verbose = FALSE
+)
+
+get_metrics(results)
+
+}
+</code></pre>
+
+
+</div>

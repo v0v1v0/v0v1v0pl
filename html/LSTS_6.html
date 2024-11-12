@@ -1,0 +1,312 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LS.whittle</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Whittle estimator to Locally Stationary Time Series</h2>
+
+<h3>Description</h3>
+
+<p>This function computes Whittle estimator to LS-ARMA and
+LS-ARFIMA models.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LS.whittle(
+  series,
+  start,
+  order = c(p = 0, q = 0),
+  ar.order = NULL,
+  ma.order = NULL,
+  sd.order = NULL,
+  d.order = NULL,
+  include.d = FALSE,
+  N = NULL,
+  S = NULL,
+  include.taper = TRUE,
+  control = list(),
+  lower = -Inf,
+  upper = Inf,
+  m = NULL,
+  n.ahead = 0
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>series</code></td>
+<td>
+<p>(type: numeric) univariate time series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>(type: numeric) numeric vector, initial values for parameters to
+run the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>(type: numeric) vector corresponding to <code>ARMA</code> model
+entered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ar.order</code></td>
+<td>
+<p>(type: numeric) AR polimonial order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ma.order</code></td>
+<td>
+<p>(type: numeric) MA polimonial order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd.order</code></td>
+<td>
+<p>(type: numeric) polinomial order noise scale factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d.order</code></td>
+<td>
+<p>(type: numeric) <code>d</code> polinomial order, where <code>d</code> is
+the <code>ARFIMA</code> parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.d</code></td>
+<td>
+<p>(type: numeric) logical argument for <code>ARFIMA</code> models.
+If <code>include.d=FALSE</code> then the model is an ARMA process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p>(type: numeric) value corresponding to the length of the window to
+compute periodogram. If <code>N=NULL</code> then the function will use
+<code class="reqn">N = \textrm{trunc}(n^{0.8})</code>, see Dahlhaus (1998) where <code class="reqn">n</code> is the
+length of the <code>y</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>(type: numeric) value corresponding to the lag with which will go
+taking the blocks or windows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>include.taper</code></td>
+<td>
+<p>(type: logical) logical argument that by default is
+<code>TRUE</code>. See <code>periodogram</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>(type: list) A list of control parameters. More details in
+<code>nlminb</code> .</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>(type: numeric) lower bound, replicated to be as long as
+<code>start</code>. If unspecified, all parameters are assumed to be lower
+unconstrained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>(type: numeric) upper bound, replicated to be as long as
+<code>start</code>. If unspecified, all parameters are assumed to be upper
+unconstrained.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>(type: numeric) truncation order of the MA infinity process, by
+default <code class="reqn">m = 0.25n^{0.8}</code>. Parameter used in <code>LSTS_kalman</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.ahead</code></td>
+<td>
+<p>(type: numeric) The number of steps ahead for which prediction
+is required. By default is zero.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function estimates the parameters in models: LS-ARMA
+</p>
+<p style="text-align: center;"><code class="reqn">\Phi(t/T, \, B)\, Y_{t, T} = \Theta(t/T,\, B)\,\sigma(t/T)\,
+\varepsilon_t</code>
+</p>
+<p> and LS-ARFIMA </p>
+<p style="text-align: center;"><code class="reqn">\Phi(t/T, \, B)\, Y_{t, T} =
+\Theta(t/T,\, B)\, (1-B)^{-d(t/T)}\, \sigma(t/T)\, \varepsilon_t,</code>
+</p>
+
+<p>with infinite moving average expansion
+</p>
+<p style="text-align: center;"><code class="reqn">Y_{t, T} = \sigma(t/T)\, \sum_{j=0}^{\infty}
+\psi(t/T)\,\varepsilon_t,</code>
+</p>
+<p> for <code class="reqn">t = 1,\ldots, T</code>, where for
+<code class="reqn">u = t/T \in [0,1]</code>, <code class="reqn">\Phi(u,B)=1+\phi_1(u)B +\cdots+\phi_p(u)B^p</code>
+is an autoregressive polynomial,
+<code class="reqn">\Theta(u, B) = 1 + \theta_1(u)B + \cdots  + \theta_q(u)B^q</code> is a
+moving average polynomial, <code class="reqn">d(u)</code> is a long-memory parameter,
+<code class="reqn">\sigma(u)</code> is a noise scale factor and <code class="reqn">\{\varepsilon_t \}</code> is a
+Gaussian white noise sequence with zero mean and unit variance. This class
+of models extends the well-known ARMA and ARFIMA process, which is obtained
+when the components <code class="reqn">\Phi(u, B)</code>, <code class="reqn">\Theta(u, B)</code>, <code class="reqn">d(u)</code> and
+<code class="reqn">\sigma(u)</code> do not depend on <code class="reqn">u</code>.
+The evolution of these models can be specified in terms of a general class
+of functions. For example, let <code class="reqn">\{g_j(u)\}</code>, <code class="reqn">j = 1, 2, \ldots</code>, be
+a basis for a space of smoothly varying functions and let
+<code class="reqn">d_{\theta}(u)</code> be the time-varying long-memory parameter in model
+LS-ARFIMA. Then we could write <code class="reqn">d_{\theta}(u)</code> in terms of the basis
+<code class="reqn">\{g_j(u) = u^j\}</code> as follows
+<code class="reqn">d_{\theta}(u) = \sum_{j=0}^{k} \alpha_j\,g_j(u)</code>
+for unknown values of <code class="reqn">k</code> and
+<code class="reqn">\theta = (\alpha_0,\,\alpha_1,\,\ldots, \,\alpha_k)^{\prime}</code>.
+In this situation, estimating <code class="reqn">\theta</code> involves determining <code class="reqn">k</code> and
+estimating the coefficients <code class="reqn">\alpha_0,\,\alpha_1,\,\ldots, \,\alpha_k</code>.
+<code>LS.whittle</code> optimizes <code>LS.whittle.loglik</code> as objective
+function using <code>nlminb</code> function, for both LS-ARMA
+(<code>include.d=FALSE</code>) and LS-ARFIMA (<code>include.d=TRUE</code>) models.
+Also computes Kalman filter with <code>LS.kalman</code> and this values
+are given in <code>var.coef</code> in the output.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coef </code></td>
+<td>
+<p>The best set of parameters found.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.coef </code></td>
+<td>
+<p>covariance matrix approximated for maximum likelihood
+estimator <code class="reqn">\hat{\theta}</code> of
+<code class="reqn">\theta:=(\theta_1,\ldots,\theta_k)^{\prime}</code>. This matrix is
+approximated by <code class="reqn">H^{-1}/n</code>, where <code class="reqn">H</code> is the Hessian matrix
+<code class="reqn">[\partial^2 \ell(\theta)/\partial\theta_i
+\partial\theta_j]_{i,j=1}^{k}</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik </code></td>
+<td>
+<p>log-likelihood of <code>coef</code>, calculated with
+<code>LS.whittle</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aic </code></td>
+<td>
+<p>Akaike'S ‘An Information Criterion’, for one fitted model LS-ARMA
+or LS-ARFIMA. The formula is <code class="reqn">-2L + 2k/n</code>, where <em>L</em> represents the
+log-likelihood, <em>k</em> represents the number of parameters in the fitted
+model and <em>n</em> is equal to the length of the <code>series</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>series </code></td>
+<td>
+<p>original time serie.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals </code></td>
+<td>
+<p>standard residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values </code></td>
+<td>
+<p>model fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred </code></td>
+<td>
+<p>predictions of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>the estimated standard errors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model </code></td>
+<td>
+<p>A list representing the fitted model.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>nlminb</code>, <code>LS.kalman</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Analysis by blocks of phi and sigma parameters
+N &lt;- 200
+S &lt;- 100
+M &lt;- trunc((length(malleco) - N) / S + 1)
+table &lt;- c()
+for (j in 1:M) {
+  x &lt;- malleco[(1 + S * (j - 1)):(N + S * (j - 1))]
+  table &lt;- rbind(table, nlminb(
+    start = c(0.65, 0.15), N = N,
+    objective = LS.whittle.loglik,
+    series = x, order = c(p = 1, q = 0)
+  )$par)
+}
+u &lt;- (N / 2 + S * (1:M - 1)) / length(malleco)
+table &lt;- as.data.frame(cbind(u, table))
+colnames(table) &lt;- c("u", "phi", "sigma")
+# Start parameters
+phi &lt;- smooth.spline(table$phi, spar = 1, tol = 0.01)$y
+fit.1 &lt;- nls(phi ~ a0 + a1 * u, start = list(a0 = 0.65, a1 = 0.00))
+sigma &lt;- smooth.spline(table$sigma, spar = 1)$y
+fit.2 &lt;- nls(sigma ~ b0 + b1 * u, start = list(b0 = 0.65, b1 = 0.00))
+fit_whittle &lt;- LS.whittle(
+  series = malleco, start = c(coef(fit.1), coef(fit.2)), order = c(p = 1, q = 0),
+  ar.order = 1, sd.order = 1, N = 180, n.ahead = 10
+)
+</code></pre>
+
+
+</div>

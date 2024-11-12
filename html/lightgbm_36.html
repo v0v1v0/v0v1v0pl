@@ -1,0 +1,258 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lightgbm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Train a LightGBM model</h2>
+
+<h3>Description</h3>
+
+<p>High-level R interface to train a LightGBM model. Unlike <code>lgb.train</code>, this function
+is focused on compatibility with other statistics and machine learning interfaces in R.
+This focus on compatibility means that this interface may experience more frequent breaking API changes
+than <code>lgb.train</code>.
+For efficiency-sensitive applications, or for applications where breaking API changes across releases
+is very expensive, use <code>lgb.train</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lightgbm(
+  data,
+  label = NULL,
+  weights = NULL,
+  params = list(),
+  nrounds = 100L,
+  verbose = 1L,
+  eval_freq = 1L,
+  early_stopping_rounds = NULL,
+  init_model = NULL,
+  callbacks = list(),
+  serializable = TRUE,
+  objective = "auto",
+  init_score = NULL,
+  num_threads = NULL,
+  colnames = NULL,
+  categorical_feature = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>lgb.Dataset</code> object, used for training. Some functions, such as <code>lgb.cv</code>,
+may allow you to pass other types of data like <code>matrix</code> and then separately supply
+<code>label</code> as a keyword argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label</code></td>
+<td>
+<p>Vector of labels, used if <code>data</code> is not an <code>lgb.Dataset</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Sample / observation weights for rows in the input data. If <code>NULL</code>, will assume that all
+observations / rows have the same importance / weight.
+</p>
+<p><em>Changed from 'weight', in version 4.0.0</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a list of parameters. See <a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html">
+the "Parameters" section of the documentation</a> for a list of parameters and valid values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrounds</code></td>
+<td>
+<p>number of training rounds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>verbosity for output, if &lt;= 0 and <code>valids</code> has been provided, also will disable the
+printing of evaluation during training</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_freq</code></td>
+<td>
+<p>evaluation output frequency, only effective when verbose &gt; 0 and <code>valids</code> has been provided</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>early_stopping_rounds</code></td>
+<td>
+<p>int. Activates early stopping. When this parameter is non-null,
+training will stop if the evaluation of any metric on any validation set
+fails to improve for <code>early_stopping_rounds</code> consecutive boosting rounds.
+If training stops early, the returned model will have attribute <code>best_iter</code>
+set to the iteration number of the best iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_model</code></td>
+<td>
+<p>path of model file or <code>lgb.Booster</code> object, will continue training from this model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>callbacks</code></td>
+<td>
+<p>List of callback functions that are applied at each iteration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>serializable</code></td>
+<td>
+<p>whether to make the resulting objects serializable through functions such as
+<code>save</code> or <code>saveRDS</code> (see section "Model serialization").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective</code></td>
+<td>
+<p>Optimization objective (e.g. '"regression"', '"binary"', etc.).
+For a list of accepted objectives, see
+<a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html#objective">
+the "objective" item of the "Parameters" section of the documentation</a>.
+</p>
+<p>If passing <code>"auto"</code> and <code>data</code> is not of type <code>lgb.Dataset</code>, the objective will
+be determined according to what is passed for <code>label</code>:</p>
+
+<ul>
+<li>
+<p> If passing a factor with two variables, will use objective <code>"binary"</code>.
+</p>
+</li>
+<li>
+<p> If passing a factor with more than two variables, will use objective <code>"multiclass"</code>
+(note that parameter <code>num_class</code> in this case will also be determined automatically from
+<code>label</code>).
+</p>
+</li>
+<li>
+<p> Otherwise (or if passing <code>lgb.Dataset</code> as input), will use objective <code>"regression"</code>.
+</p>
+</li>
+</ul>
+<p><em>New in version 4.0.0</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init_score</code></td>
+<td>
+<p>initial score is the base prediction lightgbm will boost from
+</p>
+<p><em>New in version 4.0.0</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num_threads</code></td>
+<td>
+<p>Number of parallel threads to use. For best speed, this should be set to the number of
+physical cores in the CPU - in a typical x86-64 machine, this corresponds to half the
+number of maximum threads.
+</p>
+<p>Be aware that using too many threads can result in speed degradation in smaller datasets
+(see the parameters documentation for more details).
+</p>
+<p>If passing zero, will use the default number of threads configured for OpenMP
+(typically controlled through an environment variable <code>OMP_NUM_THREADS</code>).
+</p>
+<p>If passing <code>NULL</code> (the default), will try to use the number of physical cores in the
+system, but be aware that getting the number of cores detected correctly requires package
+<code>RhpcBLASctl</code> to be installed.
+</p>
+<p>This parameter gets overriden by <code>num_threads</code> and its aliases under <code>params</code>
+if passed there.
+</p>
+<p><em>New in version 4.0.0</em></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>colnames</code></td>
+<td>
+<p>Character vector of features. Only used if <code>data</code> is not an <code>lgb.Dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>categorical_feature</code></td>
+<td>
+<p>categorical features. This can either be a character vector of feature
+names or an integer vector with the indices of the features (e.g.
+<code>c(1L, 10L)</code> to say "the first and tenth columns").
+Only used if <code>data</code> is not an <code>lgb.Dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>lgb.train</code>. For example
+</p>
+
+<ul>
+<li>
+<p><code>valids</code>: a list of <code>lgb.Dataset</code> objects, used for validation
+</p>
+</li>
+<li>
+<p><code>obj</code>: objective function, can be character or custom objective function. Examples include
+<code>regression</code>, <code>regression_l1</code>, <code>huber</code>,
+<code>binary</code>, <code>lambdarank</code>, <code>multiclass</code>, <code>multiclass</code>
+</p>
+</li>
+<li>
+<p><code>eval</code>: evaluation function, can be (a list of) character or custom eval function
+</p>
+</li>
+<li>
+<p><code>record</code>: Boolean, TRUE will record iteration message to <code>booster$record_evals</code>
+</p>
+</li>
+<li>
+<p><code>reset_data</code>: Boolean, setting it to TRUE (not the default value) will transform the booster model
+into a predictor model which frees up memory and the original datasets
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a trained <code>lgb.Booster</code>
+</p>
+
+
+<h3>Early Stopping</h3>
+
+<p>"early stopping" refers to stopping the training process if the model's performance on a given
+validation set does not improve for several consecutive iterations.
+</p>
+<p>If multiple arguments are given to <code>eval</code>, their order will be preserved. If you enable
+early stopping by setting <code>early_stopping_rounds</code> in <code>params</code>, by default all
+metrics will be considered for early stopping.
+</p>
+<p>If you want to only consider the first metric for early stopping, pass
+<code>first_metric_only = TRUE</code> in <code>params</code>. Note that if you also specify <code>metric</code>
+in <code>params</code>, that metric will be considered the "first" one. If you omit <code>metric</code>,
+a default metric will be used based on your choice for the parameter <code>obj</code> (keyword argument)
+or <code>objective</code> (passed into <code>params</code>).
+</p>
+
+
+</div>

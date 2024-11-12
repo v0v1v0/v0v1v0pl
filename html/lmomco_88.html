@@ -1,0 +1,252 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dat2bernqua</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Observed Data to Empirical Quantiles through Bernstein or Kantorovich Polynomials </h2>
+
+<h3>Description</h3>
+
+<p>The empirical quantile function can be “smoothed” (Hernández-Maldonado and others, 2012, p. 114) through the Kantorovich polynomial (Muñoz-Pérez and Fernández-Palacín, 1987) for the sample order statistics <code class="reqn">x_{k:n}</code> for a sample of size <code class="reqn">n</code> by
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde{X}_n(F) = \frac{1}{2}\sum_{k=0}^n (x_{k:n} + x_{(k+1):n}) {n \choose k} F^k (1-F)^{n-k}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">F</code> is nonexceedance probability, and <code class="reqn">(n\:k)</code> are the binomial coefficients from the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>choose()</code>, and the special situations for <code class="reqn">k=0</code> and <code class="reqn">k=n</code> are described within the Note section. The form for the Bernstein polynomial is
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde{X}_n(F) = \sum_{k=0}^{n+1} (x_{k:n}) {n+1 \choose k} F^k (1-F)^{n+1-k}\mbox{.}</code>
+</p>
+<p> There are subtle differences between the two and <code>dat2bernqua</code> function supports each. Readers are also directed to the <em>Special Attention</em> section.
+</p>
+<p>Turnbull and Ghosh (2014) consider through the direction of a referee and recommendation of <code class="reqn">p=0.05</code> by that referee (and credit to ideas by de Carvalho [2012]) that the support of the probability density function for the Turnbull and Ghosh (2014) study of Bernstein polynomials can be computed letting <code class="reqn">\alpha = (1 - p)^{-2} - 1</code> by
+</p>
+<p style="text-align: center;"><code class="reqn"> \biggl(x_{1:n} - (x_{2:n} - x_{1:n})/\alpha,\: x_{n:n} + (x_{n:n} - x_{n-1:n})/\alpha\biggr)\mbox{,}</code>
+</p>
+
+<p>for the minimum and maximum, respectively. Evidently, the original support considered by Turnbull and Ghosh (2014) was
+</p>
+<p style="text-align: center;"><code class="reqn"> \biggl(x_{1:n} - \lambda_2\sqrt{\pi/n},\: x_{n:n} +  \lambda_2\sqrt{\pi/n}\biggr)\mbox{,}</code>
+</p>
+
+<p>for the minimum and maximum, respectively and where the standard deviation is estimated in the function using the 2nd L-moment as <code class="reqn">s = \lambda\sqrt{\pi}</code>.
+</p>
+<p>The <code class="reqn">p</code> is referred to by this author as the “p-factor” this value has great influence in the estimated support of the distribution and therefore distal-tail estimation or performance is sensitive to the value for <code class="reqn">p</code>. General exploratory analysis suggests that the <code class="reqn">p</code> can be optimized based on information external or internal to the data for shape restrained smoothing. For example, an analyst might have external information as to the expected L-skew of the phenomenon being studied or could use the sample L-skew of the data (internal information) for shape restraint (see <code>pfactor.bernstein</code>).
+</p>
+<p>An alternative formula for smoothing is by Cheng (1995) and is
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde{X}^{\mathrm{Cheng}}_n(F) = \sum_{k=1}^n x_{k:n}\:{n - 1 \choose k-1}\: F^{k-1}(1-F)^{n-k}\mbox{.}</code>
+</p>
+
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dat2bernqua(f, x, bern.control=NULL,
+                  poly.type=c("Bernstein", "Kantorovich", "Cheng", "Parzen",
+                              "bernstein", "kantorovich", "cheng", "parzen"),
+                  bound.type=c("none", "sd", "Carv", "either", "carv"),
+                  fix.lower=NULL, fix.upper=NULL, p=0.05, listem=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>A vector of nonexceedance probabilities <code class="reqn">F</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bern.control</code></td>
+<td>
+<p>A <code>list</code> that holds <code>poly.type</code>, <code>bound.type</code>, <code>fix.lower</code>, and <code>fix.upper</code>. And this list will supersede the respective
+values provided as separate arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>poly.type</code></td>
+<td>
+<p>The Bernstein or Kantorovich polynomial will be used. The two are quite closely related. Or the formula by Cheng (1995) will be used and <code>bound.type</code>, <code>fix.lower</code>, <code>fix.upper</code>, and <code>p</code> are not applicable. Or the formula credited by Nair et al. (2013, p. 17) to Parzen (1979) will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bound.type</code></td>
+<td>
+<p>Triggers to the not involve alternative supports (<code>"none"</code>) then the minimum and maximum are used unless already provided by the <code>fix.lower</code> or <code>fix.upper</code>, the support based <code>"sd"</code> on the standard deviation, the support <code>"Carv"</code> based on the arguments of de Carvalho (2012), or <code>"either"</code> method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix.lower</code></td>
+<td>
+<p>For <code class="reqn">k = 0</code>, either the known lower bounds is used if provided as non <code>NULL</code> or the observed minimum of the data. If the minimum of the data is less than the <code>fix.lower</code>, a warning is triggered and <code>fix.lower</code> is set to the minimum. Following Turnbull and Ghosh (2014) to avoid bounds that are extremely lower than the data, it will use the estimated lower bounds by the method <code>"sd"</code>, <code>"Carv"</code>, or <code>"either"</code> if these bounds are larger than the provided <code>fix.lower</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fix.upper</code></td>
+<td>
+<p>For <code class="reqn">k = n</code>, either the known upper bounds is used if provided as non <code>NULL</code> or the observed maximum of the data; If the maximum of the data is less than the <code>fix.upper</code>, a warning is triggered and <code>fix.upper</code> is set to the maximum.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A small probability value to serve as the <code class="reqn">p</code> in the <code>"Carv"</code> support computation. The default is recommended as mentioned above. The program will return <code>NA</code> if <code class="reqn">10^{-6} &lt; p \ge (1-10^{-6})</code> is not met. The value <code>p</code> is the “p-factor” <code class="reqn">p</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>listem</code></td>
+<td>
+<p>A logical controlling whether (1) a vector of <code class="reqn">\tilde{X}_n(F)</code> is returned or (2) a list containing <code class="reqn">\tilde{X}_n(F)</code>, the <code>f</code>, original sample size <code class="reqn">n</code> of the data, the de Carvalho probability <code>p</code> (whether actually used internally or not), and both <code>fix.lower</code> and <code>fix.upper</code> as computed within the function or provided (less likely) by the function arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Yet another alternative formula for smoothing if by Parzen (1979) and known as the “Parzen weighting method” is
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde{X}^{\mathrm{Parzen}}_n(F) = n\left(\frac{r}{n} - F\right)x_{r-1:n} + n\left(F - \frac{r-1}{n}\right)x_{r:n}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">(r-1)/n \le F \le (r/n)</code> for <code class="reqn">r = 1, 2, \ldots, n</code> and <code class="reqn">x_{0:n}</code> is taken as either the minimum of the data (<code class="reqn">\mathrm{min}(x)</code>) or the lower bounds <code>fix.lower</code> as externally set by the user.  For protection, the minimum of <code class="reqn">(\mathrm{min}(x),</code> <code>fix.lower</code><code class="reqn">)</code> is formally used. If the Parzen method is used, the only arguments considered are <code>poly.type</code> and <code>fix.lower</code>; all others are ignored including the <code>f</code> (see Value section). The user does not actually have to provide <code>f</code> in the arguments but a place holder such as <code>f=NULL</code> is required; internally the Parzen method takes over full control. The Parzen method in general is not smooth and not recommended like the others that rely on a polynomial basis function. Further the Parzen method has implicit asymmetry in the estimated <code class="reqn">F</code>. The method has <code class="reqn">F=0</code> and <code class="reqn">F &lt; 1</code> on output, but if the data are reversed, then the method has <code class="reqn">F &gt; 0</code> and <code class="reqn">F=1</code>. Data reversal is made in <code>-X</code> as this example illustrates:
+</p>
+<pre>
+X &lt;- sort(rexp(30))
+P &lt;- dat2bernqua(f=NULL,  X, poly.type="Parzen")
+R &lt;- dat2bernqua(f=NULL, -X, poly.type="Parzen")
+plot(pp(X, a=0.5), X, xlim=c(0, 1)) # Hazen plotting position to
+lines(  P$f,  P$x, col="red" )      # basically split the horizontal
+lines(1-R$f, -R$x, col="blue")      # differences between blue and red.
+</pre>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>vector</code> is returned unless the Parzen weighting method is used and in that case an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned with elements <code>f</code> and <code>x</code>, which respectively are the <code class="reqn">F</code> values as shown in the formula and the <code class="reqn">\tilde{X}^{\mathrm{Parzen}}_n(F)</code>.
+</p>
+
+
+<h3>Special Attention</h3>
+
+<p>The limiting properties of the Bernstein and Kantorovich polynomials differ. The Kantorovich polynomial uses the average of the largest (smallest) value and the respective outer order statistics (<code class="reqn">x_{n+1:n}</code> or <code class="reqn">x_{0:n}</code>) unlike the Bernstein polynomial whose <code class="reqn">F = 0</code> or <code class="reqn">F = 1</code> are purely a function of the outer order statistics. Thus, the Bernstein polynomial can attain the <code>fix.lower</code> and(or) <code>fix.upper</code> whereas the Kantorovich fundamentally can not.  For a final comment, the function <code>dat2bernquaf</code> is an inverse of <code>dat2bernqua</code>.
+</p>
+
+
+<h3>Implentation Note</h3>
+
+<p>The function makes use of <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> functions <code>lchoose</code> and <code>exp</code> and logarithmic expressions, such as <code class="reqn">(1-F)^{(n-k)} \rightarrow (n-k)\log(1-F)</code>, for numerical stability for large sample sizes.
+</p>
+
+
+<h3>Note</h3>
+
+<p>Muñoz-Pérez and Fernández-Palacín (1987, p. 391) describe what to do with the condition of <code class="reqn">k = 0</code> but seemingly do not comment on the condition of <code class="reqn">k = n</code>. There is no 0th-order statistic nor is there a <code class="reqn">k &gt; n</code> order statistic. Muñoz-Pérez and Fernández-Palacín (1987) bring up the notion of a natural minimum for the data (for example, data that must be positive, <code>fix.lower = 0</code> could be set). Logic dictates that a similar argument must be made for the maximum to keep a critical error from occurring if one tries to access the not plausible <code>x[n+1]</code>-order statistic. Lastly, the argument names <code>bound.type</code>, <code>fix.lower</code>, and <code>fix.upper</code> mimic, as revisions were made to this function in December 2013, the nomenclature of software for probability density function smoothing by Turnbull and Ghosh (2014). The <code>dat2bernqua</code> function was originally added to <span class="pkg">lmomco</span> in May 2013 prior to the author learning about Turnbull and Ghosh (2014).
+</p>
+<p>Lastly, there can be many practical situations in which transformation is desired. Because of the logic structure related to how <code>fix.lower</code> and <code>fix.upper</code> are determined or provided by the user, it is highly recommended that this function not internally handle transformation and detransformation. See the second example for use of logarithms.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Cheng, C., 1995, The Bernstein polynomial estimator of a smooth quantile function: Statistics and Probability Letters, v. 24, pp. 321–330.
+</p>
+<p>de Carvalho, M., 2012, A generalization of the Solis-Wets method: Journal of Statistical Planning and Inference, v. 142, no. 3, pp. 633–644.
+</p>
+<p>Hernández-Maldonado, V., Díaz-Viera, M., and Erdely, A., 2012, A joint stochastic simulation method using the Bernstein copula as a flexible tool for modeling nonlinear dependence structures between petrophysical properties: Journal of Petroleum Science and Engineering, v. 90–91, pp. 112–123.
+</p>
+<p>Muñoz-Pérez, J., and Fernández-Palacín, A., 1987, Estimating the quantile function by Bernstein polynomials: Computational Statistics and Data Analysis, v. 5, pp. 391–397.
+</p>
+<p>Nair, N.U., Sankaran, P.G., and Balakrishnan, N., 2013, Quantile-based reliability analysis: Springer, New York.
+</p>
+<p>Turnbull, B.C., and Ghosh, S.K., 2014, Unimodal density estimation using Bernstein polynomials: Computational Statistics and Data Analysis, v. 72, pp. 13–29.
+</p>
+<p>Parzen, E., 1979, Nonparametric statistical data modeling: Journal American Statistical Association, v. 75, pp. 105–122.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmoms.bernstein</code>, <code>pfactor.bernstein</code>, <code>dat2bernquaf</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Compute smoothed extremes, quartiles, and median
+# The smoothing seems to extend to F=0 and F=1.
+set.seed(1); X &lt;- exp(rnorm(20)); F &lt;- c(0, .25, .50, .75, 1)
+dat2bernqua(F, X, bound.type="none",   listem=TRUE)$x
+dat2bernqua(F, X, bound.type="Carv",   listem=TRUE)$x
+dat2bernqua(F, X, bound.type="sd",     listem=TRUE)$x
+dat2bernqua(F, X, bound.type="either", listem=TRUE)$x
+dat2bernqua(F, X, bound.type="sd",     listem=TRUE, fix.lower=0)$x
+
+## Not run: 
+X &lt;- sort(10^rnorm(20)); F &lt;- nonexceeds(f01=TRUE)
+plot(qnorm(pp(X)), X, xaxt="n", xlab="", ylab="QUANTILE", log="y")
+add.lmomco.axis(las=2, tcl=0.5, side.type="NPP", twoside=TRUE)
+lines(qnorm(F),     dat2bernqua(F,    X,  bound.type="sd"), col="red", lwd=2)
+lines(qnorm(F), exp(dat2bernqua(F,log(X), bound.type="sd"))) # 
+## End(Not run)
+
+## Not run: 
+X &lt;- exp(rnorm(20)); F &lt;- seq(0.001, 0.999, by=.001)
+dat2bernqua(0.9, X, poly.type="Bernstein",   listem=TRUE)$x
+dat2bernqua(0.9, X, poly.type="Kantorovich", listem=TRUE)$x
+dat2bernqua(0.9, X, poly.type="Cheng",       listem=TRUE)$x
+plot(pp(X), sort(X), log="y", xlim=range(F))
+lines(F, dat2bernqua(F, X, poly.type="Bernstein"  ), col="red"  )
+lines(F, dat2bernqua(F, X, poly.type="Kantorovich"), col="green")
+lines(F, dat2bernqua(F, X, poly.type="Cheng"      ), col="blue" ) #
+## End(Not run)
+
+## Not run: 
+X &lt;- exp(rnorm(20)); F &lt;- nonexceeds()
+plot(pp(X), sort(X))
+lines(F, dat2bernqua(F,X, bound.type="sd", poly.type="Bernstein"))
+lines(F, dat2bernqua(F,X, bound.type="sd", poly.type="Kantorovich"), col=2) #
+## End(Not run)
+
+## Not run: 
+X &lt;- rnorm(25); F &lt;- nonexceeds()
+Q &lt;- dat2bernqua(F, X) # the Bernstein estimates
+plot( F, dat2bernqua(F, X, bound.type="Carv"), type="l"   )
+lines(F, dat2bernqua(F, X, bound.type="sd"),   col="red"  )
+lines(F, dat2bernqua(F, X, bound.type="none"), col="green")
+points(pp(X),      sort(X), pch=16, cex=.75,   col="blue" ) #
+## End(Not run)
+
+## Not run: 
+set.seed(13)
+par &lt;- parkap(vec2lmom(c(1, .5, .4, .2)))
+F &lt;- seq(0.001, 0.999, by=0.001)
+X &lt;- sort(rlmomco(100, par))
+pp &lt;- pp(X)
+pdf("lmomco_example_dat2bernqua.pdf")
+plot(qnorm(pp(X)), dat2bernqua(pp, X), col="blue", pch=1,
+     ylim=c(0,qlmomco(0.9999, par)))
+lines(qnorm(F), dat2bernqua(F, sort(X)), col="blue")
+lines(qnorm(F),     qlmomco(F,     par), col="red" )
+sampar  &lt;- parkap(lmoms(X))
+sampar2 &lt;- parkap(lmoms(dat2bernqua(pp, X)))
+lines( qnorm(pp(F)), qlmomco(F, sampar ), col="black")
+lines( qnorm(pp(F)), qlmomco(F, sampar2), col="blue", lty=2)
+points(qnorm(pp(X)), X, col="black", pch=16)
+dev.off() #
+## End(Not run)
+</code></pre>
+
+
+</div>

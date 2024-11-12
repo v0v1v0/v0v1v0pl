@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sparse_constraints</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Generate sparse set of constraints.</h2>
+
+<h3>Description</h3>
+
+<p>Generate a constraint set to be used by <code>sparse_project</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sparse_constraints(object, ...)
+
+sparseConstraints(object, ...)
+
+## S3 method for class 'data.frame'
+sparse_constraints(object, b, neq = length(b), base = 1L, sorted = FALSE, ...)
+
+## S3 method for class 'sparse_constraints'
+print(x, range = 1L:10L, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>R object to be translated to sparse_constraints format.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>options to be passed to other methods</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>Constant vector</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>neq</code></td>
+<td>
+<p>The first <code>new</code> equations are interpreted as equality constraints, the rest as '&lt;='</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>base</code></td>
+<td>
+<p>are the indices in <code>object[,1:2]</code> base 0 or base 1?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sorted</code></td>
+<td>
+<p>is <code>object</code> sorted by the  first column?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>an object of class <code>sparse_constraints</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>range</code></td>
+<td>
+<p>integer vector stating which constraints to print</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Object of class <code>sparse_constraints</code> (see details).
+</p>
+
+
+<h3>Note</h3>
+
+<p>As of version 0.1.1.0, <code>sparseConstraints</code> is deprecated. Use <code>sparse_constraints</code> instead.
+</p>
+
+
+<h3>Details</h3>
+
+<p>The <code>sparse_constraints</code> objects holds coefficients of
+<code class="reqn">\boldsymbol{A}</code> and <code class="reqn">\boldsymbol{b}</code> of the system
+<code class="reqn">\boldsymbol{Ax}\leq \boldsymbol{b}</code> in sparse format, outside of
+<code>R</code>'s memory. It can be reused to find solutions for vectors to adjust.
+</p>
+<p>In <code>R</code>, it is a <em>reference object</em>. In particular, it is meaningless to
+</p>
+
+<ul>
+<li>
+<p>Copy the object. You only will only generate a pointer to physically the same object.
+</p>
+</li>
+<li>
+<p>Save the object. The physical object is destroyed when <code>R</code> closes, or when <code>R</code>'s
+garbage collector cleans up a removed <code>sparse_constraints</code> object.
+</p>
+</li>
+</ul>
+<h3>The <code>$project</code> method</h3>
+
+<p>Once a <code>sparse_constraints</code> object <code>sc</code> is created, you can reuse it to optimize
+several vectors by calling <code>sc$project()</code> with the following parameters:
+</p>
+
+<ul>
+<li>
+<p><code>x</code>: <code>[numeric]</code> the vector to be optimized
+</p>
+</li>
+<li>
+<p><code>w</code>: <code>[numeric]</code> the weight vector (of <code>length(x)</code>). By default all weights equal 1.
+</p>
+</li>
+<li>
+<p><code>eps</code>: <code>[numeric]</code> desired tolerance. By default <code class="reqn">10^{-2}</code> 
+</p>
+</li>
+<li>
+<p><code>maxiter</code>: <code>[integer]</code> maximum number of iterations. By default 1000.
+</p>
+</li>
+</ul>
+<p>The return value of <code>$spa</code> is the same as that of <code>sparse_project</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>sparse_project</code>, <code>project</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# The following system of constraints, stored in
+# row-column-coefficient format
+#
+# x1 + x8 ==  950,
+# x3 + x4 ==  950 ,
+# x6 + x7 == x8,
+# x4 &gt; 0
+# 
+A &lt;- data.frame( 
+   row = c( 1, 1, 2, 2, 3, 3, 3, 4)
+   , col = c( 1, 2, 3, 4, 2, 5, 6, 4)
+   , coef = c(-1,-1,-1,-1, 1,-1,-1,-1)
+)
+b &lt;- c(-950, -950, 0,0) 
+
+sc &lt;- sparse_constraints(A, b, neq=3)
+
+# Adjust the 0-vector minimally so all constraints are met:
+sc$project(x=rep(0,8))
+
+# Use the same object to adjust the 100*1-vector
+sc$project(x=rep(100,8))
+
+# use the same object to adjust the 0-vector, but with different weights
+sc$project(x=rep(0,8),w=1:8)
+
+
+</code></pre>
+
+
+</div>

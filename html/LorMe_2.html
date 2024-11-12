@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Alpha_diversity_calculator2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate alpha diversity based on tax summary object or dataframe table</h2>
+
+<h3>Description</h3>
+
+<p>Calculate alpha diversity of each sample
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Alpha_diversity_calculator2(
+  taxobj = NULL,
+  taxlevel = NULL,
+  prefix = "",
+  input,
+  inputformat,
+  reads
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>taxobj</code></td>
+<td>
+<p>tax summary objects computed by <code>tax_summary</code>. Default:NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxlevel</code></td>
+<td>
+<p>taxonomy levels used for visualization.Must be one of c("Domain","Phylum","Class","Order","Family","Genus","Species","Base").Default:NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefix</code></td>
+<td>
+<p>A character string as prefix of diversity index. Default:""</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>Reads or relative abundance of OTU/Taxa/gene data frame,see details in inputformat. (Useless when taxobj is set).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputformat</code></td>
+<td>
+<p>(Useless when taxobj is set)
+1:data frame with first column of OTUID and last column of taxonomy
+</p>
+<p>2:data frame with first column of OTUID/taxonomy
+</p>
+<p>3:data frame of all numeric</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reads</code></td>
+<td>
+<p>If the input data frame were from reads table or not(relative abundance table).(Useless when taxobj is set).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>when tax taxobj is set, returns column table with group information combined with for alpha-diversity of each sample,else returns data frame for alpha-diversity of each sample
+</p>
+
+
+<h3>Note</h3>
+
+<p>1.When input data frame is in relative abundance table,Chao and ACE are not available
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Wang Ningqi <a href="mailto:2434066068@qq.com">2434066068@qq.com</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Data preparation ####
+data(testotu)
+groupinformation &lt;- data.frame(
+  group = c(rep("a", 10), rep("b", 10)),
+  factor1 = rnorm(10),
+  factor2 = rnorm(mean = 100, 10),
+  subject = factor(c(1:10, 1:10))
+)
+
+# Summary OTU table into genus table and phylum table
+testtax_summary &lt;- tax_summary(
+  groupfile = groupinformation,
+  inputtable = testotu[, 2:21],
+  reads = TRUE,
+  taxonomytable = testotu[, c(1, 22)]
+)
+
+### Use taxsummary object as input ###
+Alpha &lt;- Alpha_diversity_calculator2(
+  taxobj = testtax_summary,
+  taxlevel = "Base"
+)
+head(Alpha)
+
+# In genus level
+Alpha &lt;- Alpha_diversity_calculator2(
+  taxobj = testtax_summary,
+  taxlevel = "Genus",
+  prefix = "Genus"
+)
+head(Alpha)
+
+### Input dataframe from reads table ###
+Alpha &lt;- Alpha_diversity_calculator2(
+  input = testotu,
+  prefix = "Bacterial",
+  inputformat = 1,
+  reads = TRUE
+)
+
+### Input dataframe from relative abundance table ###
+if (!require(magrittr)) install.packages("magrittr")
+library(magrittr)
+Alpha &lt;- Filter_function(
+  input = testotu,
+  threshold = 0,
+  format = 1
+) %&gt;%
+  Alpha_diversity_calculator2(
+    input = .,
+    prefix = "Bacterial",
+    inputformat = 1,
+    reads = FALSE
+  )
+head(Alpha)
+</code></pre>
+
+
+</div>

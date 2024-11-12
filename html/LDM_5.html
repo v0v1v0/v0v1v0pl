@@ -1,0 +1,366 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>permanovaFL</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>PERMANOVA test of association based on the Freedman-Lane permutation scheme</h2>
+
+<h3>Description</h3>
+
+<p>This function performs the PERMANOVA test that can allow adjustment of
+confounders and control of clustered data. It can also be used for testing 
+presence-absence associations based on infinite number of rarefaction replicates. 
+As in <code>ldm</code>, 
+<code>permanovaFL</code> allows multiple sets of covariates to be tested, 
+in the way that the sets are entered sequentially and the variance 
+explained by each set is that part that remains after the previous 
+sets have been fit. It allows testing of a survival outcome, by using the Martingale or deviance residual (from fitting a Cox model to the survival outcome and other covariates) as a covariate in the regression. 
+It allows multiple distance matrices and provides an omnibus test in such cases. 
+It also allows testing of the mediation effect of the microbiome in the pathway between the exposure(s) and the outcome(s), 
+where the exposure(s) and outcomes(s) are specified as the first and second (sets of) covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">permanovaFL(
+  formula,
+  other.surv.resid = NULL,
+  data = .GlobalEnv,
+  tree = NULL,
+  dist.method = c("bray"),
+  dist.list = NULL,
+  cluster.id = NULL,
+  strata = NULL,
+  how = NULL,
+  perm.within.type = "free",
+  perm.between.type = "none",
+  perm.within.ncol = 0,
+  perm.within.nrow = 0,
+  n.perm.max = 5000,
+  n.rej.stop = 100,
+  seed = NULL,
+  square.dist = TRUE,
+  center.dist = TRUE,
+  scale.otu.table = c(TRUE),
+  binary = c(FALSE),
+  n.rarefy = 0,
+  test.mediation = FALSE,
+  n.cores = 4,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a symbolic description of the model to be fitted in the form
+of <code>data.matrix ~ sets of covariates</code> or <code>data.matrix |
+confounders ~ sets of covariates</code>. The details of model specification are
+given in "Details" of <code>ldm</code>. Additionally, in <code>permanovaFL</code>, the <code>data.matrix</code>
+can be either an OTU table or a distance matrix. If it is an OTU table,
+the distance matrix will be calculated internally using the OTU table, <code>tree</code> (if required), and 
+<code>dist.method</code>. If <code>data.matrix</code> is a distance
+matrix (having class <code>dist</code> or <code>matrix</code>), it can be squared and//or centered by
+specifying <code>square.dist</code> and <code>center.dist</code> (described below).  Distance matrices are distinguished
+from OTU tables by checking for symmetry of <code>as.matrix(data.matrix)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>other.surv.resid</code></td>
+<td>
+<p>a vector of data, usually the Martingale or deviance residuals from fitting the Cox model to the survival outcome (if it is the outcome of interest) and other covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional data frame, list or environment (or object coercible 
+to a dataframe) containing the covariates of interest and confounding covariates. 
+If not found in <code>data</code>, the covariates are taken from environment(formula), 
+typically the environment from which <code>permanovaFL</code> is called. The default is .GlobalEnv.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tree</code></td>
+<td>
+<p>a phylogenetic tree. Only used for calculating a 
+phylogenetic-tree-based distance matrix. Not needed if the calculation of 
+the requested distance does not involve a phylogenetic tree, or if a 
+distance matrix is directly imported through <code>formula</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.method</code></td>
+<td>
+<p>a vector of methods for calculating the distance measure, partial
+match to all methods supported by <code>vegdist</code> in the <code>vegan</code> package
+(i.e., "manhattan", "euclidean", "canberra", "bray", "kulczynski", "jaccard", "gower", 
+"altGower", "morisita", "horn", "mountford", "raup" , "binomial", "chao", "cao", "mahalanobis")
+as well as "hellinger" and "wt-unifrac". 
+Not used if a distance matrix is specified in <code>formula</code> or <code>dist.list</code>. 
+The default is c("bray"). 
+For more details, see the <code>dist.method</code> argument in the <code>ldm</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dist.list</code></td>
+<td>
+<p>a list of pre-calculated distance matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster.id</code></td>
+<td>
+<p>cluster identifiers. The default is value of NULL should be used if the observations are 
+not in clusters (i.e., independent).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>strata</code></td>
+<td>
+<p>a factor variable (or, character variable converted into a factor) to define strata (groups), within which to constrain permutations. 
+The default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>how</code></td>
+<td>
+<p>a permutation control list, for users who want to specify their permutation control list using the <code>how</code> function 
+from the <code>permute</code> R package.  The default is NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.within.type</code></td>
+<td>
+<p>a character string that takes values "free", "none", "series", or "grid".
+The default is "free" (for random permutations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.between.type</code></td>
+<td>
+<p>a character string that takes values "free", "none", or "series".
+The default is "none".</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.within.ncol</code></td>
+<td>
+<p>a positive integer, only used if perm.within.type="grid". 
+The default is 0.  See the documentation for the R package <code>permute</code> for further details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.within.nrow</code></td>
+<td>
+<p>a positive integer, only used if perm.within.type="grid". 
+The default is 0.  See the documentation for the R package <code>permute</code> for further details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.perm.max</code></td>
+<td>
+<p>the maximum number of permutations.
+The default is 5000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.rej.stop</code></td>
+<td>
+<p>the minimum number of rejections (i.e., the permutation 
+statistic exceeds the observed statistic) to obtain before stopping. 
+The default is 100.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>a user-supplied integer seed for the random number generator in the 
+permutation procedure. The default is NULL; with the default value, an integer seed will be 
+generated internally and randomly. In either case, the integer seed will be stored
+in the output object in case 
+the user wants to reproduce the permutation replicates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>square.dist</code></td>
+<td>
+<p>a logical variable indicating whether to square the
+distance matrix. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>center.dist</code></td>
+<td>
+<p>a logical variable indicating whether to center the 
+distance matrix as described by Gower (1966). The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale.otu.table</code></td>
+<td>
+<p>a vector of logical variables indicating whether to scale the OTU table in calculating the distance matrices in <code>dist.method</code>.
+For count data, this corresponds to dividing by the library size to give
+relative abundances. The default is TRUE.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>binary</code></td>
+<td>
+<p>a vector of logical values indicating whether to base the calculation of the distance matrices in <code>dist.method</code> on presence-absence (binary) data. The default is c(FALSE) (analyzing relative abundance data).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.rarefy</code></td>
+<td>
+<p>number of rarefactions. The default is 0 (no rarefaction).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test.mediation</code></td>
+<td>
+<p>a logical value indicating whether to perform the mediation analysis. The default is FALSE. 
+If TRUE, the formula takes the specific form <code>otu.table ~ exposure + outcome</code> or most generally
+<code>otu.table or distance matrix | (set of confounders) ~ (set of exposures) + (set of outcomes)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>The number of cores to use in parallel computing, i.e., at most how many child processes will be run simultaneously. 
+The default is 4.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>a logical value indicating whether to generate verbose output during the permutation process. Default is TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a list consisting of 
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>F.statistics</code></td>
+<td>
+<p>F statistics for testing each set of covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R.squared</code></td>
+<td>
+<p>R-squared statistic for each set of covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F.statistics.OR, R.squared.OR</code></td>
+<td>
+<p>F statistics and R-squared statistic when the last covariate is <code>other.surv.resid</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.permanova</code></td>
+<td>
+<p>p-values for testing each set of covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.permanova.omni</code></td>
+<td>
+<p>the omnibus p-values (that combines information from multiple distance matrices) for testing each set of covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.p.permanova</code></td>
+<td>
+<p>p-values for testing mediation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.p.permanova.omni</code></td>
+<td>
+<p>the omnibus p-values for testing mediation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.permanova.OR, p.permanova.omni.OR</code></td>
+<td>
+<p>when using <code>other.surv.resid</code> as the last covariate</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.p.permanova.OR, med.p.permanova.omni.OR</code></td>
+<td>
+<p>when using <code>other.surv.resid</code> as the outcome in the mediation analysis</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.permanova.com, p.permanova.omni.com</code></td>
+<td>
+<p>the combination test that combines the results from analyzing the Martingale residual and the Deviance residual (one specified in the formula and one specified in <code>other.surv.resid</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>med.p.permanova.com, med.p.permanova.omni.com</code></td>
+<td>
+<p>the combination test for the mediation effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.perm.completed</code></td>
+<td>
+<p>number of permutations completed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>permanova.stopped</code></td>
+<td>
+<p>a logical value indicating whether the 
+stopping criterion has been met by all tests of covariates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>the seed that is user supplied or internally generated, stored in case 
+the user wants to reproduce the permutation replicates</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yi-Juan Hu &lt;yijuan.hu@emory.edu&gt;, Glen A. Satten &lt;gsatten@emory.edu&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Hu YJ, Satten GA (2020). Testing hypotheses about the microbiome using the linear decomposition model (LDM) 
+Bioinformatics, 36(14), 4106-4115.
+</p>
+<p>Hu YJ and Satten GA (2021). A rarefaction-without-resampling extension of PERMANOVA for testing presence-absence associations in the microbiome. bioRxiv, https://doi.org/10.1101/2021.04.06.438671.
+</p>
+<p>Zhu Z, Satten GA, Caroline M, and Hu YJ (2020). Analyzing matched sets of microbiome data using the LDM and PERMANOVA. Microbiome, 9(133), https://doi.org/10.1186/s40168-021-01034-9.
+</p>
+<p>Hu Y, Li Y, Satten GA, and Hu YJ (2022) Testing microbiome associations with censored survival outcomes at both the community and individual taxon levels. bioRxiv, doi.org/10.1101/2022.03.11.483858.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">res.perm &lt;- permanovaFL(throat.otu.tab5 | (Sex+AntibioticUse) ~ SmokingStatus+PackYears, 
+                       data=throat.meta, dist.method="bray", seed=82955, n.perm.max=1000, n.cores=1, 
+                       verbose=FALSE)
+</code></pre>
+
+
+</div>

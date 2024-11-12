@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lme4breeding-package</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+<strong>L</strong>inear <strong>m</strong>ixed <strong>e</strong>quations <strong>4</strong> <strong>B</strong>reeding
+<br>
+</h2>
+
+<h3>Description</h3>
+
+<p>lme4breeding is nice wrapper of the lme4 package that enables the use of especialized plant and animal breeding models that include relationship matrices among individuals (e.g., genomic relationship matrices) and complex covariance structures between factors (e.g., factor analytic structures) accelerated by the use of the eigen decomposition of relationship matrices. It uses all the lme4 machinery for linear and non-linear models, for different response distributions opening a world of possibilities.
+</p>
+<p>It took me several years to develop a package named sommer that allowed many of the desired models. In May of 2024 I realized that few lines of code (exactly 100 lines) would allow to tweak all the lme4 machinery to fit most plant and animal models popular today at a great speed enabled by the lme4 development team. I will not stop the development of the sommer package since it allows to fit certain models at a greater speed than lme4breeding and other popular packages. The major advantage to use lme4breeding will be when you have balanced data for multiple traits or environments (not very likely) which will make this machinery extremely fast! if you have unbalanced data you may want to stick to the use of mmec until I discover how to adapt the eigen decomposition to unbalanced data. I hope you enjoy it.
+</p>
+<p>The <code>lmebreed</code> function is the core function of the package which is exactly the same function than lmer or glmer but with few added arguments <code>relmat</code> and <code>addmat</code> that allow the user to provide relationship matrices and customized incidence matrices respectively. Also the argument <code>rotation</code> speeds up highly complex models. The lme4 machinery is designed to deal with a big number of records (r) since it works in the r &gt; c problem and inverts a c x c matrix (being c the number of coefficients). There are <code>ranef</code>, <code>fixef</code>, <code>VarCorr</code> functions to obtain variance-covariance components, BLUPs, BLUEs, residuals, fitted values, variances-covariances for fixed and random effects, etc.
+</p>
+
+
+<h3>Functions for genetic analysis</h3>
+
+<p>The package provides kernels to the estimate additive (<code>A.mat</code>) relationship matrix for diploid and polyploid organisms. A good converter from letter code to numeric format is implemented in the function <code>atcg1234</code>, which supports higher ploidy levels than diploid. Additional functions for genetic analysis have been included such as build a genotypic hybrid marker matrix (<code>build.HMM</code>). If you need to use pedigree you need to convert your pedigree into a relationship matrix (use the 'getA' function from the pedigreemm package).
+</p>
+
+
+<h3>Functions for trial analysis</h3>
+
+<p>Recently, spatial modeling has been added added to lme4breeding using the two-dimensional spline <code>tps</code> function.
+</p>
+
+
+<h3>Keeping lme4breeding updated</h3>
+
+<p>The lme4breeding package is updated on CRAN every 4-months due to CRAN policies but you can find the latest source at https://github.com/covaruber/lme4breeding. This can be easily installed typing the following in the R console:
+</p>
+<p>library(devtools)
+</p>
+<p>install_github("covaruber/lme4breeding")
+</p>
+<p>This is recommended if you reported a bug, was fixed and was immediately pushed to GitHub but not in CRAN until the next update.
+</p>
+
+
+<h3>Tutorials</h3>
+
+<p>For tutorials on how to perform different analysis with lme4breeding please look at the vignettes by typing in the terminal:
+</p>
+<p><strong>vignette("lme4breeding.qg")</strong>
+</p>
+<p><strong>vignette("lme4breeding.gxe")</strong>
+</p>
+
+
+<h3>Getting started</h3>
+
+<p>The package has been equiped with several datasets to learn how to use the lme4breeding package (and almost to learn all sort of quantitative genetic analysis): 
+</p>
+<p>* <code>DT_halfdiallel</code>, <code>DT_fulldiallel</code> and <code>DT_mohring</code> datasets have examples to fit half and full diallel designs. 
+</p>
+<p>* <code>DT_h2</code> to calculate heritability
+</p>
+<p>* <code>DT_cornhybrids</code> and <code>DT_technow</code> datasets to perform genomic prediction in hybrid single crosses 
+</p>
+<p>* <code>DT_wheat</code> dataset to do genomic prediction in single crosses in species displaying only additive effects.
+</p>
+<p>* <code>DT_cpdata</code> dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
+</p>
+<p>* <code>DT_polyploid</code> to fit genomic prediction and GWAS analysis in polyploids. 
+</p>
+<p>* <code>DT_gryphon</code> data contains an example of an animal model including pedigree information.
+</p>
+<p>* <code>DT_btdata</code> dataset contains an animal (birds) model.
+</p>
+<p>* <code>DT_legendre</code> simulated dataset for random regression model.
+</p>
+<p>* <code>DT_sleepstudy</code> dataset to know how to translate lme4 models to lme4breeding models.
+</p>
+
+
+<h3>Models Enabled</h3>
+
+<p>The machinery behind the scenes is lme4.
+</p>
+
+
+<h3>Bug report and contact</h3>
+
+<p>If you have any questions or suggestions please post it in https://stackoverflow.com or https://stats.stackexchange.com
+</p>
+<p>I'll be glad to help or answer any question. I have spent a valuable amount of time developing this package. Please cite this package in your publication. Type 'citation("lme4breeding")' to know how to cite it.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Giovanny Covarrubias-Pazaran
+</p>
+
+
+<h3>References</h3>
+
+<p>Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+</p>
+<p>Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data(DT_example)
+DT &lt;- DT_example
+A &lt;- A_example
+
+ansMain &lt;- lmebreed(Yield ~ Env + (1|Name),
+                        relmat = list(Name = A ),
+                        data=DT)
+vc &lt;- VarCorr(ansMain); print(vc,comp=c("Variance"))
+
+</code></pre>
+
+
+</div>

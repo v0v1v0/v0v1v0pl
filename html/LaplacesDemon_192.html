@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>interval</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Constrain to Interval</h2>
+
+<h3>Description</h3>
+
+<p>This function constrains the value(s) of a scalar, vector, matrix, or
+array to a specified interval, <code class="reqn">[a,b]</code>. In Bayesian inference, it
+is often used both to truncate a parameter to an interval, such as
+<code class="reqn">p(\theta) \in [a,b]</code>. The <code>interval</code>
+function is often used in conjunction with the <code>dtrunc</code> 
+function to truncate the prior probability distribution associated
+with the constrained parameter. While <code>dtrunc</code> prevents
+assigning density outside of its interval and re-estimates density
+within the interval, the <code>interval</code> function is used to prevent
+the parameter from moving outside of the interval in the first place.
+</p>
+<p>After the parameter is constrained to an interval in
+<code>IterativeQuadrature</code>, <code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>, <code>PMC</code>, or
+<code>VariationalBayes</code>, the constrained parameter should be
+updated back into the <code>parm</code> vector, so the algorithm knows it
+has been constrained.
+</p>
+<p>This is unrelated to the probability interval (see
+<code>p.interval</code> and <code>LPL.interval</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">interval(x, a=-Inf, b=Inf, reflect=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument is a scalar, vector, matrix or array,
+and its elements will be constrained to the interval
+[<code>a</code>,<code>b</code>].</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>This optional argument allows the specification of the lower
+bound of the interval, and defaults to <code>-Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b</code></td>
+<td>
+<p>This optional argument allows the specification of the upper
+bound of the interval, and defaults to <code>Inf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reflect</code></td>
+<td>
+<p>Logical. When <code>TRUE</code>, a value outside of the
+constrained interval is reflected or bounced back into the
+interval. When <code>FALSE</code>, a value outside of the interval is
+assigned the nearest boundary of the interval. This argument defaults
+to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>It is common for a parameter to be constrained to an interval. The
+<code>interval</code> function provides two methods of constraining
+proposals. The default is to reflect an out-of-bounds proposal off of
+the boundaries until the proposal is within the specified
+interval. This is rare in the literature but works very well in
+practice. The other method does not reflect off of boundaries, but
+sets the value equal to the violated boundary. This is also rare in
+the literature and is not generally recommended.
+</p>
+<p>If the <code>interval</code> function is unacceptable, then there are
+several alternatives.
+</p>
+<p>It is common to re-parameterize by transforming the constrained
+parameter to the real line. For example, a positive-only scale
+parameter may be log-transformed. A parameter that is re-parameterized
+to the real line often mixes better in MCMC, exhibiting a higher
+effective sample size (<code>ESS</code>), and each evaluation of the
+model specification function is faster as well. However, without a
+hard constraint, it remains possible for the transformed parameter
+still become problematic, such as a log-transformed scale parameter
+that reaches negative infinity. This is much more common in the
+literature.
+</p>
+<p>Another method is to allow the parameters to move outside of the
+desired, constrained interval in MCMC during the model update, and
+when the model update is finished, to discard any samples outside of
+the constraint boundaries. This is a method of rejecting unacceptable
+proposals in regions of zero probability. However, it is possible for
+parameters to remain outside of acceptable bounds long enough to be
+problematic.
+</p>
+<p>In <code>LaplacesDemon</code>, the Gibbs sampler allows more control
+in the FC function, where a user can customize how constraints are
+handled.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>interval</code> function returns a scalar, vector, matrix, or
+array in accord with its argument, <code>x</code>. Each element is
+constrained to the interval [<code>a</code>,<code>b</code>].
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>dtrunc</code>,
+<code>ESS</code>,
+<code>IterativeQuadrature</code>,
+<code>LaplaceApproximation</code>,
+<code>LaplacesDemon</code>,
+<code>LPL.interval</code>,
+<code>PMC</code>,
+<code>p.interval</code>,
+<code>VariationalBayes</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#See the Examples vignette for numerous examples.
+library(LaplacesDemon)
+x &lt;- 2
+interval(x,0,1)
+X &lt;- matrix(runif(25,-2,2),5,5)
+interval(X,-1,1)
+</code></pre>
+
+
+</div>

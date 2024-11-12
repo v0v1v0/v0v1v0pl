@@ -1,0 +1,111 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predicted_results</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate Model Predicted Results</h2>
+
+<h3>Description</h3>
+
+<p>Calculate predicted results of the dependent variable from a model with 
+parameters set up as for the <code>likeli</code> and <code>anneal</code>
+functions. These predicted results are useful for various statistical
+calculations when compared to observed results from a dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predicted_results(model, par, var, source_data, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Model function to use to calculate predicted results.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>par</code></td>
+<td>
+<p>List of parameters for which likelihood is being estimated.
+All elements in <code>par</code> must be numeric vectors.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>List object with the source for all other non-parameter arguments
+and data used by <code>model</code>, <code>pdf</code>, or any sub-functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source_data</code></td>
+<td>
+<p>Data frame containing any needed source data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Any other data that may be needed by the model or any of its
+sub-functions.  This is an alternative to providing the data in <code>var</code>;
+however, passing values in <code>var</code> is strongly recommended.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parameters for this function are set up exactly as they are in
+<code>anneal</code> and <code>likeli</code>.  See those pages for details
+on how to do this.
+</p>
+<p>Extra list members in <code>var</code> are ignored, so if
+you have set up a <code>var</code> list for use with <code>likeli</code> or
+<code>anneal</code>, you can use that list with <code>predicted_results</code>
+without removing arguments for the PDF.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of predicted results, one for each observation in
+<code>source_data</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Use the included crown_rad dataset
+data( crown_rad )
+
+## Create our model function - crown radius is a linear function of DBH.
+## DBH is a column of data from the crown_rad dataset; a and b are single
+## parameter values.
+model &lt;- function (a, b, DBH) {a + b * DBH}
+
+## Create our parameters list and set values for a and b
+par &lt;- list(a = 1.12, b = 0.07)
+
+## Create a place to put all the other data needed by
+## the model and PDF, and indicate that DBH comes from 
+## the column marked "DBH" in the dataset
+var &lt;- list(DBH = "DBH")
+
+predicted &lt;- predicted_results(model, par, var, crown_rad)
+
+## Calculate R2 - proportion of variance explained by the model relative to 
+## that explained by the simple mean of the data
+meanrad &lt;- mean(crown_rad$Radius)
+sse &lt;- (crown_rad$Radius - predicted)^2
+sst &lt;- (crown_rad$Radius - meanrad)^2
+R2 &lt;- 1 - (sum(sse)/sum(sst))
+</code></pre>
+
+
+</div>

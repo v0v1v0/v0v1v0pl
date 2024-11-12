@@ -1,0 +1,170 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>idBAneg</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bile Acids (BA) annotation for ESI-</h2>
+
+<h3>Description</h3>
+
+<p>BA identification based on fragmentation patterns for LC-MS/MS DIA or DDA
+data acquired in negative mode.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">idBAneg(
+  msobject,
+  ppm_precursor = 5,
+  ppm_products = 10,
+  rttol = 3,
+  rt,
+  adducts = c("M-H"),
+  conjfrag = c("baconj_M-H"),
+  bafrag = c("ba_M-H-H2O", "ba_M-H-2H2O"),
+  coelCutoff = 0.8,
+  dbs,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>msobject</code></td>
+<td>
+<p>an msobject returned by dataProcessing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppm_precursor</code></td>
+<td>
+<p>mass tolerance for precursor ions. By default, 5 ppm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppm_products</code></td>
+<td>
+<p>mass tolerance for product ions. By default, 10 ppm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rttol</code></td>
+<td>
+<p>total rt window for coelution between precursor and product
+ions. By default, 3 seconds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rt</code></td>
+<td>
+<p>rt range where the function will look for candidates. By default,
+it will search within all RT range in MS1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>adducts</code></td>
+<td>
+<p>expected adducts for BA in ESI-. Adducts allowed can
+be modified in the adducsTable (dbs argument).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>conjfrag</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+the BA-conjugates. By default just taurine and glycine are considered,
+but baconjdb can be modified to add more possible conjugates.
+See chainFrags for details. It can also be an empty vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bafrag</code></td>
+<td>
+<p>character vector containing the fragmentation rules for
+other BA fragments. See chainFrags for details. It can be an empty
+vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>coelCutoff</code></td>
+<td>
+<p>coelution score threshold between parent and fragment ions.
+Only applied if rawData info is supplied. By default, 0.8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dbs</code></td>
+<td>
+<p>list of data bases required for annotation. By default, dbs
+contains the required data frames based on the default fragmentation rules.
+If these rules are modified, dbs may need to be supplied. See createLipidDB
+and assignDB.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>print information messages.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>idBAneg</code> function involves 3 steps. 1) FullMS-based
+identification of candidate BA as M-H. 2) Search of BA-conjugate fragments if
+required. 3) Search of fragments coming from the loss of H2O.
+</p>
+<p>Results data frame shows: ID, lipid class, CDB (total number
+of carbons and double bounds), FA composition (specific chains composition if
+it has been confirmed), mz, RT (in seconds), I (intensity, which comes
+directly from de input), Adducts, ppm (mz error), confidenceLevel (MS-only
+if no rules are defined, or Subclass level if they are supported by fragments)
+and Score (parent-fragment coelution score mean in DIA data or relative 
+sum intensity in DDA of all fragments used for the identification).
+</p>
+
+
+<h3>Value</h3>
+
+<p>annotated msobject (list with several elements). The results element
+is a data frame that shows: ID, lipid class, CDB (total number of carbons
+and double bounds), FA composition (specific chains composition if it has
+been confirmed), mz, RT (in seconds), I (intensity), Adducts, ppm (mz error),
+confidenceLevel (Subclass, FA level, where chains are known but not their
+positions, or FA position level), peakID, and Score (parent-fragment coelution 
+score mean in DIA data or relative sum intensity in DDA of all fragments used 
+for the identification).
+</p>
+
+
+<h3>Note</h3>
+
+<p>This function has been writen based on fragmentation patterns
+observed for three different platforms (QTOF 6550 from Agilent, Synapt G2-Si
+from Waters and Q-exactive from Thermo), but it may need to be customized for
+other platforms or acquisition settings.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>M Isabel Alcoriza-Balaguer &lt;maialba@alumni.uv.es&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+msobject &lt;- idBAneg(msobject)
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>historical_average_forc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Historical average forecast</h2>
+
+<h3>Description</h3>
+
+<p><code>historical_average_forc</code> takes an average function, a vector of realized
+values, an integer number of periods ahead to forecast, a period to end the initial
+average estimation and begin forecasting, an optional vector of time data
+associated with the realized values, and an optional integer number of past
+periods to estimate the average over.  The historical average is originally
+calculated with realized values up to <code>estimation_end</code> minus the number
+of periods specified in <code>estimation_window</code>. If <code>estimation_window</code>
+is left <code>NULL</code> then the historical average is calculated with all available
+realized values up to <code>estimation_end</code>. In each period the historical
+average is set as the <code>h_ahead</code> period ahead forecast. This process is
+iteratively repeated for each period after <code>estimation_end</code> with the
+historical average updating in each period as more information would have
+become available to the forecaster. Returns a historical average forecast where
+the <code>h_ahead</code> period ahead forecast is simply the historical average or
+rolling window average of the series being forecasted.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">historical_average_forc(
+  avg_function,
+  realized_vec,
+  h_ahead,
+  estimation_end,
+  time_vec = NULL,
+  estimation_window = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>avg_function</code></td>
+<td>
+<p>Character, either "mean" or "median". Selects whether
+forecasts are made using the historical mean or historical median of
+the series.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>realized_vec</code></td>
+<td>
+<p>Vector of realized values. This is the series that is
+being forecasted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h_ahead</code></td>
+<td>
+<p>Integer representing the number of periods ahead that is being
+forecasted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation_end</code></td>
+<td>
+<p>Value of any class representing when to end the initial
+average estimation period and begin forecasting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_vec</code></td>
+<td>
+<p>Vector of any class that is equal in length to the
+<code>realized_vec</code> vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimation_window</code></td>
+<td>
+<p>Integer representing the number of past periods
+that the historical average should be estimated over in each period.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>Forecast</code> object that contains the historical average
+forecast.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>For a detailed example see the help vignette:
+<code>vignette("lmForc", package = "lmForc")</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">date &lt;- as.Date(c("2010-03-31", "2010-06-30", "2010-09-30", "2010-12-31",
+                  "2011-03-31", "2011-06-30", "2011-09-30", "2011-12-31", 
+                  "2012-03-31", "2012-06-30"))
+y  &lt;- c(1.09, 1.71, 1.09, 2.46, 1.78, 1.35, 2.89, 2.11, 2.97, 0.99)
+data &lt;- data.frame(date, y)
+
+historical_average_forc(
+  avg_function = "mean",
+  realized_vec = data$y,
+  h_ahead = 2L,
+  estimation_end = as.Date("2011-03-31"),
+  time_vec = data$date,
+  estimation_window = 4L
+)
+ 
+historical_average_forc(
+  avg_function = "median",
+  realized_vec = data$y,
+  h_ahead = 4L,
+  estimation_end = 4L
+)
+ 
+</code></pre>
+
+
+</div>

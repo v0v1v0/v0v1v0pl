@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lamle.plot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Plot Output from an Estimated Latent Variable Model
+</h2>
+
+<h3>Description</h3>
+
+<p>A function to plot different quantities for latent variable models estimated with lamle. Currently supports plotting of category probability functions, expected score functions, observed variable information functions and test information functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lamle.plot(x, toplot = "prob", palette = "Dark 3", ...)
+
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>An estimated model from function lamle.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>toplot</code></td>
+<td>
+
+<p>A character vector indicating what to plot. Options are 'prob' for observed variable category probabilities, 'expectedscore' for observed variable expected score functions, 'TCC' for the test characteristic curve (i.e. the expected score for the sum of all observed variables), 'info' for observed variable information functions and 'testinfo' for test information functions (i.e. the information function for the sum of all observed variables).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>palette</code></td>
+<td>
+
+<p>Which colour palette to use for the plot.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments to pass to the internal functions. Argument 'variables' specifies which variables to compute things for, argument 'group' indicates which group to compute things for and argument 'z' specifies the latent variable values to use in the computations. 
+
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A plot of the requested output.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Björn Andersson &lt;bjoern.h.andersson@gmail.com&gt; and Shaobo Jin  &lt;shaobo.jin@statistik.uu.se&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Andersson, B., and Xin, T. (2021). Estimation of latent regression item response theory models using a second-order Laplace approximation. <em>Journal of Educational and Behavioral Statistics</em>, <b>46(2)</b> 244-265. &lt;doi:10.3102/107699862094519&gt;
+</p>
+<p>Jin, S., Noh, M., and Lee, Y. (2018). H-Likelihood Approach to Factor Analysis for Ordinal Data. <em>Structural Equation Modeling: A Multidisciplinary Journal</em>, <b>25(4)</b>, 530-540. &lt;doi:10.1080/10705511.2017.1403287&gt;
+</p>
+<p>Shun, Z., and McCullagh, P. (1995). Laplace approximation of high dimensional integrals. <em>Journal of the Royal Statistical Society: Series B (Methodological)</em>, <b>57(4)</b>, 749-760. &lt;doi:10.1111/j.2517-6161.1995.tb02060.x&gt;
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##### Load required package.
+library(mvtnorm)
+
+#####  Generate ordinal data from the GPCM
+#####
+##### Item parameter generation
+set.seed(123)
+GPCMa &lt;- runif(10, 0.8, 2)
+GPCMb &lt;- vector("list", 10)
+for(i in 1:10) GPCMb[[i]] &lt;- -c(runif(1, -3, -2), 
+                                runif(1, -1.5, -0.5), 
+                                runif(1, 0, 1),
+                                runif(1, 1.5, 2.5))
+GMCMa2d &lt;- matrix(0, nrow = 10, ncol = 2)
+GMCMa2d[1:5, 1] &lt;- GPCMa[1:5]
+GMCMa2d[6:10, 2] &lt;- GPCMa[6:10]
+
+##### Latent variables in two groups
+n &lt;- 200
+set.seed(1234)
+covmat2d &lt;- diag(rep(1, 2))
+covmat2d[!diag(2)] &lt;- 0.6
+latmat2dA &lt;- rmvnorm(n, c(0, 0), covmat2d)
+latmat2dB &lt;- rmvnorm(n, c(1, 1), covmat2d)
+
+##### Observed data
+set.seed(12345)
+dataGPCM2d &lt;- matrix(NA, nrow = 2 * n, ncol = 10)
+dataGPCM2d[1:n, ] &lt;- DGP(GMCMa2d, GPCMb, rep("GPCM", 10), 
+                         latmat2dA)
+dataGPCM2d[(n + 1):(2 * n), ] &lt;- DGP(GMCMa2d, GPCMb, 
+                                     rep("GPCM", 10), latmat2dB)
+
+#####  Setup two-dimensional independent-clusters model
+mydim2d &lt;- matrix(NA, nrow = 10, ncol = 2)
+mydim2d[1:5, 1] &lt;- 1
+mydim2d[6:10, 2] &lt;- 1
+
+#####  Lap(2)
+estLap2 &lt;- lamle(y = dataGPCM2d[1:n,], model = mydim2d, 
+                 modeltype = rep(c("GPCM", "GRM"), 5), 
+                 method = "lap", accuracy = 2, optimizer = 
+                 "BFGS", inithess = "crossprod")
+
+lamle.plot(estLap2, toplot = "TIF", variables = 1:5)
+lamle.plot(estLap2, toplot = "prob", variables = 5)
+
+</code></pre>
+
+
+</div>

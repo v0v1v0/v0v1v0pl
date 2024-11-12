@@ -1,0 +1,215 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>moments2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute Key Quantities of a Latent Variable Model</h2>
+
+<h3>Description</h3>
+
+<p>Compute conditional mean, conditional variance, their first and second derivative regarding model parameters, as well as various derivatives of the log-likelihood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">moments2(
+  object,
+  param,
+  data,
+  weights,
+  Omega,
+  Psi,
+  initialize,
+  usefit,
+  update.dmoment,
+  update.d2moment,
+  score,
+  information,
+  hessian,
+  vcov,
+  dVcov,
+  dVcov.robust,
+  residuals,
+  leverage,
+  derivative
+)
+
+## S3 method for class 'lvm'
+moments2(
+  object,
+  param = NULL,
+  data = NULL,
+  weights = NULL,
+  Omega = NULL,
+  Psi = NULL,
+  initialize = TRUE,
+  usefit = TRUE,
+  update.dmoment = TRUE,
+  update.d2moment = TRUE,
+  score = TRUE,
+  information = TRUE,
+  hessian = TRUE,
+  vcov = TRUE,
+  dVcov = TRUE,
+  dVcov.robust = TRUE,
+  residuals = TRUE,
+  leverage = TRUE,
+  derivative = "analytic"
+)
+
+## S3 method for class 'lvmfit'
+moments2(
+  object,
+  param = NULL,
+  data = NULL,
+  weights = NULL,
+  Omega = NULL,
+  Psi = NULL,
+  initialize = TRUE,
+  usefit = TRUE,
+  update.dmoment = TRUE,
+  update.d2moment = TRUE,
+  score = TRUE,
+  information = TRUE,
+  hessian = TRUE,
+  vcov = TRUE,
+  dVcov = TRUE,
+  dVcov.robust = TRUE,
+  residuals = TRUE,
+  leverage = TRUE,
+  derivative = "analytic"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a latent variable model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>[numeric vector] value of the model parameters if different from the estimated ones.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[data.frame] dataset if different from the one used to fit the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Psi</code></td>
+<td>
+<p>[matrix]  Average first order bias in the residual variance. Only necessary for computing adjusted residuals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initialize</code></td>
+<td>
+<p>[logical] Pre-compute quantities dependent on the data but not on the parameters values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>usefit</code></td>
+<td>
+<p>[logical] Compute key quantities based on the parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update.dmoment</code></td>
+<td>
+<p>[logical] should the first derivative of the moments be computed/updated?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update.d2moment</code></td>
+<td>
+<p>[logical] should the second derivative of the the moments be computed/updated?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>score</code></td>
+<td>
+<p>[logical] should the score be output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>information</code></td>
+<td>
+<p>[logical] should the expected information be output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>[logical] should the hessian be output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>[logical] should the variance-covariance matrix based on the expected information be output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dVcov</code></td>
+<td>
+<p>[logical] should the derivative of the variance-covariance matrix be output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dVcov.robust</code></td>
+<td>
+<p>[logical]  should the derivative of the robust variance-covariance matrix be output?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For lvmfit objects, there are two levels of pre-computation:
+</p>
+
+<ul>
+<li>
+<p> a basic one that do no involve the model coefficient (<code>conditionalMoment.lvm</code>).
+</p>
+</li>
+<li>
+<p> an advanced one that require the model coefficients (<code>conditionalMoment.lvmfit</code>). 
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">m &lt;- lvm(Y1~eta,Y2~eta,Y3~eta)
+latent(m) &lt;- ~eta
+
+d &lt;- lava::sim(m,1e2)
+e &lt;- estimate(m, d)
+
+## basic pre-computation
+res1 &lt;- moments2(e, data = d, initialize = TRUE, usefit = FALSE,
+                score = TRUE, information = TRUE, hessian = TRUE, vcov = TRUE,
+                dVcov = TRUE, dVcov.robust = TRUE, residuals = TRUE, leverage = FALSE,
+                derivative = "analytic")
+res1$skeleton$param$Sigma
+
+## full pre-computation
+res2 &lt;- moments2(e, param = coef(e), data = d, initialize = TRUE, usefit = TRUE,
+                score = TRUE, information = TRUE, hessian = TRUE, vcov = TRUE,
+                dVcov = TRUE, dVcov.robust = TRUE, residuals = TRUE, leverage = FALSE,
+                derivative = "analytic")
+res2$moment$Omega
+
+</code></pre>
+
+
+</div>

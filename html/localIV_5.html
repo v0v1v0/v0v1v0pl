@@ -1,0 +1,191 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mte</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fitting a Marginal Treatment Effects (MTE) Model.</h2>
+
+<h3>Description</h3>
+
+<p><code>mte</code> fits a MTE model using either the semiparametric local instrumental
+variables (local IV) method or the normal selection model (Heckman, Urzua, Vytlacil 2006).
+The user supplies a formula for the treatment selection equation, a formula for the
+outcome equations, and a data frame containing all variables. The function returns an
+object of class <code>mte</code>. Observations that contain NA (either in <code>selection</code> or
+in <code>outcome</code>) are removed.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mte(
+  selection,
+  outcome,
+  data = NULL,
+  method = c("localIV", "normal"),
+  bw = NULL
+)
+
+mte_localIV(mf_s, mf_o, bw = NULL)
+
+mte_normal(mf_s, mf_o)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>A formula representing the treatment selection equation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>A formula representing the outcome equations where the left hand side
+is the observed outcome and the right hand side includes predictors of both potential
+outcomes.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame, list, or environment containing the variables
+in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>How to estimate the model: either "<code>localIV</code>" for the semiparametric local IV
+method or "<code>normal</code>" for the normal selection model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bw</code></td>
+<td>
+<p>Bandwidth used for the local polynomial regression in the local IV approach.
+Default is 0.25.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mf_s</code></td>
+<td>
+<p>A model frame for the treatment selection equations returned by
+<code>model.frame</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mf_o</code></td>
+<td>
+<p>A model frame for the outcome equations returned by
+<code>model.frame</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>mte_localIV</code> estimates <code class="reqn">\textup{MTE}(x, u)</code> using the semiparametric local IV method,
+and <code>mte_normal</code> estimates <code class="reqn">\textup{MTE}(x, u)</code> using the normal selection model.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>mte</code>.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefs</code></td>
+<td>
+<p>A list of coefficient estimates: <code>gamma</code> for the treatment selection equation,
+<code>beta10</code> (intercept) and <code>beta1</code> (slopes) for the baseline outcome
+equation, <code>beta20</code> (intercept) and <code>beta2</code> (slopes) for the treated outcome equation,
+and <code>theta1</code> and <code>theta2</code> for the error covariances when <code>method = "normal"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ufun</code></td>
+<td>
+<p>A function representing the unobserved component of <code class="reqn">\textup{MTE}(x, u)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ps</code></td>
+<td>
+<p>Estimated propensity scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ps_model</code></td>
+<td>
+<p>The propensity score model, an object of class <code>glm</code>
+if <code>method = "localIV"</code>, or an object of class <code>selection</code>
+if <code>method = "normal"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mf_s</code></td>
+<td>
+<p>The model frame for the treatment selection equation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mf_o</code></td>
+<td>
+<p>The model frame for the outcome equations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>complete_row</code></td>
+<td>
+<p>A logical vector indicating whether a row is complete (no missing variables) in the
+original <code>data</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>The matched call.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Heckman, James J., Sergio Urzua, and Edward Vytlacil. 2006.
+"<a href="https://www.mitpressjournals.org/doi/abs/10.1162/rest.88.3.389">Understanding Instrumental Variables in Models with Essential Heterogeneity.</a>"
+The Review of Economics and Statistics 88:389-432.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mte_at</code> for evaluating MTE at different values of the latent resistance <code class="reqn">u</code>;
+<code>mte_tilde_at</code> for evaluating MTE projected onto the propensity score;
+<code>ace</code> for estimating average causal effects from a fitted <code>mte</code> object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mod &lt;- mte(selection = d ~ x + z, outcome = y ~ x, data = toydata, bw = 0.25)
+
+summary(mod$ps_model)
+hist(mod$ps)
+
+mte_vals &lt;- mte_at(u = seq(0.05, 0.95, 0.1), model = mod)
+if(require("ggplot2")){
+  ggplot(mte_vals, aes(x = u, y = value)) +
+  geom_line(size = 1) +
+  xlab("Latent Resistance U") +
+  ylab("Estimates of MTE at Mean Values of X") +
+  theme_minimal(base_size = 14)
+}
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,1193 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  7</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 7: Statistische Analysen produktiver Kompetenzen</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 7, <em>Statistische Analysen produktiver 
+Kompetenzen</em>, im Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische 
+Grundlagen der österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Details</h3>
+
+
+
+<h4>Abschnitt 1: Beispieldatensätze</h4>
+
+<p>Der zur Illustration verwendete Datensatz <code>prodRat</code> beinhaltet die 
+beurteilten Schreibkompetenzen im Fach Englisch auf der 8. Schulstufe von 9836 
+Schüler/innen (<code>idstud</code>) die von insgesamt 41 Ratern (<code>rater</code>) 
+beurteilt wurden. 
+Die sechs Schreibaufgaben (<code>aufgabe</code>) wurden auf sechs Testhefte 
+(<code>th</code>) aufgeteilt, wobei jede Aufgabe in genau zwei Testheften vorkommt.
+</p>
+<p>Zur weiteren Analyse verwenden wir auch den Datensatz <code>prodPRat</code> mit 
+sogenannten Pseudoratern.
+</p>
+<p>Für die Analyse von Varianzkomponenten mittels Linear Mixed Effects (LME) 
+Modellen verwenden wir den ursprünglichen Datensatz im Long Format 
+(<code>prodRatL</code>). 
+</p>
+ 
+
+
+<h4>Abschnitt 2: Beurteilerübereinstimmung</h4>
+
+
+
+<h5>Listing 1: Berechnen von Häufigkeitstabellen</h5>
+
+<p>Hier werden die Datensätze <code>prodRat</code> und <code>prodPRat</code> verwendet. 
+Die R-Funktion <code>apply()</code> ermöglicht eine Anwendung einer beliebigen 
+Funktion z.B. <code>prop.table()</code> über alle Zeilen (1) oder Spalten (2) eines 
+<code>data.frame</code>.
+</p>
+<p><code style="white-space: pre;">⁠library(irr)
+data(datenKapitel07)
+prodRat &lt;- datenKapitel07$prodRat
+
+# Items auswählen
+items &lt;- c("TA", "CC", "GR", "VO")
+# Tabelle erzeugen
+tab &lt;- apply(prodRat[, items], 2,
+                     FUN=function(x){
+                       prop.table(table(x))*100})
+print(tab, digits = 2)
+
+# Mittelwert der Ratings berechnen
+round(apply(prodRat[, items], 2, mean), 2)
+⁠</code>
+
+</p>
+ 
+
+
+<h5>Listing 2: Beurteilerübereinstimmung berechnen</h5>
+
+<p>Wir verwenden den Datensatz mit Pseudoratern <code>prodPRat</code>. 
+Die Analysen werden mit dem Paket <code>irr</code> durchgeführt. 
+</p>
+<p><code style="white-space: pre;">⁠prodRat &lt;- datenKapitel07$prodRat
+
+items &lt;- c("TA", "CC", "GR", "VO")
+dfr &lt;- data.frame(items, agree = NA, 
+                  kappa = NA, wkappa = NA, korr = NA)
+for(i in 1:length(items)){
+  dat.i &lt;- prodPRat[, grep(items[i], colnames(prodPRat))]
+  dfr[i, "agree"] &lt;- agree(dat.i, tolerance = 1)["value"]
+  dfr[i, "kappa"] &lt;- kappa2(dat.i)["value"]
+  dfr[i, "wkappa"] &lt;- kappa2(dat.i, weight = "squared")["value"]
+  dfr[i, "korr"] &lt;- cor(dat.i[,1], dat.i[,2])
+  dfr[i, "icc"] &lt;- icc(dat.i, model = "twoway")["value"]
+}
+print(dfr, digits = 3)
+⁠</code>
+
+</p>
+ 
+ 
+
+
+<h4>Abschnitt 3: Skalierungsmodelle</h4>
+
+
+
+<h5>Listing 1: Skalierungsmodell mit TAM</h5>
+
+<p>Der Funktion <code>tam.mm.mfr()</code> muss ein <code>data.frame</code> für die Facetten 
+übergeben werden. 
+Zusätzlich können Einstellungen in einer Liste für das Argument 
+<code>control = list()</code> übergeben werden. 
+Hier verwenden wir die Einstellung <code>xsi.start0 = 1</code>, was dazu führt, dass 
+alle Startwerte auf 0 gesetzt werden. 
+Mit <code>fac.oldxsi = 0.1</code> setzen wir das Gewicht der Parameterwerte aus der 
+vorigen Iteration etwas über 0. 
+Damit kann der Algorithmus stabilisiert und Konvergenzprobleme (deviance 
+increase) verhindert werden. Wir definieren noch <code>increment.factor = 1.05</code> 
+etwas über dem default-Wert von 1 um mögliche Konvergenzprobleme abzufangen. 
+Dieser Wert definiert das Ausmaß der Abnahme des maximalen Zuwachs der 
+Parameter pro Iteration (s. TAM-Hilfe).
+</p>
+<p>Die Personenparameter werden mit der Funktion <code>tam.wle()</code> geschätzt.
+</p>
+<p>Gibt man in der Funktion <code>summary()</code> das Argument <code>file</code> an, so wird 
+der Output direkt in ein Textfile geschrieben.
+</p>
+<p><code style="white-space: pre;">⁠set.seed(1234)
+library(TAM)
+
+prodRat &lt;- datenKapitel07$prodRat
+
+# Rater-Facette definieren
+facets &lt;- prodRat[, "rater", drop = FALSE] 
+
+# Response Daten definieren
+vars &lt;- c("TA", "CC", "GR", "VO")
+resp &lt;- prodRat[, vars] 
+
+# Personen-ID definieren
+pid &lt;- prodRat$idstud 
+
+# Formel für Modell
+formulaA &lt;- ~item*step+item*rater
+
+# Modell berechnen
+mod &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = formulaA,   
+                   pid = pid, control=list(xsi.start0 = 1, 
+                                           fac.oldxsi = 0.1, 
+                                           increment.factor = 1.05))
+summary(mod, file="TAM_MFRM")
+
+# Personenparameter und Rohscores
+persons.mod &lt;- tam.wle(mod)
+persons.mod$raw.score &lt;- persons.mod$PersonScores / (persons.mod$N.items) 
+⁠</code>
+
+</p>
+ 
+
+
+<h5>Listing 1b (Ergänzung zum Buch): Skalierungsmodell mit TAM</h5>
+
+<p>Hier werden alle im Buch besprochenen Modelle berechnet und anschließend ein 
+Modellvergleich durchgeführt.
+</p>
+<p><code style="white-space: pre;">⁠f1 &lt;- ~item * rater * step
+mod1 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f1,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f2 &lt;- ~item*step+item*rater
+mod2 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f2,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f3 &lt;- ~item * step + rater
+mod3 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f3,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f4 &lt;- ~item + step + rater
+mod4 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f4,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+mod4$xsi.facets
+IRT.compareModels(mod1, mod2, mod3, mod4)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 1c (Ergänzung zum Buch): Wright-Map</h5>
+
+<p>Mit dem Paket <code>WrightMap</code> können die Ergebnisse für die einzelnen Facetten 
+dargestellt werden. Wir machen dies für Items und Rater.
+</p>
+<p><code style="white-space: pre;">⁠library(WrightMap)
+
+item.labs &lt;- vars
+rater.labs &lt;- unique(prodRat$rater)
+item.labs &lt;- c(item.labs, rep(NA, length(rater.labs) - 
+                                length(item.labs)))
+
+pars &lt;- mod$xsi.facets$xsi
+facet &lt;- mod$xsi.facets$facet
+item.par &lt;- pars[facet == "item"]
+rater.par &lt;- pars[facet == "rater"]
+item_rat &lt;- pars[facet == "item:rater"]
+len &lt;- length(item_rat)
+item.long &lt;- c(item.par, rep(NA, len - length(item.par)))
+rater.long &lt;- c(rater.par, rep(NA, len - length(rater.par)))
+
+wrightMap(persons.mod$theta, rbind(item.long, rater.long), 
+          label.items = c("Items",  "Rater"), 
+          thr.lab.text = rbind(item.labs, rater.labs), 
+          axis.items = "", min.l=-3, max.l=3,
+          axis.persons = "Personen")
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2: Fit-Indices berechnen</h5>
+
+<p>Die Fit-Indices werden mit der Funktion <code>msq.itemfitWLE</code> für die 
+Raterparameter und Itemparameter gesondert  berechnet. 
+Der Funktion muss ein Vektor mit Parameterbezeichnungen übergeben werden so wie 
+sie im Modell-Objekt vorkommen. 
+Im Paket <code>TAM</code> gibt es noch die Funktion <code>tam.fit()</code>, diese basiert 
+auf einer Simulation der individuellen Posterior-Verteilung. 
+Die Funktion <code>msq.itemfitWLE</code> wertet dagegen die individuelle 
+Posterior-Verteilung direkt aus (s. <code>TAM</code>-Hilfe für weitere Beispiele) und 
+führt keine Simulation durch.
+</p>
+<p><code style="white-space: pre;">⁠# Infit/Outfit berechnen
+pseudo_items &lt;- colnames(mod$resp)
+pss &lt;- strsplit(pseudo_items , split="-")
+item_parm &lt;- unlist(lapply(pss, FUN = function(ll){ll[1]}))
+rater_parm &lt;- unlist(lapply(pss, FUN = function(ll){ll[2]}))
+
+# Fit Items
+res.items &lt;- msq.itemfitWLE(mod, item_parm)
+summary(res.items)
+
+# Fit Rater
+res.rater &lt;- msq.itemfitWLE(mod, rater_parm)
+summary(res.rater)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2a (Ergänzung zum Buch): Abbildung Fit-Indices</h5>
+
+<p><code style="white-space: pre;">⁠# Abbildung: Histogramm, Rohscores
+
+par(mfcol=c(1,2))
+
+hist(persons.mod$theta, col="grey", breaks=40, 
+     main = "",
+     xlab = "Theta (logits)",
+     ylab = "Häufigkeit")
+with(persons.mod, scatter.smooth(raw.score, theta, 
+    pch = 1, cex = .6, xlab = "Roscores",
+    ylab = "Theta (logits)", 
+    lpars = list(col = "darkgrey", lwd = 2, lty = 1)))
+
+# Abbildung: Fit-Statistik
+par(mfcol=c(1,2))
+fitdat &lt;- res.rater$fit_data
+fitdat$var &lt;- factor(substr(fitdat$item, 1, 2))
+boxplot(Outfit~var, data=fitdat, 
+        ylim=c(0,2), main="Outfit")
+boxplot(Infit~var, data=fitdat, 
+        ylim=c(0,2), main="Infit")
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2b (Ergänzung zum Buch): Korrelationen</h5>
+
+<p>Pearson und Spearman Korrelationskoeffizient wird zwischen Rohscores und Theta 
+berechnet.
+</p>
+<p><code style="white-space: pre;">⁠korr &lt;- c(with(persons.mod, cor(raw.score, theta, 
+                                method = "pearson")),
+          with(persons.mod, cor(raw.score, theta, 
+                                method = "spearman")))
+print(korr)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 3: Q3-Statistik berechnen</h5>
+
+<p>Die Q3-Statistik für lokale stochastische Unabhängigkeit wird mit der Funktion 
+<code>tam.modelfit()</code> berechnet. 
+Der Output enthält eine Vielzahl an Fit-Statistiken, für weitere Details sei 
+hier auf die <code>TAM</code>-Hilfeseite verwiesen. 
+Die adjustierte aQ3-Statistik berechnet sich aus den Q3-Werten abzüglich des 
+Gesamtmittelwerts von allen Q3-Werten. 
+</p>
+<p>Mit <code>tam.modelfit()</code> werden Fit-Statistiken für alle Rater x Item 
+Kombinationen berechnet. 
+Diese werden im Code unten anschließend aggregiert um eine Übersicht zu 
+erhalten. 
+Dazu werden zuerst nur Paare gleicher Rater ausgewählt, somit wird die 
+aggregierte Q3-Statistik nur Rater-spezifisch berechnet. 
+Das Objekt <code>rater.q3</code> beinhaltet eine Zeile pro Rater x Item Kombination. 
+Kombinationen ergeben sich nur für einen Rater, nicht zwischen unterschiedlichen 
+Ratern.
+</p>
+<p>Anschließend kann man mit <code>aggregate()</code> separat über Rater und 
+Kombinationen mitteln und diese als Dotplot darstellen (Paket <code>lattice</code>).
+</p>
+<p><code style="white-space: pre;">⁠# Q3 Statistik
+mfit.q3 &lt;- tam.modelfit(mod)
+rater.pairs &lt;- mfit.q3$stat.itempair
+
+# Nur Paare gleicher Rater wählen
+unique.rater &lt;- which(substr(rater.pairs$item1, 4,12) == 
+                      substr(rater.pairs$item2, 4,12))
+rater.q3 &lt;- rater.pairs[unique.rater, ]
+
+# Spalten einfügen: Rater, Kombinationen
+rater.q3$rater &lt;- substr(rater.q3$item1, 4, 12)
+rater.q3 &lt;- rater.q3[order(rater.q3$rater),]
+rater.q3$kombi &lt;- as.factor(paste(substr(rater.q3$item1, 1, 2), 
+                                  substr(rater.q3$item2, 1, 2), sep="_"))
+
+# Statistiken aggregieren: Rater, Kombinationen
+dfr.raterQ3 &lt;- aggregate(rater.q3$aQ3, by = list(rater.q3$rater), mean)
+colnames(dfr.raterQ3) &lt;- c("Rater", "Q3")
+dfr.itemsQ3 &lt;- aggregate(rater.q3$aQ3, by = list(rater.q3$kombi), mean)
+colnames(dfr.itemsQ3) &lt;- c("Items", "Q3")
+dfr.itemsQ3
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 3 (Ergänzung zum Buch): Lattice Dotplot</h5>
+
+<p><code style="white-space: pre;">⁠library(lattice)
+library(grid)
+
+# Lattice Dotplot
+mean.values &lt;- aggregate(rater.q3$aQ3, list(rater.q3$kombi), mean)[["x"]]
+dotplot(aQ3~kombi, data=rater.q3, main="Q3-Statistik", ylab="Q3 (adjustiert)",
+        col="darkgrey", 
+        panel = function(x,...){
+          panel.dotplot(x,...)
+          panel.abline(h = 0, col.line = "grey", lty=3)
+          grid.points(1:6, mean.values, pch=17)
+        })
+⁠</code>
+
+</p>
+
+ 
+
+
+<h4>Abschnitt 4: Generalisierbarkeitstheorie</h4>
+
+
+
+<h5>Listing 1: Varianzkomponenten mit lme4 berechnen</h5>
+
+<p>Mit der Funktion <code>lmer()</code> aus dem Paket <code>lme4</code> schätzen wir die 
+Varianzkomponenten. 
+In der Formel definieren wir dabei die Facetten als random effects.
+</p>
+<p><code style="white-space: pre;">⁠library(lme4)
+
+prodRatL &lt;- datenKapitel07$prodRatL
+
+# Formel definieren
+formula1 &lt;- response ~ (1|idstud) + (1|item) + (1|rater) +
+                       (1|rater:item) + (1|idstud:rater) + 
+                       (1|idstud:item)
+# Modell mit Interaktionen
+mod.vk &lt;- lmer(formula1, data=prodRatL)
+
+# Zusammenfassung der Ergebnisse
+summary(mod.vk)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 1a (Ergänzung zum Buch): Summary-Funktion für 
+Varianzkomponenten</h5>
+
+<p>Wir generieren eine Funktion <code>summary.VarComp()</code>, die den Output des 
+Modells <code>mod.vk</code> in einen ansprechenden <code>data.frame</code> schreibt. 
+Hier werden auch die prozentualen Anteile der Varianzkomponenten berechnet.
+</p>
+<p><code style="white-space: pre;">⁠# Helper-Function um die Varianzkomponenten zu extrahieren
+summary.VarComp &lt;- function(mod){ 
+  var.c &lt;- VarCorr(mod)
+  var.c &lt;- c(unlist(var.c) , attr(var.c , "sc")^2)
+  names(var.c)[length(var.c)] &lt;- "Residual"
+  dfr1 &lt;- data.frame(var.c)
+  colnames(dfr1) &lt;- "Varianz"
+  dfr1 &lt;- rbind(dfr1, colSums(dfr1))
+  rownames(dfr1)[nrow(dfr1)] &lt;- "Total"
+  dfr1$prop.Varianz &lt;- 100 * (dfr1$Varianz / dfr1$Varianz[nrow(dfr1)])
+  dfr1 &lt;- round(dfr1,2)
+  return(dfr1)
+}
+summary.VarComp(mod.vk)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2: Berechnung des G-Koeffizienten</h5>
+
+<p>Den G-Koeffizienten berechnen wir nach der Formel im Buch.
+</p>
+<p><code style="white-space: pre;">⁠vk &lt;- summary.VarComp(mod.vk)
+n.p &lt;- length(unique(prodRatL$idstud)) # Anzahl Schüler
+n.i &lt;- 4  # Anzahl Items
+n.r &lt;- c(1,2,5) # Anzahl Rater
+
+# Varianzkomponenten extrahieren
+sig2.p &lt;- vk["idstud", "Varianz"]
+sig2.i &lt;- vk["item", "Varianz"]
+sig2.r &lt;- vk["rater", "Varianz"]
+sig2.ri &lt;- vk["rater:item", "Varianz"]
+sig2.pr &lt;- vk["idstud:rater", "Varianz"]
+sig2.pi &lt;- vk["idstud:item", "Varianz"]
+sig2.pir &lt;- vk["Residual", "Varianz"]
+
+# Fehlervarianz berechnen
+sig2.delta &lt;- sig2.pi/n.i + sig2.pr/n.r + sig2.pir/(n.i*n.r) 
+
+# G-Koeffizient berechnen
+g.koeff &lt;- sig2.p / (sig2.p + sig2.delta)
+print(data.frame(n.r, g.koeff), digits = 3)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2a (Ergänzung zum Buch): Phi-Koeffizient berechnen</h5>
+
+<p><code style="white-space: pre;">⁠sig2.D &lt;- sig2.r/n.r + sig2.i/n.i + sig2.pi/n.i + sig2.pr/n.r + 
+          sig2.ri/(n.i*n.r) + sig2.pir/(n.i*n.r) 
+phi.koeff &lt;- sig2.p / (sig2.p + sig2.D)
+print(data.frame(n.r, phi.koeff), digits = 3)
+
+# Konfidenzintervalle
+1.96*sqrt(sig2.D)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2c (Ergänzung zum Buch): Variable Rateranzahl</h5>
+
+<p>Für eine variable Rateranzahl (hier 1 bis 10 Rater) werden die G-Koeffizienten 
+berechnet.
+</p>
+<p><code style="white-space: pre;">⁠n.i &lt;- 4  # Anzahl Items
+dn.r &lt;- seq(1,10) # 1 bis 10 mögliche Rater
+delta.i &lt;- sig2.pi/n.i + sig2.pr/dn.r + sig2.pir/(n.i*dn.r)
+g.koeff &lt;- sig2.p / (sig2.p + delta.i)
+names(g.koeff) &lt;- paste("nR", dn.r, sep="_") 
+print(g.koeff[1:4])
+
+plot(g.koeff, type = "b", pch = 19, lwd = 2, bty = "n",
+     main = "G-Koeffizient: Raters",
+     ylab = "G-Koeffizient",
+     xlab = "Anzahl Raters",  xlim = c(0,10))
+abline(v=2, col="darkgrey")
+⁠</code>
+
+</p>
+
+ 
+
+
+<h4>Abschnitt 5: Strukturgleichungsmodelle</h4>
+
+<p>In R setzen wir das Struktugleichungsmodell mit dem Paket <code>lavaan</code> um. 
+Das Modell wird als Textvariable definiert, welche anschließend der Funktion 
+<code>sem()</code> übergeben wird. 
+Latente Variablen im Messmodell werden in <code>lavaan</code> mit der Form 
+<code>latente Variable =~ manifeste</code> <code>Variable(n)</code> definiert, die Ladungen werden 
+dabei auf den Wert 1 fixiert, was mittels der Multiplikation der Variable mit 
+dem Wert 1 umgesetzt werden kann (z.B. <code>1*Variable</code>). 
+Varianzen und Kovarianzen werden mit <code>Variable ~~ Variable</code> gebildet, 
+wobei hier die Multiplikation mit einem Label einerseits den berechneten 
+Parameter benennt, andererseits, bei mehrmaligem Auftreten des Labels, 
+Parameterschätzungen von verschiedenen Variablen restringiert bzw. gleichstellt 
+(z.B. wird für die Within-Varianz von <code>TA</code> über beide Rater nur ein 
+Parameter geschätzt, nämlich <code>Vta_R12</code>). 
+Die ICC wird für jede Dimension separat direkt im Modell spezifiziert, dies 
+geschieht durch abgeleitete Variablen mit der Schreibweise 
+<code>Variable := Berechnung</code>. 
+Die Modellspezifikation und der Aufruf der Funktion <code>sem()</code> ist wie folgt 
+definiert:
+</p>
+
+
+<h5>Listing 1 (mit Ergänzung zum Buch): SEM</h5>
+
+<p><code style="white-space: pre;">⁠library(lavaan)
+
+prodPRat &lt;- datenKapitel07$prodPRat
+
+# SEM Modell definieren
+lv.mod &lt;- " 
+  # Messmodell
+  TA =~ 1*TA_R1 + 1*TA_R2
+  CC =~ 1*CC_R1 + 1*CC_R2
+  GR =~ 1*GR_R1 + 1*GR_R2
+  VO =~ 1*VO_R1 + 1*VO_R2
+  
+  # Varianz Between (Personen)
+  TA ~~ Vta * TA
+  CC ~~ Vcc * CC
+  GR ~~ Vgr * GR
+  VO ~~ Vvo * VO
+  
+  # Varianz Within (Rater X Personen)
+  TA_R1 ~~ Vta_R12 * TA_R1
+  TA_R2 ~~ Vta_R12 * TA_R2
+  CC_R1 ~~ Vcc_R12 * CC_R1
+  CC_R2 ~~ Vcc_R12 * CC_R2
+  GR_R1 ~~ Vgr_R12 * GR_R1
+  GR_R2 ~~ Vgr_R12 * GR_R2
+  VO_R1 ~~ Vvo_R12 * VO_R1
+  VO_R2 ~~ Vvo_R12 * VO_R2
+  
+  # Kovarianz Within
+  TA_R1 ~~ Kta_cc * CC_R1
+  TA_R2 ~~ Kta_cc * CC_R2
+  TA_R1 ~~ Kta_gr * GR_R1
+  TA_R2 ~~ Kta_gr * GR_R2
+  TA_R1 ~~ Kta_vo * VO_R1
+  TA_R2 ~~ Kta_vo * VO_R2
+  CC_R1 ~~ Kcc_gr * GR_R1
+  CC_R2 ~~ Kcc_gr * GR_R2
+  CC_R1 ~~ Kcc_vo * VO_R1
+  CC_R2 ~~ Kcc_vo * VO_R2
+  GR_R1 ~~ Kgr_vo * VO_R1
+  GR_R2 ~~ Kgr_vo * VO_R2
+  
+  # ICC berechnen
+  icc_ta := Vta / (Vta + Vta_R12)
+  icc_cc := Vcc / (Vcc + Vcc_R12)
+  icc_gr := Vgr / (Vgr + Vgr_R12)
+  icc_vo := Vvo / (Vvo + Vvo_R12)
+"
+# Schätzung des Modells
+mod1 &lt;- sem(lv.mod, data = prodPRat)
+summary(mod1, standardized = TRUE)
+
+# Inspektion der Ergebnisse
+show(mod1)
+fitted(mod1)
+inspect(mod1,"cov.lv")
+inspect(mod1, "free")
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2: Kompakte Darstellung der Ergebnisse</h5>
+
+<p><code style="white-space: pre;">⁠parameterEstimates(mod1, ci = FALSE, 
+                   standardized = TRUE)
+⁠</code>
+
+</p>
+
+
+
+<h5>Listing 2a (Ergänzung zum Buch): Schreibe Ergebnisse in 
+Latex-Tabelle</h5>
+
+<p><code style="white-space: pre;">⁠library(xtable)
+
+xtable(parameterEstimates(mod1, ci = FALSE, 
+                          standardized = TRUE), digits = 3)
+⁠</code>
+
+</p>
+ 
+ 
+
+
+<h4>Abschnitt 7: Übungen</h4>
+
+
+
+<h5>Übung 1: MFRM M3 und M4 umsetzen und Vergleichen</h5>
+
+<p>Wir setzen die Modelle separat in TAM um und lassen uns mit <code>summary()</code> 
+die Ergebnisse anzeigen.
+Einen direkten Zugriff auf die geschätzen Parameter bekommt man mit 
+<code>mod$xsi.facets</code>. 
+Dabei sieht man, dass im Modell 4 keine generalized items gebildet werden, da 
+hier kein Interaktionsterm vorkommt. 
+Den Modellvergleich machen wir mit <code>IRT.compareModels(mod3, mod4)</code>. 
+Modell 3 weist hier kleinere AIC-Werte auf und scheint etwas besser auf die 
+Daten zu passen als Modell 4. 
+Dies zeigt auch der Likelihood-Ratio Test, demnach sich durch das Hinzufügen von 
+Parametern die Modellpassung verbessert.
+</p>
+<p><code style="white-space: pre;">⁠library(TAM)
+prodRatEx &lt;- datenKapitel07$prodRatEx
+
+# Rater-Facette definieren
+facets &lt;- prodRatEx[, "rater", drop = FALSE] 
+
+# Response Daten definieren
+vars &lt;- c("TA", "CC", "GR", "VO")
+resp &lt;- prodRatEx[, vars] 
+
+# Personen-ID definieren
+pid &lt;- prodRatEx$idstud 
+
+# Modell 3
+f3 &lt;- ~item * step + rater
+mod3 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f3,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+# Modell 4
+f4 &lt;- ~item + step + rater
+mod4 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f4,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+summary(mod3, file = "TAM_MFRM")
+summary(mod4, file = "TAM_MFRM")
+
+
+mod3$xsi.facets
+mod4$xsi.facets
+
+IRT.compareModels(mod3, mod4)
+
+$IC
+  Model   loglike Deviance Npars Nobs      AIC      BIC     AIC3     AICc     CAIC
+1  mod3 -60795.35 121590.7    69 9748 121728.7 122224.5 121797.7 121729.7 122293.5
+2  mod4 -61041.47 122082.9    51 9748 122184.9 122551.4 122235.9 122185.5 122602.4
+
+$LRtest
+  Model1 Model2     Chi2 df p
+1   mod4   mod3 492.2264 18 0
+⁠</code>
+
+</p>
+
+
+
+<h5>Übung 2: Varianzkomponentenmodell</h5>
+
+<p>Das Varianzkomponentenmodell setzen wir für die short prompts nach den Vorgaben 
+im Buchkapitel um. 
+Dabei verändern wir die Anzahl der möglichen Rater durch 
+<code>n.r &lt;- c(2,10,15)</code>. 
+Der Phi-Koeffizient kann laut Gleichung 6.9 und 6.10 berechnet werden. 
+Die Ergebnisse zeigen einen prozentuellen Anteil der Interaktion Person und 
+Rater von ca. 15%, dieser scheint auf Halo-Effekte hinzuweisen.
+</p>
+<p><code style="white-space: pre;">⁠library(lme4)
+prodRatLEx &lt;- datenKapitel07$prodRatLEx
+
+# Formel definieren
+formula1 &lt;- response ~ (1|idstud) + (1|item) + (1|rater) +
+                       (1|rater:item) + (1|idstud:rater) + 
+                       (1|idstud:item)
+# Modell mit Interaktionen
+mod.vk &lt;- lmer(formula1, data=prodRatLEx)
+
+# Zusammenfassung der Ergebnisse
+summary(mod.vk)
+print(vk &lt;- summary.VarComp(mod.vk))
+
+             Varianz prop.Varianz
+idstud:item     0.10         2.45
+idstud:rater    0.64        15.21
+idstud          2.88        67.94
+rater:item      0.01         0.22
+rater           0.19         4.39
+item            0.00         0.02
+Residual        0.41         9.78
+Total           4.24       100.00
+
+
+# Verändern der Rateranzahl
+n.p &lt;- length(unique(prodRatLEx$idstud)) # Anzahl Schüler
+n.i &lt;- 4  # Anzahl Items
+n.r &lt;- c(2,10,15) # Anzahl Rater
+
+# Varianzkomponenten extrahieren
+sig2.p &lt;- vk["idstud", "Varianz"]
+sig2.i &lt;- vk["item", "Varianz"]
+sig2.r &lt;- vk["rater", "Varianz"]
+sig2.ri &lt;- vk["rater:item", "Varianz"]
+sig2.pr &lt;- vk["idstud:rater", "Varianz"]
+sig2.pi &lt;- vk["idstud:item", "Varianz"]
+sig2.pir &lt;- vk["Residual", "Varianz"]
+
+# Phi-Koeffizient berechnen
+sig2.D &lt;- sig2.r/n.r + sig2.i/n.i + sig2.pi/n.i + sig2.pr/n.r + 
+          sig2.ri/(n.i*n.r) + sig2.pir/(n.i*n.r) 
+phi.koeff &lt;- sig2.p / (sig2.p + sig2.D)
+print(data.frame(n.r, phi.koeff), digits = 3)
+
+# Konfidenzintervalle
+1.96*sqrt(sig2.D)
+⁠</code>
+
+</p>
+
+ 
+
+
+<h3>Author(s)</h3>
+
+<p>Roman Freunberger, Alexander Robitzsch, Claudia Luger-Bazinger
+</p>
+
+
+<h3>References</h3>
+
+<p>Freunberger, R., Robitzsch, A. &amp; Luger-Bazinger, C. (2016). Statistische 
+Analysen produktiver Kompetenzen. 
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 225–258). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel07</code>, den im Kapitel verwendeten Daten.<br>
+
+Zurück zu <code>Kapitel 6</code>, Skalierung und Linking.<br>
+Zu <code>Kapitel 8</code>, Fehlende Daten und Plausible Values.<br>
+Zur <code>Übersicht</code>.<br>
+
+Zur Hilfeseite von <code>TAM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(irr)
+library(TAM)
+library(WrightMap)
+library(lattice)
+library(grid)
+library(lme4)
+library(lavaan)
+library(xtable)
+
+summary.VarComp &lt;- function(mod){ 
+  var.c &lt;- VarCorr(mod)
+  var.c &lt;- c(unlist(var.c) , attr(var.c , "sc")^2)
+  names(var.c)[length(var.c)] &lt;- "Residual"
+  dfr1 &lt;- data.frame(var.c)
+  colnames(dfr1) &lt;- "Varianz"
+  dfr1 &lt;- rbind(dfr1, colSums(dfr1))
+  rownames(dfr1)[nrow(dfr1)] &lt;- "Total"
+  dfr1$prop.Varianz &lt;- 100 * (dfr1$Varianz / dfr1$Varianz[nrow(dfr1)])
+  dfr1 &lt;- round(dfr1,2)
+  return(dfr1)
+}
+
+data(datenKapitel07)
+prodRat &lt;- datenKapitel07$prodRat
+prodRatL &lt;- datenKapitel07$prodRatL
+prodPRat &lt;- datenKapitel07$prodPRat 
+
+## -------------------------------------------------------------
+## Abschnitt 7.2: Beurteilerübereinstimmung
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 7.2, Listing 1: Berechnen der Häufigkeitstabellen
+#
+
+# Items auswählen
+items &lt;- c("TA", "CC", "GR", "VO")
+# Tabelle erzeugen
+tab &lt;- apply(prodRat[, items], 2,
+             FUN=function(x){
+               prop.table(table(x))*100})
+print(tab, digits = 2)
+
+# Mittelwert der Ratings berechnen
+round(apply(prodRat[, items], 2, mean), 2)
+
+# -------------------------------------------------------------
+# Abschnitt 7.2, Listing 2: Beurteilerübereinstimmung berechnen
+#
+
+items &lt;- c("TA", "CC", "GR", "VO")
+dfr &lt;- data.frame(items, agree = NA, 
+                  kappa = NA, wkappa = NA, korr = NA)
+for(i in 1:length(items)){
+  dat.i &lt;- prodPRat[, grep(items[i], colnames(prodPRat))]
+  dfr[i, "agree"] &lt;- agree(dat.i, tolerance = 1)["value"]
+  dfr[i, "kappa"] &lt;- kappa2(dat.i)["value"]
+  dfr[i, "wkappa"] &lt;- kappa2(dat.i, weight = "squared")["value"]
+  dfr[i, "korr"] &lt;- cor(dat.i[,1], dat.i[,2])
+  dfr[i, "icc"] &lt;- icc(dat.i, model = "twoway")["value"]
+}
+print(dfr, digits = 3)
+
+
+## -------------------------------------------------------------
+## Abschnitt 7.3: Skalierungsmodelle
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 1: Skalierungsmodell mit TAM
+#
+
+set.seed(1234)
+
+# Rater-Facette definieren
+facets &lt;- prodRat[, "rater", drop = FALSE] 
+# Response Daten definieren
+vars &lt;- c("TA", "CC", "GR", "VO")
+resp &lt;- prodRat[, vars] 
+# Personen-ID definieren
+pid &lt;- prodRat$idstud 
+
+# Formel für Modell
+formulaA &lt;- ~item*step+item*rater
+# Modell berechnen
+mod &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = formulaA,   
+                   pid = pid, control=list(xsi.start0 = 1, 
+                                           fac.oldxsi = 0.1, 
+                                           increment.factor = 1.05))
+summary(mod, file="TAM_MFRM")
+
+# Personenparameter und Rohscores
+persons.mod &lt;- tam.wle(mod)
+persons.mod$raw.score &lt;- persons.mod$PersonScores / (persons.mod$N.items) 
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 1b: Ergänzung zum Buch
+# Modellvergleich aller besprochenen Modelle
+#
+
+f1 &lt;- ~item * rater * step
+mod1 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f1,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f2 &lt;- ~item*step+item*rater
+mod2 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f2,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f3 &lt;- ~item * step + rater
+mod3 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f3,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+f4 &lt;- ~item + step + rater
+mod4 &lt;- tam.mml.mfr(resp = resp, facets = facets, formulaA = f4,   
+                    pid = pid, control=list(xsi.start0 = 1, 
+                                            fac.oldxsi = 0.1, 
+                                            increment.factor = 1.05))
+mod4$xsi.facets
+IRT.compareModels(mod1, mod2, mod3, mod4)
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 1c: Ergänzung zum Buch
+# Wright-Map: Items und Rater
+#
+
+item.labs &lt;- vars
+rater.labs &lt;- unique(prodRat$rater)
+item.labs &lt;- c(item.labs, rep(NA, length(rater.labs) - 
+                                length(item.labs)))
+
+pars &lt;- mod$xsi.facets$xsi
+facet &lt;- mod$xsi.facets$facet
+item.par &lt;- pars[facet == "item"]
+rater.par &lt;- pars[facet == "rater"]
+item_rat &lt;- pars[facet == "item:rater"]
+len &lt;- length(item_rat)
+item.long &lt;- c(item.par, rep(NA, len - length(item.par)))
+rater.long &lt;- c(rater.par, rep(NA, len - length(rater.par)))
+
+wrightMap(persons.mod$theta, rbind(item.long, rater.long), 
+          label.items = c("Items",  "Rater"), 
+          thr.lab.text = rbind(item.labs, rater.labs), 
+          axis.items = "", min.l=-3, max.l=3,
+          axis.persons = "Personen")
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 2: Fit-Indices berechnen
+#
+
+# Infit/Outfit berechnen
+pseudo_items &lt;- colnames(mod$resp)
+pss &lt;- strsplit(pseudo_items , split="-")
+item_parm &lt;- unlist(lapply(pss, FUN = function(ll){ll[1]}))
+rater_parm &lt;- unlist(lapply(pss, FUN = function(ll){ll[2]}))
+
+# Fit Items
+res.items &lt;- msq.itemfitWLE(mod, item_parm)
+summary(res.items)
+
+# Fit Rater
+res.rater &lt;- msq.itemfitWLE(mod, rater_parm)
+summary(res.rater)
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 2a: Ergänzung zum Buch
+# Abbildung: Histogramm, Rohscores
+#
+
+dev.off()
+par(mfcol=c(1,2))
+
+hist(persons.mod$theta, col="grey", breaks=40, 
+     main = "",
+     xlab = "Theta (logits)",
+     ylab = "Häufigkeit")
+with(persons.mod, scatter.smooth(raw.score, theta, 
+                                 pch = 1, cex = .6, xlab = "Rohscores",
+                                 ylab = "Theta (logits)", 
+                                 lpars = list(col = "darkgrey", lwd = 2, 
+                                              lty = 1)))
+
+# Abbildung: Fit-Statistik
+par(mfcol=c(1,2))
+fitdat &lt;- res.rater$fit_data
+fitdat$var &lt;- factor(substr(fitdat$item, 1, 2))
+boxplot(Outfit~var, data=fitdat, 
+        ylim=c(0,2), main="Outfit")
+boxplot(Infit~var, data=fitdat, 
+        ylim=c(0,2), main="Infit")
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 2b: Ergänzung zum Buch
+# Korrelationen
+#
+
+korr &lt;- c(with(persons.mod, cor(raw.score, theta, 
+                                method = "pearson")),
+          with(persons.mod, cor(raw.score, theta, 
+                                method = "spearman")))
+print(korr)
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 3: Q3-Statistik berechnen
+#
+
+# Q3 Statistik
+mfit.q3 &lt;- tam.modelfit(mod)
+rater.pairs &lt;- mfit.q3$stat.itempair
+
+# Nur Paare gleicher Rater wählen
+unique.rater &lt;- which(substr(rater.pairs$item1, 4,12) == 
+                        substr(rater.pairs$item2, 4,12))
+rater.q3 &lt;- rater.pairs[unique.rater, ]
+
+# Spalten einfügen: Rater, Kombinationen
+rater.q3$rater &lt;- substr(rater.q3$item1, 4, 12)
+rater.q3 &lt;- rater.q3[order(rater.q3$rater),]
+rater.q3$kombi &lt;- as.factor(paste(substr(rater.q3$item1, 1, 2), 
+                                  substr(rater.q3$item2, 1, 2), sep="_"))
+
+# Statistiken aggregieren: Rater, Kombinationen
+dfr.raterQ3 &lt;- aggregate(rater.q3$aQ3, by = list(rater.q3$rater), mean)
+colnames(dfr.raterQ3) &lt;- c("Rater", "Q3")
+dfr.itemsQ3 &lt;- aggregate(rater.q3$aQ3, by = list(rater.q3$kombi), mean)
+colnames(dfr.itemsQ3) &lt;- c("Items", "Q3")
+dfr.itemsQ3
+
+# -------------------------------------------------------------
+# Abschnitt 7.3, Listing 3a: Ergänzung zum Buch
+# Lattice Dotplot
+#
+
+# Lattice Dotplot
+mean.values &lt;- aggregate(rater.q3$aQ3, list(rater.q3$kombi), mean)[["x"]]
+dotplot(aQ3~kombi, data=rater.q3, main="Q3-Statistik", ylab="Q3 (adjustiert)",
+        col="darkgrey", 
+        panel = function(x,...){
+          panel.dotplot(x,...)
+          panel.abline(h = 0, col.line = "grey", lty=3)
+          grid.points(1:6, mean.values, pch=17)
+        })
+
+
+## -------------------------------------------------------------
+## Abschnitt 7.4: Generalisierbarkeitstheorie
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 7.4, Listing 1: Varianzkomponenten mit lme4 berechnen
+#
+
+# Formel definieren
+formula1 &lt;- response ~ (1|idstud) + (1|item) + (1|rater) +
+  (1|rater:item) + (1|idstud:rater) + 
+  (1|idstud:item)
+# Modell mit Interaktionen
+mod.vk &lt;- lmer(formula1, data=prodRatL)
+
+# Zusammenfassung der Ergebnisse
+summary(mod.vk)
+
+# -------------------------------------------------------------
+# Abschnitt 7.4, Listing 1a: Ergänzung zum Buch
+# Helper-Function um die Varianzkomponenten zu extrahieren
+#
+
+summary.VarComp &lt;- function(mod){ 
+  var.c &lt;- VarCorr(mod)
+  var.c &lt;- c(unlist(var.c) , attr(var.c , "sc")^2)
+  names(var.c)[length(var.c)] &lt;- "Residual"
+  dfr1 &lt;- data.frame(var.c)
+  colnames(dfr1) &lt;- "Varianz"
+  dfr1 &lt;- rbind(dfr1, colSums(dfr1))
+  rownames(dfr1)[nrow(dfr1)] &lt;- "Total"
+  dfr1$prop.Varianz &lt;- 100 * (dfr1$Varianz / dfr1$Varianz[nrow(dfr1)])
+  dfr1 &lt;- round(dfr1,2)
+  return(dfr1)
+}
+summary.VarComp(mod.vk)
+
+# -------------------------------------------------------------
+# Abschnitt 7.4, Listing 2: Berechnung des G-Koeffizienten
+#
+
+vk &lt;- summary.VarComp(mod.vk)
+n.p &lt;- length(unique(prodRatL$idstud)) # Anzahl Schüler
+n.i &lt;- 4  # Anzahl Items
+n.r &lt;- c(1,2,5) # Anzahl Rater
+
+# Varianzkomponenten extrahieren
+sig2.p &lt;- vk["idstud", "Varianz"]
+sig2.i &lt;- vk["item", "Varianz"]
+sig2.r &lt;- vk["rater", "Varianz"]
+sig2.ri &lt;- vk["rater:item", "Varianz"]
+sig2.pr &lt;- vk["idstud:rater", "Varianz"]
+sig2.pi &lt;- vk["idstud:item", "Varianz"]
+sig2.pir &lt;- vk["Residual", "Varianz"]
+
+# Fehlervarianz berechnen
+sig2.delta &lt;- sig2.pi/n.i + sig2.pr/n.r + sig2.pir/(n.i*n.r) 
+
+# G-Koeffizient berechnen
+g.koeff &lt;- sig2.p / (sig2.p + sig2.delta)
+print(data.frame(n.r, g.koeff), digits = 3)
+
+# -------------------------------------------------------------
+# Abschnitt 7.4, Listing 2a: Ergänzung zum Buch
+# Phi-Koeffizient berechnen
+#
+
+sig2.D &lt;- sig2.r/n.r + sig2.i/n.i + sig2.pi/n.i + sig2.pr/n.r + 
+  sig2.ri/(n.i*n.r) + sig2.pir/(n.i*n.r) 
+phi.koeff &lt;- sig2.p / (sig2.p + sig2.D)
+print(data.frame(n.r, phi.koeff), digits = 3)
+
+# Konfidenzintervalle
+1.96*sqrt(sig2.D)
+
+# -------------------------------------------------------------
+# Abschnitt 7.4, Listing 2c: Ergänzung zum Buch
+# Variable Rateranzahl
+#
+
+dev.off()
+n.i &lt;- 4  # Anzahl Items
+dn.r &lt;- seq(1,10)# 1 bis 10 mögliche Rater
+delta.i &lt;- sig2.pi/n.i + sig2.pr/dn.r + sig2.pir/(n.i*dn.r)
+g.koeff &lt;- sig2.p / (sig2.p + delta.i)
+names(g.koeff) &lt;- paste("nR", dn.r, sep="_") 
+print(g.koeff[1:4])
+
+# Abbildung variable Rateranzahl
+plot(g.koeff, type = "b", pch = 19, lwd = 2, bty = "n",
+     main = "G-Koeffizient: Raters",
+     ylab = "G-Koeffizient",
+     xlab = "Anzahl Raters",  xlim = c(0,10))
+abline(v=2, col="darkgrey")
+
+
+## -------------------------------------------------------------
+## Abschnitt 7.5: Strukturgleichungsmodelle
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 7.5, Listing 1: SEM
+#
+
+# SEM Modell definieren
+lv.mod &lt;- " 
+  # Messmodell
+  TA =~ 1*TA_R1 + 1*TA_R2
+  CC =~ 1*CC_R1 + 1*CC_R2
+  GR =~ 1*GR_R1 + 1*GR_R2
+  VO =~ 1*VO_R1 + 1*VO_R2
+  
+  # Varianz Personen
+  TA ~~ Vta * TA
+  CC ~~ Vcc * CC
+  GR ~~ Vgr * GR
+  VO ~~ Vvo * VO
+  
+  # Varianz Rater X Personen
+  TA_R1 ~~ Vta_R12 * TA_R1
+  TA_R2 ~~ Vta_R12 * TA_R2
+  CC_R1 ~~ Vcc_R12 * CC_R1
+  CC_R2 ~~ Vcc_R12 * CC_R2
+  GR_R1 ~~ Vgr_R12 * GR_R1
+  GR_R2 ~~ Vgr_R12 * GR_R2
+  VO_R1 ~~ Vvo_R12 * VO_R1
+  VO_R2 ~~ Vvo_R12 * VO_R2
+  
+  # Kovarianz
+  TA_R1 ~~ Kta_cc * CC_R1
+  TA_R2 ~~ Kta_cc * CC_R2
+  TA_R1 ~~ Kta_gr * GR_R1
+  TA_R2 ~~ Kta_gr * GR_R2
+  TA_R1 ~~ Kta_vo * VO_R1
+  TA_R2 ~~ Kta_vo * VO_R2
+  CC_R1 ~~ Kcc_gr * GR_R1
+  CC_R2 ~~ Kcc_gr * GR_R2
+  CC_R1 ~~ Kcc_vo * VO_R1
+  CC_R2 ~~ Kcc_vo * VO_R2
+  GR_R1 ~~ Kgr_vo * VO_R1
+  GR_R2 ~~ Kgr_vo * VO_R2
+  
+  # ICC berechnen
+  icc_ta := Vta / (Vta + Vta_R12)
+  icc_cc := Vcc / (Vcc + Vcc_R12)
+  icc_gr := Vgr / (Vgr + Vgr_R12)
+  icc_vo := Vvo / (Vvo + Vvo_R12)
+  "
+# Schätzung des Modells
+mod1 &lt;- sem(lv.mod, data = prodPRat)
+summary(mod1, standardized = TRUE)
+
+# Inspektion der Ergebnisse
+show(mod1)
+fitted(mod1)
+inspect(mod1,"cov.lv")
+inspect(mod1, "free")
+
+# -------------------------------------------------------------
+# Abschnitt 7.5, Listing 2: Kompakte Darstellung der Ergebnisse
+#
+
+parameterEstimates(mod1, ci = FALSE, 
+                   standardized = TRUE)
+
+# -------------------------------------------------------------
+# Abschnitt 7.5, Listing 2a: Ergänzung zum Buch
+# Schreibe Ergebnisse in Latex-Tabelle:
+#
+
+xtable(parameterEstimates(mod1, ci = FALSE, 
+                          standardized = TRUE), digits = 3)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

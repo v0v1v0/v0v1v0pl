@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>randomGeneration</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Random number generation</h2>
+
+<h3>Description</h3>
+
+<p>Generate random numbers that are filtered. Both, signal and noise, are convolved with the given lowpass filter, see details. Can be used to generate synthetic data resembling ion channel recordings, please see <cite>(Pein et al., 2018, 2020)</cite> for the exact models.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">randomGeneration(n, filter, signal = 0, noise = 1, oversampling = 100L, seed = n,
+                 startTime = 0, truncated = TRUE)
+randomGenerationMA(n, filter, signal = 0, noise = 1, seed = n,
+                   startTime = 0, truncated = TRUE)                 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>a single positive integer giving the number of observations that should be generated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>an object of class <code>lowpassFilter</code> giving the analogue lowpass filter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signal</code></td>
+<td>
+<p>either a numeric of length 1 or of length <code>n</code> giving the convolved signal, i.e. the mean of the random numbers, or an object that can be passed to <code>getConvolution</code>, i.e. an object of class <code>stepblock</code>, see <cite>Examples</cite>, giving the signal that will be convolved with the kernel of the lowpass filter <code>filter</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise</code></td>
+<td>
+<p>for <code>randomGenerationMA</code> a single positive finite numeric giving the constant noise level, for <code>randomGeneration</code> either a numeric of length 1 or of length <code>(n + filter$len - 1L) * oversampling</code> or an object of class <code>stepblock</code>, see <cite>Examples</cite>, giving the noise of the random errors, see <cite>Details</cite></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>oversampling</code></td>
+<td>
+<p>a single positive integer giving the factor by which the errors should be oversampled, see <cite>Details</cite></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>will be passed to <code>set.seed</code> to set a seed, <code>set.seed</code> will not be called if this argument is set to <code>"no"</code>, i.e. a single value, interpreted as an <code>integer</code>, <code>NULL</code> or <code>"no"</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startTime</code></td>
+<td>
+<p>a single finite numeric giving the time at which sampling should start</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>truncated</code></td>
+<td>
+<p>a single logical (not NA) indicating whether the signal should be convolved with the truncated or the untruncated filter kernel</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As discussed in <cite>(Pein et al., 2018)</cite> and <cite>(Pein et al., 2020)</cite>, in ion channel recordings the recorded data points can be modelled as equidistant sampled at rate <code>filter$sr</code> from the convolution of a piecewise constant signal perturbed by Gaussian white noise scaled by the noise level with the kernel of an analogue lowpass filter. The noise level is either constant (homogeneous noise, see <cite>(Pein et al., 2018)</cite>) or itself varying (heterogeneous noise, see <cite>(Pein et al., 2020)</cite>). <code>randomGeneration</code> and <code>randomGenerationMA</code> generate synthetic data from such models. <code>randomGeneration</code> allows homogeneous and heterogeneous noise, while <code>randomGenerationMA</code> only allows homogeneous noise, i.e. <code>noise</code> has to be a single numeric giving the constant noise level. The resulting observations represent the conductance at time points <code>startTime + 1:n / filter$sr</code>.
+</p>
+<p>The generated observations are the sum of a convolved signal evaluated at those time points plus centred Gaussian errors that are correlated (coloured noise), because of the filtering, and scaled by the noise level. The convolved signal evaluated at those time points can either by specified in <code>signal</code> directly or <code>signal</code> can specify a piecewise constant signal that will be convolved with the <code>filter</code> using <code>getConvolution</code> and evaluated at those time points. <code>randomGenerationMA</code> computes a moving average process with the desired autocorrelation to generate random errors. <code>randomGeneration</code> oversamples the error, i.e. generates errors at time points <code>startTime + (seq(1 - filter$len + 1 / oversampling, n, 1 / oversampling) - 1 / 2 / oversampling) / filter$sr</code>, which will then be convolved with the <code>filter</code>. For this function <code>noise</code> can either give the noise levels at those oversampled time points or specify a piecewise constant function that will be automatically evaluated at those time points.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a numeric vector of length <code>n</code> giving the generated random numbers
+</p>
+
+
+<h3>References</h3>
+
+<p>Pein, F., Bartsch, A., Steinem, C., and Munk, A. (2020) Heterogeneous idealization of ion channel recordings - Open channel noise. Submitted.
+</p>
+<p>Pein, F., Tecuapetla-Gómez, I., Schütte, O., Steinem, C., Munk, A. (2018) Fully-automatic multiresolution idealization for filtered ion channel recordings: flickering event detection. IEEE Trans. Nanobioscience, 17(3):300-320.
+</p>
+<p>Pein, F. (2017) Heterogeneous Multiscale Change-Point Inference and its Application to Ion Channel Recordings.
+PhD thesis, Georg-August-Universität Göttingen. http://hdl.handle.net/11858/00-1735-0000-002E-E34A-7.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lowpassFilter</code>, <code>getConvolution</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">filter &lt;- lowpassFilter(type = "bessel", param = list(pole = 4, cutoff = 0.1), sr = 1e4)
+time &lt;- 1:4000 / filter$sr
+stepfun &lt;- getSignalPeak(time, cp1 = 0.2, cp2 = 0.2 + 3 / filter$sr, 
+                         value = 20, leftValue = 40, rightValue = 40)
+signal &lt;- getConvolutionPeak(time, cp1 = 0.2, cp2 = 0.2 + 3 / filter$sr, 
+                             value = 20, leftValue = 40, rightValue = 40, filter = filter)
+data &lt;- randomGenerationMA(n = 4000, filter = filter, signal = signal, noise = 1.4)
+
+# generated data
+plot(time, data, pch = 16)
+
+# zoom into the single peak
+plot(time, data, pch = 16, xlim = c(0.199, 0.202), ylim = c(19, 45))
+lines(time, stepfun, col = "blue", type = "s", lwd = 2)
+lines(time, signal, col = "red", lwd = 2)
+
+# use of randomGeneration instead
+data &lt;- randomGeneration(n = 4000, filter = filter, signal = signal, noise = 1.4)
+
+# similar result
+plot(time, data, pch = 16, xlim = c(0.199, 0.202), ylim = c(19, 45))
+lines(time, stepfun, col = "blue", type = "s", lwd = 2)
+lines(time, signal, col = "red", lwd = 2)
+
+## heterogeneous noise
+# manual creation of an object of class 'stepblock'
+# instead the function stepblock in the package stepR can be used
+noise &lt;- data.frame(leftEnd = c(0, 0.2, 0.2 + 3 / filter$sr),
+                    rightEnd = c(0.2, 0.2 + 3 / filter$sr, 0.4),
+                    value = c(1, 30, 1))
+attr(noise, "x0") &lt;- 0
+class(noise) &lt;- c("stepblock", class(noise))
+
+data &lt;- randomGeneration(n = 4000, filter = filter, signal = signal, noise = noise)
+
+plot(time, data, pch = 16, xlim = c(0.199, 0.202), ylim = c(19, 45))
+lines(time, stepfun, col = "blue", type = "s", lwd = 2)
+lines(time, signal, col = "red", lwd = 2)
+</code></pre>
+
+
+</div>

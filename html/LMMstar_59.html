@@ -1,0 +1,264 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>partialCor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Partial Correlation</h2>
+
+<h3>Description</h3>
+
+<p>Estimate the partial correlation based on equation 19 of Lloyd et al 2008 (<code>partialCor.lmm</code>) or explicitely modeling the correlation via a linear mixed model  (<code>partialCor.list</code>, <code>partialCor.formula</code>).
+The first option is numerically more efficient and exact with a single observation per cluster.
+With multiple repetitions, what is being estimated with the first option may not be clear and the second option is therefore preferrable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">partialCor(object, ...)
+
+## S3 method for class 'list'
+partialCor(
+  object,
+  data,
+  repetition = NULL,
+  structure = NULL,
+  by = NULL,
+  effects = NULL,
+  rhs = NULL,
+  method = "none",
+  df = NULL,
+  transform.rho = NULL,
+  name.short = c(TRUE, FALSE),
+  ...
+)
+
+## S3 method for class 'formula'
+partialCor(object, repetition, ...)
+
+## S3 method for class 'lmm'
+partialCor(object, level = 0.95, R2 = FALSE, se = TRUE, df = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a formula with in the left hand side the variables for which the correlation should be computed
+and on the right hand side the adjustment set. Can also be a list of formula for outcome-specific adjustment set.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to <code>confint</code> for <code>partialCor.list</code> and  <code>partialCor.formula</code>. Not used for <code>partialCor.lmm</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[data.frame] dataset containing the variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repetition</code></td>
+<td>
+<p>[formula] Specify the structure of the data: the time/repetition variable and the grouping variable, e.g. ~ time|id.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>structure</code></td>
+<td>
+<p>[character] Specify the residual variance-covariance structure.
+Without repetitions, either <code>"UN"</code> or <code>"CS"</code>.
+With repetitions, one of <code>"UN"</code>, <code>"PEARSON"</code>, <code>"HLAG"</code>, <code>"LAG"</code>, <code>"HCS"</code>, <code>"CS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>[character] variable used to stratified the correlation on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>[character or matrix] type of contrast to be used for comparing the correlation parameters. One of <code>"Dunnett"</code>, <code>"Tukey"</code>, <code>"Sequen"</code>, or a contrast matrix.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>[numeric vector] right hand side for the comparison of correlation parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>[character] adjustment for multiple comparisons (e.g. <code>"single-step"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>[logical] Should a Student's t-distribution be used to model the distribution of the coefficient. Otherwise a normal distribution is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform.rho</code></td>
+<td>
+<p>[character] scale on which perform statistical inference (e.g. <code>"atanh"</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.short</code></td>
+<td>
+<p>[logical vector of length 2] use short names for the output coefficients (omit the name of the by variable, omit name of the correlation parameter)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>[numeric,0-1] the confidence level of the confidence intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2</code></td>
+<td>
+<p>[logical] Should the R2 (coefficient of determination) be computed?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>se</code></td>
+<td>
+<p>[logical] Should the uncertainty about the partial correlation be evaluated? Only relevant for <code>partialCor.lmm</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Fit a mixed model to estimate the partial correlation with the following variance-covariance pattern:
+</p>
+
+<ul>
+<li> <p><b>no repetition</b>: unstructure or compound symmetry structure for M observations, M being the number of variables on the left hand side (i.e. outcomes).
+</p>
+</li>
+<li> <p><b>repetition</b>: structure for M*T observations where M being the number of variables (typically 2) and T the number of repetitions. Can be </p>
+
+<ul>
+<li> <p><code>"UN"</code>: unstructured (except the off-diagonal containing the correlation parameter which is constant).
+</p>
+</li>
+<li> <p><code>"PEARSON"</code>: same as unstructured except it only uses a single variance parameter per variable, i.e. it assumes constant variance over repetitions.
+</p>
+</li>
+<li> <p><code>"HLAG"</code>: toeplitz by block with variable and repetition specific variance.
+</p>
+</li>
+<li> <p><code>"LAG"</code>: toeplitz by block, i.e. correlation depending on the gap between repetitions and specific to each variable. It assumes constant variance over repetitions.
+</p>
+</li>
+<li> <p><code>"HCS"</code>: heteroschedastic compound symmetry by block, i.e. variable specific correlation constant over repetitions. A specific parameter is used for the off-diagonal crossing the variables at the same repetition (which is the marginal correlation parameter).
+</p>
+</li>
+<li> <p><code>"CS"</code>: compound symmetry by block. It assumes constant variance and correlation over repetitions.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A data.frame with the estimate partial correlation (rho), standard error, degree of freedom, confidence interval, and p-value (test of no correlation).
+When <code>structure="CS"</code> or <code>structure="HCS"</code> is used with repeated measurements, a second correlation coefficient (r) is output where the between subject variance has been removed (similar to Bland et al. 1995).
+</p>
+
+
+<h3>References</h3>
+
+<p>Bland J M, Altman D G. Statistics notes: Calculating correlation coefficients with repeated observations: Part 1—correlation within subjects BMJ 1995; 310 :446 doi:10.1136/bmj.310.6977.446
+Edwards, L.J., Muller, K.E., Wolfinger, R.D., Qaqish, B.F. and Schabenberger, O. (2008), An R2 statistic for fixed effects in the linear mixed model. Statist. Med., 27: 6137-6157. https://doi.org/10.1002/sim.3429
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#### no repetition ####
+
+## example from ppcor::pcor 
+y.data &lt;- data.frame(
+  hl=c(7,15,19,15,21,22,57,15,20,18),
+  disp=c(0.000,0.964,0.000,0.000,0.921,0.000,0.000,1.006,0.000,1.011),
+  deg=c(9,2,3,4,1,3,1,3,6,1),
+  BC=c(1.78e-02,1.05e-06,1.37e-05,7.18e-03,0.00e+00,0.00e+00,0.00e+00
+,  4.48e-03,2.10e-06,0.00e+00)
+)
+## ppcor::pcor(y.data)
+
+## partial correlation based on a formula
+partialCor(c(hl,disp)~BC+deg, data = y.data)
+partialCor(hl + disp~BC+deg, data = y.data)
+## partial correlation based on a list
+partialCor(list(hl~BC+deg,disp~BC+deg), data = y.data)
+## via an existing model
+e.lm &lt;- lmm(hl~disp+BC+deg, data = y.data)
+partialCor(e.lm)
+
+## using a different set of covariates for outcome
+partialCor(list(hl~BC+deg, disp~BC), data = y.data)
+
+## statified correlation (using another dataset)
+data(gastricbypassW, package = "LMMstar")
+gastricbypassW$weight.bin &lt;- gastricbypassW$weight1&gt;=120
+partialCor(glucagonAUC1+glucagonAUC2~1, data = gastricbypassW, by = "weight.bin")
+
+## compared correlation between groups
+partialCor(glucagonAUC1+glucagonAUC2~1, data = gastricbypassW, by = "weight.bin",
+           effects = "Dunnett") 
+
+#### with repetitions ####
+## Not run: 
+data(gastricbypassL, package = "LMMstar")
+## via a mixed model
+eUN.lmm &lt;- lmm(weight ~ glucagonAUC+time, repetition =~time|id,
+               data = gastricbypassL, structure = "UN")
+partialCor(eUN.lmm)
+
+## mean: variable and timepoint specific mean parameter (8)
+## variance: variable and timepoint specific variance parameter (8)
+## correlation: correlation parameter specific for each variable and time lag (10)
+e.cor &lt;- partialCor(weight+glucagonAUC~time, repetition =~time|id,
+                    data = gastricbypassL, structure = "LAG")
+e.cor
+coef(attr(e.cor,"lmm"), effects = "correlation")
+if(require(ggplot2)){
+autoplot(e.cor)
+}
+
+## same except for the mean structure: variable specific mean parameter (2)
+e.cor2 &lt;- partialCor(weight+glucagonAUC~time, repetition =~time|id,
+                    data = gastricbypassL, structure = "LAG")
+
+## mean: variable and timepoint specific mean parameter (8)
+## variance: variable specific variance parameter (2)
+## correlation: correlation parameter specific for each variable and some time lag (4)
+e.cor3 &lt;- partialCor(weight+glucagonAUC~time, repetition =~time|id,
+                     data = gastricbypassL, structure = "CS")
+e.cor3
+coef(attr(e.cor3,"lmm"), effects = "correlation")
+if(require(ggplot2)){
+autoplot(e.cor3)
+}
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

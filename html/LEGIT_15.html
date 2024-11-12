@@ -1,0 +1,132 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>GxE_interaction_RoS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Regions of significance using Johnson-Neyman technique</h2>
+
+<h3>Description</h3>
+
+<p>Constructs a LEGIT model and returns the regions of significance (RoS) with the predicted type of interaction (diathesis-stress, vantage-sensitivity, or differential susceptibility). RoS is not recommended due to poor accuracy with small samples and small effect sizes, GxE_interaction_test has much better accuracy overall. Only implemented for family=gaussian.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">GxE_interaction_RoS(
+  data,
+  genes,
+  env,
+  formula_noGxE,
+  t_alpha = 0.05,
+  start_genes = NULL,
+  start_env = NULL,
+  eps = 0.001,
+  maxiter = 100,
+  ylim = NULL,
+  reverse_code = FALSE,
+  rescale = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genes</code></td>
+<td>
+<p>data.frame of the variables inside the genetic score <em>G</em> (can be any sort of variable, doesn't even have to be genetic).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>data.frame of the variables inside the environmental score <em>E</em> (can be any sort of variable, doesn't even have to be environmental).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula_noGxE</code></td>
+<td>
+<p>formula WITHOUT <em>G</em> or <em>E</em> (y ~ covariates). <em>G</em> and <em>E</em> will automatically be added.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t_alpha</code></td>
+<td>
+<p>Alpha level of the student-t distribution for the regions of significance (Default = .05)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_genes</code></td>
+<td>
+<p>Optional starting points for genetic score (must be the same length as the number of columns of <code>genes</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_env</code></td>
+<td>
+<p>Optional starting points for environmental score (must be the same length as the number of columns of <code>env</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reverse_code</code></td>
+<td>
+<p>If TRUE, after fitting the model, the genes with negative weights are reverse coded (ex: <code class="reqn">g_rev</code> = 1 - <code class="reqn">g</code>). It assumes that the original coding is in [0,1]. The purpose of this option is to prevent genes with negative weights which cause interpretation problems (ex: depression normally decreases attention but with a negative genetic score, it increases attention). Warning, using this option with GxG interactions could cause nonsensical results since GxG could be inverted. Also note that this may fail with certain models (Default=FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>If TRUE, the environmental variables are automatically rescaled to the range [-1,1]. This improves interpretability (Default=FALSE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns a list containing the RoS and the predicted type of interaction.
+</p>
+
+
+<h3>References</h3>
+
+<p>Alexia Jolicoeur-Martineau, Jay Belsky, Eszter Szekely, Keith F. Widaman, Michael Pluess, Celia Greenwood and Ashley Wazana. <em>Distinguishing differential susceptibility, diathesis-stress and vantage sensitivity: beyond the single gene and environment model</em> (2017). https://osf.io/preprints/psyarxiv/27uw8. 10.17605/OSF.IO/27UW8.
+</p>
+<p>Daniel J. Bauer &amp; Patrick J. Curran. <em>Probing Interactions in Fixed and Multilevel Regression: Inferential and Graphical Techniques</em> (2005). Multivariate Behavioral Research, 40:3, 373-400, DOI: 10.1207/s15327906mbr4003_5.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">train = example_2way(500, 1, seed=777)
+ros = GxE_interaction_RoS(train$data, train$G, train$E, y ~ 1)
+ros
+</code></pre>
+
+
+</div>

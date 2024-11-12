@@ -1,0 +1,104 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>TOEPLITZ</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Toeplitz Structure</h2>
+
+<h3>Description</h3>
+
+<p>Variance-covariance structure where the correlation depends on time elapsed between two repetitions.
+Can be stratified on a categorical variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">TOEPLITZ(formula, var.cluster, var.time, type = "LAG", add.time)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>formula indicating on which variable to stratify the residual variance and correlation (left hand side)
+and variables influencing the residual variance and correlation (right hand side).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.cluster</code></td>
+<td>
+<p>[character] cluster variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.time</code></td>
+<td>
+<p>[character] time variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>[character] degree of flexibility of the correlation structure within covariate (<code>"UN","LAG","CS"</code>).
+Will also affect the variance structure when not explicit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.time</code></td>
+<td>
+<p>Should the default formula (i.e. when <code>NULL</code>) contain a time effect.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>formula</b>: there can only be at most one covariate for the correlation structure.
+A typical formula would be <code>~1</code>, indicating a variance constant over time and a correlation specific to each gap time.
+</p>
+<p><b>type</b>: for a binary covariate the correlation matrix can be decomposed into four blocs: A, B, B, C.
+A correspond the correlation within level 0 of the covariate, C within level 1, and B between level 0 and 1.
+Different correlation structures can be specified:</p>
+ 
+<ul>
+<li> <p><code>"UN"</code>: unstructured matrix except for the diagonal elements of C which are constrained to be equal.
+</p>
+</li>
+<li> <p><code>"LAG"</code>: Toeplitz structure within A, B, and C, i.e. correlation specific to each time lag and covariate level.
+</p>
+</li>
+<li> <p><code>"CS"</code>: block-specific value except for C which has a different value for its diagonal elements.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>An object of class <code>TOEPLITZ</code> that can be passed to the argument <code>structure</code> of the <code>lmm</code> function.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## no covariate
+TOEPLITZ(~time, var.cluster = "id", var.time = "time")
+TOEPLITZ(gender~time, var.cluster = "id", var.time = "time")
+TOEPLITZ(list(~time,~time), var.cluster = "id", var.time = "time")
+TOEPLITZ(list(gender~time,gender~time), var.cluster = "id", var.time = "time")
+
+## with covariates
+TOEPLITZ(~side, var.cluster = "id", type = "UN",
+         var.time = "time", add.time = TRUE)
+TOEPLITZ(~side, var.cluster = "id", type = "LAG",
+         var.time = "time", add.time = TRUE)
+TOEPLITZ(~side, var.cluster = "id", type = "CS",
+         var.time = "time", add.time = TRUE)
+TOEPLITZ(gender~side, var.cluster = "id", type = "CS",
+         var.time = "time", add.time = TRUE)
+</code></pre>
+
+
+</div>

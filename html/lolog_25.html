@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lologVariational</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fits a latent ordered network model using Monte Carlo variational inference</h2>
+
+<h3>Description</h3>
+
+<p>Fits a latent ordered network model using Monte Carlo variational inference
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lologVariational(
+  formula,
+  nReplicates = 5L,
+  dyadInclusionRate = NULL,
+  edgeInclusionRate = NULL,
+  targetFrameSize = 5e+05
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>A lolog formula. See <code>link{lolog}</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nReplicates</code></td>
+<td>
+<p>An integer controlling how many dyad ordering to perform.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dyadInclusionRate</code></td>
+<td>
+<p>Controls what proportion of non-edges in each ordering should be dropped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edgeInclusionRate</code></td>
+<td>
+<p>Controls what proportion of edges in each ordering should be dropped.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>targetFrameSize</code></td>
+<td>
+<p>Sets dyadInclusionRate so that the model frame for the logistic regression will have on average this amount of observations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function approximates the maximum likelihood solution via a variational inference on the
+graph (y) over the latent edge variable inclusion order (s). Specifically, it replaces
+the conditional probability p(s | y) by p(s). If the LOLOG model contains only dyad independent
+terms, then these two probabilities are identical, and thus variational inference is
+exactly maximum likelihood inference. The objective function is
+</p>
+<p style="text-align: center;"><code class="reqn">E_{p(s)}\bigg(\log p(y| S, \theta) \bigg)</code>
+</p>
+
+<p>This can be approximated by drawing samples from p(s) to approximate the expectation. The
+number of samples is controlled by the nReplicates parameter. The memory required is on the
+order of nReplicates * (# of dyads). For large networks this can be impractical, so
+adjusting dyadInclusionRate and edgeInclusionRate allows one to down sample the # of 
+dyads in each replicate. By default these are set attempting to achieve as equal a number
+of edges and non-edges as possible while targeting a model frame with targetFrameSize number of rows.
+</p>
+<p>If the model is dyad independent, replicates are redundant, and so nReplicates is set to
+1 with a note.
+</p>
+<p>The functional form of the objective function is equivalent to logistic regression, and so
+the <code>glm</code> function is used to maximize it. The asymptotic covariance of the parameter
+estimates is calculated using the methods of Westling (2015).
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class c('lologVariationalFit','lolog','list') consisting of the following
+items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p> The model formula</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>"variational"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>The fit parameter values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>The asymptotic covariance matrix for the parameter values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nReplicates</code></td>
+<td>
+<p>The number of replicates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dyadInclusionRate</code></td>
+<td>
+<p>The rate at which non-edges are included</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edgeInclusionRate</code></td>
+<td>
+<p>The rate at which edges are included</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allDyadIndependent</code></td>
+<td>
+<p>Logical indicating model dyad independence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>likelihoodModel</code></td>
+<td>
+<p>An object of class *LatentOrderLikelihood at the fit parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>The outcome vector for the logistic regression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predictors</code></td>
+<td>
+<p>The change statistic predictor matrix for the logistic regression</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Westling, T., &amp; McCormick, T. H. (2015). Beyond prediction: A framework for inference with variational approximations in mixture models. arXiv preprint arXiv:1510.08151.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(network)
+data(ukFaculty)
+
+# Delete vertices missing group
+delete.vertices(ukFaculty, which(is.na(ukFaculty %v% "Group")))
+
+fit &lt;- lologVariational(ukFaculty ~ edges() + nodeMatch("GroupC"),
+                       nReplicates=1L, dyadInclusionRate=1)
+summary(fit)
+
+
+</code></pre>
+
+
+</div>

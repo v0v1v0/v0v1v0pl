@@ -1,0 +1,157 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Feed_Reduction</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>A Function for converting data into approximations of probability space.
+
+</h2>
+
+<h3>Description</h3>
+
+<p>It takes the number of unique labels in the training data and tries to predict a one vs all binary neural network for each unique label. The output is an approximation of the probability that each individual input does not not match the label.
+Travis Barton (2018) http://wbbpredictions.com/wp-content/uploads/2018/12/Redditbot_Paper.pdf
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Feed_Reduction(X, Y, X_test, val_split = .1,
+               nodes = NULL, epochs = 15,
+               batch_size = 30, verbose = 0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p> Training data
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+<p>Training labels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X_test</code></td>
+<td>
+<p>Testing data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>val_split</code></td>
+<td>
+<p>The validation split for the keras, binary, neural networks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>The number nodes for the hidden layers, default is 1/4 of the length of the training data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epochs</code></td>
+<td>
+<p>The number of epochs for the fitting of the networks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch_size</code></td>
+<td>
+<p>The batch size for the networks</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Weither or not you want details about the run as its happening. 0 = silent, 1 = progress bar, 2 = one line per epoch.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is a new technique for dimensionality reduction of my own creation. Data is converted to the same number of dimensions as there are unique labels. Each dimension is an approximation of the probability that the data point is inside the a unique label. The return value is a list the training and test data with their dimensionality reduced.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Train</code></td>
+<td>
+<p>The training data in the new probability space</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Test</code></td>
+<td>
+<p>The testing data in the new probability space</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Travis Barton.
+
+</p>
+
+
+<h3>References</h3>
+
+<p>Check out http://wbbpredictions.com/wp-content/uploads/2018/12/Redditbot_Paper.pdf for details on the proccess
+
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Binary_Network
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+if(8 * .Machine$sizeof.pointer == 64){
+#Feed Network Testing
+library(keras)
+
+  install_keras()
+  dat &lt;- keras::dataset_mnist()
+  X_train = array_reshape(dat$train$x/255, c(nrow(dat$train$x/255), 784))
+  y_train = dat$train$y
+  X_test = array_reshape(dat$test$x/255, c(nrow(dat$test$x/255), 784))
+  y_test = dat$test$y
+
+  Reduced_Data2 = Feed_Reduction(X_train, y_train, X_test,
+                                val_split = .3, nodes = 350,
+                                30, 50, verbose = 1)
+
+  library(e1071)
+  names(Reduced_Data2$test) = names(Reduced_Data2$train)
+  newdat = as.data.frame(cbind(rbind(Reduced_Data2$train, Reduced_Data2$test), c(y_train, y_test)))
+  colnames(newdat) = c(paste("V", c(1:11), sep = ""))
+  mod = svm(V11~., data = newdat, subset = c(1:60000),
+           kernel = 'linear', cost = 1, type = 'C-classification')
+  preds = predict(mod, newdat[60001:70000,-11])
+  sum(preds == y_test)/10000
+
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

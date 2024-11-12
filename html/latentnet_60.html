@@ -1,0 +1,269 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ergmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a Latent Space Random Graph Model</h2>
+
+<h3>Description</h3>
+
+<p><code>ergmm()</code> is used to fit latent space and latent space cluster
+random network models, as described by Hoff, Raftery and Handcock (2002),
+Handcock, Raftery and Tantrum (2005), and Krivitsky, Handcock, Raftery, and
+Hoff (2009).  <code>ergmm()</code> can return either a Bayesian model fit or
+the two-stage MLE.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ergmm(
+  formula,
+  response = NULL,
+  family = "Bernoulli",
+  fam.par = NULL,
+  control = control.ergmm(),
+  user.start = list(),
+  prior = ergmm.prior(),
+  tofit = c("mcmc", "mkl", "mkl.mbc", "procrustes", "klswitch"),
+  Z.ref = NULL,
+  Z.K.ref = NULL,
+  seed = NULL,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>An formula object, of the form <code>g ~ &lt;term 1&gt; +
+  &lt;term 2&gt; ...</code>, where <code>g</code> is a network object or a matrix
+that can be coerced to a network object, and <code>&lt;term 1&gt;</code>,
+<code>&lt;term 2&gt;</code>, etc., are each terms for the model. See
+<code>ergmTerm</code> for the terms that can be fitted, though note the
+section on fixed effects below.  To create a network object in ,
+use the <code>network</code> function, then add nodal attributes to it
+using <code>set.vertex.attribute</code> if necessary.
+</p>
+<p>Note that, as in <code>lm()</code>, the model will include an
+<code>intercept</code> term. This behavior can be overridden by
+including a <code>-1</code> or <code>+0</code> term in the formula, and a
+<code>1(mean=...,var=...)</code> term can be used
+to set a prior different from default.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>response</code></td>
+<td>
+<p>An optional edge attribute that serves as the response
+variable. By default, presence (1) or absence (0) of an edge in <code>g</code> is
+used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>A character vector specifying the conditional distribution of
+each edge value. See families.ergmm for the currently implemented
+families.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fam.par</code></td>
+<td>
+<p>For those families that require additional parameters, a
+list.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>The MCMC parameters that do not affect the posterior
+distribution such as the sample size, the proposal variances, and tuning
+parameters, in the form of a named list. See <code>control.ergmm</code> for
+more information and defaults.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>user.start</code></td>
+<td>
+<p>An optional initial configuration parameters for MCMC in
+the form of a list. By default, posterior mode conditioned on cluster
+assignments is used. It is permitted to only supply some of the parameters
+of a configuration. If this is done, the remaining paramters are fitted
+conditional on those supplied.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prior</code></td>
+<td>
+<p>The prior parameters for the model being fitted in the form of
+a named list. See term help for the terms to use.  If given, will
+override those given in the formula terms, making it useful as a convenient
+way to store and reproduce a prior distribution. The list or prior
+parameters can also be extracted from an ERGMM fit
+object. See <code>ergmm.prior</code> for more information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tofit</code></td>
+<td>
+<p>A character vector listing some subset of "pmode", "mcmc",
+"mkl", "mkl.mbc", "mle","procrustes", and "klswitch", defaulting to all of
+the above, instructing <code>ergmm</code> what should be returned as a part
+of the ERGMM fit object. Omiting can be used to skip
+particular steps in the fitting process. If the requested procedure or
+output depends on some other procedure or output not explictly listed, the
+dependency will be resolved automatically.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z.ref</code></td>
+<td>
+<p>If given, used as a reference for Procrustes analysis.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z.K.ref</code></td>
+<td>
+<p>If given, used as a reference for label-switching.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>If supplied, random number seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If this is <code>TRUE</code> (or <code>1</code>), causes information to
+be printed out about the progress of the fitting, particularly initial value
+generation. Higher values lead to greater verbosity.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>ergmm</code> returns an object of class
+<code>ergmm</code> containing the information about the
+posterior.
+</p>
+
+
+<h3>Specifying fixed effects</h3>
+
+<p>Each coefficient for a fixed effect covariate has a normal prior whose
+mean and variance are set by the <code>mean</code> and <code>var</code> parameters
+of the term. For those formula terms that add more than one covariate,
+a vector can be given for mean and variance. If not, the vectors given
+will be repeated until the needed length is reached.
+</p>
+<p><code>ergmm</code> can use model terms implemented for the
+<code>ergm</code> package and via the
+<a href="https://github.com/statnet/ergm.userterms"><code>ergm.userterms</code>
+API (in GitHub repository <code>statnet/ergm.userterms</code>)</a>. See
+<code>ergmTerm</code> for a list of available terms. If you
+wish to specify the prior mean and variance, you can add them to
+the call. E.g.,<br><code>TERMNAME(..., mean=0, var=9)</code>,<br> where
+<code>...</code> are the arguments for the <code>ergm</code> term, will
+initialize <code>TERMNAME</code> with prior mean of 0 and prior variance
+of 9.
+</p>
+<p>Some caveats:
+</p>
+
+<ul>
+<li> <p><code>ergm</code> has a binary and a valued
+mode. Regardless of the <code>family</code>
+used, the <em>binary</em> variant of the
+<code>ergm</code> term will be used in the
+linear predictor of the model.
+</p>
+</li>
+<li> <p><code>ergm</code> does not support modeling
+self-loops, so terms imported in this way will always have
+predictor <code>x[i,i]==0</code>. This should not affect most
+situations, but if you absolutely must model self-loops and
+non-self-edges in one term, use the deprecated terms below.
+</p>
+</li>
+<li> <p><code>latentnet</code> only fits models with dyadic
+independence. Terms that induce dyadic dependence (e.g.,
+<code>triangles</code>) can be used, but then the likelihood of the
+model will, effectively, be replaced with
+pseudolikelihood. (Note that under dyadic independence, the two
+are equal.)
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Mark S. Handcock, Adrian E. Raftery and Jeremy Tantrum (2002).
+<em>Model-Based Clustering for Social Networks.</em> Journal of the Royal
+Statistical Society: Series A, 170(2), 301-354.
+</p>
+<p>Peter D. Hoff, Adrian E. Raftery and Mark S. Handcock (2002).  <em>Latent
+space approaches to social network analysis.</em> Journal of the American
+Statistical Association, 97(460), 1090-1098.
+</p>
+<p>Pavel N. Krivitsky, Mark S. Handcock, Adrian E. Raftery, and Peter D. Hoff
+(2009). <em>Representing degree distributions, clustering, and homophily
+in social networks with latent cluster random effects models</em>.  Social
+Networks, 31(3), 204-213.
+</p>
+<p>Pavel N. Krivitsky and Mark S. Handcock (2008).  <em>Fitting Position
+Latent Cluster Models for Social Networks with <code>latentnet</code></em>. Journal of
+Statistical Software, 24(5). <a href="https://doi.org/10.18637/jss.v024.i05">doi:10.18637/jss.v024.i05</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>network</code>, summary.ergmm, <code>ergmTerm</code>, <code>families.ergmm</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+#
+# Use 'data(package = "latentnet")' to list the data sets in a
+#
+data(package="latentnet")
+#
+# Using Sampson's Monk data, lets fit a 
+# simple latent position model
+#
+data(sampson)
+samp.fit &lt;- ergmm(samplike ~ euclidean(d=2))
+#
+# See if we have convergence in the MCMC
+mcmc.diagnostics(samp.fit)
+#
+# Plot the fit
+#
+plot(samp.fit)
+#
+# Using Sampson's Monk data, lets fit a latent clustering random effects model
+#
+samp.fit2 &lt;- ergmm(samplike ~ euclidean(d=2, G=3)+rreceiver)
+#
+# See if we have convergence in the MCMC
+mcmc.diagnostics(samp.fit2)
+#
+# Plot the fit.
+#
+plot(samp.fit2, pie=TRUE)
+
+</code></pre>
+
+
+</div>

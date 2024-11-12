@@ -1,0 +1,358 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rstar.ci</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Confidence intervals on a scalar function of interest by the r* statistic
+</h2>
+
+<h3>Description</h3>
+
+<p>This function obtains confidence intervals for a scalar function of interest, based on the r* statistic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">	rstar.ci(data, thetainit, floglik, fscore=NULL, fpsi, datagen, R=1000, seed=NULL, 
+	         ronly=FALSE, psidesc=NULL, constr.opt="solnp", lower=NULL, upper=NULL, 
+	         control=list(...), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>The data as a list. All the elements required to compute the likelihood function 
+at a given parameter value should be included in this list.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thetainit</code></td>
+<td>
+
+<p>A numerical vector containing the initial value for the parameter of the model. It will be used 
+as starting point in the numerical optimization of the likelihood function.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>floglik</code></td>
+<td>
+
+<p>A function which returns the log likelihood function at a given parameter value. 
+In particular, for a certain parameter value contained in a numerical vector <code>theta</code>,
+a call <code>floglik(theta, data)</code> should return a scalar numerical value, the log likelihood
+function at <code>theta</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fscore</code></td>
+<td>
+
+<p>An optional function which returns the score function at a given parameter value. It must return a 
+numerical vector of the same length of <code>thetainit</code>. For a certain parameter value contained in a 
+numerical vector <code>theta</code>, a call <code>fscore(theta, data)</code> should return the gradient of the 
+log likelihood function at <code>theta</code>. Default is <code>NULL</code>, implying that numerical differentiation 
+will be employed.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fpsi</code></td>
+<td>
+
+<p>A function which specifies the parameter of interest. A call <code>fpsi(theta)</code> should return a scalar 
+value. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>datagen</code></td>
+<td>
+
+<p>A function which simulates a data set. A call <code>datagen(theta, data)</code> will generate a copy of the 
+<code>data</code> list, with the values of the response variable replaced by a set of values simulated from  
+the parametric statistical model assumed for the response variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>The number of Monte Carlo replicates used for computing the r* statistic. A positive integer, default is 
+<code>1000</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>Optional positive integer, the random seed for the Monte Carlo computation. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ronly</code></td>
+<td>
+
+<p>Logical. If set to <code>TRUE</code> the computation of the r* statistic will be skipped, and only the value 
+of the signed likelihood ratio test statistic r will be returned by the procedure, without any Monte 
+Carlo computation. Default is <code>FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psidesc</code></td>
+<td>
+
+<p>An optional character string describing the nature of the parameter of interest. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>constr.opt</code></td>
+<td>
+  
+<p>Constrained optimizer used for maximizing the log likelihood function under the null hypothesis. Possible
+values are   <code>"solnp"</code> or <code>"alabama"</code>, with the former employing  the <code>solnp</code> function from
+package <code>Rsolnp</code> and the latter the <code>constrOptim.nl</code> from the package <code>alabama</code>. Defauls is 
+<code>"solnp"</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower, upper</code></td>
+<td>
+
+<p>Optional numeric values defining the lower/upper limit of a grid of points for the parameter of interest, 
+where the r* statistic will be evaluated. Default is <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+   
+<p>A list of parameters for controlling the computation of confidence intervals. See rstar.ci.control.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Arguments to be used to form the default <code>control</code> argument if it is not supplied directly.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function obtains 90%, 95% and 99%  two-sided confidence intervals for the scalar function of 
+interest based on the r* statistic.
+</p>
+<p>The function requires the user to provide three functions defining the log likelihood function,
+the scalar parametric function of interest, and a function for generating
+a data set from the assumed statistical model. A further function returning the gradient of the 
+log likelihood is not required, but if provided it will speed up the computation. 
+</p>
+<p>When <code>ronly = TRUE</code> the function literally returns the value of the signed likelihood ratio test
+statistic r only. The function handles also one-parameter models.
+</p>
+<p>The function provides two different strategies to obtain the various confidence intervals. The default
+strategy, invoked by leaving either <code>lower</code> or <code>upper</code> to <code>NULL</code>, starts from the MLE 
+and moves away in a stepwise fashion, until the r* statistic crosses the standard normal quantiles 
+corresponding to the 99% two-sided confidence interval. It is crucial to start the search a bit away 
+from the MLE, where the r* is singular, and this is regulated by the <code>away</code> argument of the 
+rstar.ci.control function. The first strategy may fail to cross the target normal quantiles when 
+the profile likelihood has an upper asymptote. For such cases, and for any other instances when the 
+output of the default strategy is deemed not satisfactory, it is possible to specify the 
+range of a grid of values where the r* statistic will be evaluated. The <code>lower</code> and <code>upper</code> 
+argument specify the lower and upper limit of such grid, whereas the number of points is controlled by the 
+<code>npoints</code> of the rstar.ci.control function.  
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned value is an object of class <code>"rstarci"</code>, containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>psivals</code></td>
+<td>
+
+<p>A list of values for the parameter of interest for which the r and r* statistics have been evaluated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rvals</code></td>
+<td>
+
+<p>A numerical list containing the values of the r statistic evaluated at each element of <code>psivals</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>NPvals, INFvals</code></td>
+<td>
+
+<p>Numerical lists containing the values of the Nuisance Parameter adjustment (NP) and the Information 
+adjustment (INF) from the decomposition of the r*-r adjustment, for each of the <code>psivals</code> values.  
+Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rsvals</code></td>
+<td>
+
+<p>The observed value of the r* statistic at each element of <code>psivals</code>.  Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIr</code></td>
+<td>
+
+<p>A 3 x 2 matrix containing the 90%, 95% and 99% confidence intervals for the parameter of interest (first, 
+second and third row respectively) based on the first-order r statistic.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>CIrs</code></td>
+<td>
+
+<p>A 3 x 2 matrix containing the 90%, 95% and 99% confidence intervals for the parameter of interest (first, 
+second and third row respectively) absed on the r* statistic. Not computed when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+
+<p>Random seed used for Monte Carlo replicates used for computing the r* statistic. Not returned when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psidesc</code></td>
+<td>
+
+<p>A character string describing the nature of the parameter of interest. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+
+<p>Number of Monte Carlo replicates used for computing the r* statistic.  Not returned when <code>ronly = TRUE</code>.
+</p>
+</td>
+</tr>
+</table>
+<p>There are <code>print</code>, <code>summary</code> and <code>plot</code> methods for this class. 
+</p>
+
+
+<h3>References</h3>
+
+<p>The method implemented in this function was proposed in
+</p>
+<p>Skovgaard, I.M. (1996). An explicit large-deviation approximation to one-parameter tests. 
+<em>Bernoulli</em>, <b>2</b>, 145–165.
+</p>
+<p>For a general review
+</p>
+<p>Severini, T.A. (2000). Likelihood Methods in Statistics. Oxford University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>rstar, rstar.ci.control</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># A negative binomial example, taken from Venables and Ripley (2002, MASS4 book)
+library(MASS)
+# The quine data are analysed in Section 7.4
+data(quine)
+# We fit a model with just the main effects
+quine.nb1 &lt;- glm.nb(Days ~ Eth + Sex + Age + Lrn, data = quine) 
+# The data list includes the design matrix and the response vector
+quinedata &lt;- list(X=model.matrix(quine.nb1), y=quine$Days)      
+# Let us define the required functions
+# Log likelihood, log link
+logLikNbin &lt;- function(theta,data) 
+{
+  y &lt;- data$y
+  X &lt;- data$X
+  eta &lt;- X %*% theta[1:ncol(X)] 
+  mu &lt;- exp(eta)
+  alpha &lt;- theta[ncol(X)+1]
+  l &lt;- sum(lgamma(y + alpha) + y * log(mu) - (alpha + y) * log(alpha + mu) 
+            - lgamma(alpha) + alpha * log(alpha))
+  return(l)
+}
+# Score function
+gradLikNbin &lt;- function(theta,data) 
+{
+  y &lt;- data$y
+  X &lt;- data$X
+  eta &lt;- X %*% theta[1:ncol(X)] 
+  mu &lt;- exp(eta)
+  alpha &lt;- theta[ncol(X)+1]
+  g &lt;-rep(0,ncol(X)+1)
+  g[1:ncol(X)] &lt;- t(y - (alpha+y)*mu / (alpha+mu)) %*% X
+  g[ncol(X)+1] &lt;- sum(digamma( y + alpha) - log(alpha + mu) - (alpha + y) / (alpha + mu) 
+                  - digamma(alpha) + 1 + log(alpha))
+  return(g)
+}
+# Data generator
+genDataNbin &lt;- function(theta,data)
+{
+  out &lt;- data
+  X &lt;- data$X
+  eta&lt;- X %*% theta[1:ncol(X)] 
+  mu &lt;- exp(eta)
+  out$y &lt;- rnegbin(length(data$y), mu=mu, theta=theta[ncol(X)+1])
+  return(out)
+}	
+# Confidence intervals for the coefficient of EthN 
+## Not run: 
+obj &lt;- rstar.ci(quinedata, thetainit=c(coef(quine.nb1),quine.nb1$theta),  floglik=logLikNbin, 
+                datagen=genDataNbin, fscore=gradLikNbin, fpsi=function(theta) theta[2], R=1000, 
+                psidesc="Coefficient of EthN")
+print(obj)
+summary(obj)
+plot(obj)
+# Confidence intervals for the overdispersion parameter
+obj &lt;- rstar.ci(quinedata, thetainit=c(coef(quine.nb1),quine.nb1$theta),  floglik=logLikNbin, 
+                datagen=genDataNbin, fscore=gradLikNbin, fpsi=function(theta) theta[8], R=1000,
+                psidesc="Overdispersion parameter")
+summary(obj)
+plot(obj)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

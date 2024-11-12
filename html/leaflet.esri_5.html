@@ -1,0 +1,99 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>addEsriDynamicMapLayer</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Render and visualize Map Services from ArcGIS Online and ArcGIS Server.</h2>
+
+<h3>Description</h3>
+
+<p>Map Services are a way to expose the contents of a map as a web service and
+expose capabilities for exporting tile images, querying and
+identifying features and more.
+Also supports custom popups and identification of features.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">addEsriDynamicMapLayer(map, url, options = dynamicMapLayerOptions(),
+  popupFunction = NULL, popupOptions = NULL, layerId = NULL,
+  group = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>The leaflet map</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>url</code></td>
+<td>
+<p>URL of the <a href="http://resources.arcgis.com/en/help/arcgis-rest-api/#/Map_Service/02r3000000w2000000/">Map Service</a>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>options for the dynamic map layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popupFunction</code></td>
+<td>
+<p>Uses the provided function to create a popup that will
+identify features whenever the map is clicked.
+Your function will be passed a GeoJSON FeatureCollection of the features
+at the clicked location and should return the appropriate HTML.
+If you do not want to open the popup when there are no results, return false.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popupOptions</code></td>
+<td>
+<p>See <code>popupOptions</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>layerId</code></td>
+<td>
+<p>A unique ID for the layer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>The name of the group this layer should be added to.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">popupFunc &lt;- htmlwidgets::JS(
+  "function (error, featureCollection) {
+    if (error || featureCollection.features.length === 0) {
+      return false;
+    } else {
+    return \"Risk Level: \" + featureCollection.features[0].properties.CLASS_DESC;
+    }
+  }")
+
+leaflet() %&gt;% setView(-96.8, 38.5, 4) %&gt;%
+  addEsriBasemapLayer(esriBasemapLayers$Gray, autoLabels = TRUE) %&gt;%
+  addEsriDynamicMapLayer(
+    url = paste0("https://maps7.arcgisonline.com/arcgis/rest/services/",
+                 "USDA_USFS_2014_Wildfire_Hazard_Potential/MapServer"),
+    popupFunction = popupFunc)
+
+## for more examples see
+# browseURL(system.file("examples/dynamicMapLayers.R", package = "leaflet.esri"))
+</code></pre>
+
+
+</div>

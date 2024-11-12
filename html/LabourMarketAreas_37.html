@@ -1,0 +1,250 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>StatClusterData</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+StatClusterData
+</h2>
+
+<h3>Description</h3>
+
+<p>This function computes several statistics on a given set of labour market areas (a given partition). 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">StatClusterData(lma,param,threshold,dat)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lma</code></td>
+<td>
+
+<p>A list of data.table containing information on the labour market areas. Three components: clusterList, LWClus and marginals. clusterList is a data.table containing the variables community, cluster and EMP_live; everything else will be ignored. LWClus is a data.table containing the variables cluster_live, cluster_work and amount; everything else will be ignored. marginals is a data.table containing the variables cluster, amount_live and amount_work; everything else will be ignored. 
+</p>
+<p>In each data.table object, the order of the variables is mandatory.
+</p>
+<p>The lma names should have not been assigned; otherwise use function DeleteLmaName.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+<p>numeric vector: the set of parameters corresponding to the lma object, i.e. minSZ,minSC,tarSZ,tarSC, respectively. See function findClusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+
+<p>numeric. It is used to identify particular small labour market areas or flows. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+
+<p>data frame/data.table containing the commuting flows between communities (see for example Sardinia).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>marginals</code></td>
+<td>
+<p>data.table containing the following variables for each LMA.
+</p>
+<p><b>LMA: </b> positive integer; labour market areas ID 
+</p>
+<p><b>EMP_live: </b>numeric; number of commuters who live in the area 
+</p>
+<p><b>EMP_work: </b>numeric; number of commuters working in the area
+</p>
+<p><b>validity: </b>numeric; validity value computed with the current parameters
+</p>
+<p><b>EMP_live_work: </b>numeric; number of commuters living and working in the area
+</p>
+<p><b>lma_commuter_percent: </b>numeric; the quantity: (EMP_live-EMP_live_work)+(EMP_work-EMP_live_work)/(2*EMP_live_work) 
+</p>
+<p><b>Home_Work_Ratio: </b>numeric; the quantity 
+(( EMP_live-EMP_live_work)-( EMP_work-EMP_live_work))/EMP_live_work
+
+</p>
+<p><b>SC_demand_side: </b>numeric; demand side self-containment
+</p>
+<p><b>SC_supply_side: </b>numeric; supply side self-containment
+</p>
+<p><b>N_com: </b>integer; number of communities forming the LMA
+</p>
+<p><b>InternalCohesionLink: </b>numeric; consistency of internal relationships. It is given by the ratio between number of links between communities inside LMA, excluding itself, and the maximum number of possible links, i.e. (N_com * (N_com-1)). See [1].
+
+</p>
+<p><b>InternalCohesionFlows: </b>numeric; intensity of internal relationships. It is the percentage of internal flows (excluding flows having as origin and destination the same node) of the LMA between different communities w.r.t the total internal flows. See [3].
+
+</p>
+<p><b>NbCentralComm: </b>integer; number of communities having a centrality index greater than 1 (for communities with more than 100 workers, the centrality index is the ratio between net incoming flows and net outgoing flows).
+
+</p>
+<p><b>N_links_in: </b>integer; number of LMAs whose residents work in the current LMA (including itself)  
+</p>
+<p><b>N_links_out: </b>integer; number of LMAs where the residents of the current LMA work (including itself)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>StatFlows</code></td>
+<td>
+<p>list containing several statistics on flows and links between the labour market areas of the given partition.
+</p>
+<p><b>N_links: </b>numeric; number of links between LMAs
+</p>
+<p><b>PercNbLinksLessThreshold: </b>numeric; percentage of links corresponding to flows below threshold
+</p>
+<p><b>summFlows: </b>numeric vector; summary statistics on flows
+</p>
+<p><b>summFlowsNoItself: </b>numeric vector; summary statistics on flows, excluding the self-flows
+</p>
+<p><b>summLinks_in: </b>numeric vector; summary statistics on the number of incoming flows
+</p>
+<p><b>summLinks_out: </b>summary statistics on the number of outgoing flows
+</p>
+<p><b>clusterMaxNlinks_in: </b>positive integer; the LMA ID of the cluster reaching the maximum number of incoming flows
+</p>
+<p><b>clusterMaxNlinks_out: </b>positive integer; the LMA ID of the cluster reaching the maximum number of outgoing flows
+</p>
+<p><b>clusterMinNlinks_in: </b>positive integer; the LMA ID of the cluster reaching the minimum number of incoming flows
+</p>
+<p><b>clusterMinNlinks_out: </b>positive integer; the LMA ID of the cluster reaching the minimum number of outgoing flows
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>StatQuality</code></td>
+<td>
+<p>list containing several statistics on the given partition: 
+</p>
+<p><b>NbClusters: </b>integer; number of clusters
+</p>
+<p><b>NbClusterUniqueCom: </b>integer; number of clusters with an unique community
+</p>
+<p><b>NbClustersValidLess1: </b>integer; number of clusters with validity smaller than 1
+</p>
+<p><b>NbClustersNoCentralCom: </b>integer; number of clusters with no communities having a centrality measure greater than 1 
+</p>
+<p><b>Mean.SC_demand_side: </b>numeric; mean of the demand side self-containment of the clusters in the partition  
+</p>
+<p><b>Std.SC_demand_side: </b>numeric; standard deviation of the demand side self-containment 
+</p>
+<p><b>Mean.SC_supply_side: </b>numeric; mean of the supply side self-containment of the clusters in the partition 
+</p>
+<p><b>Std.SC_supply_side: </b>numeric; standard deviation of the supply side self-containment   
+</p>
+<p><b>Q1.InternalCohesionFlows: </b>numeric; first quartile of the InternalCohesionFlows 
+</p>
+<p><b>Q2.InternalCohesionFlows: </b>numeric; median of the InternalCohesionFlows
+</p>
+<p><b>Q3.InternalCohesionFlows: </b>numeric; third quartile of the InternalCohesionFlows 
+</p>
+<p><b>Q1.InternalCohesionLink: </b>numeric; first quartile of the InternalCohesionLink 
+</p>
+<p><b>Q2.InternalCohesionLink: </b>numeric; median of the InternalCohesionLink
+</p>
+<p><b>Q3.InternalCohesionLink: </b>numeric; third quartile of the InternalCohesionLink 
+</p>
+<p><b>Q1.EMP_live: </b>numeric; first quartile of the residents 
+</p>
+<p><b>Q2.EMP_live: </b>numeric; median of the residents
+</p>
+<p><b>Q3.EMP_live: </b>numeric; third quartile of the residents 
+</p>
+<p><b>Mean.EMP_live: </b>numeric; mean value of the residents 
+</p>
+<p><b>Std.EMP_live: </b>numeric; standard deviation of the residents 
+</p>
+<p><b>Min.EMP_live: </b>numeric; minimum value of the residents 
+</p>
+<p><b>Max.EMP_live: </b>numeric; maximum value of the residents 
+</p>
+<p><b>Q1.EMP_work: </b>numeric; first quartile of the workers/jobs 
+</p>
+<p><b>Q2.EMP_work: </b>numeric; median of the workers/jobs
+</p>
+<p><b>Q3.EMP_work: </b>numeric; third quartile of the workers/jobs 
+</p>
+<p><b>Mean.EMP_work: </b>numeric; mean value of the workers 
+</p>
+<p><b>Std.EMP_work: </b>numeric; standard deviation of the workers 
+</p>
+<p><b>Min.EMP_work: </b>numeric; minimum value of the workers 
+</p>
+<p><b>Max.EMP_work: </b>numeric; maximum value of the workers 
+</p>
+<p><b>Q1.EMP_live_work: </b>numeric; first quartile of the commuters living and working in the same area
+</p>
+<p><b>Q2.EMP_live_work: </b>numeric; median of the commuters living and working in the same area
+</p>
+<p><b>Q3.EMP_live_work: </b>numeric; third quartile of the the commuters living and working in the same area 
+</p>
+<p><b>Min.EMP_live_work: </b>numeric; minimum value of the commuters living and working in the same area 
+</p>
+<p><b>Max.EMP_live_work: </b>numeric; maximum value of the commuters living and working in the same area 
+</p>
+<p><b>Mean.lma_commuter_percent: </b>numeric; mean value of the quantity: (EMP_live-EMP_live_work)+(EMP_work-EMP_live_work)/(2*EMP_live_work) 
+</p>
+<p><b>Std.lma_commuter_percent: </b>numeric; standard deviation of the quantity (EMP_live-EMP_live_work)+(EMP_work-EMP_live_work)/(2*EMP_live_work) 
+</p>
+<p><b>Mean.Home_Work_Ratio: </b>numeric; mean value of the quantity 
+(( EMP_live-EMP_live_work)-( EMP_work-EMP_live_work))/EMP_live_work
+
+<b>Std.Home_Work_Ratio: </b>numeric; standard deviation of the quantity 
+(( EMP_live-EMP_live_work)-( EMP_work-EMP_live_work))/EMP_live_work
+
+</p>
+<p><b>Q_modularity: </b>numeric; Q_modularity index 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param: </code></td>
+<td>
+<p>numeric vector; it contains the parameters of the given solution, i.e. the output of the function findClusters. The parameters are minSZ,minSC,tarSZ,tarSC.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Daniela Ichim, Luisa Franconi, Michele D'Alo'
+</p>
+
+
+<h3>References</h3>
+
+<p>[1] Erba, A., D'Angio', A. e Marzulli, S. (1990). Partizioni funzionali del territorio: il modello Isers, Franco Angeli, Milano.
+</p>
+<p>[2] Franconi, L., D'Alo' M. and Ichim, D. (2016). Istat implementation of the algorithm to develop Labour Market Areas.
+</p>
+<p>[3] Lipizzi, F. (2014). Strumenti e indicatori per la misura della consistenza e omogeneita' delle aree funzionali. XXXV Conferenza annuale AISRe, "Uscire dalla crisi. Citta', Comunita' e Specializzazione Intelligenti", Padova,  11-13 September 2014.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>findClusters
+</p>
+
+
+</div>

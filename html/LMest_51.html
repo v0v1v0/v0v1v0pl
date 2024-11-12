@@ -1,0 +1,228 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmestMc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate Markov Chain models</h2>
+
+<h3>Description</h3>
+
+<p>Main function for estimating  Markov Chain (MC) models for categorical responses with or without covariates.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmestMc(responsesFormula = NULL,
+        data, index, start = 0,
+        modBasic = 0, weights = NULL,
+        tol = 10^-8, maxit = 1000,
+        out_se = FALSE, output = FALSE, fort = TRUE, seed = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>responsesFormula</code></td>
+<td>
+<p>a symbolic description of the model to fit. A detailed description is given in the ‘Details’ section</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a <code>data.frame</code> in long format</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>a character vector with two elements, the first indicating the name of the unit identifier, and the second the time occasions</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>type of starting values (0 = deterministic, 1 = random, 2 = initial values in input)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modBasic</code></td>
+<td>
+<p>model on the transition probabilities (0 for time-heter., 1 for time-homog., from 2 to (TT-1) partial homog. of that order)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional vector of weights for the available responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>tolerance level for convergence</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p>maximum number of iterations of the algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out_se</code></td>
+<td>
+<p>to compute the information matrix and standard errors (FALSE is the default option)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>output</code></td>
+<td>
+<p>to return additional output (<code>PI</code>,<code>Piv</code>) (<code>MCcov-class</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fort</code></td>
+<td>
+<p>to use fortran routines when possible (By default is set to TRUE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>An integer value with the random number generator state.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function <code>lmestMc</code> estimates the basic MC model and the MC model with covariates for categorical responses. The function requires data in long format and two additional column indicating the unit identifier and the time occasions.
+</p>
+<p><code>responsesFormula</code> is used to specify the basic MC models and the model with covariates:
+</p>
+
+<ul>
+<li>
+<p><code>responsesFormula = y1 + y2 ~ NULL</code> <br> the MC model without covariates and two responses (<code>y1</code> and <code>y2</code>) is specified;
+</p>
+</li>
+<li>
+<p><code>responsesFormula = NULL</code> <br> all the columns in the data except the <code>"id"</code> and <code>"time"</code> columns are used to estimate MC without covariates;
+</p>
+</li>
+<li>
+<p><code>responsesFormula = y1 ~ x1 + x2 | x3 + x4</code> <br> the MC model with one response (<code>y1</code>),  two covariates affecting the initial probabilities (<code>x1</code> and <code>x2</code>) and other two different covariates affecting the transition probabilities (<code>x3</code> and <code>x4</code>) is specified;
+
+</p>
+</li>
+<li>
+<p><code>responsesFormula = y1 ~ x1 + x2</code> <br> the MC model with one response (<code>y1</code>) and two covariates (<code>x1</code> and <code>x2</code>) affecting both the initial and transition probabilities is specified.
+</p>
+</li>
+</ul>
+<p>Missing responses are not allowed.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class <code>'MCbasic'</code> for the basic model without covariates (see <code>MCbasic-class</code>), or an object of class <code>'MCcov'</code> for the model with covariates (see <code>MCcov-class</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Francesco Bartolucci,
+Silvia Pandolfi,
+Fulvia Pennoni,
+Alessio Farcomeni,
+Alessio Serafini
+</p>
+
+
+<h3>References</h3>
+
+<p>Bartolucci F., Pandolfi S., Pennoni F. (2017) LMest: An R Package for Latent Markov Models for Longitudinal Categorical
+Data, <em>Journal of Statistical Software</em>, <b>81</b>(4), 1-38.
+</p>
+<p>Bartolucci, F., Farcomeni, A. and Pennoni, F. (2013) <em>Latent Markov Models for Longitudinal Data</em>, Chapman and Hall/CRC press.</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+# Basic Markov Chain  model
+
+data("RLMSlong")
+
+# Categories  rescaled from 1 “absolutely unsatisfied” to  5 “absolutely satisfied”
+
+RLMSlong$value &lt;- 5 - RLMSlong$value
+
+out &lt;- lmestMc(responsesFormula = value ~ NULL,
+               index = c("id","time"),
+               modBasic = 1,
+               data = RLMSlong)
+
+out
+summary(out)
+
+
+
+# Example of drug consumption data
+
+data("data_drug")
+long &lt;- data_drug[,-6]
+long &lt;- data.frame(id = 1:nrow(long),long)
+long &lt;- reshape(long,direction = "long",
+                idvar = "id",
+                varying = list(2:ncol(long)))
+
+out1 &lt;- lmestMc(index = c("id","time"), data = long,
+                weights = data_drug[,6], modBasic = 1, out_se = TRUE)
+
+out1
+
+### MC model with covariates
+### Covariates: gender, race, educational level (2 columns), age and age^2
+
+data("data_SRHS_long")
+SRHS &lt;- data_SRHS_long[1:2400,]
+
+# Categories of the responses rescaled from 1 “poor” to 5 “excellent”
+
+SRHS$srhs &lt;- 5 - SRHS$srhs
+
+
+out2 &lt;- lmestMc(responsesFormula = srhs ~
+                I( 0 + (race==2) + (race == 3)) +
+                I(0 + (education == 4)) +
+                I(0 + (education == 5)) +
+                I(age - 50) +
+                I((age-50)^2/100),
+                index = c("id","t"),
+                data = SRHS)
+out2
+summary(out2)
+
+# Criminal data
+
+data(data_criminal_sim)
+data_criminal_sim = data.frame(data_criminal_sim)
+
+out3 &lt;- lmestMc(responsesFormula = y5~sex,
+                index = c("id","time"),
+                data = data_criminal_sim,
+                output = TRUE)
+
+out3
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

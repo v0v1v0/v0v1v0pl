@@ -1,0 +1,97 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>string_boundary_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Require usage of <code>startsWith()</code> and <code>endsWith()</code> over <code>grepl()</code>/<code>substr()</code> versions</h2>
+
+<h3>Description</h3>
+
+<p><code>startsWith()</code> is used to detect fixed initial substrings; it is more
+readable and more efficient than equivalents using <code>grepl()</code> or <code>substr()</code>.
+c.f. <code>startsWith(x, "abc")</code>, <code>grepl("^abc", x)</code>,
+<code>substr(x, 1L, 3L) == "abc"</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">string_boundary_linter(allow_grepl = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>allow_grepl</code></td>
+<td>
+<p>Logical, default <code>FALSE</code>. If <code>TRUE</code>, usages with <code>grepl()</code>
+are ignored. Some authors may prefer the conciseness offered by <code>grepl()</code> whereby
+<code>NA</code> input maps to <code>FALSE</code> output, which doesn't have a direct equivalent
+with <code>startsWith()</code> or <code>endsWith()</code>.</p>
+</td>
+</tr></table>
+<h3>Details</h3>
+
+<p>Ditto for using <code>endsWith()</code> to detect fixed terminal substrings.
+</p>
+<p>Note that there is a difference in behavior between how <code>grepl()</code> and <code>startsWith()</code>
+(and <code>endsWith()</code>) handle missing values. In particular, for <code>grepl()</code>, <code>NA</code> inputs
+are considered <code>FALSE</code>, while for <code>startsWith()</code>, <code>NA</code> inputs have <code>NA</code> outputs.
+That means the strict equivalent of <code>grepl("^abc", x)</code> is
+<code>!is.na(x) &amp; startsWith(x, "abc")</code>.
+</p>
+<p>We lint <code>grepl()</code> usages by default because the <code>!is.na()</code> version is more explicit
+with respect to <code>NA</code> handling – though documented, the way <code>grepl()</code> handles
+missing inputs may be surprising to some users.
+</p>
+
+
+<h3>Tags</h3>
+
+<p>configurable, efficiency, readability
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = 'grepl("^a", x)',
+  linters = string_boundary_linter()
+)
+
+lint(
+  text = 'grepl("z$", x)',
+  linters = string_boundary_linter()
+)
+
+# okay
+lint(
+  text = 'startsWith(x, "a")',
+  linters = string_boundary_linter()
+)
+
+lint(
+  text = 'endsWith(x, "z")',
+  linters = string_boundary_linter()
+)
+
+# If missing values are present, the suggested alternative wouldn't be strictly
+# equivalent, so this linter can also be turned off in such cases.
+lint(
+  text = 'grepl("z$", x)',
+  linters = string_boundary_linter(allow_grepl = TRUE)
+)
+
+</code></pre>
+
+
+</div>

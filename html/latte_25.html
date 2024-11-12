@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>latte-count</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Count integer points in a polytope</h2>
+
+<h3>Description</h3>
+
+<p><code>latte_count</code> uses LattE's count function to count the (integer) lattice
+points in a polytope and compute Ehrhart polynomials.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">count_core(spec, dir = tempdir(), quiet = TRUE, mpoly = TRUE, ...)
+
+latte_count(spec, dir = tempdir(), quiet = TRUE, mpoly = TRUE, ...)
+
+latte_fcount(spec, dir = tempdir(), quiet = TRUE, mpoly = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>spec</code></td>
+<td>
+<p>Specification, see details and examples</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dir</code></td>
+<td>
+<p>Directory to place the files in, without an ending /</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>Show latte output?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mpoly</code></td>
+<td>
+<p>When opts = "–ehrhart-polynomial", return the mpoly version of
+it</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments to pass to the function, see count –help at
+the command line to see examples.  Note that dashes - should be specified
+with underscores _</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The specification should be one of the following: (1) a character string or
+strings containing an inequality in the mpoly expression format (see
+examples), (2) a list of vertices, (3) a list of A and b for the equation Ax
+&lt;= b (see examples), or (4) raw code for LattE's count program. If a
+character vector is supplied, (1) and (4) are distinguished by the number of
+strings.
+</p>
+<p>Behind the scenes, count works by writing a latte file and running count on
+it.  If a specification other than a length one character is given to it
+(which is considered to be the code), count attempts to convert it into LattE
+code and then run count on it.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The count.  If the count is a number has less than 10 digits, an
+integer is returned.  If the number has 10 or more digits, an integer in a
+character string is returned. You may want to use the gmp package's as.bigz
+to parse it.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+if (has_latte()) {
+
+spec &lt;- c("x + y &lt;= 10", "x &gt;= 1", "y &gt;= 1")
+latte_count(spec) # 45
+latte_count(spec, quiet = FALSE) # 45
+latte_count(spec, dilation = 10) # 3321
+latte_count(spec, homog = TRUE) # 45
+
+# by default, the output from LattE is in
+list.files(tempdir())
+list.files(tempdir(), recursive = TRUE)
+
+# ehrhart polynomials
+latte_count(spec, ehrhart_polynomial = TRUE)
+latte_count(spec, ehrhart_polynomial = TRUE, mpoly = FALSE)
+
+# ehrhart series (raw since mpoly can't handle rational functions)
+latte_count(spec, ehrhart_series = TRUE)
+
+# simplified ehrhart series - not yet implemented
+#latte_count(spec, simplified_ehrhart_polynomial = TRUE)
+
+# first terms of the ehrhart series
+latte_count(spec, ehrhart_taylor = 1)
+latte_count(spec, ehrhart_taylor = 2)
+latte_count(spec, ehrhart_taylor = 3)
+latte_count(spec, ehrhart_taylor = 4)
+
+# multivariate generating function
+latte_count(spec, multivariate_generating_function = TRUE)
+
+
+# by vertices
+spec &lt;- list(c(1,1), c(10,1), c(1,10), c(10,10))
+latte_count(spec)
+latte_count(spec, vrep = TRUE)
+
+code &lt;- "
+5 3
+1 -1  0
+1  0 -1
+1 -1 -1
+0  1  0
+0  0  1
+"
+latte_count(code)
+
+
+# for Ax &lt;= b, see this example from the latte manual p.10
+A &lt;- matrix(c(
+   1,  0,
+   0,  1,
+   1,  1,
+  -1,  0,
+   0, -1
+), nrow = 5, byrow = TRUE)
+b &lt;- c(1, 1, 1, 0, 0)
+latte_count(list(A = A, b = b))
+
+
+
+
+
+
+
+
+
+}
+
+
+</code></pre>
+
+
+</div>

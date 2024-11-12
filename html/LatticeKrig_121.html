@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LKrigSetupAwght</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Method to create a.wght component from the <code>LKinfo</code>
+object.
+
+</h2>
+
+<h3>Description</h3>
+
+<p>This method takes a vector or more complicated object and
+based on the geometry creates a list with the a.wght information.
+
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LKrigSetupAwght(object, ...)
+## Default S3 method:
+LKrigSetupAwght(object, ...)
+
+## S3 method for class 'LKRectangle'
+LKrigSetupAwght(object, ...)
+
+LKrigSetupAwghtObject(object)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+
+<p>The partial or complete <code>LKinfo</code> object created within <code>LKrigSetup</code>.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>Any additional arguments to this method.
+
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The simplest function of this method is to convert the 
+a.wght value into a list that has the length of the number of levels.
+If only a scalar a.wght value is supplied then the default method
+just repeats this for each level. 
+</p>
+<p>The function <code>LKrigSetupAwghtObject</code> uses the
+a.wghtObject component  in the LKinfo object to fill
+in a.wght parameters for the different
+levels. This is convenient because the lattice locations are different at each level. The parameters are filled in at level, <code>Level</code> according to 
+</p>
+<pre>
+ 	 latticeLocations&lt;- make.surface.grid( 
+ 	                          object$latticeInfo$grid[[Level]])
+ 	 a.wght&lt;- predict( object$a.wghtObject, latticeLocations )
+ 	</pre>
+<p>here the predict function is whatever is supplied according to the 
+class for a.wghtObject. Note that since the returned set of 
+parameters will be in the format used internally a.wght here will be
+a list with each component being a matrix. Number of rows are each to
+the number of lattice points (or basis functions) at that level. 
+This is easier implement that it may seem and see the examples in nonstationaryModels.
+</p>
+<p>The attribute
+<code>fastNormalize</code> (either TRUE or FALSE) is attached to this 
+list to indicate how the marginal variance of the process should be
+found.
+</p>
+<pre> 	 	
+  LKinfo&lt;- LKrigSetup( x,LKGeometry="LKInterval", alpha=c( 1,.2,.01),
+                   nlevel=3, a.wght=4.5, NC= 3)
+  LKrigSetupAwght( LKinfo)
+  
+[[1]]
+[1] 4.5
+
+[[2]]
+[1] 4.5
+
+[[3]]
+[1] 4.5
+
+attr(,"fastNormalize")
+[1] FALSE
+</pre>                   
+<p>Currently the only geometry with fastNormalization being TRUE is for a
+rectangular domain. 
+</p>
+<p>For the LKRectangle geometry, however, more complicated
+anisotropic and non-stationary a.wght specifications are possible. 
+See <code>LKrig</code> for details. Also in the case that the
+fastNormalization is TRUE for rectangles several more attributes are added to the  <code>a.wght</code> list 	that precompute some matrices of the SAR. 
+</p>
+
+
+
+<h3>Value</h3>
+
+<p>A list with <code>nlevel</code> components. The attribute <code>fastNormalize</code>
+is added to this list. In the case that the geometry is LKRectangle several
+more attributes are added indicating the type of covariance model and
+possibly an eigen decomposition of the SAR matrix exploiting Kronecker
+products.  
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Doug Nychka
+
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>LKrigSetup</code>, 	<code>LKrigSetupAlpha</code>,
+<code>LKrigSAR</code>,  <code>LKrig</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  x&lt;- cbind( c(0,1))
+  LKinfo&lt;- LKrigSetup( x,LKGeometry="LKInterval", alpha=c( 1,.2,.01),
+                   nlevel=3, a.wght=4.5, NC= 3)
+  a.wghtList&lt;- LKrigSetupAwght( LKinfo)
+  
+  x&lt;- cbind( c(0,1), c(0,1))
+  LKinfo&lt;- LKrigSetup( x, alpha=c( 1,.2,.01),
+                   nlevel=3, a.wght=4.5, NC= 3)
+  a.wghtList&lt;- LKrigSetupAwght( LKinfo)
+# see   
+  names(attributes( a.wghtList))
+ 
+  
+</code></pre>
+
+
+</div>

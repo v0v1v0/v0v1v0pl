@@ -1,0 +1,153 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mte_tilde_at</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Evaluate Marginal Treatment Effects Projected onto the Propensity Score</h2>
+
+<h3>Description</h3>
+
+<p><code>mte_tilde_at</code> evaluates marginal treatment effects
+projected onto the estimated propensity score. The projection
+is done via the function <code>gam</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mte_tilde_at(p, u, model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A numeric vector. Values of the propensity score at which <code class="reqn">\widetilde{\textup{MTE}}(p, u)</code>
+is evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>A numeric vector. Values of the latent resistance at which <code class="reqn">\widetilde{\textup{MTE}}(p, u)</code>
+is evaluated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A fitted MTE model returned by <code>mte</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters passed to <code>gam</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>mte_tilde_at</code> returns a list of two elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>df</code></td>
+<td>
+<p>A data frame containing five columns:</p>
+
+<ul>
+<li>
+<p><code>p</code> input values of <code>p</code>.
+</p>
+</li>
+<li>
+<p><code>u</code> input values of <code>u</code>.
+</p>
+</li>
+<li>
+<p><code>p_comp</code> the p-component of the estimated <code class="reqn">\widetilde{\textup{MTE}}(p, u)</code>
+</p>
+</li>
+<li>
+<p><code>u_comp</code> the u-component of the estimated <code class="reqn">\widetilde{\textup{MTE}}(p, u)</code>
+</p>
+</li>
+<li>
+<p><code>value</code> estimated values of <code class="reqn">\widetilde{\textup{MTE}}(p, u)</code>
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proj</code></td>
+<td>
+<p>Fitted <code>gam</code> model for <code class="reqn">E[\mu_1(X)-\mu_0(X)|P(Z)=p]</code></p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Zhou, Xiang and Yu Xie. 2019. "<a href="https://www.journals.uchicago.edu/doi/abs/10.1086/702172">Marginal Treatment Effects from A Propensity Score Perspective.</a>"
+Journal of Political Economy, 127(6): 3070-3084.
+</p>
+<p>Zhou, Xiang and Yu Xie. 2020. "<a href="https://journals.sagepub.com/doi/abs/10.1177/0081175019862593">Heterogeneous Treatment Effects in the Presence of Self-selection:
+a Propensity Score Perspective.</a>" Sociological Methodology.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mod &lt;- mte(selection = d ~ x + z, outcome = y ~ x, data = toydata)
+
+u &lt;- p &lt;- seq(0.05, 0.95, 0.1)
+mte_tilde &lt;- mte_tilde_at(p, u, model = mod)
+
+# heatmap showing MTE_tilde(p, u)
+if(require("ggplot2")){
+ggplot(mte_tilde$df, aes(x = u, y = p, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(name = expression(widetilde(MTE)(p, u)), low = "yellow", high = "blue") +
+  xlab("Latent Resistance U") +
+  ylab("Propensity Score p(Z)") +
+  theme_minimal(base_size = 14)
+}
+
+mprte_tilde_df &lt;- subset(mte_tilde$df, p == u)
+
+# heatmap showing MPRTE_tilde(p)
+if(require("ggplot2")){
+ggplot(mprte_tilde_df, aes(x = u, y = p, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(name = expression(widetilde(MPRTE)(p)), low = "yellow", high = "blue") +
+  xlab("Latent Resistance U") +
+  ylab("Propensity Score p(Z)") +
+  theme_minimal(base_size = 14)
+}
+
+# MPRTE_tilde(p) decomposed into the p-component and the u-component
+if(require(tidyr) &amp;&amp; require(dplyr) &amp;&amp; require(ggplot2)){
+mprte_tilde_df %&gt;%
+  pivot_longer(cols = c(u_comp, p_comp, value)) %&gt;%
+  mutate(name = recode_factor(name,
+         `value` = "MPRTE(p)",
+         `p_comp` = "p(Z) component",
+         `u_comp` = "U component")) %&gt;%
+  ggplot(aes(x = p, y = value)) +
+  geom_line(aes(linetype = name), size = 1) +
+  scale_linetype(name = "") +
+  xlab("Propensity Score p(Z)") +
+  ylab("Treatment Effect") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "bottom")
+}
+
+</code></pre>
+
+
+</div>

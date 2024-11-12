@@ -1,0 +1,110 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cure.profile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Evaluate the Profile Log-Likelihood on a Grid of <code class="reqn">p_0</code>-Values
+</h2>
+
+<h3>Description</h3>
+
+<p>For each of a series of values for the cure parameter <code class="reqn">p_0</code> run the function <code>logcon</code> and evaluate the (normalized) log-likelihood at <code class="reqn">(\phi,p_0)</code>, where <code class="reqn">\phi</code> is the log subprobability density returned by <code>logcon</code>. This serves for (approximate) joint likelihood maximization in <code class="reqn">(\phi,p_0)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cure.profile(x, p0grid=seq(0,0.95,0.05), knot.prec=IQR(x[x&lt;Inf])/75,
+                  reduce=TRUE, control=lc.control())
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>a two-column matrix of <code class="reqn">n \geq 2</code> rows containing the data intervals.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p0grid</code></td>
+<td>
+
+<p>a vector of values <code class="reqn">p_0</code> for which the profile log-likelihood is to be evaluated.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>knot.prec, reduce, control</code></td>
+<td>
+
+<p>arguments passed to the function <code>logcon</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing the following values:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>p0hat </code></td>
+<td>
+<p>the element in <code>p0grid</code> that maximizes the profile likelihood (in the very unlikely case of ties, only the smallest such element is returned).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status </code></td>
+<td>
+<p>the vector of (normalized) profile log-likelihood values for the elements of <code>p0grid</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>For a large <code>p0grid</code>-vector (fine grid) computations may take a long time. Consider using the option <code>adapt.p0</code> in the function <code>logcon</code> for a much faster method of joint likelihood maximization in <code class="reqn">(\phi,p_0)</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dominic Schuhmacher <a href="mailto:dominic.schuhmacher@mathematik.uni-goettingen.de">dominic.schuhmacher@mathematik.uni-goettingen.de</a><br>
+Kaspar Rufibach <a href="mailto:kaspar.rufibach@gmail.com">kaspar.rufibach@gmail.com</a><br>
+Lutz Duembgen <a href="mailto:duembgen@stat.unibe.ch">duembgen@stat.unibe.ch</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>logcon</code>, <code>loglike</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## The example from the logconcens-package help page:
+set.seed(11)
+x &lt;- rgamma(50,3,1)
+x &lt;- cbind(x,ifelse(rexp(50,1/3) &lt; x,Inf,x))
+
+## Not run: 
+plotint(x)
+progrid &lt;- seq(0.1,0.6,0.025)
+prores &lt;- cure.profile(x, progrid)
+plot(progrid, prores$loglike)
+prores$p0hat
+res &lt;- logcon(x, p0=prores$p0hat)
+plot(res, type="survival")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

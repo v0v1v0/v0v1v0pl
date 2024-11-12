@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>tree_segmentation</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Preprocessing and segmentation of raster image for tree identification</h2>
+
+<h3>Description</h3>
+
+<p>global function for preprocessing (filtering), maxima detection and selection, 
+segmentation and segmentation adjustment of a raster image.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">tree_segmentation(dem, dtm = NULL, crown_prop = NULL, crown_hmin = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dem</code></td>
+<td>
+<p>raster object or string indicating location of raster file 
+(typically a canopy height model or a digital surface model; in the latter 
+case the dtm parameter should be provided)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dtm</code></td>
+<td>
+<p>raster object or string indicating location of raster file with 
+the terrain model. If provided, the maxima extraction and watershed segmentation 
+are performed on the dem (this avoids the deformation of crown because of the 
+normalisation with terrain), but maxima selection and segment adjustment are 
+performed on 'dem-dtm' because the selection criteria are based on the height to terrain.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crown_prop</code></td>
+<td>
+<p>(deprecated) numeric. (overrides <code>prop</code> parameter 
+passed to <code>seg_adjust</code>, for backward compatibility)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>crown_hmin</code></td>
+<td>
+<p>(deprecated) numeric. (overrides <code>min.value</code> parameter 
+passed to <code>seg_adjust</code>, for backward compatibility)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>arguments passed to functions <code>dem_filtering</code>
+(e.g. <code>nl_filter</code>, <code>nl_size</code>, <code>sigma</code>), 
+<code>maxima_detection</code>, <code>maxima_selection</code>, 
+<code>maxima_selection</code> (<code>dmin</code>: treetop minimum distance to next
+higher pixel in meters, <code>dprop</code>: number defining the treetop minimum 
+distance as proportion of its height to next higher pixel, <code>hmin</code>: 
+minimum treetop height), <code>seg_adjust</code> (<code>prop</code>: minimum 
+height of tree crown base as proportion of treetop height, <code>min.value</code>: 
+minimum crown base height)</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A SpatRaster with 4 layers: selected local maxima (values = 
+distance to higher pixel), segments, non-linear preprocessed dem, smoothed 
+preprocessed dem
+</p>
+
+
+<h3>References</h3>
+
+<p>Monnet, J.-M. 2011. Using airborne laser scanning for mountain 
+forests mapping: Support vector regression for stand parameters estimation 
+and unsupervised training for treetop detection. Ph.D. thesis. University of 
+Grenoble, France. Section 6.2 
+<a href="https://theses.hal.science/tel-00652698/document">https://theses.hal.science/tel-00652698/document</a>
+</p>
+<p>Monnet, J.-M., Mermin, E., Chanussot, J., Berger, F. 2010. Tree top detection 
+using local maxima filtering: a parameter sensitivity analysis. Silvilaser 2010, 
+the 10th International Conference on LiDAR Applications for Assessing Forest 
+Ecosystems, September 14-17, Freiburg, Germany, 9 p. 
+<a href="https://hal.science/hal-00523245/document">https://hal.science/hal-00523245/document</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dem_filtering</code>, <code>maxima_detection</code>, 
+<code>maxima_selection</code>, <code>segmentation</code>, 
+<code>seg_adjust</code>, <code>tree_extraction</code>,
+<code>tree_detection</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(chm_chablais3)
+chm_chablais3 &lt;- terra::rast(chm_chablais3)
+
+# tree segmentation
+segments &lt;- tree_segmentation(chm_chablais3)
+segments2 &lt;- tree_segmentation(chm_chablais3,
+  nl_filter = "Median", nl_size = 3,
+  sigma = cbind(c(0.2, 0.8), c(0, 15)), dmin = 0, dprop = 0, hmin = 10, 
+  crown_prop = 0.5, crown_hmin = 5
+)
+
+# plot initial image segments
+terra::plot(chm_chablais3, main = "Initial image")
+terra::plot(segments$smoothed_dem, main = "Filtered image")
+terra::plot(segments$local_maxima, main = "Local maxima")
+#
+# replace segment with id 0 (not a tree) with NA
+segments$segments_id[segments$segments_id == 0] &lt;- NA
+terra::plot(segments$segments_id %% 8, main = "Segments", col = rainbow(8))
+#
+# plot segmentation with other parameters
+segments2$segments_id[segments2$segments_id == 0] &lt;- NA
+terra::plot(segments2$segments_id %% 8, main = "Segments2", col = rainbow(8))
+</code></pre>
+
+
+</div>

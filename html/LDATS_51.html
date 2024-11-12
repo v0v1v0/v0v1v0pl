@@ -1,0 +1,119 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>multinom_TS_chunk</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a multinomial Time Series model chunk</h2>
+
+<h3>Description</h3>
+
+<p>Fit a multinomial regression model (via
+<code>multinom</code>, Ripley 1996, Venables and Ripley 2002)
+to a defined chunk of time (a.k.a. segment)
+<code>[chunk$start, chunk$end]</code> within a time series.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">multinom_TS_chunk(
+  data,
+  formula,
+  chunk,
+  timename = "time",
+  weights = NULL,
+  control = list()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Class <code>data.frame</code> object including the predictor and 
+response variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Formula as a <code>formula</code> or 
+<code>character</code> object describing the chunk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>chunk</code></td>
+<td>
+<p>Length-2 vector of times: [1] <code>start</code>, the start time 
+for the chunk and [2] <code>end</code>, the end time for the chunk.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timename</code></td>
+<td>
+<p><code>character</code> element indicating the time variable
+used in the time series. Defaults to <code>"time"</code>. The variable must be
+integer-conformable or a <code>Date</code>. If the variable named
+is a <code>Date</code>, the input is converted to an integer, resulting in the
+timestep being 1 day, which is often not desired behavior.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>Optional class <code>numeric</code> vector of weights for each 
+document. Defaults to <code>NULL</code>, translating to an equal weight for
+each document. When using <code>multinom_TS</code> in a standard LDATS 
+analysis, it is advisable to weight the documents by their total size,
+as the result of <code>LDA</code> is a matrix of 
+proportions, which does not account for size differences among documents.
+For most models, a scaling of the weights (so that the average is 1) is
+most appropriate, and this is accomplished using <code>document_weights</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p>A <code>list</code> of parameters to control the fitting of the
+Time Series model including the parallel tempering Markov Chain 
+Monte Carlo (ptMCMC) controls. Values not input assume defaults set by 
+<code>TS_control</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Fitted model object for the chunk, of classes <code>multinom</code> and
+<code>nnet</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Ripley, B. D. 1996. Pattern Recognition and Neural Networks. Cambridge.
+</p>
+<p>Venables, W. N. and B. D. Ripley. 2002. Modern Applied Statistics with S.
+Fourth edition. Springer.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  data(rodents)
+  dtt &lt;- rodents$document_term_table
+  lda &lt;- LDA_set(dtt, 2, 1, list(quiet = TRUE))
+  dct &lt;- rodents$document_covariate_table
+  dct$gamma &lt;- lda[[1]]@gamma
+  weights &lt;- document_weights(dtt)
+  chunk &lt;- c(start = 0, end = 100)
+  mtsc &lt;- multinom_TS_chunk(dct, formula = gamma ~ 1, chunk = chunk,
+                     timename = "newmoon", weights = weights) 
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,243 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>xlo2qua</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion of a Vector through a Left-Hand Threshold to Setup Conditional Probability Computations</h2>
+
+<h3>Description</h3>
+
+<p>This function takes a vector of nonexceedance probabilities, a parameter object, and the object of the conditional probabability structure and computes the quantiles. This function only performs very simple vector operations. The real features for conditional probability application are found in the <code>x2xlo</code> and <code>f2flo</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">xlo2qua(f, para=NULL, xlo=NULL, augasNA=FALSE, sort=FALSE, fillthres=TRUE,
+           retrans=function(x) x, paracheck=TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>Nonexceedance probability (<code class="reqn">0 \le F \le 1</code>). Be aware, these are sorted internally.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>Parameters from <code>parpe3</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlo</code></td>
+<td>
+<p>Mandatory result from <code>x2xlo</code> containing the content needed for internal call to <code>f2flo</code> and then vector augmentation with the threshold within the <code>xlo</code>. If this is left as <code>NULL</code>, then the function simply calls the quantile function for the parameters in <code>para</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>augasNA</code></td>
+<td>
+<p>A logical to switch out the threshold of <code>xlo</code> for <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>A logical whose default adheres to long-term assembly of <span class="pkg">lmomco</span> behavior with working with conditional trunction. Setting this to true, triggers hand assembly of the the unsorted returned quantiles with support for <code>NA</code> and more flexibility than <code>x2xlo</code> as originally designed. If sort is true, then the <code>f</code> is permitted to contain <code>NA</code> values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fillthres</code></td>
+<td>
+<p>A logical to trigger <code>qua[qua &lt;= xlo$thres] &lt;- xlo$thres</code> or replacement of computed values less than the threshold with the threshold. The argument <code>augasNA</code> is consulted after <code>fillthres</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retrans</code></td>
+<td>
+<p>A retransformation function for the quantiles after they are computed according to the <code>para</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>paracheck</code></td>
+<td>
+<p>A logical controlling whether the parameters are checked for validity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments, if needed, dispatched to <code>par2qua</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A vector of quantiles (sorted) for the nonexceedance probabilities and padding as needed to the threshold within the <code>xlo</code> object.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>f2flo</code>, <code>flo2f</code>, <code>f2f</code>, <code>x2xlo</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># This seed produces a quantile below the threshold for the FF nonexceedances and
+# triggers the qua[qua &lt;= xlo$thres] &lt;- xlo$thres inside xlo2qua().
+
+set.seed(2)
+FF  &lt;- nonexceeds();  LOT &lt;- 0 # low-outlier threshold
+
+XX  &lt;- 10^rlmomco(20, vec2par(c(3, 0.7, 0.3), type="pe3"))
+XX  &lt;- c(rep(LOT, 5), XX)
+# Pack the LOT values to the simulation, note that in most practical applications
+# involving logarithms, that zeros rather than LOTs would be more apt, but this
+# demonstration is useful because of the qua[qua &lt;= xlo$thres] (see sources).
+# Now, make the xlo object using the LOT as the threshold---the out of sample flag.
+
+xlo &lt;- x2xlo(XX, leftout=LOT)
+pe3 &lt;- parpe3( lmoms( log10(xlo$xin) ) )
+# Fit the PE3 to the log10 of those values remaining in the sample.
+
+QQ  &lt;- xlo2qua(FF, para=pe3, xlo=xlo, retrans=function(x) 10^x)
+# This line does all the work. Saves about four lines of code and streamlines
+# logic when making frequency curves from the parameters and the xlo.
+
+# Demonstrate this frequency curve to the observational sample.
+plot(FF, QQ, log="y", type="l", col=grey(0.8))
+points(pp(XX), sort(XX), col="red")
+
+# Notice that with logic here and different seeds that XX could originally have
+# values less than the threshold, so one would not have the lower tail all
+# plotting along the threshold and a user might want to make other decisions.
+QZ  &lt;- xlo2qua(FF, para=pe3, xlo=xlo, augasNA=TRUE, retrans=function(x) 10^x)
+lines(FF, QZ, col="blue")
+# See how the QZ does not plot until about FF=0.2 because of the augmentation
+# as NA (augasNA) being set true.
+
+## Not run: 
+# Needs library(copBasic); library(MGBT) # too
+Asite &lt;- "08148500"; Bsite &lt;- "08150000"; dtype &lt;- "gev"
+AB    &lt;- MGBT::jointPeaks(Asite, Bsite) # tables of the peaks and pairwise peaks
+A     &lt;- AB$Asite_no[AB$Asite_no$appearsSystematic == TRUE, ] # only record when
+B     &lt;- AB$Bsite_no[AB$Bsite_no$appearsSystematic == TRUE, ] # monitoring occurring
+QA    &lt;- A$peak_va; Alot &lt;- 0 # cfs (just protection from zeros, more sophisticated)
+QB    &lt;- B$peak_va; Blot &lt;- 0 # cfs (work might be needed for better thresholds)
+Alo   &lt;- x2xlo(QA, leftout=Alot) # A xlo object
+Blo   &lt;- x2xlo(QB, leftout=Blot) # B xlo object
+Apara &lt;- lmr2par(log10(Alo$xin), type=dtype) # note log10
+Bpara &lt;- lmr2par(log10(Blo$xin), type=dtype) # note log10
+Aupr  &lt;- 10^supdist(Apara)$support[2]
+Bupr  &lt;- 10^supdist(Bpara)$support[2]
+UVsS  &lt;- AB$AB[, c("U", "V")] # isolate paired empirical probabilities
+rhoS  &lt;- copBasic::rhoCOP(as.sample=TRUE,     para=UVsS) # Spearman rho
+infS  &lt;- copBasic::LzCOPpermsym(cop=EMPIRcop, para=UVsS, as.vec=TRUE)
+# a vector of permutation (variable exchangability) distances
+
+tparf &lt;- function(par) { c(log(par[1] -1), log(par[2]),  # transform for optimization
+                   qnorm(punif(par[3],  min=-1, max=1))) }
+rparf &lt;- function(par) { c(exp(par[1])+1,  exp(par[2]),  # re-transformation to copula
+                   qunif(pnorm(par[3]), min=-1, max=1)) }
+
+ofunc &lt;- function(par) { # objective function
+  mypara &lt;- rparf(par)   # re-transform to copula space
+  mypara &lt;- list(cop=GHcop, para=mypara[1:2], breve=mypara[3]) # asymmetry by breveCOP()
+  rhoT   &lt;- copBasic::rhoCOP(cop=breveCOP, para=mypara) # Spearman rho
+  infT   &lt;- copBasic::LzCOPpermsym(cop=breveCOP, para=mypara, as.vec=TRUE)
+  err    &lt;- mean( (infT - infS)^2 ) + (rhoT - rhoS)^2 # sum of square-like errors
+  return(err)
+}
+init.par &lt;- tparf(c(2, 1, 0)); rt &lt;- NULL # init parameters and root
+try( rt &lt;- optim(init.par, ofunc) )
+cpara &lt;- rparf(rt$par) # re-transformation
+cpara &lt;- list(cop=GHcop, para=cpara[1:2], breve=cpara[3]) # copula parameters for
+# an double-parameter Gumbel copula with permutation asymmetry via the breve.
+
+ns &lt;- 1000 # years of bivariate simulation
+UVsim &lt;- copBasic::rCOP(ns, cop=breveCOP, para=cpara, resamv01=TRUE) # simulation
+AS &lt;- xlo2qua(UVsim[,1], para=Apara, xlo=Alo, sort=FALSE,  # **** see xlo2qua() use
+                         retrans=function(x) 10^x, paracheck=FALSE)
+BS &lt;- xlo2qua(UVsim[,2], para=Bpara, xlo=Blo, sort=FALSE,  # **** see xlo2qua() use
+                         retrans=function(x) 10^x, paracheck=FALSE)
+
+FF  &lt;- seq(0.001, 0.999, by=0.001); qFF &lt;- qnorm(FF) # probabilities for marginal curve
+AF &lt;- xlo2qua(FF, para=Apara, xlo=Alo, sort=FALSE,         # **** see xlo2qua() use
+                  retrans=function(x) 10^(x), paracheck=FALSE)
+BF &lt;- xlo2qua(FF, para=Bpara, xlo=Blo, sort=FALSE,         # **** see xlo2qua() use
+                  retrans=function(x) 10^(x), paracheck=FALSE)
+# There might be a small region in the lower-left corner that is not attainable by the
+# use of the thresholding. Let us add the complexity to the example by working out
+# about the minimum points on the curves w/o more sophisticated computation.
+mx &lt;- min(c(AS, AF), na.rm=TRUE); my &lt;- min(c(BS, BF), na.rm=TRUE)
+# The use of the mx and my help us with a polygon to come, but also help us to set
+# some axis limits that are especially suitable to see the entire situation of the
+# simulation canvasing [0,1]^2 but the quantiles through the univariate margins might
+# have truncation because of handling of the lower-tail by the threshold.
+
+# finally plot the bivariate relation
+plot(AB$AB$Apeak_va, AB$AB$Bpeak_va, log="xy", type="n",
+     xlim=range(c(mx, QA, AS, ifelse(is.finite(Aupr), Aupr, NA)), na.rm=TRUE),
+     ylim=range(c(my, QB, BS, ifelse(is.finite(Bupr), Bupr, NA)), na.rm=TRUE),
+     xlab=paste0("Paired water-year peak streamflow for streamgage ", Asite),
+     ylab=paste0("Paired water-year peak streamflow for streamgage ", Bsite))
+cr &lt;- 10^par()$usr[c(1, 3)]             # finish forming the region in the lower-left
+px &lt;- c(cr[1], mx, mx, cr[1], cr[1])    # corner that is truncated away; we do this
+py &lt;- c(cr[2], cr[2], my, my, cr[2])    # this because log10() used and in practical
+polygon(px, py, col="wheat", border=NA) # applications at best zeros might be data
+abline(v=mx, lty=2, lwd=0.8); abline(h=my, lty=2, lwd=0.8) # further demarcation
+if( is.finite(Aupr) ) abline(v=Aupr, lty=2, lwd=1.5, col="purple") # upper limit
+if( is.finite(Bupr) ) abline(h=Bupr, lty=2, lwd=1.5, col="purple") # upper limit
+points(AS, BS, pch=21, col="red", bg="white") # now plot the simulations
+points(AB$AB$Apeak_va, AB$AB$Bpeak_va, cex=AB$AB$cex, # now plot the observed data that
+       col="black", bg=grey(AB$AB$cex/2), pch=21) # defined the parameter estimation of
+legend("bottomright",                             # the copula then draw a legend.
+     c("Paired streamflow (fill lightens/size increases as days apart increases)",
+       paste0(ns, " years simulated by copula and GEV margins")), bty="o", cex=0.8,
+       pch=c(21,21), col=c("black","red"), pt.cex=c(1.3,1), pt.bg=c(grey(0.7),"white"))
+
+ST &lt;- round(1/(1-kfuncCOP(0.99, cop=breveCOP, para=cpara)), digits=0)
+message("Super-critical return period for ",
+               "primary return period of 100 years is ", ST, " years.")
+
+#  move on to showing the univariate margins by parametric fit with left-truncation
+plot(qnorm(pp(QA)), sort(QA), log="y", pch=21, bg="white", main=Asite,
+     ylim=range(c(QA, AF, Aupr), na.rm=TRUE),
+     xlab="Standard normal variate", ylab="Peak streamflow, in cfs")
+abline(h=Aupr, lty=2, lwd=1.5, col="purple")
+lines(qFF, AF, lwd=3, col="seagreen")
+legend("bottomright",
+     c(paste0("Marginal distribution by ", toupper(dtype)),
+       "Upper bounds of fitted distribution",
+       "Systematic peaks by Weibull plotting position"), bty="o", seg.len=3,
+       pch=c(NA,NA,21), col=c("seagreen","purple","black"), bg="white", cex=0.8,
+       lty=c(1, 2, NA), lwd=c(3, 1.5, NA), pt.bg=c(NA, NA, "white"))
+
+plot(qnorm(pp(QB)), sort(QB), log="y", pch=21, bg="white", main=Bsite,
+     ylim=range(c(QB, BF, Bupr), na.rm=TRUE),
+     xlab="Standard normal variate", ylab="Peak streamflow, in cfs")
+abline(h=Bupr, lty=2, lwd=1.5, col="purple")
+lines(qFF, BF, lwd=3, col="seagreen")
+legend("bottomright",
+     c(paste0("Marginal distribution by ", toupper(dtype)),
+       "Upper bounds of fitted distribution",
+       "Systematic peaks by Weibull plotting position"), bty="o", seg.len=3,
+       pch=c(NA,NA,21), col=c("seagreen","purple","black"), bg="white", cex=0.8,
+       lty=c(1, 2, NA), lwd=c(3, 1.5, NA), pt.bg=c(NA, NA, "white")) # 
+## End(Not run)
+</code></pre>
+
+
+</div>

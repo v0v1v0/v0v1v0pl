@@ -1,0 +1,126 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vcov2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Variance-Covariance With Small Sample Correction</h2>
+
+<h3>Description</h3>
+
+<p>Extract the variance-covariance matrix from a latent variable model.
+Similar to <code>stats::vcov</code> but with small sample correction.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vcov2(object, robust, cluster, as.lava, ...)
+
+## S3 method for class 'lvmfit'
+vcov2(
+  object,
+  robust = FALSE,
+  cluster = NULL,
+  as.lava = TRUE,
+  ssc = lava.options()$ssc,
+  ...
+)
+
+## S3 method for class 'lvmfit2'
+vcov2(object, robust = FALSE, cluster = NULL, as.lava = TRUE, ...)
+
+## S3 method for class 'lvmfit2'
+vcov(object, robust = FALSE, cluster = NULL, as.lava = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvmfit</code> or <code>lvmfit2</code> object (i.e. output of <code>lava::estimate</code> or <code>lavaSearch2::estimate2</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>[logical] should robust standard errors be used instead of the model based standard errors? Should be <code>TRUE</code> if argument cluster is not <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>[integer vector] the grouping variable relative to which the observations are iid.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.lava</code></td>
+<td>
+<p>[logical] if <code>TRUE</code>, uses the same names as when using <code>stats::coef</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional argument passed to <code>estimate2</code> when using a <code>lvmfit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ssc</code></td>
+<td>
+<p>[character] method used to correct the small sample bias of the variance coefficients: no correction (<code>"none"</code>/<code>FALSE</code>/<code>NA</code>),
+correct the first order bias in the residual variance (<code>"residual"</code>), or correct the first order bias in the estimated coefficients <code>"cox"</code>).
+Only relevant when using a <code>lvmfit</code> object.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When argument object is a <code>lvmfit</code> object, the method first calls <code>estimate2</code> and then extract the variance-covariance matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix with as many rows and columns as the number of coefficients.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>estimate2</code> to obtain <code>lvmfit2</code> objects.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### simulate data ####
+n &lt;- 5e1
+p &lt;- 3
+X.name &lt;- paste0("X",1:p)
+link.lvm &lt;- paste0("Y~",X.name)
+formula.lvm &lt;- as.formula(paste0("Y~",paste0(X.name,collapse="+")))
+
+m &lt;- lvm(formula.lvm)
+distribution(m,~Id) &lt;- Sequence.lvm(0)
+set.seed(10)
+d &lt;- lava::sim(m,n)
+
+#### linear models ####
+e.lm &lt;- lm(formula.lvm,data=d)
+
+#### latent variable models ####
+e.lvm &lt;- estimate(lvm(formula.lvm),data=d)
+vcov0 &lt;- vcov(e.lvm)
+vcovSSC &lt;- vcov2(e.lvm)
+
+vcovSSC/vcov0
+vcovSSC[1:4,1:4]/vcov(e.lm)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,218 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loo_approximate_posterior</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Efficient approximate leave-one-out cross-validation (LOO) for posterior
+approximations</h2>
+
+<h3>Description</h3>
+
+<p>Efficient approximate leave-one-out cross-validation (LOO) for posterior
+approximations
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loo_approximate_posterior(x, log_p, log_g, ...)
+
+## S3 method for class 'array'
+loo_approximate_posterior(
+  x,
+  log_p,
+  log_g,
+  ...,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1)
+)
+
+## S3 method for class 'matrix'
+loo_approximate_posterior(
+  x,
+  log_p,
+  log_g,
+  ...,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1)
+)
+
+## S3 method for class ''function''
+loo_approximate_posterior(
+  x,
+  ...,
+  data = NULL,
+  draws = NULL,
+  log_p = NULL,
+  log_g = NULL,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A log-likelihood array, matrix, or function.
+The <strong>Methods (by class)</strong> section, below, has detailed descriptions of how
+to specify the inputs for each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_p</code></td>
+<td>
+<p>The log-posterior (target) evaluated at S samples from the
+proposal distribution (g). A vector of length S.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>log_g</code></td>
+<td>
+<p>The log-density (proposal) evaluated at S samples from the
+proposal distribution (g). A vector of length S.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_psis</code></td>
+<td>
+<p>Should the <code>"psis"</code> object created internally by
+<code>loo_approximate_posterior()</code> be saved in the returned object? See
+<code>loo()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization. This defaults to
+the option <code>mc.cores</code> which can be set for an entire R session by
+<code>options(mc.cores = NUMBER)</code>. The old option <code>loo.cores</code> is now
+deprecated but will be given precedence over <code>mc.cores</code> until
+<code>loo.cores</code> is removed in a future release. <strong>As of version
+2.0.0 the default is now 1 core if <code>mc.cores</code> is not set</strong>, but we
+recommend using as many (or close to as many) cores as possible.
+</p>
+
+<ul><li>
+<p> Note for Windows 10 users: it is <strong>strongly</strong>
+<a href="https://github.com/stan-dev/loo/issues/94">recommended</a> to avoid using
+the <code>.Rprofile</code> file to set <code>mc.cores</code> (using the <code>cores</code> argument or
+setting <code>mc.cores</code> interactively or in a script is fine).
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data, draws, ...</code></td>
+<td>
+<p>For the <code>loo_approximate_posterior.function()</code> method,
+these are the data, posterior draws, and other arguments to pass to the
+log-likelihood function. See the <strong>Methods (by class)</strong> section below for
+details on how to specify these arguments.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>loo_approximate_posterior()</code> function is an S3 generic and
+methods are provided for 3-D pointwise log-likelihood arrays, pointwise
+log-likelihood matrices, and log-likelihood functions. The implementation
+works for posterior approximations where it is possible to compute the log
+density for the posterior approximation.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>loo_approximate_posterior()</code> methods return a named list with
+class <code>c("psis_loo_ap", "psis_loo", "loo")</code>. It has the same structure
+as the objects returned by <code>loo()</code> but with the additional slot:
+</p>
+
+<dl>
+<dt><code>posterior_approximation</code></dt>
+<dd>
+<p>A list with two vectors, <code>log_p</code> and <code>log_g</code> of the same length
+containing the posterior density and the approximation density
+for the individual draws.
+</p>
+</dd>
+</dl>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>loo_approximate_posterior(array)</code>: An <code class="reqn">I</code> by <code class="reqn">C</code> by <code class="reqn">N</code> array, where <code class="reqn">I</code>
+is the number of MCMC iterations per chain, <code class="reqn">C</code> is the number of
+chains, and <code class="reqn">N</code> is the number of data points.
+</p>
+</li>
+<li> <p><code>loo_approximate_posterior(matrix)</code>: An <code class="reqn">S</code> by <code class="reqn">N</code> matrix, where <code class="reqn">S</code> is the size
+of the posterior sample (with all chains merged) and <code class="reqn">N</code> is the number
+of data points.
+</p>
+</li>
+<li> <p><code>loo_approximate_posterior(`function`)</code>: A function <code>f()</code> that takes arguments <code>data_i</code> and <code>draws</code> and returns a
+vector containing the log-likelihood for a single observation <code>i</code> evaluated
+at each posterior draw. The function should be written such that, for each
+observation <code>i</code> in <code>1:N</code>, evaluating
+</p>
+<div class="sourceCode"><pre>f(data_i = data[i,, drop=FALSE], draws = draws)
+</pre></div>
+<p>results in a vector of length <code>S</code> (size of posterior sample). The
+log-likelihood function can also have additional arguments but <code>data_i</code> and
+<code>draws</code> are required.
+</p>
+<p>If using the function method then the arguments <code>data</code> and <code>draws</code> must also
+be specified in the call to <code>loo()</code>:
+</p>
+
+<ul>
+<li> <p><code>data</code>: A data frame or matrix containing the data (e.g.
+observed outcome and predictors) needed to compute the pointwise
+log-likelihood. For each observation <code>i</code>, the <code>i</code>th row of
+<code>data</code> will be passed to the <code>data_i</code> argument of the
+log-likelihood function.
+</p>
+</li>
+<li> <p><code>draws</code>: An object containing the posterior draws for any
+parameters needed to compute the pointwise log-likelihood. Unlike
+<code>data</code>, which is indexed by observation, for each observation the
+entire object <code>draws</code> will be passed to the <code>draws</code> argument of
+the log-likelihood function.
+</p>
+</li>
+<li>
+<p> The <code>...</code> can be used if your log-likelihood function takes additional
+arguments. These arguments are used like the <code>draws</code> argument in that they
+are recycled for each observation.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Magnusson, M., Riis Andersen, M., Jonasson, J. and Vehtari, A. (2019).
+Leave-One-Out Cross-Validation for Large Data.
+In <em>Thirty-sixth International Conference on Machine Learning</em>,
+PMLR 97:4244-4253.
+</p>
+<p>Magnusson, M., Riis Andersen, M., Jonasson, J. and Vehtari, A. (2020).
+Leave-One-Out Cross-Validation for Model Comparison in Large Data.
+In <em>Proceedings of the 23rd International Conference on Artificial
+Intelligence and Statistics (AISTATS)</em>, PMLR 108:341-351.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>loo()</code>, <code>psis()</code>, <code>loo_compare()</code>
+</p>
+
+
+</div>

@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pdfgam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Probability Density Function of the Gamma Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the probability density function
+of the Gamma distribution given parameters (<code class="reqn">\alpha</code>, shape, and <code class="reqn">\beta</code>, scale)  computed by <code>pargam</code>.  The probability density function has no explicit form, but is expressed as an integral
+</p>
+<p style="text-align: center;"><code class="reqn">f(x|\alpha, \beta)^{\mathrm{lmomco}} = \frac{1}{\beta^\alpha\,\Gamma(\alpha)}\, x^{\alpha - 1}\, \mathrm{exp}(-x/\beta) \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">f(x)</code> is the probability density for the quantile <code class="reqn">x</code>, <code class="reqn">\alpha</code> is a shape parameter, and <code class="reqn">\beta</code> is a scale parameter.
+</p>
+<p>Alternatively, a three-parameter version is available for this package following the parameterization of the Generalized Gamma distribution used in the <span class="pkg">gamlss.dist</span> package and is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x|\mu,\sigma,\nu)_{\mathrm{gamlss.dist}}^{\mathrm{lmomco}}=\frac{\theta^\theta\, |\nu|}{\Gamma(\theta)}\,\frac{z^\theta}{x}\,\mathrm{exp}(-z\theta)\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">z =(x/\mu)^\nu</code>, <code class="reqn">\theta = 1/(\sigma^2\,|\nu|^2)</code> for <code class="reqn">x &gt; 0</code>, location parameter <code class="reqn">\mu &gt; 0</code>, scale parameter <code class="reqn">\sigma &gt; 0</code>, and shape parameter <code class="reqn">-\infty &lt; \nu &lt; \infty</code>. Note that for <code class="reqn">\nu = 0</code> the distribution is log-Normal. The three parameter version is automatically triggered if the length of the <code>para</code> element is three and not two.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pdfgam(x, para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>pargam</code> or <code>vec2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Probability density (<code class="reqn">f</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Note</h3>
+
+<p><b>Two Parameter <code class="reqn">\equiv</code> Three Parameter</b><br>
+For <code class="reqn">\nu = 1</code>, the parameter conversion between the two gamma forms is <code class="reqn">\alpha = \sigma^{-2}</code> and <code class="reqn">\beta = \mu\sigma^2</code> and this can be readily verified:
+</p>
+<pre>
+  mu &lt;- 5; sig &lt;- 0.7; nu &lt;- 0
+  x &lt;- exp(seq(-3,3,by=.1))
+  para2 &lt;- vec2par(c(1/sig^2, (mu*sig^2)  ), type="gam")
+  para3 &lt;- vec2par(c(      mu,    sig,   1), type="gam")
+  plot(x, pdfgam(x, para2), ylab="Gamma Density"); lines(x, pdfgam(x, para3))
+</pre>
+<p><b>Package flexsurv Generalized Gamma</b><br>
+The <span class="pkg">flexsurv</span> package provides an “original” (<code>GenGamma.orig</code>) and “preferred” parameterization (<code>GenGamma</code>) of the Generalized Gamma distribution and discusses parameter conversion between the two. Here the parameterization of the preferred form is compared to that in <span class="pkg">lmomco</span>. The probability density function of <code>dgengamma()</code> from <span class="pkg">flexsurv</span> is
+</p>
+<p style="text-align: center;"><code class="reqn">f(x|\mu_2, \sigma_2, Q)_{\mathrm{flexsurv}} = \frac{\eta^\eta|Q|}{\sigma_2\Gamma(\eta)}\frac{1}{x}\, \mathrm{exp}\bigr\{\eta\times[wQ - \mathrm{exp}(wQ)]\bigr\}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\eta = Q^{-2}</code>, <code class="reqn">w = \log(g/\eta)/Q</code> for <code class="reqn">g \sim \mathrm{Gamma}(\eta, 1)</code> where <code class="reqn">\mathrm{Gamma}</code> is the cumulative distribution function (presumably, need to verify this) of the Gamma distribution, and
+</p>
+<p style="text-align: center;"><code class="reqn">x \sim \mathrm{exp}(\mu_2 + w\sigma_2)\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">\mu_2 &gt; 0</code>, <code class="reqn">\sigma_2 &gt; 0</code>, and <code class="reqn">-\infty &lt; Q &lt; \infty</code>, and the log-Normal distribution results for <code class="reqn">Q=0</code>.  These definitions for <span class="pkg">flexsurv</span> seem incomplete to this author and further auditing is needed.
+</p>
+<p><b>Additional Generalized Gamma Comparison</b><br>
+The default <span class="pkg">gamlss.dist</span> package version uses so-called <em>log.links</em> for <code class="reqn">\mu</code> and <code class="reqn">\sigma</code>, and so-called <em>identity.link</em> for <code class="reqn">\nu</code> and these links are implicit for <span class="pkg">lmomco</span>. The parameters can be converted to <span class="pkg">flexsurv</span> package equivalents by <code class="reqn">\mu_2 = \log(\mu)</code>, <code class="reqn">\sigma_2 = \sigma</code>, and <code class="reqn">Q = \sigma\nu</code>, which is readily verified by
+</p>
+<pre>
+  mu &lt;- 2; sig &lt;- 0.8; nu &lt;- 0.2; x &lt;- exp(seq(-3,1,by=0.1))
+  para &lt;- vec2par(c(mu,sig,nu), type="gam")
+  dGG &lt;- gamlss.dist::dGG(x, mu=mu, sigma=sig, nu=nu)
+  plot( x, dGG, ylab="density", lwd=0.8, cex=2)
+  lines(x, flexsurv::dgengamma(x, log(mu), sig, Q=sig*nu), col=8, lwd=5)
+  lines(x, pdfgam(x, para), col=2)
+</pre>
+<p>What complicates the discussion further is that seemingly only the <em>log.link</em> concept is manifested in the use of <code class="reqn">\log(mu)</code> to provide the <code class="reqn">\mu_2</code> for <code>flexsurv::</code><code>dgengamma</code>.
+</p>
+<p><b>On the Log-Normal via Generalized Gamma</b><br>
+The <span class="pkg">gamlss.dist</span> package uses an <code class="reqn">|\nu| &lt; 1\mathrm{e{-}6}</code> trigger for the log-Normal calls. Further testing and the initial independent origin of <span class="pkg">lmomco</span> code suggests that a primary trigger though can be based on the finiteness of the <code>lgamma(theta)</code> for <code class="reqn">\theta</code>. This is used in <code>pdfgam</code> as well as <code>cdfgam</code> and <code>quagam</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of
+distributions using linear combinations of order statistics: Journal
+of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+<p>Hosking, J.R.M. and Wallis, J.R., 1997, Regional frequency analysis—An
+approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cdfgam</code>, <code>quagam</code>, <code>lmomgam</code>, <code>pargam</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  lmr &lt;- lmoms(c(123,34,4,654,37,78))
+  gam &lt;- pargam(lmr)
+  x &lt;- quagam(0.5,gam)
+  pdfgam(x,gam)
+
+## Not run: 
+# 3-p Generalized Gamma Distribution and gamlss.dist package parameterization
+gg &lt;- vec2par(c(7.4, 0.2, 14), type="gam"); X &lt;- seq(0.04,9, by=.01)
+GGa &lt;- gamlss.dist::dGG(X, mu=7.4, sigma=0.2, nu=14)
+GGb &lt;- pdfgam(X, gg) # We now compare the two densities.
+plot( X, GGa, type="l", xlab="X", ylab="PROBABILITY DENSITY", col=3, lwd=6)
+lines(X, GGb, col=2, lwd=2) #
+## End(Not run)
+
+## Not run: 
+# 3-p Generalized Gamma Distribution and gamlss.dist package parameterization
+gg &lt;- vec2par(c(1.7, 3, -4), type="gam"); X &lt;- seq(0.04,9, by=.01)
+GGa &lt;- gamlss.dist::dGG(X, mu=1.7, sigma=3, nu=-4)
+GGb &lt;- pdfgam(X, gg) # We now compare the two densities.
+plot( X, GGa, type="l", xlab="X", ylab="PROBABILITY DENSITY", col=3, lwd=6)
+lines(X, GGb, col=2, lwd=2) #
+## End(Not run)
+</code></pre>
+
+
+</div>

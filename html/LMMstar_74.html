@@ -1,0 +1,103 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rbind.Wald_lmm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Linear Hypothesis Testing Across Linear Mixed Models</h2>
+
+<h3>Description</h3>
+
+<p>Linear hypothesis testing accross linear mixed model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'Wald_lmm'
+rbind(model, ..., effects = NULL, rhs = NULL, name = NULL, sep = ": ")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a <code>Wald_lmm</code> object (output of <code>anova</code> applied to a <code>lmm</code> object)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>possibly other <code>Wald_lmm</code> objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>effects</code></td>
+<td>
+<p>[character or numeric matrix] how to combine the left-hand side of the hypotheses.
+By default identity matrix but can also be <code>"Dunnett"</code>,  <code>"Tukey"</code>, or  <code>"Sequen"</code> (see function <code>multcomp::contrMat</code> from the multcomp package).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>[numeric vector] the right hand side of the hypothesis. Should have the same length as the number of row of argument <code>effects</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name</code></td>
+<td>
+<p>[character vector or NULL] character used to identify each model in the output.
+By default, use the name of the outcome of the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+<p>[character] character used to separate the outcome and the covariate when naming the tests.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>WARNING: in presence of measurements from the same cluster across several models,
+the influence function is used to estimate the covariance between the model parameters.
+This is why the (robust) standard errors may not match the (model-based) standard error from the linear mixed
+Setting the argument <code>robust</code> to <code>FALSE</code> when calling <code>anova.lmm</code> will rescale the (robust) standard errors to mimic the original model-based standard errors.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## simulate data
+set.seed(10)
+dL &lt;- sampleRem(1e2, n.times = 3, format = "long")
+
+## estimate mixed models
+e.lmm1 &lt;- lmm(Y ~ X1+X2+X3, repetition = ~visit|id, data = dL,
+              structure = "CS", df = FALSE)
+e.lmm2 &lt;- lmm(Y ~ X1+X8+X9, repetition = ~visit|id, data = dL,
+              structure = "CS", df = FALSE)
+
+model.tables(e.lmm1) ## model-based standard errors
+model.tables(e.lmm1, robust = TRUE) ## robust standard errors
+
+## select null hypotheses &amp; combine (robust standard errors)
+AAA &lt;- anova(e.lmm1, ci = TRUE, effect = c("X1|X2,X3"="X1=0","X2|X1,X3"="X2=0"))
+BBB &lt;- anova(e.lmm2, ci = TRUE, effect = c("X1|X8,X9"="X1=0"))
+
+ZZZ &lt;- rbind(AAA,BBB)
+
+## select null hypotheses &amp; combine (model-based like standard errors)
+AA &lt;- anova(e.lmm1, ci = TRUE, effect = c("X1|X2,X3"="X1=0","X2|X1,X3"="X2=0"),
+             robust = FALSE)
+BB &lt;- anova(e.lmm2, ci = TRUE, effect = c("X1|X8,X9"="X1=0"),
+             robust = FALSE)
+ZZ &lt;- rbind(AA,BB)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,217 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>add_name_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Add or Modify Data Frame Variable Name Labels</h2>
+
+<h3>Description</h3>
+
+<p>Add descriptive variable name labels (up to one per column) to the columns of
+a data.frame.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">add_name_labs(
+  data,
+  name.labs = NULL,
+  vars = NULL,
+  labs = NULL,
+  init.max = NULL
+)
+
+anl(data, name.labs = NULL, vars = NULL, labs = NULL, init.max = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data.frame you wish to begin labeling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>name.labs</code></td>
+<td>
+<p>a named character vector, where names are current data.frame
+column (variable) names, and where values are the proposed labels. If this is
+NULL, vars and labs arguments may not be NULL. If latter are not NULL, this
+(name.labs) argument must be NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>the names of the columns (variables) to which name labels will be
+applied. If NULL, labs arg must also be NULL and name.labs cannot be NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labs</code></td>
+<td>
+<p>the proposed variable name labels to applied to the columns
+(variables). If non-NULL, vars arg must also be non-NULL.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>init.max</code></td>
+<td>
+<p>If non-NULL, this must be a 1L integer, indicating the maximum
+number of unique values that a variable may have for it to receive placeholder
+value labels, which will consist of the variable's actual values coerced to
+character values. If NULL, or if the variable is numeric with decimal values,
+the variable will not be given initialized variable value labels.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: <code>anl</code> is a compact alias for <code>add_name_labs</code>: they do the same thing,
+and the former is easier to type.
+</p>
+<p><code>add_name_labs</code> works with <code>get_name_labs</code>, <code>use_name_labs</code>, and
+<code>use_var_names</code> to facilitate the creation, accessing, and substitution of
+variable name labels for variable names.
+</p>
+<p>Each variable (column) of a data.frame can receive one and only one "name
+label," which typically is a noun phrase that expounds the meaning of
+contents of the variable's name (e.g., "Weight in ounces at birth" might be a
+name label for a column called "wgt"). <code>add_name_labs </code>takes a data.frame and
+either a named character vector (names are current variable names, values are
+proposed name labels) supplied to the name.labs arg or two separate character
+vectors (one each for current variable names and proposed variable name
+labels, respectively) supplied to vars and labs args, respectively. If using
+the second approach, the order of each entry matters (e.g., the first
+variable name entry to the vars argument will be given the label of the first
+name label entry to the labs argument, and so on).
+</p>
+<p>Note that any non-name-labeled columns will receive their own names as
+default name labels (e.g., if var "mpg" of mtcars is not assigned a name
+label, it will be given the default name label of "mpg"). Note also that
+other labelr functions (e.g., <code>add_val_labs</code>) will initialize name labels
+and other labelr attribute meta-data in this same fashion. Name labels can
+be removed with <code>drop_name_labs</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame, with new name labels added (call <code>get_name_labs</code> to
+see them), other provisional/default labelr label information added, and
+previous user-added labelr label information preserved.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># create a data set
+df &lt;- mtcars
+
+# variable names and their labels
+names_labs_vec &lt;- c(
+  "mpg" = "Miles/(US) gallon",
+  "cyl" = "Number of cylinders",
+  "disp" = "Displacement (cu.in.)",
+  "hp" = "Gross horsepower",
+  "drat" = "Rear axle ratio",
+  "wt" = "Weight (1000 lbs)",
+  "qsec" = "1/4 mile time",
+  "vs" = "Engine (0 = V-shaped, 1 = straight)",
+  "am" = "Transmission (0 = automatic, 1 = manual)",
+  "gear" = "Number of forward gears",
+  "carb" = "Number of carburetors"
+)
+
+# assign variable labels
+df &lt;- add_name_labs(df,
+  vars = names(names_labs_vec),
+  labs = names_labs_vec
+)
+
+# see what we have
+get_name_labs(df)
+
+# use these
+df_labs_as_names &lt;- use_name_labs(df)
+head(df_labs_as_names)[1:3] # these are verbose, so, only show first three
+head(df)[1:3]
+
+# now revert back
+df_names_as_before &lt;- use_var_names(df_labs_as_names)
+head(df_names_as_before)[1:3] # indeed, they are as before
+identical(head(df), head(df_names_as_before))
+
+# strip name label meta-data information from df
+# NOT same as use_var_names(), which preserves the info but "turns it off"
+# this strips the name labels meta-data from df altogether
+df &lt;- drop_name_labs(df)
+
+# see what we have
+get_name_labs(df) # they're gone
+
+# alternative syntax (if you have a named vector like names_labs_vec)
+# assign variable name labels
+df &lt;- add_name_labs(df,
+  name.labs = c(
+    "mpg" = "Miles/(US) gallon",
+    "cyl" = "Number of cylinders",
+    "disp" = "Displacement (cu.in.)",
+    "hp" = "Gross horsepower",
+    "drat" = "Rear axle ratio",
+    "wt" = "Weight (1000 lbs)",
+    "qsec" = "1/4 mile time",
+    "vs" = "Engine (0 = V-shaped, 1 = straight)",
+    "am" = "Transmission (0 = automatic, 1 = manual)",
+    "gear" = "Number of forward gears",
+    "carb" = "Number of carburetors"
+  )
+)
+
+# replace two variable name labels, keeping the others
+df &lt;- add_name_labs(df,
+  name.labs = c(
+    "disp" = toupper("displacement"),
+    "mpg" = toupper("miles per gallon")
+  )
+)
+
+attributes(df) # show all attributes
+get_name_labs(df) # show only the variable name labels
+get_name_labs(df, var = c("disp", "mpg"))
+
+# again, strip name label meta-data information from df
+# NOT same as use_var_names(), which preserves the info but "turns it off"
+df &lt;- drop_name_labs(df)
+
+# see what we have
+get_name_labs(df) # they're gone
+
+# alternative syntax to add name labels
+df &lt;- add_name_labs(df,
+  vars = c("carb", "am"),
+  labs = c("how many carburetors?", "automatic or stick?")
+)
+
+# see what we have
+get_name_labs(df) # they're back! (and placeholders for others)
+
+# add another
+df &lt;- add_name_labs(df,
+  vars = c("mpg"),
+  labs = c("miles per gallon, of course")
+)
+
+# see what we have
+get_name_labs(df) # it's been added, and others preserved
+
+head(use_name_labs(df)[c(1, 9, 11)]) # verbose, but they're there
+</code></pre>
+
+
+</div>

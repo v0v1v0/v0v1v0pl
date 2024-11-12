@@ -1,0 +1,1117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>BarChart</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Bar Chart for One or Two Variables</h2>
+
+<h3>Description</h3>
+
+<p>Abbreviation: <code>bc</code>
+</p>
+<p>The function plots a bar chart, one categorical variable, <code>x</code>, against one numeric variable, <code>y</code>, possibly including an optional second categorical variable, <code>by</code>. The bar chart is constructed from the usually relatively brief table that pairs each level of the categorical variables with the corresponding numerical value of <code>y</code>. Usually, this table is a summary (pivot) table calculated as a data aggregation from the original data table of measurements, such as average salary of the employees in each department.  
+</p>
+<p>The calculation of this foundational summary table from which the bar chart is created can occur outside of the function. Or, probably the more usual situation, the table is implicitly calculated by the function in one of two ways. Accordingly, obtain the summary table from one of three possibilities. 
+</p>
+
+<ol>
+<li>
+<p> Enter the summary table obtained from an external source directly as the value of the <code>data</code> parameter, indicated by specifying categorical variables <code>x</code> and possibly <code>by</code> with the numerical variable <code>y</code>.
+</p>
+</li>
+<li>
+<p> Have the function implicitly summarize the entire data table. If only categorical variable <code>x</code>, and possibly categorical variable <code>by</code>, are specified without a value of numerical <code>y</code>, the entire data table must be input as the value of <code>data</code>. The function then computes numeric variable <code>y</code> as the computed frequency of values in each category or level of the specified categorical variables.
+</p>
+</li>
+<li>
+<p> Have the function implicitly summarize the entire data table entered as the value of <code>data</code> by specifying a <code>y</code> variable. Obtain the summary table from which the bar chart is computed by summarizing (aggregating) the value of <code>y</code> at each level of <code>x</code>, and possibly <code>by</code>, with the chosen statistic specified by the <code>stat</code> parameter. The function will assess if the input data is a summary table or the entire data table. If the entire data table is entered, and the <code>stat</code> parameter is not entered, the value of <code>stat</code> defaults to the mean.
+</p>
+</li>
+</ol>
+<p>The function also displays the foundational summary table, such as frequency table for one or two variables. If a frequency table, also displayed are Cramer's V association, and the corresponding chi-square inferential analysis. For two variables, the frequencies include the joint and marginal frequencies. To activate Trellis graphics or facets, a multi-panel display, specify a <code>facet1</code> variable in place of <code>by</code> for the second categorical variable. If the provided object to analyze is a set of multiple variables, including the name of an entire data frame, then a bar chart is calculated for <em>each</em> non-numeric variable in the data frame.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">BarChart(
+
+        # ------------------------------------------
+        # Data from which to construct the bar chart
+        x=NULL, y=NULL, by=NULL, data=d, filter=NULL,
+
+        # ------------------------------
+        # Bar chart from aggregated data
+        stat=c("mean", "sum", "sd", "deviation", "min", "median", "max"),
+        stat_x=c("count", "proportion"),
+
+        # --------------------------------------------------
+        # Trellis (facet) plot, stratify on different panels
+        facet1=NULL, n_row=NULL, n_col=NULL, aspect="fill",
+        
+        # -------------------------------
+        # Layout and ordering of the bars
+        horiz=FALSE, sort=c("0", "-", "+"),
+        beside=FALSE, stack100=FALSE,
+        gap=NULL, scale_y=NULL, one_plot=NULL,
+
+        # ----------------------------------------------------------------
+        # Analogy of physical Marks on paper to create the bars and labels
+        theme=getOption("theme"),
+        fill=NULL,
+        color=getOption("bar_color_discrete"),
+        transparency=getOption("trans_bar_fill"),
+        fill_split=NULL,
+
+        labels=c("%", "input", "off"),
+        labels_color=getOption("labels_color"),
+        labels_size=getOption("labels_size"),
+        labels_decimals=getOption("labels_decimals"),
+        labels_position=getOption("labels_position"),
+        labels_cut=NULL,
+
+        # ------------------------------------------------------------------
+        # Labels for axes, values, and legend if x and by variables, margins
+        xlab=NULL, ylab=NULL, main=NULL, sub=NULL,
+        lab_adjust=c(0,0), margin_adjust=c(0,0,0,0),
+        pad_y_min=0, pad_y_max=0,
+
+        rotate_x=getOption("rotate_x"), break_x=NULL,    
+        offset=getOption("offset"),
+        label_max=100,
+
+        legend_title=NULL, legend_position="right_margin",
+        legend_labels=NULL, legend_horiz=FALSE,
+        legend_size=NULL, legend_abbrev=NULL, legend_adjust=0,
+
+        # ----------------------------------------------------
+        # Draw one or more objects, text, or geometric figures
+        add=NULL, x1=NULL, y1=NULL, x2=NULL, y2=NULL,
+
+        # --------------------------------------------------------------------
+        # Output: text or chart turned off, to PDF file, number decimal digits
+        quiet=getOption("quiet"), do_plot=TRUE,
+        pdf_file=NULL, width=6.5, height=6, 
+        digits_d=NULL, out_size=80, 
+
+        # --------------------------------------
+        # Deprecated, removed in future versions
+        n_cat=getOption("n_cat"), value_labels=NULL,
+        rows=NULL, by1=NULL,
+
+        # -------------
+        # Miscellaneous
+        eval_df=NULL, ...)
+
+bc(...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Categorical <b>variable(s)</b> to analyze.  Can be a single
+variable, either
+within a data frame or as a vector in the users workspace,
+or multiple variables in a data frame such as designated with the
+<code>c</code> function, or an entire data frame. If not specified,
+then defaults to all non-numerical variables in the specified data
+frame, <code>d</code> by default.<br>
+To manage large category values, unless <code>break_x</code> is <code>FALSE</code>,
+any space in each category value is
+converted to new line for the corresponding axis label in the plot.
+To keep two (small) words on the same line, replace the space that
+separates them with a tilde, which displays as a blank
+for the corresponding axis label.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Numeric variable with a value for each level of the categorical
+variable with the value plotted proportional to the height of the 
+corresponding bar. If specified for the original data table, then
+the corresponding
+<code>stat</code> parameter also must be set. If not specified, then 
+its value is by default tabulated as the frequency of each
+category or joint category.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>A second categorical variable to create a two-variable bar chart for
+each level of the numeric primary variable
+<code>y</code> on the <em>same</em> plot. A similar concept applies to the
+panels of a Trellis (facet) plot if <code>facet1</code> is specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Optional data frame that contains the variables of interest.
+Can contain data from which frequencies or other statistics for a
+<code>y</code>-variable are computed, or can be a summary table that consists
+of two columns: the level of a categorical variable paired with the
+numeric value that determines the height of the corresponding bar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>A logical expression that specifies a subset of rows of the
+data frame to analyze.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>Statistical transformation of the data for the y-axis across
+groups defined by the categorical variable(s), the data aggregation. 
+Applicable values: <code>"sum"</code>, <code>"mean"</code>, <code>"sd"</code>, <code>"dev"</code>
+for mean deviations, <code>"min"</code>, <code>"median"</code>, and <code>"max"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat_x</code></td>
+<td>
+<p>When no <code>y</code> variable is specified, either do the
+default <code>count</code> of each group or the <code>proportion</code>.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>facet1</code></td>
+<td>
+<p>A categorical variable called a conditioning variable that
+activates <b>Trellis graphics (facets)</b>, from the <code>lattice</code>
+package, to create
+a bar chart on a separate panel for each level of the variable.
+Contrast to the <code>by</code> parameter that plots on the same panel.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_row</code></td>
+<td>
+<p>Optional specification for the number of rows in the layout
+of a multi-panel display with Trellis graphics (facets). Need not specify
+<code>n_col</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_col</code></td>
+<td>
+<p>Optional specification for the number of columns in the
+layout of a multi-panel display with
+Trellis graphics (facets). Need not specify <code>n_row</code>. If set to 1, then
+the strip that labels each group locates to the left of each plot
+instead of the top.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>aspect</code></td>
+<td>
+<p>Lattice parameter for the aspect ratio of the panels in
+a Trellis plot (multi-panel display or facets), defined as height divided by
+width. The default value is <code>"fill"</code> to have the panels
+expand to occupy as much space as possible. Set to 1 for square panels.
+Set to <code>"xy"</code> to specify a ratio calculated
+to "bank" to 45 degrees, that is, with the line slope approximately
+45 degrees.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>horiz</code></td>
+<td>
+<p><b>Bar orientation.</b> By default the value is
+<code>FALSE</code> so bars are vertical,
+unless <code>one_plot</code> is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Sort the categories by their frequency for one variable and by
+the column sums if a <code>by</code> variable. Not applicable to Trellis plots.
+By default <code>"0"</code> for no sort, or sort descending <code>"-"</code> or
+ascending <code>"+"</code>, unless <code>one_plot</code> is <code>TRUE</code>, then is
+set to <code>"+"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beside</code></td>
+<td>
+<p>For a two variable plot, set to <code>TRUE</code> for the levels of the
+first variable to be plotted as adjacent bars instead of stacked on each
+other.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stack100</code></td>
+<td>
+<p>100% stacked bar chart when a <code>by</code> variable is present,
+also activated by setting <code>stat_x</code> to <code>"proportion"</code> with a
+<code>by</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap</code></td>
+<td>
+<p>Gap between bars. Provides the value of the <code>space</code> option from
+the standard R <code>barplot</code> function with a default of 0.2 unless two
+variables are plotted and beside=<code>TRUE</code>, in which case the default is
+c(.1,1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scale_y</code></td>
+<td>
+<p>If specified, a vector of three values that define the
+numerical values of the y-axis, the numerical axis, within the bounds of
+plot region: starting value, ending value, and number of intervals.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>one_plot</code></td>
+<td>
+<p>For bar charts of multiple x-variables, indicates
+if a bar plot is produced for each x-variable, or all are combined
+into a single plot, such as for items that all share common responses
+such as survey data with a common Likert scale across variables.
+Default is if variables share a common response scale
+set to <code>TRUE</code>, otherwise <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>theme</code></td>
+<td>
+<p>Theme for the <b>colors</b> for this analysis. Make persistent
+across analyses with <code>style</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill</code></td>
+<td>
+<p>Fill color of the bars. Default is the qualitative palette
+<code>"hues"</code> from default
+theme <code>"colors"</code>, unless the categorical variable(s) is(are) ordinal
+where the default is the <code>"blues"</code> sequential gradient. For any
+other color theme the default is the corresponding color gradient,
+such as <code>"reds"</code> for theme <code>"darkred"</code>. Can also specify
+any vector of colors to fill the bars, such as generated by 
+<code>getColors</code>, or access more pre-defined
+gradients such as palettes that address color-blindness such as
+<code>"virdis"</code>. Or
+set to the name of <code>y</code> to map the values of bar fill into the
+fill colors. Specified the name of <code>y</code> 
+as <code>(count)</code> if tabulated from the data. Not applicable if
+<code>fill_split</code> is activated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>Border color of the bars, can be a vector
+to customize the color for each bar. Default is
+<code>bar_color_discrete</code> from the lessR <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transparency</code></td>
+<td>
+<p>Transparency factor of the area of each slice from 0, no
+transparency to 1, full transparency. Default is
+<code>trans_bar_fill</code> from the lessR <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fill_split</code></td>
+<td>
+<p>The value of the numeric variable <code>y</code> for which
+bars that correspond to values of <code>y</code> &lt;= <code>fill_split</code> are
+displayed in the first <code>fill</code> color and other values displayed
+in the second <code>fill</code> color, or as specified by a vector of
+exactly two fill colors.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>If not <code>"off"</code>, adds the
+numerical results to the plot according to the default <code>"%"</code>
+for tabulated counts and <code>"input"</code> for the input values for
+a <code>y</code>-variable explicitly provided, unless there are more than
+15 levels or <code>y</code> is present and non-integer in which case
+the default is <code>"off"</code>. For tabulated
+counts, <code>"prop"</code> is also available for proportions, as well as
+<code>"input"</code> to show the computed values such as counts.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels_color</code></td>
+<td>
+<p>Color of the plotted text. Could be a vector to specify
+a unique color for each value. If fewer colors are specified than
+the number of categories, the colors are recycled.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels_size</code></td>
+<td>
+<p>Character expansion factor, the size, of the plotted text,
+for which the default value is 0.95, or 0.9 of value if <code>beside</code>
+is <code>TRUE</code> and <code>labels_position</code> is <code>"in"</code> because bars are
+narrower.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels_decimals</code></td>
+<td>
+<p>Number of decimal digits for which to display the values.
+Default is 0, round to the nearest integer for <code>"%"</code>,
+2 for <code>"prop"</code>, and if <code>"input"</code> and <code>y</code> is entered
+directly, display the literal value unless &gt; 9999, in which case
+set to 0.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels_position</code></td>
+<td>
+<p>Position of the plotted text. Default is <code>"in"</code> for
+inside the bar, or, if <code>"out"</code>, the label for each value is placed
+outside of the bar, on top.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels_cut</code></td>
+<td>
+<p>Threshold for displaying the value. If <code>labels_position</code>
+equals <code>"out"</code>, then default is 0.028 unless there is a
+<code>by</code> variable or multiple x-variables on the same plot, then
+default is 0.040</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xlab</code></td>
+<td>
+<p><b>Axis label</b> for <code>x</code>-axis. 
+If <code>xlab</code> is not specified, then the label becomes
+the name of the corresponding variable label if it exists, or, if not, the
+variable name. If <code>xy_ticks</code> is <code>FALSE</code>, then no label is displayed.
+If no y variable is specified, then <code>xlab</code> is set to Index unless
+<code>xlab</code> has been specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylab</code></td>
+<td>
+<p>Label for <code>y</code>-axis.  If <code>xlab</code> is not specified, then
+the label becomes
+the name of the corresponding variable label if it exists, or, if not, the
+variable name. If <code>xy_ticks</code> is <code>FALSE</code>, then no label displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>main</code></td>
+<td>
+<p>Label for the title of the graph.
+Can set size with <code>main_cex</code> and color with <code>main_color</code> from the
+lessR <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sub</code></td>
+<td>
+<p>Sub-title of graph, below <code>xlab</code>. Not yet implemented.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lab_adjust</code></td>
+<td>
+<p>Two-element vector – x-axis label, y-axis label – adjusts
+the position of the axis labels in approximate inches. + values move
+the labels away from plot edge. Not applicable to Trellis graphics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>margin_adjust</code></td>
+<td>
+<p>Four-element vector – top, right, bottom and left –
+adjusts the margins of the plotted figure in approximate inches.
++ values move the corresponding margin away from plot edge. 
+Not applicable to Trellis graphics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pad_y_min</code></td>
+<td>
+<p>Proportion of padding added to the left side of
+the <code>y</code>-axis. Value from 0 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pad_y_max</code></td>
+<td>
+<p>Proportion of padding added to the right side of
+the <code>y</code>-axis. Value from 0 to 1.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>rotate_x</code></td>
+<td>
+<p>Degrees that the <b>axis values for the category values</b>
+axis are rotated, usually to accommodate longer values,
+typically used in conjunction with <code>offset</code>. When equal 90
+the value labels are perpendicular to the x-axis and a different
+algorithm places the labels so that <code>offset</code> is not needed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>break_x</code></td>
+<td>
+<p>Replace spaces in the category values with a new line
+and replace tildes with a blank so that there is no separation of words
+joined by a tilde. By default, <code>TRUE</code> for 
+vertical bar charts with <code>rotate_x</code> set to <code>0</code>,
+and <code>FALSE</code> otherwise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>The amount of spacing between the axis values and the axis. Default
+is 0.5. Larger values such as 1.0 create space for the label when
+longer axis value names are rotated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label_max</code></td>
+<td>
+<p>To <b>improve readability</b> of text output, the maximum size
+of the value labels before the labels are abbreviated for
+text output only. Not a literal maximum as preserving unique
+values may require a larger number of characters than specified.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>legend_title</code></td>
+<td>
+<p>Title of the <b>legend</b>, which is usually set 
+by default except when raw counts are entered as a matrix.  Then
+a title must be specified to generate a legend.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_position</code></td>
+<td>
+<p>When plotting two variables, location of the legend, with the
+default in the right margin. Additional options from standard R are
+"topleft", "top", "topright" and others as shown in the help for the
+<code>legend</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_labels</code></td>
+<td>
+<p>When plotting two variables, labels for the legend, which by
+default are the levels for the second or <code>by</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_horiz</code></td>
+<td>
+<p>By default the legend is vertical, but can be changed to
+horizontal.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_size</code></td>
+<td>
+<p>Size of legend text.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_abbrev</code></td>
+<td>
+<p>If specified, abbreviate legend title and legend labels
+to the specified number of the maximum number of characters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>legend_adjust</code></td>
+<td>
+<p>Shift legend for a two-categorical bar chart. A positive
+number shifts the legend to the right from its default placement.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>add</code></td>
+<td>
+<p><b>Draw one or more objects</b>, text, or geometric figures,
+on the plot.
+Possible values are any text to be written, the first argument, which is
+<code>"text"</code>, or, to indicate a figure,
+<code>"rect"</code> (rectangle), <code>"line"</code>, <code>"arrow"</code>,
+<code>"v_line"</code> (vertical line), and <code>"h_line"</code> (horizontal line).
+The value <code>"means"</code> is short-hand for vertical and horizontal lines
+at the respective means. Does not apply to Trellis graphics.
+Customize with parameters such as <code>add_fill</code> and <code>add_color</code>
+from the <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x1</code></td>
+<td>
+<p>First x coordinate to be considered for each object.
+All coordinates vary from -1 to 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y1</code></td>
+<td>
+<p>First y coordinate to be considered for each object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x2</code></td>
+<td>
+<p>Second x coordinate to be considered for each object.
+Only used for <code>"rect"</code>, <code>"line"</code> and <code>arrow</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y2</code></td>
+<td>
+<p>Second y coordinate to be considered for each object.
+Only used for <code>"rect"</code>, <code>"line"</code> and <code>arrow</code>.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>If set to <code>TRUE</code>, no text output. Can change system default
+with <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>do_plot</code></td>
+<td>
+<p>If <code>TRUE</code>, the default, then generate the plot.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf_file</code></td>
+<td>
+<p>Indicate to direct pdf graphics to the specified name of
+the pdf file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>Width of the plot window in inches, defaults to 4.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Height of the plot window in inches, defaults to 4.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits_d</code></td>
+<td>
+<p>Provides the number of decimal digits,
+set by default to at least 2 or the largest number of digits in the values
+of the response variable plus 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out_size</code></td>
+<td>
+<p>To improve the readability of the frequency distribution
+of a single variable displayed at the console,
+the maximum number of characters on a
+line of output at the console for one variable before the frequency
+distribution is written vertically.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>n_cat</code></td>
+<td>
+<p>When analyzing all the variables in a data frame, specifies the largest
+number of unique values of variable of a numeric data type for which the
+variable will be analyzed as a categorical. Default is 0.
+<em>[deprecated]</em>: Better to convert a categorical integer variable to
+a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>value_labels</code></td>
+<td>
+<p>For factors, default is the factor labels, and for
+character variables, default is the character values.
+Or, provide labels for the <code>x</code>-axis on the graph to override
+these values. If the variable is a
+factor and <code>value_labels</code> is not specified (is <code>NULL</code>), then the
+value_labels are set to the factor levels with each space replaced by
+a new line character. If <code>x</code> and <code>y</code>-axes have the same scale,
+they also apply to the <code>y</code>-axis. Control the plotted size
+with <code>axis_cex</code> and <code>axis_x_cex</code> from the lessR
+<code>style function.</code>
+<em>[deprecated]</em>: Better to convert a categorical integer variable to
+a factor.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rows</code></td>
+<td>
+<p>Deprecated old parameter name that is now called <code>filter</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by1</code></td>
+<td>
+<p>Deprecated old parameter name, replaced with the more descriptive
+<code>facet1</code>.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>eval_df</code></td>
+<td>
+<p>Determines if to check for existing data frame and
+specified variables. By default is <code>TRUE</code>
+unless the <code>shiny</code> package is loaded then set to <code>FALSE</code> so
+that Shiny will run. Needs to be set to <code>FALSE</code> if using
+the pipe <code>%\&gt;%</code> notation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameter values for graphics as defined
+by Base R <code>barplot</code>, <code>legend</code>, 
+and <code>par</code> including
+<code>xlim</code> and <code>ylim</code> for setting the range of the x and y-axes<br><code>cex.main</code> for the size of the title<br><code>col.main</code> for the color of the title<br><code>"dotted"</code>, <code>"dotdash"</code><br><code>sub</code> and <code>col.sub</code> for a subtitle and its color<br><code>las=3</code> to reorient vertical axis labels<br><code>space</code> for one variable only</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>OVERVIEW<br>
+Plot a bar chart with default colors for one or two categorical variables, that is, with a relatively small number of labels for each variable.  By default, colors are selected for the bars, background and grid lines, all of which can be customized. The basic computations of the chart are provided with the standard R functions <code>barplot</code>, <code>chisq.test</code> and, for two variables, <code>legend</code>. Horizontal bar charts, specified by <code>horiz=TRUE</code>, list the value labels horizontally and automatically extend the left margin to accommodate both the value labels and the variable label.
+</p>
+<p>DATA<br>
+Ultimately the bar chart is constructed from a simple summary table in which each row consists of a level of the categorical variable <code>x</code> paired with the corresponding value of the numerical variable, <code>y</code>, with as many rows as the number of levels of <code>x</code>. Provide these values of <code>x</code> and <code>y</code> directly, or just provide <code>x</code> for the original data of measurements to compute the counts of each category or provide <code>x</code> and <code>y</code> with a value of <code>stat</code> to define the statistic for which to aggregate the values of <code>y</code> over the levels of <code>x</code>. Also can have a second categorical variable, <code>by</code>.
+</p>
+<p>The data may either be vectors from the global environment, the user's workspace, as illustrated in the examples below, or a variable in a data frame. The default input data frame is <code>d</code>.  Specify a different data frame name with the <code>data</code> option.  Regardless of its name, the variables in the data frame are referenced directly by their names.
+</p>
+<p>If the name of the vector is in the global environment and of a variable in the input data frame has the same name, the vector from the global environment is analyzed, unless the data name frame is explicitly provided, not relying upon the default <code>d</code>. If two variables are specified, both variables should be in the data frame, or one of the variables is in the data frame and the other in the global environment.
+</p>
+<p>To obtain a bar chart of each categorical variable in the <code>d</code> data frame, invoke <code>BarChart()</code>.  Or, for a data frame with a different name, insert the data frame name between the parentheses as the first listed parameter value. To analyze a subset of the variables in a data frame, specify the variable list with either a : or the <code>c</code> function, such as m01:m03 or c(m01,m02,m03).
+</p>
+<p>The <code>rows</code> parameter subsets rows (cases) of the input data frame according to a logical expression. Use the standard R operators for logical statements as described in <code>Logic</code> such as <code>&amp;</code> for and, <code>|</code> for or and <code>!</code> for not. Use the standard R relational operators as described in <code>Comparison</code>. Examples include <code>==</code> for logical equality, <code>!=</code> for not equals, and <code>&gt;</code> for greater than. See the Examples.
+</p>
+<p>The form of the entered data, the first variable, categorical <code>x</code>, and optionally a second variable, numerical <code>y</code>, is flexible.  The data may be entered as factors, numeric values, characters, or a matrix. The data may be entered and the resulting frequencies computed, or the frequencies can be entered directly.  The most natural type of data to enter, when entering the variables, is to enter factors.
+</p>
+<p>STATISTICAL TRANSFORMATIONS<br>
+Ultimately the bar plot is constructed from a small table of data values with each row a level of the categorical variable <code>x</code> paired with the corresponding value of the numerical variable <code>y</code>, with as many rows as values of <code>x</code>. It is also possible to plot transformations of the values of <code>y</code> for each level of categorical variable <code>x</code> from a full data table with many replications of each value of <code>x</code> and corresponding <code>y</code>. Then reduce the larger data table down to the summary table with one of following transformations.
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+Transformation </td>
+<td style="text-align: left;"> Meaning</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+-------------- </td>
+<td style="text-align: left;"> -------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"sum"</code> </td>
+<td style="text-align: left;"> sum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"mean"</code> </td>
+<td style="text-align: left;"> mean</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"sd"</code> </td>
+<td style="text-align: left;"> standard deviation</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"dev"</code> </td>
+<td style="text-align: left;"> mean deviation</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"min"</code> </td>
+<td style="text-align: left;"> minimum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"median"</code> </td>
+<td style="text-align: left;"> median</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>"max"</code> </td>
+<td style="text-align: left;"> maximum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+------------- </td>
+<td style="text-align: left;"> -------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+
+The other statistical transformation is simply counting the number of occurrences of each level of <code>x</code>, which does not involve a value of <code>y</code> read from the data. Instead the value of <code>y</code> for each level of <code>x</code> is tabulated.
+</td>
+</tr>
+</table>
+<p>COLORS<br>
+For a one variable plot, set the default color of the bars by the current color theme according to <code>bar_fill_discrete</code> argument of the function <code>style</code>, which includes the default color theme <code>"hues"</code> that defines a qualitative HCL color scale, or set the bar color with the <code>fill</code> parameter, which references a specified vector of color specifications, such as generated by the lessR <code>getColors</code> function.
+</p>
+<p>Set <code>fill</code> to a single color or a color palette, of which there are many possibilities. Pre-defined sequential and divergent color ranges are available as implicit calls to <code>getColors</code>. Define the default qualitative color palette with <code>"hues"</code> that provides HCL colors of the same chroma (saturation) and luminance (brightness). The full list of pre-defined color ranges defined in 30 degree increments around the HCL color wheel: <code>"reds"</code>, <code>"rusts"</code>, <code>"browns"</code>,
+<code>"olives"</code>, <code>"greens"</code>, <code>"emeralds"</code>, <code>"turquoises"</code>, <code>"aquas"</code>, <code>"blues"</code>, <code>"purples"</code>,<code>"violets"</code>, <code>"magentas"</code>, and <code>"grays"</code>.
+</p>
+<p>Define a <em>divergent color scale</em> with value of <code>fill</code> that consists of a vector of two such pre-defined ranges, such as <code>c("purples", "rusts")</code>. Divergent color palettes are applicable in particular for plotting multiple bar charts on the same plot such as for a set of Likert response items, all on a common response scale. Or, <em>manually specify colors</em>. For example, for a two-level <code>by</code> variable, could set <code>fill</code> to <code>c("coral3","seagreen3")</code>, where the specified colors are <em>not</em> pre-defined color ranges.
+</p>
+<p>For the pre-defined color scales can obtain more control over the obtained color palettes with an explicit call to <code>getColors</code> for the argument to <code>fill</code>. Here the value of chroma (<code>c</code>) and luminance (<code>l</code>) can be explicitly manipulated in conjunction with the specification of a pre-defined color range. Or, create a custom color range for any value of hue (<code>h</code>). See  <code>getColors</code> for more information.
+</p>
+<p>The values of another variable can be mapped into the fill color of the bars. To do so, set <code>fill</code> to the value of the variable, which would usually be the name of the <code>y</code> variable if explicitly given. Or, if <code>y</code> is tabulated, refer to the variable name as <code>(count)</code>. The larger the count for a level of <code>x</code>, the darker the bar. 
+</p>
+<p>Also available are the pre-specified R color palettes <code>"rainbow"</code>, <code>"terrain"</code>, and <code>"heat"</code>. The pre-defined palette <code>"distinct"</code> maximally separates colors by hue. The family of color-blind family of viridis palettes are available as <code>"viridis"</code>, <code>"cividis"</code>, <code>"magma"</code>, <code>"inferno"</code>, and <code>"plasma"</code>, as well as the <code>"Okabe-Ito"</code> palette. Pre-defined color palettes are available from many of Wes Anderson's movies such as <code>"Moonrise1"</code>, <code>"Royal1"</code>, <code>"GrandBudapest1"</code>, <code>"Darjeeling1"</code> and <code>"BottleRocket1"</code>. Can substitute a <code>2</code> for a <code>1</code> in the preceding references, and sometimes a <code>3</code>. 
+</p>
+<p>LEGEND<br>
+When two variables are plotted, a legend is produced, with values for each level of the second or <code>by</code> variable.  By default, the location is placed in the right margin of the plot. This position can be changed with the <code>legend_position</code> option, which, in addition to the <code>lessR</code> option of <code>right_margin</code>, accepts any valid value consistent with the standard R <code>legend</code> function, used to generate the legend.
+</p>
+<p>The legend title can be abbreviated with the <code>legend_abbrev</code> parameter. Specify the maximum number of characters of the title. The legend is displayed vertically by default, but can be changed to horizontal with the <code>legend_horiz</code> option.
+</p>
+<p>LONG CATEGORY NAMES<br>
+For many plots, the names of the categories are too long. To adjust the plot for these long names, they can be rotated using the <code>rotate_x</code> and <code>rotate_y</code> parameters, in conjunction with <code>offset</code>. The <code>offset</code> parameter moves the category name out from the axis to compensate for the rotation. The changes can also be specified from <code>style</code> to persist until further changes. To reset to the default after obtaining an analysis, use <code>style()</code>.
+</p>
+<p>Also, the following codes are used to adjust line spacing:<br>
+1. Any space in a category name is converted to a new line.<br>
+2. If the space should not be converted to a new line, then replace with a tilde, ~, which will display as a space without a line break.<br></p>
+<p>For the text output at the console, can specify the maximum number of characters in a label with <code>labels.max</code>. Longer value names are abbreviated to the specified length. This facilitates reading cross-tab tables. Also, a provided table pairs the abbreviated names with the actual names. For one variable frequency distributions, <code>out_size</code> provides the maximum number of characters for the text output before the horizontal display of the frequency distribution is shifted to a vertical presentation.
+</p>
+<p>MULTIPLE BAR CHARTS ON THE SAME PANEL (PLOT)<br>
+For multiple x-variables, set the parameter <code>one_plot</code> to <code>TRUE</code> to specify that each bar chart should be produced on the same panel as all other bars. This is most meaningful when all items have the same set of responses, such as a common Likert scale found in survey data. By default the one panel plot is produced when a common response scale is detected.
+</p>
+<p>The algorithm to detect if the response scale is common first identifies the first variable with the largest set of responses, then checks the responses of all other variables. If all responses to all other variables are contained within the set of responses to the reference variable, then the response scales are the same. This means that on a Likert scale, for example, some items may not contain all possible responses, such as no one selects Strongly Disagree for an item. However, for the response scales to be deemed the same, at least one item (variable) must contain all possible responses.
+</p>
+<p>Regardless, the <code>one_plot</code> parameter can be set to either <code>TRUE</code> or <code>FALSE</code> regardless of the commonality of responses. Setting this parameter explicitly saves some CPU time as the algorithm to evaluate the communality of responses need not be activated.
+</p>
+<p>ENTER NUMERIC VARIABLE DIRECTLY<br>
+Instead of calculating the counts from the data, the values of any numerical variable, including
+the counts, can be entered directly as the <code>y</code>-variable, in addition to the categorical <code>x</code>-variable, and perhaps a categorical <code>by</code>-variable. See the examples below.
+</p>
+<p>Or, include the already tabulated counts as the data which is read into R, either as a matrix or a data frame.
+</p>
+<p>STATISTICS<br>
+In addition to the bar chart, descriptive and optional inferential statistics are also presented.  First, the frequency table for one variable or the joint frequency table for two variables is displayed. Second, the corresponding Cramer's V and chi-square test are also displayed by default.
+</p>
+<p>VARIABLE LABELS<br>
+If variable labels exist, then the corresponding variable label is listed as the label for the horizontal axis unless xlab is specified in the function call. If there are two variables to plot, the title of the resulting plot is based on the two variable labels, unless a specific title is listed with the <code>main</code> option. The variable label is also listed in the text output, next to the variable name. If the analysis is for two variables, then labels for both variables are included.
+</p>
+<p>PDF OUTPUT<br>
+To obtain pdf output, use the <code>pdf_file</code> option, perhaps with the optional <code>width</code> and <code>height</code> options. These files are written to the default working directory, which can be explicitly specified with the R <code>setwd</code> function.
+</p>
+<p>ONLY VARIABLES ARE REFERENCED<br>
+The referenced variable in a <code>lessR</code> function can only be a variable name (or list of variable names). This referenced variable must exist in either the referenced data frame, such as the default <code>d</code>, or in the user's workspace, more formally called the global environment. That is, expressions cannot be directly evaluated. For example:
+</p>
+<p><code>    &gt; BarChart(cut(rnorm(50), breaks=seq(-5,5)))   # does NOT work</code>
+</p>
+<p>Instead, do the following:
+</p>
+<pre>    &gt; Y &lt;- cut(rnorm(50), breaks=seq(-5,5))   # create vector Y in user workspace
+    &gt; BarChart(Y)     # directly reference Y</pre>
+
+
+<h3>Value</h3>
+
+<p>The output can optionally be saved into an <code>R</code> object, otherwise it only appears in the console (unless <code>quiet</code> is set to <code>TRUE</code>). Two different types of components are provided: the pieces of readable output, and a variety of statistics. The readable output are character strings such as tables amenable for display. The statistics are numerical values amenable for further analysis. The motivation of these types of output is to facilitate R markdown documents, as the name of each piece, preceded by the name of the saved object and a <code>$</code>, can be inserted into the R~Markdown document (see <code>examples</code>), interspersed with explanation and interpretation. 
+</p>
+<p>Tabulated numerical variable y<br>
+——————————<br>
+READABLE OUTPUT<br><code>out_title</code>: Title<br><code>out_lbl</code>:  Variable label<br><code>out_counts</code>: Two-way frequency distribution<br><code>out_chi</code>: Chi-square test<br><em>One variable</em>: <code>out_miss</code>: Number of missing values<br><em>Two variables</em>: <code>out_prop</code>: Cell proportions<br><em>Two variables</em>: <code>out_row</code>: Cell proportions within each row<br><em>Two variables</em>: <code>out_col</code>: Cell proportions within each col<br></p>
+<p>STATISTICS<br><code>n_dim</code>: Number of dimensions, 1 or 2<br><code>p_value</code>: p-value for null of equal proportions or independence<br><code>freq</code>: Data frame of the frequency distribution <br><em>One variable</em>: <code>freq</code>: Frequency distribution<br><em>One variable</em>: <code>values</code>: y-values read directly<br><em>One variable</em>: <code>prop</code>: Frequency distribution of proportions<br><em>One variable</em>: <code>n_miss</code>: Number of missing values<br></p>
+<p>Numerical variable y read from data<br>
+———————————–<br><code>out_y</code>: Values of y<br><code>n_dim</code>: Number of dimensions, 1 or 2<br></p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)
+</p>
+
+
+<h3>References</h3>
+
+<p>Gerbing, D. W. (2023). <em>R Data Analysis without Programming: Explanation and Interpretation</em>, 2nd edition, Chapter 4, NY: Routledge.
+</p>
+<p>Gerbing, D. W. (2020). R Visualizations: Derive Meaning from Data, Chapter 3, NY: CRC Press.
+</p>
+<p>Gerbing, D. W. (2021). Enhancement of the Command-Line Environment for use in the Introductory Statistics Course and Beyond, <em>Journal of Statistics and Data Science Education</em>, 29(3), 251-266, https://www.tandfonline.com/doi/abs/10.1080/26939169.2021.1999871. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>getColors</code>, <code>barplot</code>, <code>table</code>, <code>legend</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# get the data
+d &lt;- rd("Employee")
+
+# --------------------------------------------------------
+# bar chart from tabulating the data for a single variable
+# --------------------------------------------------------
+
+# for each level of Dept, display the frequencies
+BarChart(Dept)
+# short name
+# bc(Dept)
+
+# save the values output by BarChart into the myOutput list
+myOutput &lt;- BarChart(Dept)
+# display the saved output
+myOutput
+
+# just males with salaries larger than 75,000 USD
+BarChart(Dept, rows=(Gender=="M" &amp; Salary &gt; 85000))
+
+# rotate and offset the axis labels, sort categories by frequencies
+BarChart(Dept, rotate_x=45, offset=1, sort="-")
+
+# set bars to a single color of blue with some transparency
+BarChart(Dept, fill="blue", transparency=0.3)
+# progressive (sequential) color scale of blues
+BarChart(Dept, fill="blues")
+
+# viridis palate
+BarChart(Dept, fill="viridis")
+
+# change the theme just for this analysis, as opposed to style()
+BarChart(Dept, theme="darkgreen")
+
+# set bar color to hcl custom hues with chroma and luminance
+#   at the values provided by the default hcl colors from
+#   the getColors function, which defaults to h=240 and h=60
+#   for the first two colors on the qualitative scale
+bc(Gender, fill=c(hcl(h=180,c=100,l=55), hcl(h=0,c=100,l=55)))
+
+# or set to unique colors via color names
+BarChart(Gender, fill=c("palegreen3","tan"))
+
+# darken the colors with an explicit call to getColors,
+#   do a lower value of luminance, set to l=25
+BarChart(Dept, fill=getColors(l=25), transparency=0.4)
+
+# column proportions instead of frequencies
+BarChart(Gender, stat_x="proportion")
+
+# map value of tabulated count to bar fill
+BarChart(Dept, fill=(count))
+
+# data with many values of categorical variable Make and large labels
+myd &lt;- Read("Cars93")
+# perpendicular labels
+bc(Make, rotate_x=90, data=myd)
+# manage size of horizontal value labels
+bc(Make, horiz=TRUE, label_max=4, data=myd)
+
+# read y variable, Salary
+# display bars for values of count &lt;= 0 in a different color
+#  than values above
+BarChart(Dept, Salary, stat="dev", sort="+", fill_split=0)
+
+
+# ----------------------------------------------------
+# bar chart from tabulating the data for two variables
+# ----------------------------------------------------
+
+# at each level of Dept, show the frequencies of the Gender levels
+BarChart(Dept, by=Gender)
+
+# Trellis (facet) plot
+BarChart(Dept, facet1=Gender)
+
+# at each level of Dept, show the row proportions of the Gender levels
+#   i.e., 100% stacked bar graph
+BarChart(Dept, by=Gender, stack100=TRUE)
+
+# at each level of Gender, show the frequencies of the Dept levels
+# do not display percentages directly on the bars
+BarChart(Gender, by=JobSat, fill="reds", labels="off")
+
+# specify two fill colors for Gender
+BarChart(Dept, by=Gender, fill=c("deepskyblue", "black"))
+
+# display bars beside each other instead of stacked, Female and Male
+# the levels of Dept are included within each respective bar
+# plot horizontally, display the value for each bar at the
+#   top of each bar
+BarChart(Gender, by=Dept, beside=TRUE, horiz=TRUE, labels_position="out")
+
+# horizontal bar chart of two variables, put legend on the top
+BarChart(Gender, by=Dept, horiz=TRUE, legend_position="top")
+
+# for more info on base R graphic options, enter:  help(par)
+# for lessR options, enter:  style(show=TRUE)
+# here fill is set in the style function instead of BarChart
+#   along with the others
+style(fill=c("coral3","seagreen3"), lab_color="wheat4", lab_cex=1.2,
+      panel_fill="wheat1", main_color="wheat4")
+BarChart(Dept, by=Gender,
+         legend_position="topleft", legend_labels=c("Girls", "Boys"),
+         xlab="Dept Level", main="Gender for Different Dept Levels",
+         value_labels=c("None", "Some", "Much", "Ouch!"))
+style()
+
+
+# -----------------------------------------------------------------
+# multiple bar charts tabulated from data across multiple variables
+# -----------------------------------------------------------------
+
+# bar charts for all non-numeric variables in the data frame called d
+#   and all numeric variables with a small number of values, &lt; n_cat
+# BarChart(one_plot=FALSE)
+
+d &lt;- rd("Mach4", quiet=TRUE)
+
+# all on the same plot, bar charts for 20 6-pt Likert scale items
+# default scale is divergent from "browns" to "blues"
+BarChart(m01:m20, horiz=TRUE, labels="off", sort="+")
+
+
+
+
+# custom scale with explicit call to getColors, HCL chroma at 50
+clrs &lt;- getColors("greens", "purples", c=50)
+BarChart(m01:m20, horiz=TRUE, labels="off", sort="+", fill=clrs)
+
+# custom divergent scale with pre-defined color palettes
+#  with implicit call to getColors
+BarChart(m01:m20, horiz=TRUE, labels="off", fill=c("aquas", "rusts"))
+
+
+# ----------------------------
+# can enter many types of data
+# ----------------------------
+
+# generate and enter integer data
+X1 &lt;- sample(1:4, size=100, replace=TRUE)
+X2 &lt;- sample(1:4, size=100, replace=TRUE)
+BarChart(X1)
+BarChart(X1, by=X2)
+
+# generate and enter type double data
+X1 &lt;- sample(c(1,2,3,4), size=100, replace=TRUE)
+X2 &lt;- sample(c(1,2,3,4), size=100, replace=TRUE)
+BarChart(X1)
+BarChart(X1, by=X2)
+
+# generate and enter character string data
+# that is, without first converting to a factor
+Travel &lt;- sample(c("Bike", "Bus", "Car", "Motorcycle"), size=25, replace=TRUE)
+BarChart(Travel, horiz=TRUE)
+
+
+# ----------------------------
+# bar chart directly from data
+# ----------------------------
+
+# include a y-variable, here Salary, in the data table to read directly
+d &lt;- read.csv(text="
+Dept, Salary
+ACCT,51792.78
+ADMN,71277.12
+FINC,59010.68
+MKTG,60257.13
+SALE,68830.06", header=TRUE)
+BarChart(Dept, Salary)
+
+# specify two variables for a two variable bar chart
+# also specify a y-variable to provide the counts directly
+# when reading y values directly, must be a summary table,
+#   one row of data for each combination of levels with
+#   a numerical value of y
+# use lessR pivot function to get summary table, cannot process missing data
+#   so set na_show_group to FALSE
+d &lt;- Read("Employee")
+a &lt;- pivot(d, mean, Salary, c(Dept,Gender), na_group_show=FALSE)
+BarChart(Dept, Salary_mean, by=Gender, data=a)
+# do so just with BarChart, display bars in grayscale
+# How does average salary vary by gender across the various departments?
+BarChart(Dept, Salary, by=Gender, stat="mean", data=d, fill="grays")
+
+
+# -----------
+# annotations
+# -----------
+
+d &lt;- rd("Employee")
+
+# Place a message in the center of the plot
+# \n indicates a new line
+BarChart(Dept, add="Employees by\nDepartment", x1=3, y1=10)
+
+# Use style to change some parameter values
+style(add_trans=.8, add_fill="gold", add_color="gold4", add_lwd=0.5)
+# Add a rectangle around the message centered at &lt;3,10&gt;
+BarChart(Dept, add=c("rect", "Employees by\nDepartment"),
+                     x1=c(2,3), y1=c(11, 10), x2=4, y2=9)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,93 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>merge_spatial</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Merge a point cloud with a source of spatial data</h2>
+
+<h3>Description</h3>
+
+<p>Merge a point cloud with a source of spatial data. It adds an attribute along each point based on
+a value found in the spatial data. Sources of spatial data can be a <code style="white-space: pre;">⁠SpatialPolygons*⁠</code>, an <code>sf</code>/<code>sfc</code>,
+a <code style="white-space: pre;">⁠Raster*⁠</code>, a <code>stars</code>, or a <code>SpatRaster</code>.<br></p>
+
+<ul>
+<li>
+<p><code style="white-space: pre;">⁠SpatialPolygons*⁠</code>, <code>sf</code> and <code>sfc</code>: it checks if the points belongs within each polygon. If
+the parameter <code>attribute</code> is the name of an attribute in the table of attributes it assigns
+to the points the values of that attribute. Otherwise it classifies the points as boolean.
+TRUE if the points are in a polygon, FALSE otherwise.
+</p>
+</li>
+<li>
+<p><code>RasterLayer</code>, single band <code>stars</code> or single layer <code>SpatRaster</code>: it attributes to each point
+the value found in each pixel of the raster.
+</p>
+</li>
+<li>
+<p><code>RasterStack</code>, <code>RasterBrick</code>, multibands <code>stars</code> or multilayer <code>SpatRaster</code> must have 3
+layers for RGB colors. It colorizes the point cloud with RGB values.
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">merge_spatial(las, source, attribute = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>las</code></td>
+<td>
+<p>An object of class <code>LAS</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An object of class <code style="white-space: pre;">⁠SpatialPolygons*⁠</code> or <code>sf</code> or <code>sfc</code> or <code>RasterLayer</code> or
+<code>RasterStack</code> or <code>RasterBrick</code> or <code>stars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>attribute</code></td>
+<td>
+<p>character. The name of an attribute in the table of attributes or
+the name of a new column in the LAS object. Not relevant for RGB colorization.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>LAS</code> object
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">LASfile &lt;- system.file("extdata", "Megaplot.laz", package="lidR")
+shp     &lt;- system.file("extdata", "lake_polygons_UTM17.shp", package = "lidR")
+
+las   &lt;- readLAS(LASfile, filter = "-keep_random_fraction 0.1")
+lakes &lt;- sf::st_read(shp, quiet = TRUE)
+
+# The attribute "inlake" does not exist in the shapefile.
+# Points are classified as TRUE if in a polygon
+las    &lt;- merge_spatial(las, lakes, "inlakes")     # New attribute 'inlakes' is added.
+names(las)
+
+forest &lt;- filter_poi(las, inlakes == FALSE)
+#plot(forest)
+
+# The attribute "LAKENAME_1" exists in the shapefile.
+# Points are classified with the values of the polygons
+las &lt;- merge_spatial(las, lakes, "LAKENAME_1")     # New column 'LAKENAME_1' is added.
+names(las)
+</code></pre>
+
+
+</div>

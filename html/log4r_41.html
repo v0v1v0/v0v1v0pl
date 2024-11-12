@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loglevel</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Logging levels</h2>
+
+<h3>Description</h3>
+
+<p>Functions for handling logging levels.  With each log entry, a logging level
+is associated that indicate its severity – debugging output, informational
+output, warning message, error message or fatal error.  Each logger only
+prints log entries where the log level is equal or above its threshold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loglevel(i)
+
+is.loglevel(x, ...)
+
+as.loglevel(i)
+
+## S3 method for class 'loglevel'
+print(x, ...)
+
+## S3 method for class 'loglevel'
+as.numeric(x, ...)
+
+## S3 method for class 'loglevel'
+as.character(x, ...)
+
+available.loglevels()
+
+verbosity(v)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>An integer from the set 1..5.  Otherwise it will be modified
+sensibly to fit in that range.  Alternatively, a named logging level
+(one of "DEBUG", "INFO", "WARN", "ERROR", or "FATAL").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An object of class "loglevel"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Unused</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>v</code></td>
+<td>
+<p>A verbosity level from the set 5..1. For historical reasons, they
+do not match the log levels; a verbosity level of 1 corresponds to a
+logging level of 5, 2 corresponds to 4, etc.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To specify a logging level, use a character value, e.g. <code>"WARN"</code>, or an
+integer between 1 and 5. The function <code>available.levels</code> lists all possible
+logging levels.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class "loglevel"
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">loglevel(2) == loglevel("INFO")
+loglevel("WARN") &lt; loglevel("ERROR")
+loglevel(-1)
+try(loglevel("UNDEFINED"))
+is.loglevel("DEBUG")
+is.loglevel(loglevel("DEBUG"))
+as.numeric(loglevel("FATAL"))
+available.loglevels()
+
+## Not run: 
+library(optparse)
+library(log4r)
+
+optlist &lt;- list(make_option(c('-v', '--verbosity-level'),
+  type = "integer",
+  dest = "verbosity",
+  default = 1,
+  help = "Verbosity threshold (5=DEBUG, 4=INFO 3=WARN, 2=ERROR, 1=FATAL)"))
+
+optparser &lt;- OptionParser(option_list=optlist)
+opt &lt;- parse_args(optparser)
+
+my.logger &lt;- create.logger(logfile = "", level = verbosity(opt$verbosity))
+
+fatal(my.logger, "Fatal message")
+error(my.logger, "Error message")
+warn(my.logger, "Warning message")
+info(my.logger, "Informational message")
+debug(my.logger, "Debugging message")
+
+## End(Not run)
+</code></pre>
+
+
+</div>

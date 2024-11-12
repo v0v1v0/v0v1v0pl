@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>IMLEGIT_cv</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation for the IMLEGIT model</h2>
+
+<h3>Description</h3>
+
+<p>Uses cross-validation on the IMLEGIT model. Note that this is not a very fast implementation since it was written in R.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">IMLEGIT_cv(
+  data,
+  latent_var,
+  formula,
+  cv_iter = 5,
+  cv_folds = 10,
+  folds = NULL,
+  Huber_p = 1.345,
+  classification = FALSE,
+  start_latent_var = NULL,
+  eps = 0.001,
+  maxiter = 100,
+  family = gaussian,
+  ylim = NULL,
+  seed = NULL,
+  id = NULL,
+  test_only = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latent_var</code></td>
+<td>
+<p>list of data.frame. The elements of the list are the datasets used to construct each latent variable. For interpretability and proper convergence, not using the same variable in more than one latent variable is highly recommended. It is recommended to set names to the list elements to prevent confusion because otherwise, the latent variables will be named L1, L2, ...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model formula. The names of <code>latent_var</code> can be used in the formula to represent the latent variables. If names(<code>latent_var</code>) is NULL, then L1, L2, ... can be used in the formula to represent the latent variables. Do not manually code interactions, write them in the formula instead (ex: G*E1*E2 or G:E1:E2).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_iter</code></td>
+<td>
+<p>Number of cross-validation iterations (Default = 5).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_folds</code></td>
+<td>
+<p>Number of cross-validation folds (Default = 10). Using <code>cv_folds=NROW(data)</code> will lead to leave-one-out cross-validation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>folds</code></td>
+<td>
+<p>Optional list of vectors containing the fold number for each observation. Bypass cv_iter and cv_folds. Setting your own folds could be important for certain data types like time series or longitudinal data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Huber_p</code></td>
+<td>
+<p>Parameter controlling the Huber cross-validation error (Default = 1.345).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>classification</code></td>
+<td>
+<p>Set to TRUE if you are doing classification (binary outcome).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_latent_var</code></td>
+<td>
+<p>Optional list of starting points for each latent variable (The list must have the same length as the number of latent variables and each element of the list must have the same length as the number of variables of the corresponding latent variable).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Outcome distribution and link function (Default = gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>Seed for cross-validation folds.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>id</code></td>
+<td>
+<p>Optional id of observations, can be a vector or data.frame (only used when returning list of possible outliers).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test_only</code></td>
+<td>
+<p>If TRUE, only uses the first fold for training and predict the others folds; do not train on the other folds. So instead of cross-validation, this gives you train/test and you get the test R-squared as output.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>classification</code> = FALSE, returns a list containing, in the following order: a vector of the cross-validated <code class="reqn">R^2</code> at each iteration, a vector of the Huber cross-validation error at each iteration, a vector of the L1-norm cross-validation error at each iteration, a matrix of the possible outliers (standardized residuals &gt; 2.5 or &lt; -2.5) and their corresponding standardized residuals and standardized pearson residuals. If <code>classification</code> = TRUE, returns a list containing, in the following order: a vector of the cross-validated <code class="reqn">R^2</code> at each iteration, a vector of the Huber cross-validation error at each iteration, a vector of the L1-norm cross-validation error at each iteration, a vector of the AUC at each iteration, a matrix of the best choice of threshold (based on Youden index) and the corresponding specificity and sensitivity at each iteration, and a list of objects of class "roc" (to be able to make roc curve plots) at each iteration. The Huber and L1-norm cross-validation errors are alternatives to the usual cross-validation L2-norm error (which the <code class="reqn">R^2</code> is based on) that are more resistant to outliers, the lower the values the better.
+</p>
+
+
+<h3>References</h3>
+
+<p>Denis Heng-Yan Leung. <em>Cross-validation in nonparametric regression with outliers.</em> Annals of Statistics (2005): 2291-2310.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+train = example_3way_3latent(250, 1, seed=777)
+# Cross-validation 4 times with 5 Folds
+cv_5folds = IMLEGIT_cv(train$data, train$latent_var, y ~ G*E*Z, cv_iter=4, cv_folds=5)
+cv_5folds
+# Leave-one-out cross-validation (Note: very slow)
+cv_loo = IMLEGIT_cv(train$data, train$latent_var, y ~ G*E*Z, cv_iter=1, cv_folds=250)
+cv_loo
+# Cross-validation 4 times with 5 Folds (binary outcome)
+train_bin = example_2way(500, 2.5, logit=TRUE, seed=777)
+cv_5folds_bin = IMLEGIT_cv(train_bin$data, list(G=train_bin$G, E=train_bin$E), y ~ G*E, 
+cv_iter=4, cv_folds=5, classification=TRUE, family=binomial)
+cv_5folds_bin
+par(mfrow=c(2,2))
+pROC::plot.roc(cv_5folds_bin$roc_curve[[1]])
+pROC::plot.roc(cv_5folds_bin$roc_curve[[2]])
+pROC::plot.roc(cv_5folds_bin$roc_curve[[3]])
+pROC::plot.roc(cv_5folds_bin$roc_curve[[4]])
+
+## End(Not run)
+</code></pre>
+
+
+</div>

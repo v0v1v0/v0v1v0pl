@@ -1,0 +1,173 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lnc_finder</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Long Non-coding RNA Identification</h2>
+
+<h3>Description</h3>
+
+<p>This function is used to predict sequences are non-coding transcripts
+or protein-coding transcripts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lnc_finder(
+  Sequences,
+  SS.features = FALSE,
+  format = "DNA",
+  frequencies.file = "human",
+  svm.model = "human",
+  parallel.cores = 2
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Sequences</code></td>
+<td>
+<p>Unevaluated sequences. Can be a FASTA file loaded by
+<code>seqinr-package</code> or secondary structure sequences
+(Dot-Bracket Notation) obtained from function <code>run_RNAfold</code>. If
+<code>Sequences</code> is secondary structure sequences file, parameter <code>format</code>
+should be defined as <code>"SS"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SS.features</code></td>
+<td>
+<p>Logical. If <code>SS.features = TRUE</code>, secondary structure
+features will be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>format</code></td>
+<td>
+<p>String. Define the format of the <code>Sequences</code>. Can be
+<code>"DNA"</code> or <code>"SS"</code>. <code>"DNA"</code> for DNA sequences and <code>"SS"</code>
+for secondary structure sequences.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>frequencies.file</code></td>
+<td>
+<p>String or a list obtained from function
+<code>make_frequencies</code>. Input species name <code>"human"</code>, <code>"mouse"</code>
+or <code>"wheat"</code> to use pre-build frequencies files. Or assign a users' own
+frequencies file (See function <code>make_frequencies</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>svm.model</code></td>
+<td>
+<p>String or a svm model obtained from function <code>build_model</code>
+or <code>svm_tune</code>. Input species name <code>"human"</code>, <code>"mouse"</code>
+or <code>"wheat"</code> to use pre-build models. Or assign a users' own model (See
+function <code>build_model</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel.cores</code></td>
+<td>
+<p>Integer. The number of cores for parallel computation.
+By default the number of cores is <code>2</code>. Users can set as <code>-1</code> to run
+this function with all cores.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Considering that it is time consuming to obtain secondary structure
+sequences, users can input nucleotide sequences and predict these sequences
+without secondary structure features (Set <code>SS.features</code> as <code>FALSE</code>).
+</p>
+<p>Please note that:
+</p>
+<p><code>SS.features</code> can improve the performance when the species of unevaluated
+sequences is identical to the species of the sequences that used to build the
+model.
+</p>
+<p>However, if users are trying to predict sequences with the model trained on
+other species, <code>SS.features</code> may lead to low accuracy.
+</p>
+<p>For the details of <code>frequencies.file</code>, please refer to function
+<code>make_frequencies</code>.
+</p>
+<p>For the details of the features, please refer to function
+<code>extract_features</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a data.frame. Including the results of prediction (<code>Pred</code>);
+coding potential (<code>Coding.Potential</code>) and the features. For the details
+of the features, please refer to function <code>extract_features</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Siyu Han, Yanchun Liang, Qin Ma, Yangyi Xu, Yu Zhang, Wei Du, Cankun Wang &amp; Ying Li.
+LncFinder: an integrated platform for long non-coding RNA identification utilizing
+sequence intrinsic composition, structural information, and physicochemical property.
+<em>Briefings in Bioinformatics</em>, 2019, 20(6):2009-2027.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>HAN Siyu
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>build_model</code>, <code>make_frequencies</code>,
+<code>extract_features</code>, <code>run_RNAfold</code>, <code>read_SS</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(demo_DNA.seq)
+Seqs &lt;- demo_DNA.seq
+
+### Input one sequence:
+OneSeq &lt;- Seqs[1]
+result_1 &lt;- lnc_finder(OneSeq, SS.features = FALSE, format = "DNA",
+                       frequencies.file = "human", svm.model = "human",
+                       parallel.cores = 2)
+
+### Or several sequences:
+data(demo_SS.seq)
+Seqs &lt;- demo_SS.seq
+result_2 &lt;- lnc_finder(Seqs, SS.features = TRUE, format = "SS",
+                       frequencies.file = "mouse", svm.model = "mouse",
+                       parallel.cores = 2)
+
+### A complete work flow:
+### Calculate second structure on Windows OS,
+RNAfold.path &lt;- '"E:/Program Files/ViennaRNA/RNAfold.exe"'
+SS.seq &lt;- run_RNAfold(Seqs, RNAfold.path = RNAfold.path, parallel.cores = 2)
+
+### Predict the sequences with secondary structure features,
+result_2 &lt;- lnc_finder(SS.seq, SS.features = TRUE, format = "SS",
+                       frequencies.file = "mouse", svm.model = "mouse",
+                       parallel.cores = 2)
+
+### Predict sequences with your own model by assigning a new svm.model and
+### frequencies.file to parameters "svm.model" and "frequencies.file"
+
+## End(Not run)
+</code></pre>
+
+
+</div>

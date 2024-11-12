@@ -1,0 +1,438 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>loo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Efficient approximate leave-one-out cross-validation (LOO)</h2>
+
+<h3>Description</h3>
+
+<p>The <code>loo()</code> methods for arrays, matrices, and functions compute PSIS-LOO
+CV, efficient approximate leave-one-out (LOO) cross-validation for Bayesian
+models using Pareto smoothed importance sampling (PSIS). This is
+an implementation of the methods described in Vehtari, Gelman, and Gabry
+(2017) and Vehtari, Simpson, Gelman, Yao, and Gabry (2024).
+</p>
+<p>The <code>loo_i()</code> function enables testing log-likelihood
+functions for use with the <code>loo.function()</code> method.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">loo(x, ...)
+
+## S3 method for class 'array'
+loo(
+  x,
+  ...,
+  r_eff = 1,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1),
+  is_method = c("psis", "tis", "sis")
+)
+
+## S3 method for class 'matrix'
+loo(
+  x,
+  ...,
+  r_eff = 1,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1),
+  is_method = c("psis", "tis", "sis")
+)
+
+## S3 method for class ''function''
+loo(
+  x,
+  ...,
+  data = NULL,
+  draws = NULL,
+  r_eff = 1,
+  save_psis = FALSE,
+  cores = getOption("mc.cores", 1),
+  is_method = c("psis", "tis", "sis")
+)
+
+loo_i(i, llfun, ..., data = NULL, draws = NULL, r_eff = 1, is_method = "psis")
+
+is.loo(x)
+
+is.psis_loo(x)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A log-likelihood array, matrix, or function. The <strong>Methods (by class)</strong>
+section, below, has detailed descriptions of how to specify the inputs for
+each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff</code></td>
+<td>
+<p>Vector of relative effective sample size estimates for the
+likelihood (<code>exp(log_lik)</code>) of each observation. This is related to
+the relative efficiency of estimating the normalizing term in
+self-normalized importance sampling when using posterior draws obtained
+with MCMC. If MCMC draws are used and <code>r_eff</code> is not provided then
+the reported PSIS effective sample sizes and Monte Carlo error estimates
+can be over-optimistic. If the posterior draws are (near) independent then
+<code>r_eff=1</code> can be used. <code>r_eff</code> has to be a scalar (same value is used
+for all observations) or a vector with length equal to the number of
+observations. The default value is 1. See the <code>relative_eff()</code> helper
+functions for help computing <code>r_eff</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save_psis</code></td>
+<td>
+<p>Should the <code>psis</code> object created internally by <code>loo()</code> be
+saved in the returned object? The <code>loo()</code> function calls <code>psis()</code>
+internally but by default discards the (potentially large) <code>psis</code> object
+after using it to compute the LOO-CV summaries. Setting <code>save_psis=TRUE</code>
+will add a <code>psis_object</code> component to the list returned by <code>loo</code>.
+This is useful if you plan to use the <code>E_loo()</code> function to compute
+weighted expectations after running <code>loo</code>. Several functions in the
+<span class="pkg">bayesplot</span> package also accept <code>psis</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization. This defaults to
+the option <code>mc.cores</code> which can be set for an entire R session by
+<code>options(mc.cores = NUMBER)</code>. The old option <code>loo.cores</code> is now
+deprecated but will be given precedence over <code>mc.cores</code> until
+<code>loo.cores</code> is removed in a future release. <strong>As of version
+2.0.0 the default is now 1 core if <code>mc.cores</code> is not set</strong>, but we
+recommend using as many (or close to as many) cores as possible.
+</p>
+
+<ul><li>
+<p> Note for Windows 10 users: it is <strong>strongly</strong>
+<a href="https://github.com/stan-dev/loo/issues/94">recommended</a> to avoid using
+the <code>.Rprofile</code> file to set <code>mc.cores</code> (using the <code>cores</code> argument or
+setting <code>mc.cores</code> interactively or in a script is fine).
+</p>
+</li></ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_method</code></td>
+<td>
+<p>The importance sampling method to use. The following methods
+are implemented:
+</p>
+
+<ul>
+<li> <p><code>"psis"</code>: Pareto-Smoothed Importance Sampling (PSIS). Default method.
+</p>
+</li>
+<li> <p><code>"tis"</code>: Truncated Importance Sampling (TIS) with truncation at
+<code>sqrt(S)</code>, where <code>S</code> is the number of posterior draws.
+</p>
+</li>
+<li> <p><code>"sis"</code>: Standard Importance Sampling (SIS).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data, draws, ...</code></td>
+<td>
+<p>For the <code>loo.function()</code> method and the <code>loo_i()</code>
+function, these are the data, posterior draws, and other arguments to pass
+to the log-likelihood function. See the <strong>Methods (by class)</strong> section
+below for details on how to specify these arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>i</code></td>
+<td>
+<p>For <code>loo_i()</code>, an integer in <code>1:N</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>llfun</code></td>
+<td>
+<p>For <code>loo_i()</code>, the same as <code>x</code> for the
+<code>loo.function()</code> method. A log-likelihood function as described in the
+<strong>Methods (by class)</strong> section.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>loo()</code> function is an S3 generic and methods are provided for
+3-D pointwise log-likelihood arrays, pointwise log-likelihood matrices, and
+log-likelihood functions. The array and matrix methods are the most
+convenient, but for models fit to very large datasets the <code>loo.function()</code>
+method is more memory efficient and may be preferable.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>loo()</code> methods return a named list with class
+<code>c("psis_loo", "loo")</code> and components:
+</p>
+
+<dl>
+<dt><code>estimates</code></dt>
+<dd>
+<p>A matrix with two columns (<code>Estimate</code>, <code>SE</code>) and three rows (<code>elpd_loo</code>,
+<code>p_loo</code>, <code>looic</code>). This contains point estimates and standard errors of the
+expected log pointwise predictive density (<code>elpd_loo</code>), the
+effective number of parameters (<code>p_loo</code>) and the LOO
+information criterion <code>looic</code> (which is just <code>-2 * elpd_loo</code>, i.e.,
+converted to deviance scale).
+</p>
+</dd>
+<dt><code>pointwise</code></dt>
+<dd>
+<p>A matrix with five columns (and number of rows equal to the number of
+observations) containing the pointwise contributions of the measures
+(<code>elpd_loo</code>, <code>mcse_elpd_loo</code>, <code>p_loo</code>, <code>looic</code>, <code>influence_pareto_k</code>).
+in addition to the three measures in <code>estimates</code>, we also report
+pointwise values of the Monte Carlo standard error of <code>elpd_loo</code>
+(<code>mcse_elpd_loo</code>), and statistics describing the influence of
+each observation on the posterior distribution (<code>influence_pareto_k</code>).
+These are the estimates of the shape parameter <code class="reqn">k</code> of the
+generalized Pareto fit to the importance ratios for each leave-one-out
+distribution (see the pareto-k-diagnostic page for details).
+</p>
+</dd>
+<dt><code>diagnostics</code></dt>
+<dd>
+<p>A named list containing two vectors:
+</p>
+
+<ul>
+<li> <p><code>pareto_k</code>: Importance sampling reliability diagnostics. By default,
+these are equal to the <code>influence_pareto_k</code> in <code>pointwise</code>.
+Some algorithms can improve importance sampling reliability and
+modify these diagnostics. See the pareto-k-diagnostic page for details.
+</p>
+</li>
+<li> <p><code>n_eff</code>: PSIS effective sample size estimates.
+</p>
+</li>
+</ul>
+</dd>
+<dt><code>psis_object</code></dt>
+<dd>
+<p>This component will be <code>NULL</code> unless the <code>save_psis</code> argument is set to
+<code>TRUE</code> when calling <code>loo()</code>. In that case <code>psis_object</code> will be the object
+of class <code>"psis"</code> that is created when the <code>loo()</code> function calls <code>psis()</code>
+internally to do the PSIS procedure.
+</p>
+</dd>
+</dl>
+<p>The <code>loo_i()</code> function returns a named list with components
+<code>pointwise</code> and <code>diagnostics</code>. These components have the same
+structure as the <code>pointwise</code> and <code>diagnostics</code> components of the
+object returned by <code>loo()</code> except they contain results for only a single
+observation.
+</p>
+
+
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>loo(array)</code>: An <code class="reqn">I</code> by <code class="reqn">C</code> by <code class="reqn">N</code> array, where <code class="reqn">I</code>
+is the number of MCMC iterations per chain, <code class="reqn">C</code> is the number of
+chains, and <code class="reqn">N</code> is the number of data points.
+</p>
+</li>
+<li> <p><code>loo(matrix)</code>: An <code class="reqn">S</code> by <code class="reqn">N</code> matrix, where <code class="reqn">S</code> is the size
+of the posterior sample (with all chains merged) and <code class="reqn">N</code> is the number
+of data points.
+</p>
+</li>
+<li> <p><code>loo(`function`)</code>: A function <code>f()</code> that takes arguments <code>data_i</code> and <code>draws</code> and returns a
+vector containing the log-likelihood for a single observation <code>i</code> evaluated
+at each posterior draw. The function should be written such that, for each
+observation <code>i</code> in <code>1:N</code>, evaluating
+</p>
+<div class="sourceCode"><pre>f(data_i = data[i,, drop=FALSE], draws = draws)
+</pre></div>
+<p>results in a vector of length <code>S</code> (size of posterior sample). The
+log-likelihood function can also have additional arguments but <code>data_i</code> and
+<code>draws</code> are required.
+</p>
+<p>If using the function method then the arguments <code>data</code> and <code>draws</code> must also
+be specified in the call to <code>loo()</code>:
+</p>
+
+<ul>
+<li> <p><code>data</code>: A data frame or matrix containing the data (e.g.
+observed outcome and predictors) needed to compute the pointwise
+log-likelihood. For each observation <code>i</code>, the <code>i</code>th row of
+<code>data</code> will be passed to the <code>data_i</code> argument of the
+log-likelihood function.
+</p>
+</li>
+<li> <p><code>draws</code>: An object containing the posterior draws for any
+parameters needed to compute the pointwise log-likelihood. Unlike
+<code>data</code>, which is indexed by observation, for each observation the
+entire object <code>draws</code> will be passed to the <code>draws</code> argument of
+the log-likelihood function.
+</p>
+</li>
+<li>
+<p> The <code>...</code> can be used if your log-likelihood function takes additional
+arguments. These arguments are used like the <code>draws</code> argument in that they
+are recycled for each observation.
+</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3>Defining <code>loo()</code> methods in a package</h3>
+
+<p>Package developers can define
+<code>loo()</code> methods for fitted models objects. See the example <code>loo.stanfit()</code>
+method in the <strong>Examples</strong> section below for an example of defining a
+method that calls <code>loo.array()</code>. The <code>loo.stanreg()</code> method in the
+<strong>rstanarm</strong> package is an example of defining a method that calls
+<code>loo.function()</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC.
+<em>Statistics and Computing</em>. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4
+(<a href="https://link.springer.com/article/10.1007/s11222-016-9696-4">journal version</a>,
+<a href="https://arxiv.org/abs/1507.04544">preprint arXiv:1507.04544</a>).
+</p>
+<p>Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2024).
+Pareto smoothed importance sampling. <em>Journal of Machine Learning Research</em>,
+25(72):1-58.
+<a href="https://jmlr.org/papers/v25/19-556.html">PDF</a>
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p> The <strong>loo</strong> package <a href="https://mc-stan.org/loo/articles/index.html">vignettes</a>
+for demonstrations.
+</p>
+</li>
+<li>
+<p> The <a href="https://mc-stan.org/loo/articles/online-only/faq.html">FAQ page</a> on
+the <strong>loo</strong> website for answers to frequently asked questions.
+</p>
+</li>
+<li> <p><code>psis()</code> for the underlying Pareto Smoothed Importance Sampling (PSIS)
+procedure used in the LOO-CV approximation.
+</p>
+</li>
+<li> <p>pareto-k-diagnostic for convenience functions for looking at diagnostics.
+</p>
+</li>
+<li> <p><code>loo_compare()</code> for model comparison.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">### Array and matrix methods (using example objects included with loo package)
+# Array method
+LLarr &lt;- example_loglik_array()
+rel_n_eff &lt;- relative_eff(exp(LLarr))
+loo(LLarr, r_eff = rel_n_eff, cores = 2)
+
+# Matrix method
+LLmat &lt;- example_loglik_matrix()
+rel_n_eff &lt;- relative_eff(exp(LLmat), chain_id = rep(1:2, each = 500))
+loo(LLmat, r_eff = rel_n_eff, cores = 2)
+
+
+### Using log-likelihood function instead of array or matrix
+set.seed(124)
+
+# Simulate data and draw from posterior
+N &lt;- 50; K &lt;- 10; S &lt;- 100; a0 &lt;- 3; b0 &lt;- 2
+p &lt;- rbeta(1, a0, b0)
+y &lt;- rbinom(N, size = K, prob = p)
+a &lt;- a0 + sum(y); b &lt;- b0 + N * K - sum(y)
+fake_posterior &lt;- as.matrix(rbeta(S, a, b))
+dim(fake_posterior) # S x 1
+fake_data &lt;- data.frame(y,K)
+dim(fake_data) # N x 2
+
+llfun &lt;- function(data_i, draws) {
+  # each time called internally within loo the arguments will be equal to:
+  # data_i: ith row of fake_data (fake_data[i,, drop=FALSE])
+  # draws: entire fake_posterior matrix
+  dbinom(data_i$y, size = data_i$K, prob = draws, log = TRUE)
+}
+
+# Use the loo_i function to check that llfun works on a single observation
+# before running on all obs. For example, using the 3rd obs in the data:
+loo_3 &lt;- loo_i(i = 3, llfun = llfun, data = fake_data, draws = fake_posterior)
+print(loo_3$pointwise[, "elpd_loo"])
+
+# Use loo.function method (default r_eff=1 is used as this posterior not obtained via MCMC)
+loo_with_fn &lt;- loo(llfun, draws = fake_posterior, data = fake_data)
+
+# If we look at the elpd_loo contribution from the 3rd obs it should be the
+# same as what we got above with the loo_i function and i=3:
+print(loo_with_fn$pointwise[3, "elpd_loo"])
+print(loo_3$pointwise[, "elpd_loo"])
+
+# Check that the loo.matrix method gives same answer as loo.function method
+log_lik_matrix &lt;- sapply(1:N, function(i) {
+  llfun(data_i = fake_data[i,, drop=FALSE], draws = fake_posterior)
+})
+loo_with_mat &lt;- loo(log_lik_matrix)
+all.equal(loo_with_mat$estimates, loo_with_fn$estimates) # should be TRUE!
+
+
+## Not run: 
+### For package developers: defining loo methods
+
+# An example of a possible loo method for 'stanfit' objects (rstan package).
+# A similar method is included in the rstan package.
+# In order for users to be able to call loo(stanfit) instead of
+# loo.stanfit(stanfit) the NAMESPACE needs to be handled appropriately
+# (roxygen2 and devtools packages are good for that).
+#
+loo.stanfit &lt;-
+ function(x,
+         pars = "log_lik",
+         ...,
+         save_psis = FALSE,
+         cores = getOption("mc.cores", 1)) {
+  stopifnot(length(pars) == 1L)
+  LLarray &lt;- loo::extract_log_lik(stanfit = x,
+                                  parameter_name = pars,
+                                  merge_chains = FALSE)
+  r_eff &lt;- loo::relative_eff(x = exp(LLarray), cores = cores)
+  loo::loo.array(LLarray,
+                 r_eff = r_eff,
+                 cores = cores,
+                 save_psis = save_psis)
+}
+
+## End(Not run)
+
+
+</code></pre>
+
+
+</div>

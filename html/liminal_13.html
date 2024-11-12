@@ -1,0 +1,175 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>limn_tour_link</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Link a 2-d embedding with a tour</h2>
+
+<h3>Description</h3>
+
+<p>Link a 2-d embedding with a tour
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">limn_tour_link(
+  embed_data,
+  tour_data,
+  cols = NULL,
+  color = NULL,
+  tour_path = tourr::grand_tour(),
+  rescale = clamp,
+  morph = "center",
+  gadget_mode = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>embed_data</code></td>
+<td>
+<p>A <code>data.frame</code> representing embedding coordinates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tour_data</code></td>
+<td>
+<p>a data.frame to tour</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cols</code></td>
+<td>
+<p>Columns to tour. This can use a tidyselect specification
+such as <code>tidyselect::starts_with()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>color</code></td>
+<td>
+<p>A variable mapping to the color aesthetic, if
+NULL points will be colored black.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tour_path</code></td>
+<td>
+<p>the tour path to take, the default is <code>tourr::grand_tour()</code>
+but also works with <code>tourr::guided_tour()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rescale</code></td>
+<td>
+<p>A function that rescales <code>cols</code>, the default is to
+<code>clamp()</code> the data to lie in the hyperdimensional unit cube. To not perform
+any scaling use <code>identity()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>morph</code></td>
+<td>
+<p>One of <code>c("center", "centre", "identity", "radial")</code>
+that rescales each projection along the tour path. The default
+is to center the projections and divide by half range. See <code>morph_center()</code>
+for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gadget_mode</code></td>
+<td>
+<p>Run the app as a <code>shiny::runGadget()</code> which will load
+the app in the RStudio Viewer pane or a browser (default = TRUE). If FALSE
+will return a regular shiny app object that could be used to deploy the app
+elsewhere.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>All controls for the app can be obtained by clicking on the help button,
+in the bottom panel. More details are described below:
+</p>
+
+<ul>
+<li>
+<p> The tour view on the left is a dynamic and interactive scatterplot. Brushing on the tour view
+is activated with the shift key plus a mouse drag. By default it will
+highlight corresponding points in the xy view and pause the animation.
+</p>
+</li>
+<li>
+<p> The xy view on the right is an interactive scatterplot. Brushing on the xy view
+will highlight points in the tour view and is activated via a mouse drag,
+the type of highlighting depends on the brush mode selected.
+</p>
+</li>
+<li>
+<p> There is a play button, that when pressed will start the tour.
+</p>
+</li>
+<li>
+<p> The half range which is the maximum squared
+Euclidean distance between points in the tour view. The half range
+is a scale factor for projections and can be thought of as a way
+of zooming in and out on points. It can be dynamically modified by scrolling
+(via a mouse-wheel). To reset double click the tour view.
+</p>
+</li>
+<li>
+<p> The legend can be toggled to highlight groups of points with
+shift+mouse-click. Multiple groups can be selected in this way. To
+reset double click the legend title.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>After pressing the Done button on the interface, a list of artefacts
+is returned to the R session.
+</p>
+
+<ul>
+<li> <p><code>selected_basis</code>: A matrix of the current projection
+</p>
+</li>
+<li> <p><code>tour_brush_box</code>: A list containing the bounding box of the  tour brush
+</p>
+</li>
+<li> <p><code>embed_brush_box</code>: A list containing the bounding box of the embed brush
+</p>
+</li>
+<li> <p><code>tour_half_range</code>: The current value of the half range
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (interactive()) {
+  # tour the first ten columns of the fake tree data and link to the
+  # another layout based on t-SNE
+  # loads the default interface
+  if (requireNamespace("Rtsne", quietly = TRUE)) {
+    set.seed(2020)
+    tsne &lt;- Rtsne::Rtsne(dplyr::select(fake_trees, dplyr::starts_with("dim")))
+    tsne_df &lt;- data.frame(tsneX = tsne$Y[, 1], tsneY = tsne$Y[, 2])
+    limn_tour_link(
+      tsne_df,
+      fake_trees,
+      cols = dim1:dim10,
+      color = branches
+    )
+    # assigning to an object will return a list of artefacts after clicking
+    # done in the upper right hand corner
+    res &lt;- limn_tour_link(tsne_df, fake_trees, cols = dim1:dim10, color = branches)
+  }
+}
+</code></pre>
+
+
+</div>

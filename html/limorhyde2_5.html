@@ -1,0 +1,137 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getPosteriorFit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute posterior fit for linear models for rhythmicity</h2>
+
+<h3>Description</h3>
+
+<p>This is the second step in an analysis using <code>limorhyde2</code>, the first is to
+fit linear models using <code>getModelFit()</code>. This function obtains posterior
+estimates of coefficients using multivariate adaptive shrinkage (mash), which
+learns patterns in the data and accounts for noise in the original fits. The
+defaults for arguments should work well in most cases, so only change them if
+you know what you're doing.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getPosteriorFit(
+  fit,
+  covMethod = c("data-driven", "canonical", "both"),
+  getSigResArgs = list(),
+  npc = fit$nKnots,
+  covEdArgs = list(),
+  overwrite = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>A <code>limorhyde2</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covMethod</code></td>
+<td>
+<p>String indicating the type(s) of covariance matrices to use
+for the mash fit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>getSigResArgs</code></td>
+<td>
+<p>List of arguments passed to
+<code>mashr::get_significant_results()</code>. Only used if <code>covMethod</code> is
+'data-driven' or 'both'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>npc</code></td>
+<td>
+<p>Number of principal components passed to <code>mashr::cov_pca()</code>. Only
+used if <code>covMethod</code> is 'data-driven' or 'both'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covEdArgs</code></td>
+<td>
+<p>List of arguments passed to <code>mashr::cov_ed()</code>. Only used if
+<code>covMethod</code> is 'data-driven' or 'both'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>overwrite</code></td>
+<td>
+<p>Logical for whether to recompute the mash fit if it already
+exists.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>mashr::mash()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>limorhyde2</code> object containing everything in <code>fit</code> with added or
+updated elements:
+</p>
+
+<ul>
+<li> <p><code>mashData</code>: list of <code>mash</code> data objects
+</p>
+</li>
+<li> <p><code>mashFits</code>: list of <code>mash</code> fit objects
+</p>
+</li>
+<li> <p><code>mashCoefficients</code>: Matrix of posterior mean coefficients, with rows
+corresponding to features and columns to model terms.
+</p>
+</li>
+<li> <p><code>mashIdx</code>: Vector indicating which model terms were included in the mash
+fit.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>getModelFit()</code>, <code>getRhythmStats()</code>, <code>getExpectedMeas()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library('data.table')
+
+# rhythmicity in one condition
+y = GSE54650$y
+metadata = GSE54650$metadata
+
+fit = getModelFit(y, metadata)
+fit = getPosteriorFit(fit)
+rhyStats = getRhythmStats(fit, features = c('13170', '13869'))
+
+# rhythmicity and differential rhythmicity in multiple conditions
+y = GSE34018$y
+metadata = GSE34018$metadata
+
+fit = getModelFit(y, metadata, nKnots = 3L, condColname = 'cond')
+fit = getPosteriorFit(fit)
+rhyStats = getRhythmStats(fit, features = c('13170', '12686'))
+diffRhyStats = getDiffRhythmStats(fit, rhyStats)
+</code></pre>
+
+
+</div>

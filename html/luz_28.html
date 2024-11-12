@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>luz_callback_mixup</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Mixup callback</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of <a href="https://arxiv.org/abs/1710.09412">'mixup: Beyond Empirical Risk Minimization'</a>.
+As of today, tested only for categorical data,
+where targets are expected to be integers, not one-hot encoded vectors.
+This callback is supposed to be used together with <code>nn_mixup_loss()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">luz_callback_mixup(alpha = 0.4, ..., run_valid = FALSE, auto_loss = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>parameter for the beta distribution used to sample mixing coefficients</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently unused. Just to force named arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>run_valid</code></td>
+<td>
+<p>Should it run during validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_loss</code></td>
+<td>
+<p>Should it automatically modify the loss function? This will wrap
+the loss function to create the mixup loss. If <code>TRUE</code> make sure that your loss
+function does not apply reductions. If <code>run_valid=FALSE</code>, then loss will be
+mean reduced during validation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Overall, we follow the <a href="https://github.com/fastai/fastai/blob/master/fastai/callback/mixup.py">fastai implementation</a>
+described <a href="https://forums.fast.ai/t/mixup-data-augmentation/22764">here</a>.
+Namely,
+</p>
+
+<ul>
+<li>
+<p> We work with a single dataloader only, randomly mixing two observations from the same batch.
+</p>
+</li>
+<li>
+<p> We linearly combine losses computed for both targets:
+<code>loss(output, new_target) = weight * loss(output, target1) + (1-weight) * loss(output, target2)</code>
+</p>
+</li>
+<li>
+<p> We draw different mixing coefficients for every pair.
+</p>
+</li>
+<li>
+<p> We replace <code>weight</code> with <code>weight = max(weight, 1-weight)</code> to avoid duplicates.
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>A <code>luz_callback</code>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nn_mixup_loss()</code>, <code>nnf_mixup()</code>
+</p>
+<p>Other luz_callbacks: 
+<code>luz_callback_auto_resume()</code>,
+<code>luz_callback_csv_logger()</code>,
+<code>luz_callback_early_stopping()</code>,
+<code>luz_callback_interrupt()</code>,
+<code>luz_callback_keep_best_model()</code>,
+<code>luz_callback_lr_scheduler()</code>,
+<code>luz_callback_metrics()</code>,
+<code>luz_callback_model_checkpoint()</code>,
+<code>luz_callback_profile()</code>,
+<code>luz_callback_progress()</code>,
+<code>luz_callback_resume_from_checkpoint()</code>,
+<code>luz_callback_train_valid()</code>,
+<code>luz_callback()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">if (torch::torch_is_installed()) {
+mixup_callback &lt;- luz_callback_mixup()
+}
+
+</code></pre>
+
+
+</div>

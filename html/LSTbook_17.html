@@ -1,0 +1,186 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>categorical</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Helpers for specifying nodes in simulations</h2>
+
+<h3>Description</h3>
+
+<p>Helpers for specifying nodes in simulations
+</p>
+<p>Mix two variables together. The output will have the specified R-squared
+with var1 and variance one.
+</p>
+<p>Evaluate an expression separately for each case
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">categorical(n = 5, ..., exact = TRUE)
+
+cat2value(variable, ...)
+
+bernoulli(n = 0, logodds = NULL, prob = 0.5, labels = NULL)
+
+mix_with(signal, noise = NULL, R2 = 0.5, var = 1, exact = FALSE)
+
+each(ex)
+
+block_by(block_var, levels = c("treatment", "control"), show_block = FALSE)
+
+random_levels(n, k = NULL, replace = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The symbol standing for the number of rows in the data frame to be generated
+by <code>datasim_run()</code>. Just use <code>n</code> as a symbol; don't assign it a value. (That will
+be done by <code>datasim_run()</code>.)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>exact</code></td>
+<td>
+<p>if <code>TRUE</code>, make R-squared or the target variance exactly as specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>a categorical variable</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>logodds</code></td>
+<td>
+<p>Numerical vector used to generate bernouilli trials. Can be any real number.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prob</code></td>
+<td>
+<p>An alternative to <code>logodds</code>. Values must be in <code style="white-space: pre;">⁠[0,1]⁠</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>Character vector: names for categorical levels, also used to
+replace 0 and 1 in bernouilli()</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>signal</code></td>
+<td>
+<p>The part of the mixture that will be correlated with
+the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>noise</code></td>
+<td>
+<p>The rest of the mixture. This will be <strong>uncorrelated</strong>
+with the output only if you specify it as pure noise.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2</code></td>
+<td>
+<p>The target R-squared.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var</code></td>
+<td>
+<p>The target variance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ex</code></td>
+<td>
+<p>an expression potentially involving other variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>block_var</code></td>
+<td>
+<p>Which variable to use for blocking</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>levels</code></td>
+<td>
+<p>Character vector giving names to the blocking levels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>show_block</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, put the block number in the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>Number of distinct levels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>replace</code></td>
+<td>
+<p>if <code>TRUE</code>, use resampling on the set of k levels</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>assignments of values to the names in <code>variable</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>datasim_make()</code> constructs a simulation
+which can then be run with <code>datasim_run()</code>. Each argument to
+<code>datasim_make()</code> specifies one node of the simulation using an
+assignment-like syntax such as <code>y &lt;- 3*x + 2 + rnorm(n)</code>. The datasim
+helpers documented here are for use on the right-hand side of the specification
+of a node. They simplify potentially complex operations such as blocking, creation
+of random categorical methods, translation from categorical to numerical values, etc.
+</p>
+<p>The target R-squared and variance will be achieved only
+if <code>exact=TRUE</code> or the sample size goes to infinity.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A numerical or categorical vector which will be assembled into
+a data frame by <code>datasim_run()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">Demo &lt;- datasim_make(
+  g &lt;- categorical(n, a=2, b=1, c=0.5),
+  x &lt;- cat2value(g, a=-1.7, b=0.1, c=1.2),
+  y &lt;- bernoulli(logodds = x, labels=c("no", "yes")),
+  z &lt;- random_levels(n, k=4),
+  w &lt;- mix_with(x, noise=rnorm(n), R2=0.75, var=1),
+  treatment &lt;- block_by(w),
+  dice &lt;- each(rnorm(1, sd = abs(w)))
+)
+
+</code></pre>
+
+
+</div>

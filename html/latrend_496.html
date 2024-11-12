@@ -1,0 +1,114 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>transformPredict</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Helper function for custom lcModel classes implementing predict.lcModel()</h2>
+
+<h3>Description</h3>
+
+<p>A helper function for implementing the predict.lcModel() method as part of your own <code>lcModel</code> class, ensuring the correct output type and format (see the Value section).
+Note that this function has no use outside of ensuring valid output for <code>predict.lcModel</code>.
+For implementing <code>lcModel</code> predictions from scratch, it is advisable to implement predictForCluster instead of predict.lcModel.
+</p>
+<p>The prediction ordering corresponds to the observation ordering of the <code>newdata</code> argument.
+</p>
+<p>By default, <code>transformPredict()</code> accepts one of the following inputs:
+</p>
+
+<dl>
+<dt><code>data.frame</code></dt>
+<dd>
+<p>A <code>data.frame</code> in long format providing a cluster-specific prediction for each observation per row, with column names <code>"Fit"</code> and <code>"Cluster"</code>.
+This <code>data.frame</code> therefore has <code>nrow(model.data(object)) * nClusters(object)</code> rows.</p>
+</dd>
+<dt><code>matrix</code></dt>
+<dd>
+<p>An N-by-K <code>matrix</code> where each row provides the cluster-specific predictions for the respective observations in <code>newdata</code>.
+Here, <code>N = nrow(newdata)</code> and <code>K = nClusters(object)</code>.</p>
+</dd>
+<dt><code>vector</code></dt>
+<dd>
+<p>A <code>vector</code> of length <code>nrow(newdata)</code> with predictions corresponding to the rows of <code>newdata</code>.</p>
+</dd>
+</dl>
+<p>Users can implement support for other prediction formats by defining the <code>transformPredict()</code> method with other signatures.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">transformPredict(pred, model, newdata)
+
+## S4 method for signature 'NULL,lcModel'
+transformPredict(pred, model, newdata)
+
+## S4 method for signature 'vector,lcModel'
+transformPredict(pred, model, newdata)
+
+## S4 method for signature 'matrix,lcModel'
+transformPredict(pred, model, newdata)
+
+## S4 method for signature 'data.frame,lcModel'
+transformPredict(pred, model, newdata)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+<p>The (per-cluster) predictions for <code>newdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The <code>lcModel</code> for which the prediction was made.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>A <code>data.frame</code> containing the input data to predict for.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>data.frame</code> with the predictions, or a list of cluster-specific prediction <code>data.frame</code>s.
+</p>
+
+
+<h3>Example implementation</h3>
+
+<p>In case we have a custom <code>lcModel</code> class based on an existing internal model representation with a <code>predict()</code> function,
+we can use <code>transformPredict()</code> to easily transform the internal model predictions to the right format.
+A common output is a <code>matrix</code> with the cluster-specific predictions.
+</p>
+<pre>
+predict.lcModelExample &lt;- function(object, newdata) {
+  predictionMatrix &lt;- predict(object@model, newdata)
+  transformPredict(
+    pred = predictionMatrix,
+    model = object,
+    newdata = newdata
+  )
+}
+</pre>
+<p>However, for ease of implementation it is generally advisable to implement predictForCluster instead of predict.lcModel.
+</p>
+<p>For a complete and runnable example, see the custom models vignette accessible via <code>vignette("custom", package = "latrend")</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>predictForCluster, predict.lcModel
+</p>
+
+
+</div>

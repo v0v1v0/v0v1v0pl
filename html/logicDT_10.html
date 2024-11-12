@@ -1,0 +1,142 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cv.prune</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Optimal pruning via cross-validation</h2>
+
+<h3>Description</h3>
+
+<p>Using a fitted <code>logicDT</code> model, its logic decision tree can be
+optimally (post-)pruned utilizing k-fold cross-validation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cv.prune(
+  model,
+  nfolds = 10,
+  scoring_rule = "deviance",
+  choose = "1se",
+  simplify = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>A fitted <code>logicDT</code> model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nfolds</code></td>
+<td>
+<p>Number of cross-validation folds</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scoring_rule</code></td>
+<td>
+<p>The scoring rule for evaluating the cross-validation
+error and its standard error. For classification tasks, <code>"deviance"</code>
+or <code>"Brier"</code> should be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>choose</code></td>
+<td>
+<p>Model selection scheme. If the model that minimizes the
+cross-validation error should be chosen, <code>choose = "min"</code> should be
+set. Otherwise, <code>choose = "1se"</code> leads to simplest model in the range
+of one standard error of the minimizing model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simplify</code></td>
+<td>
+<p>Should the pruned model be simplified with regard to the
+input terms, i.e., should terms that are no longer in the tree contained
+be removed from the model?</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Similar to Breiman et al. (1984), we implement post-pruning by first
+computing the optimal pruning path and then using cross-validation for
+identifying the best generalizing model.
+</p>
+<p>In order to handle continuous covariables with fitted regression models in
+each leaf, similar to the likelihood-ratio splitting criterion in
+<code>logicDT</code>, we propose using the log-likelihood as the impurity
+criterion in this case for computing the pruning path.
+In particular, for each node <code class="reqn">t</code>, the weighted node impurity
+<code class="reqn">p(t)i(t)</code> has to be calculated and the inequality
+</p>
+<p style="text-align: center;"><code class="reqn">\Delta i(s,t) := i(t) - p(t_L | t)i(t_L) - p(t_R | t)i(t_R) \geq 0</code>
+</p>
+
+<p>has to be fulfilled for each possible split <code class="reqn">s</code> splitting <code class="reqn">t</code> into
+two subnodes <code class="reqn">t_L</code> and <code class="reqn">t_R</code>. Here, <code class="reqn">i(t)</code> describes the
+impurity of a node <code class="reqn">t</code>, <code class="reqn">p(t)</code> the proportion of data points falling
+into <code class="reqn">t</code>, and <code class="reqn">p(t' | t)</code> the proportion of data points falling
+from <code class="reqn">t</code> into <code class="reqn">t'</code>.
+Since the regression models are fitted using maximum likelihood, the
+maximum likelihood criterion fulfills this property and can also be seen as
+an extension of the entropy impurity criterion in the case of classification
+or an extension of the MSE impurity criterion in the case of regression.
+</p>
+<p>The default model selection is done by choosing the most parsimonious model
+that yields a cross-validation error in the range of
+<code class="reqn">\mathrm{CV}_{\min} + \mathrm{SE}_{\min}</code>
+for the minimal cross-validation error <code class="reqn">\mathrm{CV}_{\min}</code> and its
+corresponding standard error <code class="reqn">\mathrm{SE}_{\min}</code>.
+For a more robust standard error estimation, the scores are calculated per
+training observation such that the AUC is no longer an appropriate choice
+and the deviance or the Brier score should be used in the case of
+classification.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The new <code>logicDT</code> model containing the optimally
+pruned tree</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv.res</code></td>
+<td>
+<p>A data frame containing the penalties, the
+cross-validation scores and the corresponding standard errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>best.beta</code></td>
+<td>
+<p>The ideal penalty value</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+
+<ul><li>
+<p> Breiman, L., Friedman, J., Stone, C. J. &amp; Olshen, R. A. (1984).
+Classification and Regression Trees. CRC Press.
+doi: <a href="https://doi.org/10.1201/9781315139470">10.1201/9781315139470</a>
+</p>
+</li></ul>
+</div>

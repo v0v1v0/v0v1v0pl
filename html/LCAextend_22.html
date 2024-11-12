@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>p.post.child</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> computes the posterior probability of observations of a child </h2>
+
+<h3>Description</h3>
+
+<p>computes the posterior probability of measurements of a child for each
+class and each symptom status of the subject given the classes of both
+of his parents. This is an internal function not meant to be called by the user.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">p.post.child(child, c.connect, c.spouse, status, probs, fyc)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>child</code></td>
+<td>
+<p> a child in the pedigree, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.connect</code></td>
+<td>
+<p> the class of one parent (who is a connector) of the child, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.spouse</code></td>
+<td>
+<p> the class of the other parent of the child, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>status</code></td>
+<td>
+<p> the symptom status vector of the whole pedigree, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>probs</code></td>
+<td>
+<p> a list of all probability parameters of the model, </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fyc</code></td>
+<td>
+<p> a matrix of <code>n</code> times <code>K+1</code> giving the density of measurements of each individual if allocated to class <code>k</code>, where <code>n</code> is 
+the number of individuals and <code>K</code> is the total number of latent classes in the model, </p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>the function returns <code>p.child</code> a matrix of 2 times <code>K+1</code> entries such that <code>p.child[s,k]</code> is the posterior probability of the measurements <code>Y_child</code> 
+under status <code>S_child=s</code> and when he is assigned to class <code>k</code> and his parents are assigned to classes <code>c.connect</code> and <code>c.spouse</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p> TAYEB et al.: Solving Genetic Heterogeneity in Extended
+Families by Identifying Sub-types of Complex Diseases. Computational Statistics, 2011, DOI: 10.1007/s00180-010-0224-2. </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#data
+data(ped.cont)
+fam &lt;- ped.cont[,1]
+dad &lt;- ped.cont[fam==1,3]
+status &lt;- ped.cont[fam==1,6]
+y &lt;- ped.cont[fam==1,7:ncol(ped.cont)]
+#a child
+child &lt;- which(dad!=0)[1]
+data(probs)
+data(param.cont)
+#densities of the observations
+fyc &lt;- matrix(1,nrow=nrow(y),ncol=length(probs$p)+1)
+fyc[status==2,1:length(probs$p)] &lt;- t(apply(y[status==2,],1,dens.norm,
+                                            param.cont,NULL))
+#the function
+p.post.child(child,c.connect=1,c.spouse=3,status,probs,fyc)
+</code></pre>
+
+
+</div>

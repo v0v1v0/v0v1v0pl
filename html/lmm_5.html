@@ -1,0 +1,325 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fastml</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Rapidly converging algorithm for maximum-likelihood (ML)
+estimation in linear mixed models
+</h2>
+
+<h3>Description</h3>
+
+<p>Computes ML estimates of parameters in linear mixed models
+using the rapidly converging procedure described by Schafer
+(1998), which combines Fisher scoring with an ECME algorithm.
+</p>
+<p>For a description of the model, see the "Details" section
+below. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fastml(y, subj, pred, xcol, zcol, vmax, occ, start,
+   maxits=50, eps=0.0001)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>vector of responses. This is simply the individual yi vectors
+stacked upon one another. Each element of y represents the 
+observed response for a particular subject-occasion, or for a
+particular unit within a cluster.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subj</code></td>
+<td>
+
+<p>vector of same length as y, giving the subject (or cluster)
+indicators i for the elements of y. For example, suppose 
+that y is c(y1,y2,y3,y4) where length(y1)=2, length(y2)=3,
+length(y3)=2, and length(y4)=7. Then subj should be
+c(1,1,2,2,2,3,3,4,4,4,4,4,4,4).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred</code></td>
+<td>
+
+<p>matrix of covariates used to predict y. The number of rows
+should be length(y). The first column will typically be
+constant (one), and the remaining columns correspond to other
+variables appearing in Xi and Zi.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xcol</code></td>
+<td>
+
+<p>vector of integers indicating which columns of pred will be
+used in Xi. That is, pred[,xcol] is the Xi matrices (stacked
+upon one another.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>zcol</code></td>
+<td>
+
+<p>vector of integers indicating which columns of pred will be
+used in Zi. That is, pred[,zcol] is the Zi matrices (stacked
+upon one another).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vmax</code></td>
+<td>
+
+<p>optional matrix of dimension c(max(occ),max(occ)) from which
+the Vi matrices will be extracted. In a longitudinal dataset, 
+vmax would represent the Vi matrix for an individual with
+responses at all possible occasions 1,2,...,nmax=max(occ);
+for individuals with responses at only a subset of these
+occasions, the Vi will be obtained by extracting the rows
+and columns of vmax for those occasions. If no vmax is
+specified by the user, an identity matrix is used. In most
+applications of this model one will want to have Vi =
+identity, so most of the time this argument can be omitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>occ</code></td>
+<td>
+
+<p>vector of same length as y indicating the "occasions" for the
+elements of y. This argument is relevant only if a
+non-identity vmax is specified. In a longitudinal dataset
+where each individual is measured on at most nmax distinct
+occasions, each element of y corresponds to one
+subject-occasion, and the elements of occ should be coded as
+1,2,...,nmax to indicate these occasion labels. (You should
+label the occasions as 1,2,...,nmax even if they are not
+equally spaced in time; the actual times of measurement will
+be incorporated into the matrix "pred".) 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>optional starting values of the parameters. If this argument
+is not given then the function chooses its own starting values.
+This argument should be a list of three elements named
+"beta", "psi", and "sigma2". Note that "beta" should be a
+vector of the same length as "xcol", "psi" should be a
+matrix of dimension c(length(zcol),length(zcol)), and
+"sigma2" should be a scalar.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxits</code></td>
+<td>
+
+<p>maximum number of cycles to be performed.
+The algorithm runs to convergence or until "maxits"
+iterations, whichever comes first.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+
+<p>convergence criterion. The algorithm is considered to have
+converged if the relative differences in all parameters from
+one iteration to the next are less than eps–that is, if
+all(abs(new-old)&lt;eps*abs(old)).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A full description of the algorithm is given in Section 3 of
+Schafer (1998). Scoring is carried out on log(sigma2) and the
+nonredundant elements of the inverse of psi/sigma2, taking
+logs of the diagonal elements.
+</p>
+<p>The model, which is typically applied to longitudinal or
+clustered responses, is 
+</p>
+<p>yi = Xi%*%beta + Zi%*%bi + ei ,    i=1,...,m,
+</p>
+<p>where
+</p>
+<p>yi    = (ni x 1) response vector for subject
+or cluster i;
+Xi    = (ni x p) matrix of covariates;
+Zi    =	(ni x q) matrix of covariates;
+beta  = (p x 1) vector of coefficients common to the
+population (fixed effects);
+bi    = (q x 1) vector of coefficients specific to
+subject or cluster i (random effects); and
+ei    = (ni x 1) vector of residual errors.
+</p>
+<p>The vector bi is assumed to be normally distributed
+with mean zero and unstructured covariance matrix psi, 
+</p>
+<p>bi <code class="reqn">\sim</code>  N(0,psi) independently for i=1,...,m.
+</p>
+<p>The residual vector ei is assumed to be
+</p>
+<p>ei <code class="reqn">\sim</code> N(0,sigma2*Vi)
+</p>
+<p>where Vi is a known (ni x ni) matrix. In most applications,
+Vi is the identity matrix.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>beta</code></td>
+<td>
+
+<p>vector of same length as "xcol" containing estimated fixed
+effects.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma2</code></td>
+<td>
+
+<p>estimate of residual error variance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>psi</code></td>
+<td>
+
+<p>matrix of dimension c(length(zcol),length(zcol)) containing
+estimated variances and covariances of the random effects.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>converged</code></td>
+<td>
+
+<p>T if the algorithm converged, F if it did not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+
+<p>number of iterations actually performed. Will be equal
+to "maxits" if converged=F.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reject</code></td>
+<td>
+
+<p>a logical vector of length iter indicating, for each
+iteration, whether the scoring estimates were rejected
+and replaced by ECME estimates (T), or whether the scoring
+estimates were accepted (F). Scoring estimates are rejected
+if they do not increase the loglikelihood.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+
+<p>vector of length "iter" reporting the value of the
+loglikelihood at each iteration.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.beta</code></td>
+<td>
+
+<p>matrix of dimension c(length(xcol),length(xcol)) containing
+estimated variances and covariances for elements of "beta".
+These are conventional estimates which regard the variance
+parameters (sigma2 and psi) as fixed at their ML estimates.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>b.hat</code></td>
+<td>
+
+<p>a matrix with length(zcol) rows and m columns, where
+b.hat[,i] is an empirical Bayes estimate of bi.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cov.b</code></td>
+<td>
+
+<p>an array of dimension length(zcol) by length(zcol) by m,
+where cov.b[,,i] is an empirical Bayes estimate of the
+covariance matrix associated with bi. These are
+conventional estimates which regard the variance
+parameters (sigma2 and psi) as fixed at their ML estimates.
+(An improved version which incorporates variance-parameter
+uncertainty is available from the function "fastrml".)
+</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Schafer, J.L. (1998) Some improved procedures for linear mixed
+models. Submitted to Journal of the American Statistical
+Association. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ecmeml</code>, <code>ecmerml</code>,
+<code>fastrml</code>, <code>fastmode</code>,
+<code>mgibbs</code>, <code>fastmcmc</code>,
+<code>example</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+For a detailed example, see the file "example.R" distributed
+with this library.
+
+## End(Not run)</code></pre>
+
+
+</div>

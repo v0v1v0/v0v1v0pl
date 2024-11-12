@@ -1,0 +1,412 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>rleslie</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create Raw Leslie (Age-based) Matrix Projection Model</h2>
+
+<h3>Description</h3>
+
+<p>Function <code>rleslie()</code> returns raw Leslie MPMs, including the
+associated component transition and fecundity matrices, a data frame
+describing the ages used, and a data frame describing the population, patch,
+and occasion time associated with each matrix.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">rleslie(
+  data,
+  start_age = NA,
+  last_age = NA,
+  continue = TRUE,
+  fecage_min = NA,
+  fecage_max = NA,
+  alive = c("alive3", "alive2", "alive1"),
+  repst = c("repstatus3", "repstatus2", "repstatus1"),
+  fec = c("feca3", "feca2", "feca1"),
+  agecol = "obsage",
+  year = "all",
+  supplement = NULL,
+  pop = NULL,
+  patch = NULL,
+  yearcol = NULL,
+  popcol = NULL,
+  patchcol = NULL,
+  indivcol = NULL,
+  censor = FALSE,
+  censorcol = NULL,
+  censorkeep = 0,
+  fectime = 2,
+  fecmod = 1,
+  prebreeding = TRUE,
+  reduce = FALSE,
+  simple = FALSE,
+  err_check = FALSE,
+  sparse_output = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A vertical demographic data frame, with variables corresponding 
+to the naming conventions in <code>verticalize3()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_age</code></td>
+<td>
+<p>The age from which to start the matrix. Defaults to
+<code>NA</code>, age <code>1</code> is used if <code>prebreeding = TRUE</code>, and age
+<code>0</code> is used if <code>prebreeding = FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>last_age</code></td>
+<td>
+<p>The final age to use in the matrix. Defaults to <code>NA</code>, in
+which case the highest age in the dataset is used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>continue</code></td>
+<td>
+<p>A logical value designating whether to allow continued
+survival of individuals past the final age noted in the stageframe, using the 
+demographic characteristics of the final age. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fecage_min</code></td>
+<td>
+<p>The minimum age at which reproduction is possible. Defaults
+to <code>NA</code>, which is interpreted to mean that fecundity should be assessed
+starting in the minimum age observed in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fecage_max</code></td>
+<td>
+<p>The maximum age at which reproduction is possible. Defaults
+to <code>NA</code>, which is interpreted to mean that fecundity should be assessed
+until the final observed age.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alive</code></td>
+<td>
+<p>A vector of names of binomial variables corresponding to status
+as alive (<code>1</code>) or dead (<code>0</code>) in occasions <em>t</em>+1 ans <em>t</em>,
+respectively.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>repst</code></td>
+<td>
+<p>A vector of names of variables coding reproductive status in
+occasions <em>t</em>+1 and <em>t</em>, respectively. Defaults to 
+<code>c("repstatus3", "repstatus2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fec</code></td>
+<td>
+<p>A vector of names of variables coding fecundity in occasions
+<em>t</em>+1 and <em>t</em>, respectively. Defaults to <code>c("feca3", "feca2")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agecol</code></td>
+<td>
+<p>The name or column number of the variable coding for age in
+<code>data</code>. Defaults to <code>"obsage"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>year</code></td>
+<td>
+<p>A variable corresponding to observation occasion, or a set
+of such values, given in values associated with the <code>year</code> term used in
+vital rate model development. Can also equal <code>"all"</code>, in which case
+matrices will be estimated for all occasion times. Defaults to <code>"all"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>supplement</code></td>
+<td>
+<p>An optional data frame of class <code>lefkoSD</code> that
+provides supplemental data that should be incorporated into the MPM. Three
+kinds of data may be integrated this way: transitions to be estimated via the
+use of proxy transitions, transition overwrites from the literature or
+supplemental studies, and transition multipliers for survival and fecundity.
+This data frame should be produced using the <code>supplemental()</code>
+function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pop</code></td>
+<td>
+<p>A variable designating which populations will have matrices
+estimated. Should be set to specific population names, or to <code>"all"</code> if
+all populations should have matrices estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patch</code></td>
+<td>
+<p>A variable designating which patches or subpopulations will have
+matrices estimated. Should be set to specific patch names, or to <code>"all"</code>
+if matrices should be estimated for all patches. Defaults to <code>"all"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>yearcol</code></td>
+<td>
+<p>The variable name or column number corresponding to occasion 
+<em>t</em> in the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>popcol</code></td>
+<td>
+<p>The variable name or column number corresponding to the
+identity of the population.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>patchcol</code></td>
+<td>
+<p>The variable name or column number corresponding to patch in
+the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>indivcol</code></td>
+<td>
+<p>The variable name or column number coding individual
+identity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censor</code></td>
+<td>
+<p>If <code>TRUE</code>, then data will be removed according to the
+variable set in <code>censorcol</code>, such that only data with censor values
+equal to <code>censorkeep</code> will remain. Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censorcol</code></td>
+<td>
+<p>The variable name or column number denoting the censor
+status. Only needed if <code>censor = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>censorkeep</code></td>
+<td>
+<p>The value of the censor variable denoting data elements to
+keep. Defaults to <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fectime</code></td>
+<td>
+<p>An integer indicating whether to estimate fecundity using
+the variable given for <code>fec</code> in time <em>t</em> (<code>2</code>) or time
+<em>t</em>+1 (<code>3</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fecmod</code></td>
+<td>
+<p>A scalar multiplier for fecundity. Defaults to <code>1.0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prebreeding</code></td>
+<td>
+<p>A logical value indicating whether the life history model
+is a pre-breeding model. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reduce</code></td>
+<td>
+<p>A logical value denoting whether to remove ages associated with
+only zero transitions. These are removed only if the respective row and
+column sums in ALL matrices estimated equal 0. Defaults to <code>FALSE</code>, and
+should generally not be used in age-based MPMs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>simple</code></td>
+<td>
+<p>A logical value indicating whether to produce <code>A</code>,
+<code>U</code>, and <code>F</code> matrices, or only the latter two. Defaults to
+<code>FALSE</code>, in which case all three are output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>err_check</code></td>
+<td>
+<p>A logical value indicating whether to append extra
+information used in matrix calculation within the output list. Defaults to
+<code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse_output</code></td>
+<td>
+<p>A logical value indicating whether to output matrices
+in sparse format. Defaults to <code>FALSE</code>, in which case all matrices are
+output in standard matrix format.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If all inputs are properly formatted, then this function will return
+an object of class <code>lefkoMat</code>, which is a list that holds the matrix
+projection model and all of its metadata. Its structure is a list with the
+following elements:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>A list of full projection matrices in order of sorted populations,
+patches, and occasions. All matrices output in the <code>matrix</code> class, or in
+the <code>dgCMatrix</code> class from the <code>Matrix</code> package if sparse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>U</code></td>
+<td>
+<p>A list of survival transition matrices sorted as in <code>A</code>. All 
+matrices output in the <code>matrix</code> class, or in the <code>dgCMatrix</code> class
+from the <code>Matrix</code> package if sparse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F</code></td>
+<td>
+<p>A list of fecundity matrices sorted as in <code>A</code>. All matrices 
+output in the <code>matrix</code> class, or in the <code>dgCMatrix</code> class from the
+<code>Matrix</code> package if sparse.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hstages</code></td>
+<td>
+<p>A data frame matrix showing the pairing of ahistorical stages
+used to create historical stage pairs. Set to NA for ahistorical matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>agestages</code></td>
+<td>
+<p>A data frame showing age-stage pairs. In this function, it
+is set to NA. Only used in output to function <code>aflefko2</code>().</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ahstages</code></td>
+<td>
+<p>A data frame detailing the characteristics of associated
+ahistorical stages, in the form of a modified stageframe that includes
+status as an entry stage through reproduction.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labels</code></td>
+<td>
+<p>A data frame giving the population, patch, and year of each 
+matrix in order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dataqc</code></td>
+<td>
+<p>A vector showing the numbers of individuals and rows in the
+vertical dataset used as input.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>matrixqc</code></td>
+<td>
+<p>A short vector describing the number of non-zero elements in
+<code>U</code> and <code>F</code> matrices, and the number of annual matrices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelqc</code></td>
+<td>
+<p>This is the <code>qc</code> portion of the <code>modelsuite</code> input
+in function-based MPMs. Empty in this function.</p>
+</td>
+</tr>
+</table>
+<h3>Notes</h3>
+
+<p>In order to accomodate survival to time <em>t</em>+1 in the final year of a
+study, the maximum age assessed if no input <code>last_age</code> is provided is
+one time step past the final described age.
+</p>
+<p>Users may at times wish to estimate MPMs using a dataset incorporating
+multiple patches or subpopulations. Should the aim of analysis be a general
+MPM that does not distinguish these patches or subpopulations, the
+<code>patchcol</code> variable should be left to <code>NA</code>, which is the default.
+Otherwise the variable identifying patch needs to be named.
+</p>
+<p>Input options including multiple variable names must be entered in the order
+of variables in occasion <em>t</em>+1 and <em>t</em>. Rearranging the order WILL
+lead to erroneous calculations, and may lead to fatal errors.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>mpm_create()</code>
+</p>
+<p><code>flefko3()</code>
+</p>
+<p><code>flefko2()</code>
+</p>
+<p><code>aflefko2()</code>
+</p>
+<p><code>arlefko2()</code>
+</p>
+<p><code>fleslie()</code>
+</p>
+<p><code>rlefko3()</code>
+</p>
+<p><code>rlefko2()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(cypdata)
+
+cypraw_v1 &lt;- verticalize3(data = cypdata, noyears = 6, firstyear = 2004,
+  patchidcol = "patch", individcol = "plantid", blocksize = 4,
+  sizeacol = "Inf2.04", sizebcol = "Inf.04", sizeccol = "Veg.04",
+  repstracol = "Inf.04", repstrbcol = "Inf2.04", fecacol = "Pod.04",
+  age_offset = 3, NAas0 = TRUE, NRasRep = TRUE)
+
+cyp_rl &lt;- rleslie(data = cypraw_v1, start_age = 0, last_age = 4,
+  continue = TRUE, fecage_min = 3, year = "all", pop = NA, patch = "all",
+  yearcol = "year2", patchcol = "patchid", indivcol = "individ")
+
+</code></pre>
+
+
+</div>

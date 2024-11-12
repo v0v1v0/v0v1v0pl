@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pkprofile.pkprofile</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Continue an existing concentration-time profile.</h2>
+
+<h3>Description</h3>
+
+<p>This method can be used to append to an existing PK profile, for instance to
+simulate a PK profile with parameters that change over time. Each time the
+parameters change, a new call to this method is used to advance the system
+with the new parameter values.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'pkprofile'
+pkprofile(obj, t.obs = finaltime(obj) + seq(0, 24, 0.1), ..., append = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>obj</code></td>
+<td>
+<p>An object returned from a previous call to <code>pkprofile</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.obs</code></td>
+<td>
+<p>A numeric vector of times at which to observe concentrations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed along.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>append</code></td>
+<td>
+<p>Should the new profile be appended to the current samples?
+Otherwise, only the new samples are returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An object of class "pkprofile".
+</p>
+
+
+<h3>Warning</h3>
+
+<p>The new parameters take effect at the time when the previous profile ends.
+If the previous profile ends before the new sampling starts, the <em>new</em>
+parameters will be used to advance the system to the start of the new
+sampling.
+</p>
+<p>Any ongoing zero-order infusion at the end of the previous profile is
+dropped. The remaining infusion amount will NOT be carried forward.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pkprofile</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">t.obs &lt;- seq(0, 24, 0.1)
+amt &lt;- 1
+ka &lt;- 1
+cl &lt;- 0.25
+vc &lt;- 5
+
+# One-compartment model with first-order absorption
+# First dose at time 0
+y &lt;- pkprofile(t.obs, cl=cl, vc=vc, ka=ka, dose=list(t.dose=0, amt=amt))
+
+# Second dose at 24h with a lower clearance
+y &lt;- pkprofile(y, t.obs+24, cl=0.5*cl, vc=vc, ka=ka, dose=list(t.dose=24, amt=amt))
+
+# Third dose at 48h with a higher clearance
+y &lt;- pkprofile(y, t.obs+48, cl=2*cl, vc=vc, ka=ka, dose=list(t.dose=48, amt=amt))
+plot(y)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,130 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gam</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gamma correction</h2>
+
+<h3>Description</h3>
+
+<p>Lorentz gamma correction term in special relativity</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class '3vel'
+speed(u)
+## S3 method for class '4vel'
+speed(u)
+speedsquared(u)
+gam(u)
+gamm1(u)
+## S3 method for class '3vel'
+gam(u)
+## S3 method for class '3cel'
+gam(u)
+## S3 method for class '4vel'
+gam(u)
+## S3 method for class '3vel'
+gamm1(u)
+## S3 method for class '4vel'
+gamm1(u)
+gam_ur(d)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+<p>Speed: either a vector of speeds or a vector of
+three-velocities or four-velocities</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+<p>In function <code>gam_ur()</code>, deficit of speed; speed of light
+minus speed of object</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Function <code>speed(u)</code> returns the speed of a <code>3vel</code> object or
+<code>4vel</code> object.
+</p>
+<p>Function <code>gam(u)</code> returns the Lorentz factor
+</p>
+<p style="text-align: center;"><code class="reqn">\frac{1}{\sqrt{1-\mathbf{u}\cdot\mathbf{u}/c^2}}</code>
+</p>
+
+<p>Function <code>gamm1(u)</code> returns the Lorentz factor minus 1, useful
+for slow speeds when larger accuracy is needed (much like
+<code>expm1()</code>); to see the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> idiom, type “<code>gamm1.3vel</code>”
+at the commandline.  Function <code>gamm1()</code> is intended to work with
+<code>3vel</code> objects or speeds.  The function will take a 4-velocity,
+but this is not recommended as accuracy is lost (all it does is return
+the time component of the 4-velocity minus 1).
+</p>
+<p>Function <code>gam_ur()</code> is used for the ultrarelativistic case where
+speeds are very close to the speed of light (the function is named for
+“gamma, ultrarelativistic”).  Its argument <code>d</code> is the
+deficit, that is, <code class="reqn">c-v</code> where <code class="reqn">v</code> is the speed of the
+transformation.  Algebraically, <code>gam_ur(c-v) == gam(v)</code>, but if
+<code>d</code> is small compared to <code>c</code> the result is more accurate.
+</p>
+<p>Function <code>speedsquared(u)</code> returns the square of the speed of a
+<code>3vel</code> object.  Use this to avoid taking a needless square root.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robin K. S. Hankin</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+gam(seq(from=0,by=0.1,len=10))
+gam(r3vel(6,0.7))
+
+
+x &lt;- as.3vel(c(0.1,0.4,0.5))
+speed(x)
+
+gam(speed(x))  # works, but slow and inaccurate
+gam(x)         # recommended: avoids needless coercion
+
+
+
+## Use SI units and deal with terrestrial speeds.  Use gamm1() for this.
+sol(299792458)
+sound &lt;- 343 # speed of sound in SI
+gam(sound)
+gam(sound)-1  
+gamm1(sound)   # gamm1() gives much higher precision
+
+snail &lt;- as.3vel(c(0.00275,0,0)) # even the world's fastest snail...
+gamm1(snail)                     # ...has only a small relativistic correction
+
+
+## For the ultrarelativistic case of speeds very close to the speed of
+## light, use gam_ur():
+
+sol(1)           # revert to relativistic units
+
+gam(0.99) - gam_ur(0.01) # zero to numerical accuracy
+
+omgp &lt;- 4.9e-24  # speed deficit of the Oh-My-God particle
+gam(1-omgp)      # numeric overflow
+gam_ur(omgp)     # large but finite
+
+</code></pre>
+
+
+</div>

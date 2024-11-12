@@ -1,0 +1,255 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ANOVA</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Analysis of Variance</h2>
+
+<h3>Description</h3>
+
+<p>Abbreviation: <code>av</code>, <code>av_brief</code>
+</p>
+<p>Analysis of variance from the R <code>aov</code> function plus graphics and effect sizes. Included designs are one-way between groups, two-way between groups and randomized blocks with one treatment factor with one observation for each treatment and block combination. 
+</p>
+<p>Output is generated into distinct segments by topic, organized and displayed in sequence by default. When the output is assigned to an object, such as <code>a</code> in <code>a &lt;- reg(Y ~ X)</code>, the full or partial output can be accessed for later analysis and/or viewing. A primary such analysis is with <code>knitr</code> for dynamic report generation. The input instructions to <code>knitr</code> are written comments and interpretation with embedded <code>R</code> code, called R~Markdown.  Generate a complete, though preliminary at this time, R Markdown document from the <code>Rmd</code> option ready to knit. Simply specify the option with a file name, run the ANOVA function to create the file. Then open the newly created <code>.Rmd</code> file in <code>RStudio</code> and click the <code>knit</code> button to create a formatted document that consists of the statistical results and interpretative comments. See the sections <code>arguments</code>, <code>value</code> and <code>examples</code> for more information. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ANOVA(my_formula, data=d, filter=NULL,
+         brief=getOption("brief"), digits_d=NULL, 
+         Rmd=NULL, jitter_x=0.4,
+         res_rows=NULL, res_sort=c("zresid", "fitted", "off"),
+         graphics=TRUE, pdf=FALSE, width=5, height=5,
+         fun_call=NULL, ...)
+
+av(...)
+
+av_brief(..., brief=TRUE) 
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>my_formula</code></td>
+<td>
+<p>Standard R <code>formula</code> for specifying a model.
+Use an asterisk, <code>*</code>, separating the two factors for a two-way ANOVA,
+and a plus, <code>+</code>, separating the factors for a randomized blocks ANOVA
+with the blocking factor listed second.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The default name of the data frame that contains the data for analysis 
+is <code>d</code>, otherwise explicitly specify.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>A logical expression that specifies a subset of rows of the data frame
+to analyze.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>brief</code></td>
+<td>
+<p>If set to <code>TRUE</code>, reduced text output with no Tukey multiple 
+comparison of means and no residuals. Can change system default
+with <code>style</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits_d</code></td>
+<td>
+<p>For the Basic Analysis, it provides the number of decimal digits.
+For the rest of the output, it is a suggestion only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Rmd</code></td>
+<td>
+<p>File name for the file of R Markdown instructions to be written,
+if specified. The file type is .Rmd, which automatically opens in RStudio,
+but it is a simple text file that can be edited with any text editor,
+including RStudio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jitter_x</code></td>
+<td>
+<p>Amount of horizontal jitter for points in the scatterplot
+of levels and response variable for a one-way ANOVA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res_rows</code></td>
+<td>
+<p>Default is 20, which lists the first 20 rows of data and residuals
+sorted by the specified sort criterion.  To disable residuals, specify a 
+value of 0. To see the residuals output for all observations, specify a 
+value of <code>"all"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>res_sort</code></td>
+<td>
+<p>Default is <code>"zresid"</code>, for specifying standardized residuals
+as the sort criterion for the display of the rows of data and associated
+residuals. Other values are <code>"fitted"</code> for the fitted values and
+<code>"off"</code> to not sort the rows of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graphics</code></td>
+<td>
+<p>Produce graphics. Default is <code>TRUE</code>.  In <code>Rmd</code> can
+be useful to set to <code>FALSE</code> so that <code>regPlot</code> can be used
+to place the graphics within the output file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pdf</code></td>
+<td>
+<p>Indicator as to if the graphic files should be saved as pdf files
+instead of directed to the standard graphics windows.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>width</code></td>
+<td>
+<p>Width of the pdf file in inches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>height</code></td>
+<td>
+<p>Height of the pdf file in inches.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fun_call</code></td>
+<td>
+<p>Function call. Used with <code>Rmd</code> to pass the function call when
+obtained from the abbreviated function call <code>av</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other parameter values for R function <code>lm</code> which provides the core computations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>OVERVIEW<br>
+The one-way ANOVA with Tukey HSD and corresponding plot is based on the R functions <code>aov</code>, <code>TukeyHSD</code>, and provides summary statistics for each level. Two-factor ANOVA also provides an interaction plot of the means with <code>interaction.plot</code> as well as a table of means and other summary statistics. The two-factor analysis can be between groups or a randomized blocked design. Residuals are displayed by default. Tukey HSD comparisons and residuals are not displayed if <code>brief=TRUE</code>.
+</p>
+<p>The <code>filter</code> parameter subsets rows (cases) of the input data frame according to a logical expression. Use the standard R operators for logical statements as described in <code>Logic</code> such as <code>&amp;</code> for and, <code>|</code> for or and <code>!</code> for not, and use the standard R relational operators as described in <code>Comparison</code> such as <code>==</code> for logical equality <code>!=</code> for not equals, and <code>&gt;</code> for greater than. See the Examples.
+</p>
+<p>MODEL SPECIFICATION<br>
+In the following specifications, Y is the response variable, X is a treatment variable and Blocks is the blocking variable. The distinction between the one-way randomized blocks and the two-way between groups models is not the variable names, but rather the delimiter between the variable names. Use <code>*</code> to indicate a two-way crossed between groups design and <code>+</code> for a randomized blocks design.<br>
+one-way between groups: <code>ANOVA(Y ~ X)</code><br>
+one-way randomized blocks: <code>ANOVA(Y ~ X + Blocks)</code><br>
+two-way between groups: <code>ANOVA(Y ~ X1 * X2)</code><br>
+For more complex designs, use the standard R function <code>aov</code> upon which <code>ANOVA</code> depends.
+</p>
+<p>BALANCED DESIGN<br>
+The design for the two-factor analyses must be balanced. A check is performed and processing ceases if not balanced. For unbalanced designs, consider the function  <code>lmer</code> in the <code>lme4</code> package.
+</p>
+<p>DECIMAL DIGITS<br>
+The number of decimal digits displayed on the output is, by default, the maximum number of decimal digits for all the data values of the response variable. Or, this value can be explicitly specified with the <code>digits_d</code> parameter.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output can optionally be returned and saved into an <code>R</code> object, otherwise it simply appears at the console. The components of this object are redesigned in <code>lessR</code> version 3.3.5 into (a) pieces of text that form the readable output and (b) a variety of statistics. The readable output are character strings such as tables amenable for viewing and interpretation. The statistics are numerical values amenable for further analysis, such as to be referenced in a subsequent R Markdown document. The motivation of these two types of output is to facilitate R markdown documents, as the name of each piece, preceded by the name of the saved object followed by a $, can be inserted into the R markdown document (see <code>examples</code>).
+</p>
+<p>TEXT OUTPUT<br><code>out_background</code>: variables in the model, rows of data and retained<br>
+1-predictor: <code>out_descriptive</code>: descriptive stats<br>
+2-predictors: <code>out_cell.n</code>: cell sample size<br>
+2-predictors: <code>out_cell.means</code>: cell means<br>
+2-predictors: <code>out_cell.marginals</code>: marginal means<br>
+2-predictors: <code>out_cell.gm</code>: grand mean<br>
+2-predictors: <code>out_cell.sd</code>: cell standard deviations<br><code>out_anova</code>: analysis of variance summary table<br><code>out_effects</code>: effect sizes<br><code>out_hsd</code>: Tukey's honestly significant different analysis<br><code>out_res</code>: residuals<br><code>out_plots</code>: list of plots generated if more than one<br></p>
+<p>Separated from the rest of the text output are the major headings, which can then be deleted from custom collations of the output.
+<code>out_title_bck</code>: BACKGROUND<br><code>out_title_des</code>: DESCRIPTIVE STATISTICS<br><code>out_title_basic</code>: BASIC ANALYSIS<br><code>out_title_res</code>: RESIDUALS<br></p>
+<p>STATISTICS<br><code>call</code>: function call that generated the analysis<br><code>formula</code>: model formula that specifies the model<br><code>n_vars</code>: number of variables in the model<br><code>n_obs</code>: number of rows of data submitted for analysis<br><code>n_keep</code>: number of rows of data retained in the analysis<br>
+1-predictor: <code>p_value</code>: p-value for the overall F-test
+<code>residuals</code>: residuals<br><code>fitted</code>: fitted values<br></p>
+<p>Although not typically needed for analysis, if the output is assigned to an object named, for example, <code>a</code>, then the complete contents of the object can be viewed directly with the <code>unclass</code> function, here as <code>unclass(a)</code>. Invoking the <code>class</code> function on the saved object reveals a class of <code>out_all</code>. The class of each of the text pieces of output is <code>out</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)</p>
+
+
+<h3>References</h3>
+
+<p>Gerbing, D. W. (2023). <em>R Data Analysis without Programming: Explanation and Interpretation</em>, 2nd edition, Chapters 8 and 9, NY: Routledge.
+</p>
+<p>Gerbing, D. W. (2021). Enhancement of the Command-Line Environment for use in the Introductory Statistics Course and Beyond, <em>Journal of Statistics and Data Science Education</em>, 29(3), 251-266, https://www.tandfonline.com/doi/abs/10.1080/26939169.2021.1999871. 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aov</code>, <code>TukeyHSD</code>, <code>interaction.plot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+# access the PlantGrowth data frame
+ANOVA(weight ~ group, data=PlantGrowth)
+#brief version
+av_brief(weight ~ group, data=PlantGrowth)
+
+# drop the second treatment, just control and 1 treatment
+ANOVA(weight ~ group, data=PlantGrowth, filter=(group != "trt2"))
+
+# variables of interest in a data frame that is not the default d
+# two-factor between-groups ANOVA with replications and interaction
+# warpbreaks is a data set provided with R
+ANOVA(breaks ~ wool * tension, data=warpbreaks)
+
+# randomized blocks design with the second term the blocking factor
+#   data from Gerbing(2014, Sec 7.3.1)
+
+# Each person is a block. Each person takes four weight-training 
+#   supplements on different days and then count the repetitions
+#   of the bench presses.
+d &lt;- read.csv(header=TRUE, text="
+Person,sup1,sup2,sup3,sup4
+p1,2,4,4,3
+p2,2,5,4,6
+p3,8,6,7,9
+p4,4,3,5,7
+p5,2,1,2,3
+p6,5,5,6,8
+p7,2,3,2,4")
+
+# reshape data from wide form to long form
+# do not need the row names
+d &lt;- reshape(d, direction="long",
+        idvar="Person", v.names="Reps",
+        varying=list(2:5), timevar="Supplement")
+rownames(data) &lt;- NULL
+
+ANOVA(Reps ~ Supplement + Person)
+</code></pre>
+
+
+</div>

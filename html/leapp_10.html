@@ -1,0 +1,166 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>leapp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>latent effect adjustment after primary projection</h2>
+
+<h3>Description</h3>
+
+<p>Adjust for latent factors and conduct multiple hypotheses testing from
+gene expression data using the algorithm of Sun,Zhang and Owen (2011).
+Number of latent factors can be chosen by Buja and Eyuboglu (1992).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">leapp (data,pred.prim,pred.covar,
+         O = NULL, num.fac = "buja", method = "hard", sparse = TRUE,
+         centered = FALSE, verbose = FALSE, perm.num = 50, 
+         TOL = 1e-4, length.out = 50)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>An N genes by n arrays matrix of expression data</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.prim</code></td>
+<td>
+<p>An n by 1 primary predictor</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pred.covar</code></td>
+<td>
+<p>An n by s known covariate matrix not of primary
+interest</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>O</code></td>
+<td>
+<p>An n by n rotation matrix such that O  pred.prim = (1, 0,...,0)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>num.fac</code></td>
+<td>
+<p>A numeric or string,  number of latent factors chosen.  it has default value "buja" which uses Buja and Eyuboglu (1992) to pick the number of factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A string which takes values in ("hard","soft").  "hard":  hard thresholding in the IPOD algorithm; "soft": soft thresholding in the IPOD algorithm</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sparse</code></td>
+<td>
+<p>A logical value,  if <code>TRUE</code>, the signal is sparse and the proportion of non-null genes is small, use IPOD algorithm in Owen and She (2010) to enforce sparsity.  If <code>FALSE</code>, the signal is not sparse, use ridge type penalty to carry out the inference as in Sun,Zhang, Owen (2011). Default to <code>TRUE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centered</code></td>
+<td>
+<p>A logical value,  indicates whether the data has been centered at zero, default to <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical value, if <code>TRUE</code>, will print much information as algorithm proceeds, default to <code>FALSE</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>perm.num</code></td>
+<td>
+<p>A numeric, number of permutation performed using algorithm of Buja and Eyuboglu (1992), default to 50</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>TOL</code></td>
+<td>
+<p>A numeric,  convergence tolerance level, default to 1e-4</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length.out</code></td>
+<td>
+<p>A numeric, number of candidate tuning parameter lambda under consideration for further modified BIC model selection,  default to 50. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The data for test i should be in the ith row of data. If the rotation matrix O is set to NULL, the function will compute one rotation from primary predictor pred.prim.
+</p>
+
+
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>A vector of p-values one for each row of data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vest</code></td>
+<td>
+<p>An n by num.fac matrix, estimated latent factors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uest</code></td>
+<td>
+<p>An N by num.fac matrix, estimated latent loadings</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>An N by 1 vector, estimated primary effect</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sigma</code></td>
+<td>
+<p>An N by 1 vector, estimated noise standard deviation one for each row of data</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Yunting Sun <a href="mailto:yunting.sun@gmail.com">yunting.sun@gmail.com</a>, Nancy R.Zhang <a href="mailto:nzhang@stanford.edu">nzhang@stanford.edu</a>, Art B.Owen <a href="mailto:owen@stanford.edu">owen@stanford.edu</a></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: 
+  ## Load data
+  data(simdat)
+  
+  
+    
+  #Calculate the p-values
+  p &lt;- leapp(simdat$data,pred.prim = simdat$g,method = "hard")$p
+  auc &lt;- FindAUC(p, which(simdat$gamma!=0))
+  
+  
+ 
+## End(Not run)
+</code></pre>
+
+
+</div>

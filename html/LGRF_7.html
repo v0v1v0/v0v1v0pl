@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>test.MinP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Test the association between an outcome variable and a region/gene by MinP
+</h2>
+
+<h3>Description</h3>
+
+<p>If users want to compare LGRF with the minimum p-value (MinP) test, this function tests a specifc region/gene by a GEE based minimum p-value test after fitting "null.LGRF()".
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">test.MinP(Z, result.null, Gsub.id=NULL, corstr="exchangeable", MinP.adjust=0.95, 
+impute.method="fixed")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>Genetic variants in the target region/gene, an m*q matrix where m is the subject ID and q is the total number of genetic variables. Note that the number of rows in Z should be same as the number of subject.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>result.null</code></td>
+<td>
+
+<p>The output of function "null.LGRF()".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Gsub.id</code></td>
+<td>
+
+<p>The subject id corresponding to the genotype matrix, an m dimensional vector. This is in order to match the phenotype and genotype matrix. The default is NULL, where the order is assumed to be matched with Y, X and time.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corstr</code></td>
+<td>
+
+<p>The working correlation as specified in 'geeglm'. The following are permitted: '"independence"', '"exchangeable"', '"ar1"', '"unstructured"' and '"userdefined".
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MinP.adjust</code></td>
+<td>
+
+<p>The minimum p-value is adjusted by the number of independent tests. Choose the adjustment thereshold as specified in Gao, et al. (2008) "A multiple testing correction method for genetic association studies using correlated single nucleotide polymorphisms". Values from 0 to 1 are permitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>impute.method</code></td>
+<td>
+
+<p>Choose the imputation method when there is missing genotype. Can be "random", "fixed" or "bestguess". Given the estimated allele frequency, "random" simulates the genotype from binomial distribution; "fixed" uses the genotype expectation; "Best guess" uses the genotype with highest probability.
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p.value</code></td>
+<td>
+
+<p>p-value of the MinP test.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.marker</code></td>
+<td>
+
+<p>number of tested SNPs in the SNP set.
+</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## null.LGRF fits the null model. 
+# Input: Y, time, X (covariates)
+## test.MinP tests a region and give p-value. 
+# Input: Z (genetic variants) and result of null.longGRF
+
+library(LGRF)
+
+# Load data example
+# Y: outcomes, n by 1 matrix where n is the total number of observations
+# X: covariates, n by p matrix
+# time: describe longitudinal structure, n by 2 matrix
+# Z: genotype matrix, m by q matrix where m is the total number of subjects
+
+data(LGRF.example)
+Y&lt;-LGRF.example$Y;time&lt;-LGRF.example$time;X&lt;-LGRF.example$X;Z&lt;-LGRF.example$Z
+
+# Fit the null model
+result.null&lt;-null.LGRF(Y,time,X=X)
+
+# The minimum p-value test based on GEE
+pMinP&lt;-test.MinP(Z,result.null,corstr="exchangeable",MinP.adjust=0.95)
+
+</code></pre>
+
+
+</div>

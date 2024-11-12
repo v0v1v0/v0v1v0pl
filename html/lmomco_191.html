@@ -1,0 +1,281 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmoms.bootbarvar</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Exact Bootstrap Mean and Variance of L-moments </h2>
+
+<h3>Description</h3>
+
+<p>This function computes the exact bootstrap mean and variance of L-moments using the exact analytical expressions for the bootstrap mean and variance of any L-estimator described by Hutson and Ernst (2000). The approach by those authors is to use the bootstrap distribution of the single order statistic in conjunction with the joint distribution of two order statistics. The key component is the bootstrap mean vector as well as the variance-covariance matrix of all the order statistics and then performing specific linear combinations of a basic L-estimator combined with the proportion weights used in the computation of L-moments (<code>Lcomoment.Wk</code>, see those examples and division by <code class="reqn">n</code>). Reasonably complex algorithms are used; however, what makes those authors' contribution so interesting is that neither simulation, resampling, or numerical methods are needed as long as the sample size is not too large.
+</p>
+<p>This function provides a uniquely independent method to compute the L-moments of a sample from the vector of exact bootstrap order statistics. It is anticipated that several of the intermediate computations of this function would be of interest in further computations or graphical visualization. Therefore, this function returns many more numerical values than other L-moment functions of <span class="pkg">lmomco</span>. The variance-covariance matrix for large samples requires considerable CPU time; as the matrix is filled, status output is generated.
+</p>
+<p>The example section of this function contains the verification of the implementation as well as provides to additional computations of variance through resampling with replacement and simulation from the parent distribution that generated the sample vector shown in the example.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmoms.bootbarvar(x, nmom=6, covarinverse=TRUE, verbose=TRUE,
+                    force.exact=FALSE, nohatSIGMA=FALSE, nsim=500, bign=40, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nmom</code></td>
+<td>
+<p>The number of moments to compute. Default is 6 and can not be less than 3.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covarinverse</code></td>
+<td>
+<p>Logical on computation of the matrix inversions: <br><code>inverse.varcovar.tau23</code>, <br><code>inverse.varcovar.tau34</code>, and <br><code>inverse.varcovar.tau46</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>A logical switch on the verbosity of the construction of the variance-covariance matrix of the order statisitics. This operation is the most time consuming of those inside the function and is provided at default of <code>verbose=TRUE</code> to make a general user comfortable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>force.exact</code></td>
+<td>
+<p>A logical switch to attempt a <em>forced exact bootstrap computation</em> (empirical bootstrap controlled by <code>nsim</code> thus is <em>not</em> used) even if the sample size is too large as controlled by <code>bign</code>. See messages during the execution for guidance.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nohatSIGMA</code></td>
+<td>
+<p>A logical to bypass most of the interesting matrix functions and results. If <code>TRUE</code>, then only <code>lambdas</code>, <code>ratios</code>, and <code>bootstrap.orderstatistics</code> are populated. This feature is useful if a user is only interested in get the bootstrap estimates of the order statistics.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsim</code></td>
+<td>
+<p>Simulation size in case simulations and not the exact bootstrap are used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bign</code></td>
+<td>
+<p>A sample size threshold that triggers simulation using <code>nsim</code> replications for estimation by empirical bootstrap. Some of the “exact” operations are extremely expensive and numerical problems in the matrices are known for non-normal data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments but not implemented.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>Vector of the exact bootstrap L-moments. First element is
+<code class="reqn">\hat{\lambda}_1</code>, second element is <code class="reqn">\hat{\lambda}_2</code>, and so on. This vector is from equation 1.3 and 2.4 of Hutson and Ernst (2000).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Vector of the exact bootstrap L-moment ratios. Second element is
+<code class="reqn">\hat{\tau}</code>, third element is <code class="reqn">\hat{\tau}_3</code> and so on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdavars</code></td>
+<td>
+<p>The exact bootstrap variances of the L-moments from equation 1.4 of Hutson and Ernst (2000) via <code>crossprod</code> matrix operations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratiovars</code></td>
+<td>
+<p>The exact bootstrap variances of the L-moment ratios with <code>NA</code> inserted for <code class="reqn">r=1,2</code> because <code class="reqn">r=1</code> is the mean and <code class="reqn">r=2</code> for L-CV is unknown to this author.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcovar.lambdas</code></td>
+<td>
+<p>The variance-covariance matrix of the L-moments from which the diagonal are the values <code>lambdavars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcovar.lambdas.and.ratios</code></td>
+<td>
+<p>The variance-covariance matrix of the first two L-moments and for the L-moment ratios (if <code>nmom</code><code class="reqn">&gt;=3</code>) from which select diagonal are the values <code>ratiovars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bootstrap.orderstatistics</code></td>
+<td>
+<p>The exact bootstrap estimate of the order statistics from equation 2.2 of Hutson and Ernst (2000).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varcovar.orderstatistics</code></td>
+<td>
+<p>The variance-covariance matrix of the order statistics from equations 3.1 and 3.2 of Hutson and Ernst (2000). The diagonal of this matrix represents the variances of each order statistic.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse.varcovar.tau23</code></td>
+<td>
+<p>The inversion of the variance-covariance matrix of <code class="reqn">\tau_2</code> and <code class="reqn">\tau_3</code> by Cholesky decomposition. This matrix may be used to estimate a joint confidence region of (<code class="reqn">\tau_2, \tau_3</code>) based on asymptotic normality of L-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse.varcovar.tau34</code></td>
+<td>
+<p>The inversion of the variance-covariance matrix of <code class="reqn">\tau_3</code> and <code class="reqn">\tau_4</code> by Cholesky decomposition. This matrix may be used to estimate a joint confidence region of (<code class="reqn">\tau_3, \tau_4</code>) based on asymptotic normality of L-moments; these two L-moment ratios likely represent the most common ratios used in general L-moment ratio diagrams.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inverse.varcovar.tau46</code></td>
+<td>
+<p>The inversion of the variance-covariance matrix of <code class="reqn">\tau_4</code> and <code class="reqn">\tau_6</code> by Cholesky decomposition. This matrix may be used to estimate a joint confidence region of (<code class="reqn">\tau_4, \tau_6</code>) based on asymptotic normality of L-moments; these two L-moment ratios represent those ratios used in L-moment ratio diagrams of symmetrical distributions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source of the results: <br> “lmoms.bootbarvar”.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This function internally defines several functions that provide a direct nomenclature connection to Hutson and Ernst (2000). Interested users are invited to adapt these functions as they might see fit. A reminder is made to sort the data vector as needed; the vector is only sorted once within the <code>lmoms.bootbarvar</code> function.
+</p>
+<p>The <code class="reqn">100(1-\alpha)</code> percent confidence region of the vector <code class="reqn">{\bm \eta} = (\tau_3, \tau_4)</code> (for example) based on the sample L-skew and L-kurtosis of the vector <code class="reqn">\hat{\bm \eta} = (\hat\tau_3, \hat\tau_4)</code> is expressed as
+</p>
+<p style="text-align: center;"><code class="reqn">({\bm \eta} - \hat{\bm \eta})'\hat{\bm P}^{-1}_{(3,4)}({\bm \eta} - \hat{\bm \eta}) \le \chi^2_{2,\alpha}</code>
+</p>
+
+<p>where <code class="reqn">\hat{\bm P}_{(3,4)}</code> is the variance-covariance matrix of these L-moment ratios subselected from the resulting matrix titled <code>varcovar.lambdas.and.ratios</code> but extracted and inverted in the resulting matrix titled <code>inverse.varcovar.tau34</code>, which is <code class="reqn">\hat{\bm P}^{-1}_{(3,4)}</code>. The value  <code class="reqn">\chi^2_{2,\alpha}</code> is the upper quantile of the Chi-squared distribution. The inequality represents a standard equal probable ellipse from a Bivariate Normal distribution.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hutson, A.D., and Ernst, M.D., 2000, The exact bootstrap mean and variance
+of an L-estimator: Journal Royal Statistical Society B, v. 62, part 1, pp. 89–94.
+</p>
+<p>Wang, D., and Hutson, A.D., 2013, Joint confidence region estimation of L-moments with an extension to right censored data: Journal of Applied Statistics, v. 40, no. 2, pp. 368–379.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmoms</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+   para &lt;- vec2par(c(0,1), type="gum") # Parameters of Gumbel
+   n &lt;- 10; nmom &lt;- 6; nsim &lt;- 2000
+   # X &lt;- rlmomco(n, para) # This is commented out because
+   # the sample below is from the Gumbel distribution as in para.
+   # However, the seed for the random number generator was not recorded.
+   X &lt;- c( -1.4572506, -0.7864515, -0.5226538,  0.1756959,  0.2424514,
+            0.5302202,  0.5741403,  0.7708819,  1.9804254,  2.1535666)
+   EXACT.BOOTLMR &lt;- lmoms.bootbarvar(X, nmom=nmom)
+   LA &lt;- EXACT.BOOTLMR$lambdavars
+   LB &lt;- LC &lt;- rep(NA, length(LA))
+   set.seed(n)
+   for(i in 1:length(LB)) {
+     LB[i] &lt;- var(replicate(nsim,
+                  lmoms(sample(X, n, replace=TRUE), nmom=nmom)$lambdas[i]))
+   }
+   set.seed(n)
+   for(i in 1:length(LC)) {
+     LC[i] &lt;- var(replicate(nsim,
+                  lmoms(rlmomco(n, para), nmom=nmom)$lambdas[i]))
+   }
+   print(LA) # The exact bootstrap variances of the L-moments.
+   print(LB) # Bootstrap variances of the L-moments by actual resampling.
+   print(LC) # Simulation of the variances from the parent distribution.
+
+   # The variances for this example are as follows:
+   #&gt; print(LA)
+   #[1] 0.115295563 0.018541395 0.007922893 0.010726508 0.016459913 0.029079202
+   #&gt; print(LB)
+   #[1] 0.117719198 0.018945827 0.007414461 0.010218291 0.016290100 0.028338396
+   #&gt; print(LC)
+   #[1] 0.17348653 0.04113861 0.02156847 0.01443939 0.01723750 0.02512031
+   # The variances, when using simulation of parent distribution,
+   # appear to be generally larger than those based only on resampling
+   # of the available sample of only 10 values.
+
+   # Interested users may inspect the exact bootstrap estimates of the
+   # order statistics and the variance-covariance matrix.
+   # print(EXACT.BOOTLMR$bootstrap.orderstatistics)
+   # print(EXACT.BOOTLMR$varcovar.orderstatistics)
+
+   # The output for these two print functions is not shown, but what follows
+   # are the numerical confirmations from A.D. Hutson (personnal commun., 2012)
+   # using his personnal algorithms (outside of R).
+   # Date: Jul 2012, From: ahutson, To: Asquith
+   # expected values the same
+   # -1.174615143125091, -0.7537760316881618, -0.3595651823632459,
+   # -0.028951905838698,  0.2360931764028858,  0.4614289985084462,
+   #  0.713957210869635,  1.0724040932920058,  1.5368435379648948,
+   #  1.957207045977329
+   # and the first two values on the first row of the matrix are
+   # 0.1755400544274771,  0.1306634198810892
+
+## End(Not run)
+## Not run: 
+# Wang and Hutson (2013): Attempt to reproduce first entry of
+# row 9 (n=35) in Table 1 of the reference, which is 0.878.
+Xsq  &lt;- qchisq(1-0.05, 2); n &lt;- 35; nmom &lt;- 4; nsim &lt;- 1000
+para &lt;- vec2par(c(0,1), type="gum") # Parameters of Gumbel
+eta  &lt;- as.vector(lmorph(par2lmom(para))$ratios[3:4])
+h &lt;- 0
+for(i in 1:nsim) {
+   X &lt;- rlmomco(n,para); message(i)
+   EB &lt;- lmoms.bootbarvar(X, nmom=nmom, verbose=FALSE)
+   lmr    &lt;- lmoms(X); etahat &lt;- as.vector(lmr$ratios[c(3,4)])
+   Pinv   &lt;- EB$inverse.varcovar.tau34
+   deta   &lt;- (eta - etahat)
+   LHS &lt;- t(deta) 
+   if(LHS &gt; Xsq) { # Comparison to Chi-squared distribution
+      h &lt;- h + 1 # increment because outside ellipse
+      message("Outside: ",i, " ", h, " ", round(h/i, digits=3))
+   }
+}
+message("Empirical Coverage Probability with Alpha=0.05 is ",
+        round(1 - h/nsim, digits=3), " and count is", h)
+# I have run this loop and recorded an h=123 for the above settings. I compute a
+# coverage probability of 0.877, which agrees with Wang and Hutson (2013) within 0.001.
+# Hence "very down the line" computations of lmoms.bootbarvar appear to be verified.
+
+## End(Not run)
+</code></pre>
+
+
+</div>

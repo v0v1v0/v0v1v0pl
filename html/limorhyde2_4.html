@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>getModelFit</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit linear models for rhythmicity in one or more conditions</h2>
+
+<h3>Description</h3>
+
+<p>This is the first step in an analysis using <code>limorhyde2</code>, the second is to
+moderate the fits using <code>getPosteriorFit()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">getModelFit(
+  y,
+  metadata,
+  period = 24,
+  nKnots = 3L,
+  degree = if (nKnots &gt; 2) 3L else 2L,
+  sinusoid = FALSE,
+  timeColname = "time",
+  condColname = NULL,
+  covarColnames = NULL,
+  sampleColname = "sample",
+  nShifts = 3L,
+  method = c("trend", "voom", "deseq2"),
+  lmFitArgs = list(),
+  eBayesArgs = if (method == "trend") list(trend = TRUE) else list(),
+  DESeqArgs = list(),
+  keepLmFits = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Matrix-like object of measurements, with rows corresponding to
+features and columns to samples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metadata</code></td>
+<td>
+<p>data.frame containing experimental design information for
+each sample. Rows of <code>metadata</code> must correspond to columns of <code>y</code>. Row
+names are ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>Number specifying the period for the time variable, in the same
+units as the values in the <code>timeColname</code> column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nKnots</code></td>
+<td>
+<p>Number of internal knots for the periodic spline for the time
+variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>Integer indicating degree of the piecewise polynomial for the
+spline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sinusoid</code></td>
+<td>
+<p>Logical indicating whether to fit a cosinor-based model
+instead of a spline-based model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timeColname</code></td>
+<td>
+<p>String indicating the column in <code>metadata</code> containing the
+time at which each sample was acquired.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condColname</code></td>
+<td>
+<p>String indicating the column in <code>metadata</code> containing the
+condition in which each sample was acquired. <code>NULL</code> indicates all samples
+came from the same condition. If not <code>NULL</code>, the model will include main
+effects and interactions with the terms for time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covarColnames</code></td>
+<td>
+<p>Character vector indicating the columns in <code>metadata</code>
+containing covariates to include in the model. <code>NULL</code> indicates no
+covariates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sampleColname</code></td>
+<td>
+<p>String indicating the column in <code>metadata</code> containing
+the name of each sample, which must correspond to the column names of <code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nShifts</code></td>
+<td>
+<p>Number of shifted models to fit. Only used for periodic
+splines, not for cosinor. Do not change from the default unless you know
+what you're doing.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>String indicating method to estimate model coefficients. For
+microarray data, use 'trend'. For RNA-seq count data, use 'voom' or
+'deseq2'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lmFitArgs</code></td>
+<td>
+<p>List of arguments passed to <code>limma::lmFit()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eBayesArgs</code></td>
+<td>
+<p>List of arguments passed to <code>limma::eBayes()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DESeqArgs</code></td>
+<td>
+<p>List of arguments passed to <code>DESeq2::DESeq()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepLmFits</code></td>
+<td>
+<p>Logical indicating whether to keep the complete fit objects
+from <code>limma</code> or <code>DESeq2</code>. Not needed by any functions in <code>limorhyde2</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A <code>limorhyde2</code> object with elements:
+</p>
+
+<ul>
+<li> <p><code>metadata</code>: As supplied above, converted to a <code>data.table</code>.
+</p>
+</li>
+<li> <p><code>timeColname</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>condColname</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>covarColnames</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>coefficients</code>: Matrix with rows corresponding to features and columns to
+model terms, including all shifted models.
+</p>
+</li>
+<li> <p><code>shifts</code>: Numeric vector indicating amount by which timepoints were shifted
+for each shifted model.
+</p>
+</li>
+<li> <p><code>period</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>conds</code>: If <code>condColname</code> is not <code>NULL</code>, a vector of unique values of
+the condition variable.
+</p>
+</li>
+<li> <p><code>nKnots</code>: Number of knots.
+</p>
+</li>
+<li> <p><code>degree</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>sinusoid</code>: As supplied above.
+</p>
+</li>
+<li> <p><code>nConds</code>: Number of conditions.
+</p>
+</li>
+<li> <p><code>nCovs</code>: Number of covariates.
+</p>
+</li>
+<li> <p><code>lmFits</code>: If <code>keepLmFits</code> is <code>TRUE</code>, a list of objects from <code>limma</code> or
+<code>DESeq2</code>, with length equal to length of the <code>shifts</code> element.
+</p>
+</li>
+</ul>
+<h3>See Also</h3>
+
+<p><code>getPosteriorFit()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library('data.table')
+
+# rhythmicity in one condition
+y = GSE54650$y
+metadata = GSE54650$metadata
+
+fit = getModelFit(y, metadata)
+fit = getPosteriorFit(fit)
+rhyStats = getRhythmStats(fit, features = c('13170', '13869'))
+
+# rhythmicity and differential rhythmicity in multiple conditions
+y = GSE34018$y
+metadata = GSE34018$metadata
+
+fit = getModelFit(y, metadata, nKnots = 3L, condColname = 'cond')
+fit = getPosteriorFit(fit)
+rhyStats = getRhythmStats(fit, features = c('13170', '12686'))
+diffRhyStats = getDiffRhythmStats(fit, rhyStats)
+</code></pre>
+
+
+</div>

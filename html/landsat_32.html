@@ -1,0 +1,185 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>radiocorr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Radiometric correction of Landsat data
+</h2>
+
+<h3>Description</h3>
+
+<p>Implements several different methods for absolute radiometric correction of satellite data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">radiocorr(x, gain, offset, Grescale, Brescale, sunelev, satzenith = 0, edist,
+	Esun, Lhaze, method = "apparentreflectance")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>Image to be corrected, in matrix, data frame, or SpatialGridDataFrame format.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gain</code></td>
+<td>
+
+<p>Band-specific sensor gain. Require either gain and offset or Grescale and Brescale to convert DN to radiance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+
+<p>Band-specific sensor offset. Require either gain and offset or Grescale and Brescale to convert DN to radiance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Grescale</code></td>
+<td>
+
+<p>Band-specific sensor Grescale (gain). Require either gain and offset or Grescale and Brescale to convert DN to radiance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Brescale</code></td>
+<td>
+
+<p>Band-specific sensor Brescale (bias). Require either gain and offset or Grescale and Brescale to convert DN to radiance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sunelev</code></td>
+<td>
+
+<p>Sun elevation in degrees
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>satzenith</code></td>
+<td>
+
+<p>Satellite sensor zenith angle (0 for Landsat)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>edist</code></td>
+<td>
+
+<p>Earth-Sun distance in AU.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Esun</code></td>
+<td>
+
+<p>Exo-atmospheric solar irradiance, as given by Chandler et al. 2009 or others.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Lhaze</code></td>
+<td>
+
+<p>Haze value, such as SHV from DOS() function. Not needed for apparent reflectance.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+
+<p>Radiometric correction method to be used. There are currently four methods available: "apparentreflectance", "DOS" (Chavez 1989), "COSTZ"  (Chavez 1996), "DOS4" (SWS+2001).  
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Uses one of four image-based radiometric correction methods to adjust a satellite image to compensate for atmospheric conditions.	
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a radiometrically-corrected image in the same format as x.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Sarah Goslee
+</p>
+
+
+<h3>References</h3>
+
+<p>Chavez, Jr., P. S. 1989. Radiometric calibration of Landsat Thematic Mapper multispectral images. Photogrammetric Engineering and Remote Sensing 55:1285-1294.
+</p>
+<p>Chavez, Jr., P. S. 1996. Image-based atmospheric corrections revisited and improved. Photogrammetric Engineering and Remote Sensing 62:1025-1036.
+</p>
+<p>Song, C.; Woodcock, C. E.; Seto, K. C.; Lenney, M. P. &amp; Macomber, S. A. 2001. Classification and change detection using Landsat TM data: when and how to correct atmospheric effects? Remote Sensing of Environment 75:230-244.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>DOS</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+	data(july1)
+	data(july3)
+
+	# One approach to choosing a Starting Haze Value is to take the lowest DN value
+	# with a frequency greater than some predetermined threshold, in this case 1000 pixels. 
+	SHV &lt;- table(july1@data[,1])
+	SHV &lt;- min(as.numeric(names(SHV)[SHV &gt; 1000]))
+	# this is used as Lhaze in the radiocorr function
+
+	# Grescale, Brescale, sun elevation comes from metadata for the SHV band
+	july.DOS &lt;- DOS(sat=7, SHV=SHV, SHV.band=1, Grescale=0.77569, Brescale=-6.20000,
+		sunelev=61.4, edist=ESdist("2002-07-20"))$DNfinal.mean
+
+	# DOS() returns results for the complete set of scattering coefficients
+	# need to choose the appropriate one based on general atmospheric conditions
+		###	-4.0: Very Clear	SHV &lt;= 55
+		###	-2.0: Clear		SHV 56-75
+		### 	-1.0: Moderate		SHV 76-95
+		###	-0.7: Hazy		SHV 96-115
+		###	-0.5: Very Hazy		SHV &gt;115
+	# for july, SHV == 70, so use -2.0: Clear
+	july.DOS &lt;- july.DOS[ , 2]
+
+	# Use DOS value as Lhaze in radiocorr() for DOS correction to reflectance
+	july3.DOSrefl &lt;- radiocorr(july3, Grescale=0.77569, Brescale=-6.20000, 
+		sunelev=61.4, edist=ESdist("2002-07-20"), Esun=1533, 
+		Lhaze=july.DOS[3], method="DOS")
+
+
+</code></pre>
+
+
+</div>

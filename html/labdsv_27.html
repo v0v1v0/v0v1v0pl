@@ -1,0 +1,181 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dsvdis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Dissimilarity Indices and Distance Measures</h2>
+
+<h3>Description</h3>
+
+<p>This function provides a set of alternative dissimilarity indices
+and distance metrics for classification and ordination, including
+weighting by species (columns) and
+shortest-path adjustment for dissimilarity indices.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dsvdis(x,index,weight=rep(1,ncol(x)),step=0.0,
+       diag=FALSE, upper=FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a matrix of observations, samples as rows and variables as columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>index</code></td>
+<td>
+<p>a specific dissimilarity or distance index (see details below)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weight</code></td>
+<td>
+<p>a vector of weights for species (columns)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>step</code></td>
+<td>
+<p>a threshold dissimilarity to initiate shortest-path adjustment
+(0.0 is a flag for no adjustment)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>diag</code></td>
+<td>
+<p>a switch to control returning the diagonal (default=FALSE)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>a switch to control returning the upper (TRUE) or lower (FALSE)
+triangle</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function calculates dissimilarity or distance between
+rows of a matrix of
+observations according to a specific index.  Three indices convert the data to
+presence/absence automatically.  In contingency table notation, they are:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+        steinhaus </td>
+<td style="text-align: left;"> <code class="reqn">1 - a / (a + b + c)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+        sorensen </td>
+<td style="text-align: left;"> <code class="reqn">1 - 2a / (2a + b +c)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+        ochiai </td>
+<td style="text-align: left;"> <code class="reqn">1 - a / \sqrt{(a+b) * (a+c)}</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+</tr>
+</table>
+<p>Others are quantitative.  For variable i in samples x and y:
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+        ruzicka </td>
+<td style="text-align: left;"> <code class="reqn">1 - \sum \min(x_i,y_i) / \sum \max(x_i,y_i)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+        bray/curtis </td>
+<td style="text-align: left;"> <code class="reqn">1 - \sum[2 * \min(x_i,y_i)] / \sum x_i + y_i</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+        roberts </td>
+<td style="text-align: left;"> <code class="reqn">1 - [(x_i+y_i) * \min(x_i,y_i) / \max(x_i,y_i)] / (x_i + y_i)</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+        chisq </td>
+<td style="text-align: left;"> <code class="reqn">(exp - obs) / \sqrt{exp}</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+    </td>
+</tr>
+</table>
+<p>The weight argument allows the assignment of weights to individual species in the calculation
+of plot-to-plot similarity.  The weights can be assigned by life-form, indicator value,
+or for other investigator specific reasons.  For the presence/absence indices the
+weights should be integers; for the quantitative indices the weights should be in the interval [0,1].
+The default (rep(1,ncol(x)) is to set all species = 1.
+</p>
+<p>The threshold dissimilarity ‘step’ sets all values greater than or equal to "step" to 9999.9 and
+then solves for the shortest path distance connecting plots to other non-9999.9 values
+in the matrix.   Step = 0.0 (the default) is a flag for "no shortest-path correction".
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object of class "dist", equivalent to that from <code>dist</code>.</p>
+
+
+<h3>Note</h3>
+
+<p>Ecologists have spent a great deal of time and effort examining the properties
+of different dissimilarity indices and distances for ecological data.  Many
+of these indices should have more general application however.  Dissimilarity indices
+are bounded [0,1], so that samples with no attributes in common cannot be more
+dissimilar than 1.0, regardless of their separation along hypothetical or
+real gradients.  The shortest-path adjustment provides a partial solution.
+Pairs of samples more dissimilar than a specified threshold are set to
+9999.9, and the algorithm solves for their actual dissimilarity from the
+transitive closure of the triangle inequality.  Essentially, the dissimilarity
+is replaced by the shortest connected path between points less than the
+threshold apart.  In this way it is possible to obtain dissimilarities
+much greater than 1.0.
+</p>
+<p>The chi-square distance is not usually employed directly in cluster analysis or
+ordination, but is provided so that you can calculate correspondence analysis
+as a principal coordinates analysis (using <code>cmdscale</code>) from a simple
+distance matrix.</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Roberts 
+<a href="mailto:droberts@montana.edu">droberts@montana.edu</a> 
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dist</code>, <code>vegdist</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(bryceveg)   # returns a data.frame called "bryceveg"
+dis.ochiai &lt;- dsvdis(bryceveg,index="ochiai")
+dis.bc &lt;- dsvdis(bryceveg,index="bray/curtis")
+</code></pre>
+
+
+</div>

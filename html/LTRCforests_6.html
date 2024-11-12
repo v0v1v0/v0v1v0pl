@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predictProb</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Compute a Survival Curve from a LTRCCIF model or a LTRCRRF model</h2>
+
+<h3>Description</h3>
+
+<p>Constructs a monotone nonincreasing estimated survival curve from a LTRCCIF model or a 
+LTRCRRF model for any given (left-truncated) right-censored survival data with time-varying 
+covariates.
+It can also compute survival function estimates for left-truncated right-censored data
+with time-invariant covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predictProb(
+  object,
+  newdata = NULL,
+  newdata.id,
+  OOB = FALSE,
+  time.eval,
+  time.tau = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an object as returned by <code>ltrccif</code> or by <code>ltrcrrf</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>an optional data frame containing the test data
+(with the names of the variables the same as those in <code>data</code> from <code>object</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata.id</code></td>
+<td>
+<p>optional variable name of subject identifiers for <code>newdata</code>.
+If this is present, it will be searched for in the <code>newdata</code> data frame.
+Each group of rows in <code>newdata</code> with the same subject <code>id</code> represents
+the covariate path through time of a single subject, and the result will
+contain one curve per subject. If it is not specified, then an estimated survival
+curve is returned for each row of <code>newdata</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>OOB</code></td>
+<td>
+<p>a logical specifying whether out-of-bag predictions are desired
+</p>
+<p>(only if <code>newdata = NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.eval</code></td>
+<td>
+<p>a vector of time points, at which the estimated survival probabilities
+will be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time.tau</code></td>
+<td>
+<p>an optional vector, with the <em>i</em>-th entry giving the upper time limit for the
+computed survival probabilities for the <em>i</em>-th data of interest (i.e., only computes
+survival probabilies at <code>time.eval[time.eval &lt;= time.tau[i]]</code> for the <em>i</em>-th
+data of interest). If <code>OOB = TRUE</code>, the length of <code>time.tau</code> is equal to the size of
+<code>data</code> used to train the <code>object</code>;
+If <code>OOB = FALSE</code>, the length of <code>time.tau</code> is equal to the size
+of <code>newdata</code>, or equal to the size of <code>data</code> if <code>newdata</code> is not given.
+The default <code>NULL</code> is simply to set all entries of <code>time.tau</code> equal to the maximum
+value of <code>time.eval</code>, so that all estimated survival probabilities are computed at the
+same <code>time.eval</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>survival.id</code></td>
+<td>
+<p>subject identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival.obj</code></td>
+<td>
+<p>an object of class <code>Surv</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival.probs</code></td>
+<td>
+<p>the estimated survival probabilities for each data of interest.
+It is a list if the length of the estimated values differs from one to another;
+otherwise, it is a matrix with the number of columns equal to the number of the data
+of interest, number of rows equal to the number of the time points at which the estimated
+survival probabilities are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival.tau</code></td>
+<td>
+<p>the input value <code>time.tau</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>survival.times</code></td>
+<td>
+<p>the input value <code>time.eval</code>. </p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p><code>sbrier_ltrc</code> for evaluation of model fit
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#### Example with data pbcsample
+library(survival)
+Formula &lt;- Surv(Start, Stop, Event) ~ age + alk.phos + ast + chol + edema
+## Fit an LTRC conditional inference forest on time-varying data
+LTRCCIFobj &lt;- ltrccif(formula = Formula, data = pbcsample, id = ID,
+                      mtry = 3, ntree = 50L)
+
+
+## Construct an estimated survival estimate for the second subject
+tpnt &lt;- seq(0, max(pbcsample$Stop), length.out = 50)
+newData &lt;- pbcsample[pbcsample$ID == 2, ]
+Pred &lt;- predictProb(object = LTRCCIFobj, newdata = newData, newdata.id = ID,
+                    time.eval = tpnt)
+## Since time.tau = NULL, Pred$survival.probs is in the matrix format, with dimensions:
+dim(Pred$survival.probs) # length(time.eval) x nrow(newdata)
+## Plot the estimated survival curve
+plot(Pred$survival.times, Pred$survival.probs, type = "l", col = "red",
+     xlab = "Time", ylab = "Survival probabilities")
+
+
+
+</code></pre>
+
+
+</div>

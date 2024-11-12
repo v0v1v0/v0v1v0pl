@@ -1,0 +1,121 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sLRcontrast</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Calculate LR test statistics
+</h2>
+
+<h3>Description</h3>
+
+<p>The function calculates LR test statistics for the competing models which are defined by the argument 'models' 
+(see <code>drmodels</code>). 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sLRcontrast(dose, resp, models, off = 0.01 * max(dose), scal = 1.2 * max(dose))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dose, resp</code></td>
+<td>
+
+<p>Vectors of equal length specifying dose and response values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>models</code></td>
+<td>
+
+<p>A subvector of c("linear", "emax", "exponential", "linlog", "sigEmax", "quadratic", "betaMod", "logistic") (see <code>drmodels</code>)
+which specifies the competing models.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>off</code></td>
+<td>
+
+<p>Positive and fixed offset parameter in the 'linlog' model (see <code>drmodels</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scal</code></td>
+<td>
+
+<p>Positive and fixed dose scaling parameter in the 'betaMod' with '<code class="reqn">scal\ge</code> max(dose)' (see <code>drmodels</code>).
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A matrix containing the LR test statistic for one model in each row. The last row contains the value of the maximum statistic.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Kevin Kokot
+</p>
+
+
+<h3>References</h3>
+
+<p>Dette, H., Titoff, S., Volgushev, S. and Bretz, F. (2015), Dose
+response signal detection under model uncertainty. Biometrics. doi:
+10.1111/biom.12357
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>DoseFinding</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Simulate the power of the LR contrast test
+
+# five dose levels will be used
+doselvl &lt;- c(0, 0.05, 0.2, 0.6, 1)
+dose &lt;- c(rep(0, 10), rep(0.05, 10), rep(0.2, 10), rep(0.6, 10), rep(1, 10))
+
+# each row of 'resp' will contain one sample of size 50
+resp &lt;- matrix(nrow=100, ncol=50)
+
+# the linear model will serve as the data generating model
+linear &lt;- function(dose, e0, delta){e0 + delta * dose} 
+
+# now 'resp' is generated:
+for (i in 1:100)
+     {for(j in 1:5)
+        {resp[i,(j*10-9):(10*j)]&lt;-rnorm(10, mean=linear(doselvl[j], 0.2, 0.6), sd=1.478)}}  
+
+# the simulated 95% quantile in this case:
+quantile &lt;- 4.349362
+
+# now the power is simulated
+count &lt;- 0
+for (i in 1:100)
+     {if(sLRcontrast(dose = dose, resp = resp[i,], models = c("linear", "emax", 
+                     "exponential", "linlog"))[5] &gt; quantile)
+         {count &lt;- count + 1}}
+
+#power:
+count/100
+</code></pre>
+
+
+</div>

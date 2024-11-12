@@ -1,0 +1,151 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>correlate</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Correlation matrices</h2>
+
+<h3>Description</h3>
+
+<p>Computes a correlation matrix and runs hypothesis tests with corrections for multiple comparisons
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">correlate(
+  x,
+  y = NULL,
+  test = FALSE,
+  corr.method = "pearson",
+  p.adjust.method = "holm"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Matrix or data frame containing variables to be correlated</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>Optionally, a second set of variables to be correlated with those in <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test</code></td>
+<td>
+<p>Should hypothesis tests be displayed? (Default=<code>FALSE</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>corr.method</code></td>
+<td>
+<p>What kind of correlations should be computed? Default is <code>"pearson"</code>, but <code>"spearman"</code> and <code>"kendall"</code> are also supported</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p.adjust.method</code></td>
+<td>
+<p>What method should be used to correct for multiple comparisons. Default value is <code>"holm"</code>, and the allowable values are the same as for <code>p.adjust</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>correlate</code> function calculates a correlation matrix
+between all pairs of variables. Much like the <code>cor</code> function, if the
+user inputs only one set of variables (<code>x</code>) then it computes all
+pairwise correlations between the variables in <code>x</code>. If the user
+specifies both <code>x</code> and <code>y</code> it correlates the variables in
+<code>x</code> with the variables in <code>y</code>.
+</p>
+<p>Unlike the <code>cor</code> function, <code>correlate</code> does not generate an
+error if some of the variables are categorical (i.e., factors). Variables
+that are not numeric (or integer) class are simply ignored. They appear in
+the output, but no correlations are reported for those variables. The
+decision to have the <code>correlate</code> function allow the user a little
+leniency when the input contains non-numeric variables should be explained.
+The motivation is pedagogical rather than statistical. It is sometimes the
+case in psychology that students need to work with correlation matrices
+before they are comfortable subsetting a data frame, so it is convenient
+to allow them to type commands like <code>correlate(data)</code> even when
+<code>data</code> contains variables for which Pearson/Spearman correlations
+are not appropriate. (It is also useful to use the output of
+<code>correlate</code> to illustrate the fact that Pearson correlations should
+not be used for categorical variables).
+</p>
+<p>A second difference between <code>cor</code> and <code>correlate</code> is that
+<code>correlate</code> runs hypothesis tests for all correlations in the
+correlation matrix (using the <code>cor.test</code> function to do the work).
+The results of the tests are only displayed to the user if
+<code>test=TRUE</code>. This is a pragmatic choice, given the (perhaps
+unfortunate) fact that psychologists often want to see the results
+of these tests: it is probably not coincidental that the <code>corr.test</code>
+function in the <span class="pkg">psych</span> package already provides this functionality
+(though the output is difficult for novices to read).
+</p>
+<p>The concern with running hypothesis tests for all elements of a correlation
+matrix is inflated Type I error rates. To minimise this risk, reported
+p-values are adjusted using the Holm method. The user can change this
+setting by specifying <code>p.adjust.method</code>. See <code>p.adjust</code>
+for details.
+</p>
+<p>Missing data are handled using pairwise complete cases.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The printed output shows the correlation matrix, and if tests are
+requested it also reports a matrix of p-values and sample sizes associated
+with each correlation (these can vary if there are missing data). The
+underlying data structure is an object of class <code>correlate</code> (an S3
+class). It is effectively a list containing four elements:
+<code>correlation</code> is the correlation matrix, <code>p.value</code> is the matrix
+of p-values, <code>sample.size</code> is the matrix of sample sizes, and
+<code>args</code> is a vector that stores information about what the user
+requested.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># data frame with factors and missing values
+data &lt;- data.frame(
+  anxiety = c(1.31,2.72,3.18,4.21,5.55,NA),
+  stress = c(2.01,3.45,1.99,3.25,4.27,6.80),
+  depression = c(2.51,1.77,3.34,5.83,9.01,7.74),
+  happiness = c(4.02,3.66,5.23,6.37,7.83,1.18),
+  gender = factor( c("male","female","female","male","female","female") ),
+  ssri = factor( c("no","no","no",NA,"yes","yes") )
+)
+
+# default output is just the (Pearson) correlation matrix
+correlate( data )
+
+# other types of correlation:
+correlate( data, corr.method="spearman" )
+
+# two meaningful subsets to be correlated:
+nervous &lt;- data[,c("anxiety","stress")]
+happy &lt;- data[,c("happiness","depression","ssri")]
+
+# default output for two matrix input
+correlate( nervous, happy )
+
+# the same examples, with Holm-corrected p-values
+correlate( data, test=TRUE )
+correlate( nervous, happy, test=TRUE )
+
+</code></pre>
+
+
+</div>

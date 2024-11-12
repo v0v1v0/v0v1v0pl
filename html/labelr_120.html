@@ -1,0 +1,162 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>use_val_labs</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Swap Variable Value Labels for Variable Values</h2>
+
+<h3>Description</h3>
+
+<p>Replace the actual values of data.frame variables with the corresponding
+value labels (previous assigned using <code>add_val_labs</code> or a related function).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">use_val_labs(data, vars = NULL)
+
+uvl(data, vars = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>a data.frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vars</code></td>
+<td>
+<p>the names of the columns (variables) for which value labels will
+will replace original values in the returned data.frame.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: <code>uvl</code> is a compact alias for <code>use_val_labs</code>: they do the same thing,
+and the former is easier to type.
+</p>
+<p><code>use_val_labs</code> takes a variable value-labeled data.frame and substitutes each
+(labeled) variable's value labels for its values, returning a data.frame whose
+dimensions, names, and members are the same as the inputted data.frame. This
+may be useful if one wishes to view data.frame information using the
+(potentially) more intuitively meaningful value labels (e.g., gender=1 values
+displayed as "Male" instead of 1).
+</p>
+<p>Warning: <code>use_val_labs</code> will replace existing variable values with value
+labels and cannot be undone. If you wish to preserve variable values, be sure
+to assign the result of <code>use_val_labs</code> to a new object. For other ways to
+leverage value labels for common data management or inspection tasks, while
+preserving raw data values in returned object, see <code>add_lab_cols</code>,
+<code>add_lab_dummies</code>, <code>flab</code>, <code>slab</code>, <code>tabl</code>, <code>headl</code>, <code>taill</code>, and <code>somel</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data.frame, with (all or the select) variable value labels
+substituted for original variable values and any affected variables coerced
+to character if they were not already.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example #1 - mtcars example, one variable at a time
+# one variable at a time, mtcars
+df &lt;- mtcars
+# now, add value labels
+df &lt;- add_val_labs(
+  data = df,
+  vars = "am",
+  vals = c(0, 1),
+  labs = c("automatic", "manual")
+)
+
+df &lt;- add_val_labs(
+  data = df,
+  vars = "carb",
+  vals = c(1, 2, 3, 4, 6, 8),
+  labs = c(
+    "1-carb", "2-carbs",
+    "3-carbs", "4-carbs",
+    "6-carbs", "8-carbs"
+  )
+)
+
+# var arg can be unquoted if using add_val1()
+# note that this is not add_val_labs(); add_val1() has "var" (not "vars) arg
+df &lt;- add_val1(
+  data = df,
+  var = cyl, # note, "var," not "vars" arg
+  vals = c(4, 6, 8),
+  labs = c(
+    "four-cyl",
+    "six-cyl",
+    "eight-cyl"
+  )
+)
+
+df &lt;- add_val_labs(
+  data = df,
+  vars = "gear",
+  vals = c(3, 4),
+  labs = c(
+    "3-speed",
+    "4-speed"
+  )
+)
+
+# Oops, we forgot 5-speeds; let's finish the job.
+df &lt;- add_val_labs(
+  data = df,
+  vars = "gear",
+  vals = 5,
+  labs = "5-speed"
+)
+
+head(use_val_labs(df), 3) # they're there
+
+# Example #2 - (Fake) Likert Data
+# add val labs to multiple variables at once
+# make a "Likert"-type fake data set to demo
+# note, by default, add_val_labs() "vars" arg will do partial matching
+# in this case, we catch all vars with "x" in their name
+set.seed(272)
+dflik &lt;- make_likert_data(scale = 1:7)
+vals2label &lt;- 1:7
+labs2use &lt;- c(
+  "VSD",
+  "SD",
+  "D",
+  "N",
+  "A",
+  "SA",
+  "VSA"
+)
+
+dflik &lt;- add_val_labs(
+  data = dflik, vars = c("x", "y3"), # note the vars args
+  vals = vals2label,
+  labs = labs2use,
+  partial = TRUE
+)
+
+# note, all "x" vars get the labs, as does "y3"
+# see vars = args above
+lik1 &lt;- use_val_labs(dflik)
+head(lik1)
+# keep a copy
+dflik_conv &lt;- use_val_labs(dflik)
+head(dflik_conv, 3)
+</code></pre>
+
+
+</div>

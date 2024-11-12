@@ -1,0 +1,183 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>MCSE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Monte Carlo Standard Error</h2>
+
+<h3>Description</h3>
+
+<p>Monte Carlo Standard Error (MCSE) is an estimate of the inaccuracy of
+Monte Carlo samples, usually regarding the expectation of posterior
+samples, <code class="reqn">\mathrm{E}(\theta)</code>, from Monte Carlo or
+Markov chain Monte Carlo (MCMC) algorithms, such as with the
+<code>LaplacesDemon</code> or <code>LaplacesDemon.hpc</code>
+functions. MCSE approaches zero as the number of independent posterior
+samples approaches infinity. MCSE is essentially a standard deviation
+around the posterior mean of the samples,
+<code class="reqn">\mathrm{E}(\theta)</code>, due to uncertainty associated with
+using an MCMC algorithm, or Monte Carlo methods in general.
+</p>
+<p>The acceptable size of the MCSE depends on the acceptable uncertainty
+associated around the marginal posterior mean,
+<code class="reqn">\mathrm{E}(\theta)</code>, and the goal of inference. It has
+been argued that MCSE is generally unimportant when the goal of
+inference is <code class="reqn">\theta</code> rather than
+<code class="reqn">\mathrm{E}(\theta)</code> (Gelman et al., 2004, p. 277), and
+that a sufficient <code>ESS</code> is more important. Others perceive
+MCSE to be a vital part of reporting any Bayesian model, and as a
+stopping rule (Flegal et al., 2008).
+</p>
+<p>In <code>LaplacesDemon</code>, MCSE is part of the posterior
+summaries because it is easy to estimate, and Laplace's Demon prefers
+to continue updating until each MCSE is less than 6.27% of its
+associated marginal posterior standard deviation (for more information
+on this stopping rule, see the <code>Consort</code> function), since
+MCSE has been demonstrated to be an excellent stopping rule.
+</p>
+<p>Acceptable error may be specified, if known, in the <code>MCSS</code>
+(Monte Carlo Sample Size) function to estimate the required number of
+posterior samples.
+</p>
+<p><code>MCSE</code> is a univariate function that is often applied to each
+marginal posterior distribution. A multivariate form is not
+included. By chance alone due to multiple independent tests, 5% of
+the parameters should indicate unacceptable MSCEs, even when
+acceptable. Assessing convergence is difficult.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">MCSE(x, method="IMPS", batch.size="sqrt", warn=FALSE)
+MCSS(x, a)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This is a vector of posterior samples for which MCSE or MCSS
+will be estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>This is a scalar argument of acceptable error for the mean of
+<code>x</code>, and <code>a</code> must be positive. As acceptable error
+decreases, the required number of samples increases.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>This is an optional argument for the method of MCSE
+estimation, and defaults to Geyer's <code>"IMPS"</code> method. Optional
+methods include <code>"sample.variance"</code> and <code>"batch.mean"</code>.
+Note that <code>"batch.mean"</code> is recommended only when the number of
+posterior samples is at least 1,000.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>batch.size</code></td>
+<td>
+<p>This is an optional argument that corresponds only
+with <code>method="batch.means"</code>, and determines either the size of
+the batches (accepting a numerical argument) or the method of
+creating the size of batches, which is either <code>"sqrt"</code> or
+<code>"cuberoot"</code>, and refers to the length of <code>x</code>. The default
+argument is <code>"sqrt"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>warn</code></td>
+<td>
+<p>Logical. If <code>warn=TRUE</code>, then a warning is provided
+with <code>method="batch.means"</code> whenever posterior sample size is
+less than 1,000, or a warning is produced when more autcovariance
+is recommended with <code>method="IMPS"</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The default method for estimating MCSE is Geyer's Initial Monotone
+Positive Sequence (IMPS) estimator (Geyer, 1992), which takes the
+asymptotic variance into account and is time-series based. This method
+goes by other names, such as Initial Positive Sequence (IPS).
+</p>
+<p>The simplest method for estimating MCSE is to modify the formula for
+standard error, <code class="reqn">\sigma(\textbf{x}) / \sqrt{N}</code>, to account for non-independence in the sequence
+<code class="reqn">\textbf{x}</code> of posterior samples. Non-independence is
+estimated with the <code>ESS</code> function for Effective Sample Size (see
+the <code>ESS</code> function for more details), where <code class="reqn">M =
+  ESS(\textbf{x})</code>, and MCSE is
+<code class="reqn">\sigma(\textbf{x}) / \sqrt{M}</code>. Although this
+is the fastest and easiest method of estimation, it does not
+incorporate an estimate of the asymptotic variance of
+<code class="reqn">\textbf{x}</code>.
+</p>
+<p>The batch means method (Jones et al., 2006; Flegal et al., 2008)
+separates elements of <code class="reqn">\textbf{x}</code> into batches and estimates
+MCSE as a function of multiple batches. This method is excellent, but
+is not recommended when the number of posterior samples is less than
+1,000. These journal articles also assert that MCSE is a better
+stopping rule than MCMC convergence diagnostics.
+</p>
+<p>The <code>MCSS</code> function estimates the required number of posterior
+samples, given the user-specified acceptable error, posterior samples
+<code>x</code>, and the observed variance (rather than asymptotic
+variance). Due to the observed variance, this is a rough estimate.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Statisticat, LLC. <a href="mailto:software@bayesian-inference.com">software@bayesian-inference.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Flegal, J.M., Haran, M., and Jones, G.L. (2008). "Markov chain Monte
+Carlo: Can We Trust the Third Significant Figure?". <em>Statistical
+Science</em>, 23, p. 250–260.
+</p>
+<p>Gelman, A., Carlin, J., Stern, H., and Rubin, D. (2004). "Bayesian
+Data Analysis, Texts in Statistical Science, 2nd ed.". Chapman and
+Hall, London.
+</p>
+<p>Geyer, C.J. (1992). "Practical Markov Chain Monte Carlo".
+<em>Statistical Science</em>, 7, 4, p. 473–483.
+</p>
+<p>Jones, G.L., Haran, M., Caffo, B.S., and Neath, R. (2006). "Fixed-Width
+Output Analysis for Markov chain Monte Carlo". <em>Journal of the
+American Statistical Association</em>, 101(1), p. 1537–1547.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Consort</code>,
+<code>ESS</code>,
+<code>LaplacesDemon</code>, and
+<code>LaplacesDemon.hpc</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(LaplacesDemon)
+x &lt;- rnorm(1000)
+MCSE(x)
+MCSE(x, method="batch.means")
+MCSE(x, method="sample.variance")
+MCSS(x, a=0.01)
+</code></pre>
+
+
+</div>

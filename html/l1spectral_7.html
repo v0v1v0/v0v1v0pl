@@ -1,0 +1,100 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>l1_spectral</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run the l1-spectral clustering algorithm on one component</h2>
+
+<h3>Description</h3>
+
+<p>This function runs the l1-spectral clustering algorithm on one component only.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">l1_spectral(A, k, elements, pen, stab = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A</code></td>
+<td>
+<p>The adjacency matrix of the graph to cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>The number of clusters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>elements</code></td>
+<td>
+<p>The representative elements of the connected component to cluster.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pen</code></td>
+<td>
+<p>The penalty (to be chosen among "lasso" and "thresholdedLS").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stab</code></td>
+<td>
+<p>TRUE/FALSE indicating whether the representative elements should be stabilized (TRUE by default).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The matrix of community indicators.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Camille Champion, Magali Champion
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>l1_spectralclustering</code>, <code>l1spectral</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"> #########################################################
+ # Performing the l1-spectral clustering on one component
+ #########################################################
+
+ # 1st: create data
+ Data &lt;- CreateDataSet(k=3, n=20, p=list(p_inside=0.1,p_outside=0.1))
+
+ # 2nd: find the structure, the opt number of clusters and the representative elements
+ Structure &lt;- FindStructure(Data$A_hat)
+ Clusters &lt;- FindNbrClusters(A = Data$A_hat, structure = Structure)
+ Elements &lt;- FindElement(A = Data$A_hat, structure = Structure, clusters = Clusters)
+
+ Structure_tmp &lt;- Structure$groups[[1]] # the first component
+ A_tmp &lt;- Data$A_hat[Structure$groups[[1]],Structure$groups[[1]]]
+ k &lt;- Clusters$nbr_clusters$Component1 # number of clusters to create
+ Elements_tmp &lt;- list(score = Elements$score$Component1,
+                      indices = Elements$indices$Component1)
+       # the elements of the first component
+
+ # 3rd: perform the l1-spectral clustering algorithm
+ # (with stabilization, which is the most recommended setting)
+ comm &lt;- l1_spectral(A = A_tmp, k = k, elements = Elements_tmp, pen = "lasso", stab=TRUE)
+</code></pre>
+
+
+</div>

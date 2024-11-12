@@ -1,0 +1,195 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+GP Prediction/Kriging
+</h2>
+
+<h3>Description</h3>
+
+<p>Perform Gaussian processes prediction (under isotropic or separable formulation)
+at new <code>XX</code> locations using a GP object stored on the C-side
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">predGP(gpi, XX, lite = FALSE, nonug = FALSE)
+predGPsep(gpsepi, XX, lite = FALSE, nonug = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gpi</code></td>
+<td>
+
+<p>a C-side GP object identifier (positive integer);
+e.g., as returned by <code>newGP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpsepi</code></td>
+<td>
+<p> similar to <code>gpi</code> but indicating a separable GP object,
+as returned by <code>newGPsep</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XX</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+a design of predictive locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lite</code></td>
+<td>
+
+<p>a scalar logical indicating whether (<code>lite = FALSE</code>, default) or not
+(<code>lite = TRUE</code>) a full predictive covariance matrix should be
+returned, as would be required for plotting random sample paths,
+but substantially increasing computation time if only point-prediction
+is required
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nonug</code></td>
+<td>
+<p> a scalar logical indicating if a (nonzero) nugget should be used in the predictive
+equations; this allows the user to toggle between visualizations of uncertainty due just
+to the mean, and a full quantification of predictive uncertainty. The latter (default <code>nonug = FALSE</code>) 
+is the standard approach, but the former may work better in some sequential design contexts.  See, e.g.,
+<code>ieciGP</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Returns the parameters of Student-t predictive equations.  By
+default, these include a full predictive covariance matrix between all
+<code>XX</code> locations.  However, this can be slow when <code>nrow(XX)</code>
+is large, so a <code>lite</code> options is provided, which only returns the
+diagonal of that matrix.
+</p>
+<p>GP prediction is sometimes called “kriging”, especially in
+the spatial statistics literature.  So this function could
+also be described as returning evaluations of the “kriging equations”
+
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output is a <code>list</code> with the following components.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>mean </code></td>
+<td>
+<p>a vector of predictive means of length <code>nrow(Xref)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Sigma</code></td>
+<td>
+<p> covariance matrix 
+for a multivariate Student-t distribution; alternately
+if <code>lite = TRUE</code>,
+then a field <code>s2</code> contains the diagonal of this matrix</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df </code></td>
+<td>
+<p>a Student-t degrees of freedom scalar (applies to all
+<code>XX</code>)</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>For standard GP prediction, refer to any graduate text, e.g., Rasmussen
+&amp; Williams <em>Gaussian Processes for Machine Learning</em>, or
+</p>
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 5.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>newGP</code>, <code>mleGP</code>, <code>jmleGP</code>, 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## a "computer experiment" -- a much smaller version than the one shown
+## in the aGP docs
+
+## Simple 2-d test function used in Gramacy &amp; Apley (2015);
+## thanks to Lee, Gramacy, Taddy, and others who have used it before
+f2d &lt;- function(x, y=NULL)
+  {
+    if(is.null(y)) {
+      if(!is.matrix(x) &amp;&amp; !is.data.frame(x)) x &lt;- matrix(x, ncol=2)
+      y &lt;- x[,2]; x &lt;- x[,1]
+    }
+    g &lt;- function(z)
+      return(exp(-(z-1)^2) + exp(-0.8*(z+1)^2) - 0.05*sin(8*(z+0.1)))
+    z &lt;- -g(x)*g(y)
+  }
+
+## design with N=441
+x &lt;- seq(-2, 2, length=11)
+X &lt;- expand.grid(x, x)
+Z &lt;- f2d(X)
+
+## fit a GP
+gpi &lt;- newGP(X, Z, d=0.35, g=1/1000)
+
+## predictive grid with NN=400
+xx &lt;- seq(-1.9, 1.9, length=20)
+XX &lt;- expand.grid(xx, xx)
+ZZ &lt;- f2d(XX)
+
+## predict
+p &lt;- predGP(gpi, XX, lite=TRUE)
+## RMSE: compare to similar experiment in aGP docs
+sqrt(mean((p$mean - ZZ)^2))
+
+## visualize the result
+par(mfrow=c(1,2))
+image(xx, xx, matrix(p$mean, nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="predictive mean")
+image(xx, xx, matrix(p$mean-ZZ, nrow=length(xx)), col=heat.colors(128),
+      xlab="x1", ylab="x2", main="bas")
+
+## clean up
+deleteGP(gpi)
+
+## see the newGP and mleGP docs for examples using lite = FALSE for
+## sampling from the joint predictive distribution
+</code></pre>
+
+
+</div>

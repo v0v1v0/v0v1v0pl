@@ -1,0 +1,164 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>covIwrap</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+A wrapper for the covI function.
+</h2>
+
+<h3>Description</h3>
+
+<p>Computation of the <code>covI</code> function is
+intensive. This function permits values of <code>covI</code>
+to be stored in an object, and then if these values are
+requested again the values can be obtained from a store
+rather than being computed from scratch.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">covIwrap(S, m, n, ll, storewrap, P)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>S</code></td>
+<td>
+<p>Same argument as for <code>covI</code>, a spectral
+estimate (for a stationary series).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>The same argument as in <code>covI</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>The same argument as in <code>covI</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ll</code></td>
+<td>
+<p>The same argument as in <code>covI</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>storewrap</code></td>
+<td>
+<p>A list. On first call to this function the user should
+supply <code>storewrap=NULL</code>. This causes the function to
+initialize the storage. On every return from this function
+the storewrap component should be extracted from the list
+and then this storewrap component should be resupplied to
+any future calls to this function. In this way the function
+has access to previously computed values.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>P</code></td>
+<td>
+<p>Same argument as in <code>covI</code>. An autocorrelation
+wavelet computed using the <code>PsiJ</code> function in <code>wavethresh</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note: <code>covIwrap</code> could be removed from the function tree
+altogether. I.e. <code>varip2</code> could call
+<code>covI</code> directly. However,
+<code>covIwrap</code> considerably improves the efficiency of the algorithm
+as it stores intermediate calculations that can be reused rather
+than being computed repeatedly.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>ans</code></td>
+<td>
+<p>The appropriate covariance</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>storewrap</code></td>
+<td>
+<p>A list containing information about all previously
+computed covariances. This list should be supplied as the
+<code>storewrap</code> argument to any future calls of this function,
+so if the same covariance is requested it can be returned from
+<code>storewrap</code> and not computed again.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Guy Nason.
+</p>
+
+
+<h3>References</h3>
+
+<p>Nason, G.P. (2013) A test for second-order stationarity and
+approximate confidence intervals for localized autocovariances
+for locally stationary time series. <em>J. R. Statist. Soc.</em> B,
+<b>75</b>, 879-904.
+<a href="https://doi.org/10.1111/rssb.12015">doi:10.1111/rssb.12015</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>varip2</code>, <code>covI</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">P1 &lt;- PsiJ(-5, filter.number=1, family="DaubExPhase")
+#
+# First call to covIwrap
+#
+ans &lt;- covIwrap(S=c(1/2, 1/4, 1/8, 1/16, 1/32), m=1, n=3, ll=5,
+    storewrap=NULL, P=P1)
+#
+# Make sure you keep the storewrap component.
+#
+my.storewrap &lt;- ans$storewrap
+#
+# What is the answer?
+#
+ans$ans
+#[1] 0.8430809
+#
+# Issue next call to covIwrap: but storewrap argument is now the one we stored.
+#
+ans &lt;- covIwrap(S=c(1/2, 1/4, 1/8, 1/16, 1/32), m=1, n=3, ll=5,
+    storewrap=my.storewrap, P=P1)
+#
+# This call will reuse the stored value. However, if you change any of the
+# arguments then the store won't be used.
+
+</code></pre>
+
+
+</div>

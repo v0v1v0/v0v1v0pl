@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gap_finder</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Check for and output gaps in a dataset</h2>
+
+<h3>Description</h3>
+
+<p>Quickly check for implicit missing <code>Datetime</code> data. Outputs a message with a
+short summary, and can optionally return the gaps as a <code>tibble</code>. Uses
+<code>gap_handler()</code> internally.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gap_finder(
+  dataset,
+  Datetime.colname = Datetime,
+  epoch = "dominant.epoch",
+  gap.data = FALSE,
+  silent = FALSE,
+  full.days = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Needs to be a dataframe.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>The column that contains the datetime. Needs to be a
+<code>POSIXct</code> and part of the dataset.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch to use for the gapless sequence. Can be either a
+<code>lubridate::duration()</code> or a string. If it is a string, it needs to be
+either '"dominant.epoch"' (the default) for a guess based on the data or a valid <code>lubridate::duration()</code> string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gap.data</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, returns a <code>tibble</code> of the gaps in the
+dataset. Default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>silent</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, suppresses the message with the summary of
+the gaps in the dataset. Default is <code>FALSE</code>. Only used for unit tests.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.days</code></td>
+<td>
+<p>If <code>TRUE</code>, the gapless sequence will include the whole first and last day where there is data.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>gap_finder()</code> function is a wrapper around <code>gap_handler()</code> with the
+<code>behavior</code> argument set to <code>"gaps"</code>. The main difference is that
+<code>gap_finder()</code> returns a message with a short summary of the gaps in the
+dataset, and that the <code>tibble</code> with the gaps contains a column <code>gap.id</code> that
+indicates the gap number, which is useful to determine, e.g., the consecutive
+number of gaps between measurement data.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Prints message with a short summary of the gaps in the dataset. If
+<code>gap.data = TRUE</code>, returns a <code>tibble</code> of the gaps in the dataset.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other regularize: 
+<code>dominant_epoch()</code>,
+<code>gap_handler()</code>,
+<code>gapless_Datetimes()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dataset &lt;-
+tibble::tibble(Id = c("A", "A", "A", "B", "B", "B"),
+              Datetime = lubridate::as_datetime(1) +
+                         lubridate::days(c(0:2, 4, 6, 8)) +
+                         lubridate::hours(c(0,12,rep(0,4)))) %&gt;%
+dplyr::group_by(Id)
+dataset
+
+#look for gaps assuming the epoch is the dominant epoch of each group
+gap_finder(dataset)
+
+#return the gaps as a tibble
+gap_finder(dataset, gap.data = TRUE)
+
+#assuming the epoch is 1 day, we have different gaps, and the datapoint at noon is now `irregular`
+gap_finder(dataset, epoch = "1 day")
+</code></pre>
+
+
+</div>

@@ -1,0 +1,240 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Kapitel  4</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kapitel 4: Differenzielles Itemfunktionieren in Subgruppen</h2>
+
+<h3>Description</h3>
+
+<p>Das ist die Nutzerseite zum Kapitel 4, <em>Differenzielles Itemfunktionieren 
+in Subgruppen</em>, im Herausgeberband Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>: Methodische 
+Grundlagen der österreichischen Bildungsstandardüberprüfung. 
+Im Abschnitt <strong>Details</strong> werden die im Kapitel verwendeten <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen zur 
+Unterstützung für Leser/innen kommentiert und dokumentiert. 
+Im Abschnitt <strong>Examples</strong> werden die <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-Syntaxen des Kapitels vollständig 
+wiedergegeben und gegebenenfalls erweitert.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Matthias Trendtel, Franziska Schwabe, Robert Fellinger
+</p>
+
+
+<h3>References</h3>
+
+<p>Trendtel, M., Schwabe, F. &amp; Fellinger, R. (2016). Differenzielles 
+Itemfunktionieren in Subgruppen. 
+In S. Breit &amp; C. Schreiner (Hrsg.), <em>Large-Scale Assessment mit <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>:  
+Methodische Grundlagen der österreichischen Bildungsstandardüberprüfung</em> 
+(pp. 111–147). Wien: facultas.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<p>Zu <code>datenKapitel04</code>, den im Kapitel verwendeten Daten.<br>
+
+Zurück zu <code>Kapitel 3</code>, Standard-Setting.<br>
+Zu <code>Kapitel 5</code>, Testdesign.<br>
+Zur <code>Übersicht</code>.
+
+
+
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(difR)
+library(mirt)
+library(sirt)
+library(TAM)
+set.seed(12345)
+
+data(datenKapitel04)
+dat &lt;- datenKapitel04$dat
+dat.th1 &lt;- datenKapitel04$dat.th1
+ibank &lt;- datenKapitel04$ibank
+
+## -------------------------------------------------------------
+## Abschnitt 4.4.1 DIF-Analysen für vollständige Daten
+## -------------------------------------------------------------
+
+items.th1 &lt;- grep("E8R", colnames(dat.th1), value=T)
+resp &lt;- dat.th1[, items.th1]
+AHS &lt;- dat.th1$AHS
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.1, Listing 1: Mantel-Haenszel
+#
+
+difMH(Data = resp, group = AHS, correct = F, focal.name = 0)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.1, Listing 2: Standardisierte p-Wert Differenzen
+#
+
+difStd(Data = resp, group = AHS, focal.name = 0)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.1, Listing 3: SIBTEST
+#
+
+SIBTEST(dat = resp, group = AHS, focal_name = 0, 
+        focal_set = grep("E8RS03131", items.th1))
+SIBTEST(dat = resp, group = AHS, focal_name=0,
+        focal_set = grep("E8RS15621", items.th1))
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.1, Listing 4: Methode nach Lord
+#
+
+difLord(Data = resp, group = AHS, focal.name = 0,
+        model = "1PL")
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.1, Listing 5: Zusammenschau
+#
+
+dichoDif(Data = resp, group = AHS, correct = F, focal.name = 0, 
+         method = c("MH", "Std", "Lord"), model = "1PL")
+
+
+## -------------------------------------------------------------
+## Abschnitt 4.4.2 DIF-Analysen für unvollständige Daten
+## -------------------------------------------------------------
+
+items &lt;- grep("E8R", colnames(dat), value = T)
+resp &lt;- dat[ ,items]
+AHS &lt;- dat$AHS
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 1: Matching-Variable setzen
+#
+
+score &lt;- rowSums(resp, na.rm=T)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 2: Durchführung Logistische Regression
+#
+
+difLR &lt;- dif.logistic.regression(resp, group = AHS, score = score)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 3: Durchführung Logistische Regression
+#                             mit angepasster Referenzgruppe
+#
+
+difLR &lt;- dif.logistic.regression(resp, AHS==0, score)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 4: Ausgabe erster Teil
+#
+
+cbind(item = difLR$item, round(difLR[, 4:13], 3))
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 5: Ausgabe zweiter Teil
+#
+
+cbind(difLR[, c(3,14:16)], sign = difLR[, 17], ETS = difLR[, 18]) 
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 6: DIF-Größen
+#
+
+table(difLR[, 17], difLR[, 18])
+
+difLR[c(10, 18), c(3, 14, 17:18)]
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.2, Listing 7: Ausgabe dritter Teil
+#
+
+cbind(difLR[, c(3, 21:23)], sign=difLR[, 24])
+
+
+## -------------------------------------------------------------
+## Abschnitt 4.4.3 Hypothesenprüfung mit GLMM
+## -------------------------------------------------------------
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 1: Itemauswahl
+#
+
+HO.items &lt;- ibank[ibank$format == "ho", "task"]
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 2: Facettenidentifikation
+#
+
+facets &lt;- data.frame(AHS = dat$AHS)
+form &lt;- formula( ~ item * AHS)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 3: Initiierung des Designs
+#
+
+design &lt;- designMatrices.mfr(resp = dat[, items], 
+                             formulaA = form, facets = facets)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 4: Übergabe der Designmatrix und des
+#                             erweiterten Responsepatterns
+#
+
+A &lt;- design$A$A.3d[, , 1:(length(items) + 2)]
+dimnames(A)[[3]] &lt;- c(items, "AHS", "HO:AHS")
+resp &lt;- design$gresp$gresp.noStep
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 5: Ausgabe der ersten Zeilen des 
+#                             Responsepatterns
+#
+
+head(resp)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 6: Identifikation Itemformat X Gruppe
+#
+
+HO.AHS0 &lt;- paste0(HO.items, "-AHS0")
+HO.AHS1 &lt;- paste0(HO.items, "-AHS1")
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 7: Spezifizierung des Designs
+#
+
+A[, , "HO:AHS"] &lt;- 0
+A[HO.AHS0, 2, "HO:AHS"] &lt;- -1; A[HO.AHS1, 2, "HO:AHS"] &lt;-  1
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 8: Ausgabe der Designmatrix für 
+#                             Itemkategorie 'richtig beantwortet'
+#
+
+A[,2,c("AHS", "HO:AHS")]
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 9: Schätzen des Modells
+#
+
+mod &lt;- tam.mml(resp = resp, A=A)
+
+# -------------------------------------------------------------
+# Abschnitt 4.4.3, Listing 10: Ausgabe der Parameterschätzer
+#
+
+summary(mod)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

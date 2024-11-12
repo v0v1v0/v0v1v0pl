@@ -1,0 +1,143 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>calc.locallod</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Calculate LOD score at physical position of each gene</h2>
+
+<h3>Description</h3>
+
+<p>For gene expression data with physical positions of the genes, calculate the
+LOD score at those positions to assess evidence for local eQTL.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">calc.locallod(
+  cross,
+  pheno,
+  pmark,
+  addcovar = NULL,
+  intcovar = NULL,
+  verbose = TRUE,
+  n.cores = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>cross</code></td>
+<td>
+<p>An object of class <code>"cross"</code> containing data for a QTL
+experiment.  See the help file for <code>qtl::read.cross()</code> in the
+R/qtl package (<a href="https://rqtl.org">https://rqtl.org</a>).  There must be a phenotype named
+<code>"id"</code> or <code>"ID"</code> that contains the individual identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pheno</code></td>
+<td>
+<p>A data frame of phenotypes (generally gene expression data),
+stored as individuals x phenotypes.  The row names must contain individual
+identifiers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pmark</code></td>
+<td>
+<p>Pseudomarkers that are closest to the genes in <code>pheno</code>, as
+output by <code>find.gene.pseudomarker()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addcovar</code></td>
+<td>
+<p>Additive covariates passed to <code>qtl::scanone()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intcovar</code></td>
+<td>
+<p>Interactive covariates passed to <code>qtl::scanone()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>If TRUE, print tracing information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.cores</code></td>
+<td>
+<p>Number of CPU cores to use in the calculations. With
+<code>n.cores=0</code>, <code>parallel::detectCores()</code> is used to
+detect the number of available cores.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>cross</code> and <code>pheno</code> must contain exactly the same individuals in
+the same order.  (Use <code>findCommonID()</code> to line them up.)
+</p>
+<p>We consider the expression phenotypes in batches: those whose closest
+pseudomarker is the same.
+</p>
+<p>We use Haley-Knott regression to calculate the LOD scores.
+</p>
+<p>Actually, we use a bit of a contortion of the data to force the
+<code>qtl::scanone()</code> function in R/qtl to calculate the LOD score at a
+single position.
+</p>
+<p>We omit any transcripts that map to the X chromosome; we can only handle
+autosomal loci for now.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of LOD scores.  The names indicate the gene names (columns in
+<code>pheno</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Karl W Broman, <a href="mailto:broman@wisc.edu">broman@wisc.edu</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>find.gene.pseudomarker()</code>, <code>plotEGclass()</code>,
+<code>findCommonID()</code>, <code>disteg()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(f2cross, expr1, genepos, pmap)
+library(qtl)
+
+# calc QTL genotype probabilities
+f2cross &lt;- calc.genoprob(f2cross, step=1)
+
+# find nearest pseudomarkers
+pmark &lt;- find.gene.pseudomarker(f2cross, pmap, genepos, "prob")
+
+# line up f2cross and expr1
+id &lt;- findCommonID(f2cross, expr1)
+
+# calculate LOD score for local eQTL
+locallod &lt;- calc.locallod(f2cross[,id$first], expr1[id$second,], pmark)
+
+</code></pre>
+
+
+</div>

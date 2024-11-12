@@ -1,0 +1,293 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>wrapperLSPFP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+
+wrapperLSPFP
+</h2>
+
+<h3>Description</h3>
+
+<p>THIS IS AN ALPHA BUILD OF 1.0.1
+This function plots the positions of peptides with associated proteins from shotgun proteomics data from MaxQuant or Progenesis as input. The plots contain informations about: intensity, position, protein structure, location of protein domains, genename, protein accession, secretion score and truncation score. The plots are written to a PDF file
+and a data.frame containing protein feature information is saved as a rds-file and csv-file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">wrapperLSPFP(globpath, expname, sourcefiles, org, grlocationdf,
+            version = "actual", species = c("HUMAN", "MOUSE", "RAT", "PIG"),
+            proteomeid = c("UP000005640", "UP000000589", "UP000002494", "UP000008227"),
+            taxid = c("9606", "10090", "10116", "9823"), domain = rep("Eukaryota", 4),
+            forcedl = FALSE, pepstack = 2, pepque = 2, sortprint = "fcsmall",
+            unipep = TRUE, localfasta = "none")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>globpath</code></td>
+<td>
+
+<p>Character string indicating the path of the global directory.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>expname</code></td>
+<td>
+
+<p>Character string indicating the name of the directory where the files for this run are saved.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sourcefiles</code></td>
+<td>
+
+<p>Character string indicating the path to the peptides-file.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>org</code></td>
+<td>
+
+<p>Character string specifying the organism the peptides are from.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grlocationdf</code></td>
+<td>
+
+<p>Data.frame including the following columns: Expname, Location, Treatment, Sample, Group.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>version</code></td>
+<td>
+
+<p>Character string indicating what version of the ‘<span class="file">BasicData</span>’ file should be used.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>species</code></td>
+<td>
+
+<p>Character strings specifying the UniProt species names of the data sets for download from UniProt to ‘<span class="file">BasicData</span>’.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>proteomeid</code></td>
+<td>
+
+<p>Character strings specifying the UniProt proteome IDs of the organisms for download. Must be in the same order as <code>species</code>.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>taxid</code></td>
+<td>
+
+<p>Character strings containing the UniProt taxonomic IDs of the organisms for download. Must be in the same order as <code>species</code>.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>domain</code></td>
+<td>
+
+<p>Character strings containing the UniProt domain description. Must be in the same order as <code>species</code>.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>forcedl</code></td>
+<td>
+
+<p>Logical, TRUE: indicates that the actual <code>version</code> of ‘<span class="file">BasicData</span>’ should be downloaded again, FALSE: if not.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pepstack</code></td>
+<td>
+
+<p>Numerical indicating the minimal number of runs per group where the same peptide should have been measured.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pepque</code></td>
+<td>
+
+<p>Numerical indicating the minimal number of peptides that should have been measured in each groupe.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sortprint</code></td>
+<td>
+
+<p>Character string that indicates how the peptide plot will be sorted. "fcsmall": decreasing <code>fcsmall</code> values  , "lflf": decreasing <code>fclf</code> values, "trunc": decreasing <code>tscore</code> values, "acc": increasing <code>accessions</code>, "ntts": decreasing values of <code>NTT</code>*<code>NTTcov</code>, "ctts": decreasing values of <code>CTT</code>*<code>CTTcov</code>.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>unipep</code></td>
+<td>
+
+<p>Logical that indicates if only unique peptides should be used. TRUE: only uniques, FALSE: all peptides in the file.
+
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>localfasta</code></td>
+<td>
+
+<p>Character string indicating that a local FASTA file should be used. Default: "none", if the FASTA file should be downloaded from UniProt, "...": any valid <code>path</code> to a FASTA file on the system.
+
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><b>Worklfow</b><br>
+1. Create a data structure.<br>
+2. Download and prepare data from UniProt.<br>
+3. Calculate features.<br>
+4. Print plots to PDF.<br>
+5. Save features as .rds and .csv.<br><br></p>
+<p><b>Input</b><br>
+———————————————————<br>
+peptide-files: the program uses the file extension to decide if the input was created by MaxQuant (.txt) or by Progenesis (.csv).<br><br><b><code>grlocationdf</code>:</b> Should be a data.frame that contains the following columns:<br><br><b><code>Expname</code>:</b> This column should contain all experiment names from the peptide file that should be used for the feature plotting. Put each experiment in a single row. It should be a character string. Spaces will be filled with underscores automatically.<br></p>
+<p><b><code>Location</code>:</b> Filled with "Secretome" or "Proteome" character strings that indicates if the experiment is from a lysate or not .<br><b><code>Treatment</code>:</b> If the experiments are based on different treatments of the cell, should be marked here. The value must be a character string that matches [A-Z][A-Z].<br><b><code>Sample</code>:</b> Here should be marked from which sample each experiment is from. The values should be simple numbers of type numeric.<br><b><code>Group</code>:</b> These values are used to set experiment groups for the secretome scores. They have to be numbers of type numeric. Set at least two groups if there are to different Locations (e.g. "Secretome" = 1 and "Proteome" = 2). Choose more groups if there are dependencies between treatment, sample and location.<br></p>
+<p><code>grlocationdf</code> is used to assign the experiments correctly during the different scoring and plotting functions.<br><br></p>
+<p><b>Datastructure</b><br>
+At the beginning the following file-structure is created: <br>
+‘<span class="file">globalpath/BasicData</span>’<br>
+‘<span class="file">globalpath/AnalysisData</span>’<br>
+If it already exists, nothing new will be created and the old one is used.
+In BasicData all the different versions of UniProt download files are stored.
+In AnalysisData the output-files are stored.
+</p>
+<p><b>UniProt</b><br>
+For annotation and protein sequence information the organisem specific gff-files and fasta-files are downloaded from UniProt database <a href="http://www.uniprot.org/">http://www.uniprot.org/</a>. As default the actual data-sets are retrieved. If an already downloaded dataset should be used, set <code>version</code> to the foldername of the existing dataset. No archived version can be downloaded from UniProt.<br><br></p>
+<p><b>Output</b><br>
+The PDF output file will contain a plot for every unique protein a peptide was identified by MaxQuant or Progenesis. <br></p>
+<p>A data.frame containing values that are used for the score calculation will be at: <br><br> ‘<span class="file">globpath/AnalysisData/expname/feature_table.rds</span>’ and <br>‘<span class="file">globpath/AnalysisData/expname/feature_table.csv</span>’ <br>
+It contains the following columns: Accession, NTT, NTTcov, CTT, CTTcov, TotalPep, ProtL, MeanSec, MeanProt, MeanSecLF, MeanProtLF, ntts, ctts, tscore, fcsmall, fclf <br>
+A .csv-file of <code>grlocationdf</code> will be saved in ‘<span class="file">AnalysisData</span>’, too.<br>
+Further more ‘<span class="file">intenscount_table.csv</span>’ and ‘<span class="file">namesdf_table.csv</span>’ are stored in the ‘<span class="file">AnalysisData</span>’ directory. They
+contain information that enables printing with <code>print_selected_peptides</code>.<br>
+Further more there should be two tables (‘<span class="file">metaIntens.csv</span>’, ‘<span class="file">metaIntens.csv</span>’) that contain different length and intensity values based on annotated extracellular and cytoplasmic regions.<br></p>
+
+
+<h3>Value</h3>
+
+<p>The return value is TRUE if no error occured and FALSE otherwise.
+The plots and the feature table can be found in ‘<span class="file">globpath/AnalysisData/expname</span>’.
+
+
+
+
+
+</p>
+
+
+<h3>Note</h3>
+
+<p>The download from UniProt may take a while, between 5 and 10 minutes per organism.
+A detailed vignette will follow soon.
+
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rafael Dellen <br><a href="mailto:Rafael.Dellen@uni-duesseldorf.de">Rafael.Dellen@uni-duesseldorf.de</a>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#The download of gff-files and FASTA-sequences from UniProt
+# might be time consuming.
+# Please consider this before running the example.
+
+## Not run: 
+#please choose a path
+globpath &lt;- getwd()
+
+expname &lt;- "Test_Mouse"
+
+sourcefiles &lt;- system.file("extdata", "Mouse.txt",
+                        package="LSPFP")
+
+org &lt;- "Mouse"
+
+
+#prepare grlocationdf
+expnames &lt;- c("Lysat_PB1a","Lysat_PB2a","Lysat_PB3a","Lysat_PB4a",
+  "Lysat_PB5a","Lysat_PK1a", "Lysat_PK2a","Lysat_PK3a","Lysat_PK4a",
+  "Lysat_PK5a","Sekretom_PB1a","Sekretom_PB2a","Sekretom_PB3a",
+  "Sekretom_PB4a","Sekretom_PB5a","Sekretom_PK1a","Sekretom_PK2a",
+  "Sekretom_PK3a","Sekretom_PK4a","Sekretom_PK5a")
+
+# Are the values from the secretome or the proteome of the cells?
+explocation &lt;- c(rep("Proteome",10),rep("Secretome",10))
+
+# Are the cells from the same culture eg. patient?
+expsample &lt;- c(rep(1:5,4))
+
+# Are the samples differently treated?
+#(different environments, chemicals, tissue extraction technique)?
+exptreatment &lt;- c(rep("AA",5),rep("BB",5),rep("AB",5),rep("BC",5))
+
+#Group specifies which experiments belong together
+group &lt;- c(rep(1,10),rep(2,10))
+grlocationdf &lt;- data.frame(Expname = expnames, Location = explocation,
+                          Treatment = exptreatment, Sample = expsample,
+                          Group = group, stringsAsFactors = FALSE)
+
+
+species &lt;- "MOUSE"
+proteomeid &lt;- "UP000000589"
+taxid &lt;- "10090"
+domain &lt;- "Eukaryota"
+
+
+res &lt;- wrapperLSPFP(globpath, expname, sourcefiles, org, grlocationdf,
+                    species= species, proteomeid = proteomeid,
+                    taxid = taxid, domain = domain)
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

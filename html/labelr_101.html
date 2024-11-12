@@ -1,0 +1,145 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>slab</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Subset a Data Frame Using Value Labels</h2>
+
+<h3>Description</h3>
+
+<p><code>slab</code> ("subset using labels") allows one to filter rows and select columns
+from a data.frame based on variable-specific value label attributes.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">slab(data, condition, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>the data.frame from which columns rows will be filtered (and,
+possibly, columns selected)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>row-filtering conditions along the lines of base::subset()
+and/or dplyr::filter(). Note: Row-filtering conditions (to include
+condition==NULL) must be supplied. Conditions involving value-labeled
+variables must be expressed in terms of the value labels (see examples),
+else try <code>ssubset.</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Optionally supply one or more unquoted, comma-separated
+column names that identify columns to be retained (Note: If no columns are
+listed, all columns will be retained). Note: While row-filtering conditions
+may leverage standard operators (e.g., &amp;, |, ==, !=), the column-selection
+portion of call may not incorporate special characters or symbols, such as
+quotes, parentheses, colons, minus signs, exclamation points, or other
+operators. Only positive selection of columns is permitted (negative
+selection – i.e., "select not / select-all-except" specified columns is not
+supported)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>slab</code> does base::subset-style data subsetting using variable value label
+meta-data that are associated with variable values but are not themselves
+values (i.e., will not appear in response to <code>View()</code>, <code>head()</code>, etc.).
+In other words, value labels are supplied to the <code>slab()</code> call to direct the
+filtering process, but those value labels are not displayed in the cells of
+the returned data.frame – the raw values themselves are. This functionality
+may be useful for interactively subsetting a data.frame, where character
+value labels may be more intuitive and easily recalled than the underlying
+variable values themselves (e.g., raceth=="White" &amp; gender="F" may be more intuitive or
+readily recalled than raceth==3 &amp; gender==2).
+</p>
+<p><code>slab</code>takes as its arguments a labelr value-labeled data.frame, followed by
+condition-based row-filtering instructions (required) and a list of unquoted
+names of variables to be retained (optional; all variables returned by
+default).
+</p>
+<p>Note 1: When using <code>slab</code>, any conditional row-filtering syntax involving
+value-labeled variables must be expressed in terms of those variables' value
+labels, not the raw values themselves. Filtering on non-value-labeled
+variables is also permitted, with those variables' filtering conditions being
+expressed in terms of raw values. Further, <code>slab()</code> calls may reference both
+types of columns (i.e., value-labeled variables and non-value-labeled
+variables), provided filtering conditions for the former are expressed in
+terms of value labels.
+</p>
+<p>Note 2: <code>slab</code> (and labelr more broadly) is intended for moderate-sized (or
+smaller) data.frames, defined loosely as those with a few million or fewer
+rows. With a conventional (c. 2024) laptop, labelr operations on modest-
+sized (~100K rows) take seconds (or less); with larger (&gt; a few million rows)
+data.frames, labelr may take several minutes (or run out of memory and fail
+altogether!), depending on the complexity of the call and the number and type
+of cells implicated in it.
+</p>
+<p>See also <code>flab</code>, <code>use_val_labs</code>, <code>add_val_labs</code>, <code>add_val1</code>,<code>add_quant_labs</code>,
+<code>add_quant1</code>, <br><code>get_val_labs</code>, <code>drop_val_labs</code>. For label-preserving
+subsetting tools that subset in terms of raw values (not value labels), see
+<code>sfilter</code>, <code>sbrac</code>, <code>ssubset</code>, <code>sdrop</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a labelr label attribute-preserving data.frame consisting of the
+selected rows that meet the filtering condition(s) and the columns whose
+(unquoted, comma-separated) names are passed to dots (...) (or all columns
+if no column names are passed).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># make toy demographic (gender, raceth, etc.) data set
+set.seed(555)
+df &lt;- make_demo_data(n = 1000)
+
+# let's add variable VALUE labels for variable "raceth"
+df &lt;- add_val_labs(df,
+  vars = "raceth", vals = c(1:7),
+  labs = c("White", "Black", "Hispanic", "Asian", "AIAN", "Multi", "Other"),
+  max.unique.vals = 50
+)
+
+# let's add variable VALUE labels for variable "gender"
+# note that, if we are labeling a single variable, we can use add_val1()
+# distinction between add_val1() and add_val_labs() will become more
+# meaningful when we get to our Likert example
+df &lt;- add_val1(
+  data = df, gender, vals = c(0, 1, 2, 3, 4),
+  labs = c("M", "F", "TR", "NB", "Diff-Term"), max.unique.vals = 50
+)
+
+# see what we did
+# get_val_labs(df)
+get_val_labs(df, "gender")
+get_val_labs(df, "raceth")
+
+# use --labels-- to subset w/ slab() ("*S*ubset using *lab*els")
+dflab &lt;- slab(df, raceth == "Asian" &amp; gender == "F", id, gender)
+head(dflab, 4)
+
+# equivalently, use --values--- to filter w/ sfilter() ("*S*afe filter")
+dfsf &lt;- ssubset(df, raceth == 3 &amp; gender == 1, gender, raceth)
+head(dfsf, 4)
+</code></pre>
+
+
+</div>

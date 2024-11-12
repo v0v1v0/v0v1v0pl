@@ -1,0 +1,213 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>search_heuristic4</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Finds matching using depth-first search, looking ahead n steps.</h2>
+
+<h3>Description</h3>
+
+<p>In each step, it removes one subject from the set of subjects that were
+removed on most paths after "lookahead" steps, preferring one with the
+smallest associate p-value.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">search_heuristic4(
+  condition,
+  covariates,
+  halting_test,
+  thresh,
+  props,
+  max_removed_per_cond,
+  tiebreaker = NULL,
+  min_preserved = length(levels(condition)),
+  lookahead = 2,
+  prefer_test = TRUE,
+  print_info = TRUE,
+  max_removed_per_step = 1,
+  max_removed_percent_per_step = 0.5,
+  ratio_for_slowdown = 0.5,
+  given_args = NULL,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>condition</code></td>
+<td>
+<p>A factor vector containing condition labels.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>covariates</code></td>
+<td>
+<p>A columnwise matrix containing
+covariates to match the conditions on.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>halting_test</code></td>
+<td>
+<p>A function to apply to 'covariates' (in matrix form)
+which is TRUE iff the conditions are matched.
+Signature: halting_test(condition, covariates, thresh).
+The following halting tests are part of this package:
+<code>t_halt</code>, <code>U_halt</code>,
+<code>l_halt</code>, <code>ad_halt</code>,
+<code>ks_halt</code>, <code>wilks_halt</code>,
+<code>f_halt</code>.
+You can create the intersection of two or more halting
+tests using <code>create_halting_test</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thresh</code></td>
+<td>
+<p>The return value of halting_test has to be greater than
+or equal to thresh for the matched groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>props</code></td>
+<td>
+<p>Either the desired proportions (percentage) of the
+sample for each condition as a named vector,
+or the names of the conditions
+for which we prefer to preserve the subjects,
+in decreasing order of preference. If not specified, the
+(full) sample proportions are used.
+This is preferred among configurations with the same
+taken into account by the other methods to some extent.
+For example, c(A = 0.4, B = 0.4, C = 0.2) means that
+we would like the number of subjects in groups A, B, and
+C to be around 40%, 40%, and 20% of the total number of
+subjects, respectively. Whereas c("A", "B", "C") means
+that if possible, we would like to keep all subjects
+in group A, and prefer keeping subjects in B, even if
+it results in losing more subjects from C.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_per_cond</code></td>
+<td>
+<p>The maximum number of subjects that can be removed from
+each group. It must have a valid number for each group.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tiebreaker</code></td>
+<td>
+<p>NULL, or a function similar to halting_test, used to
+decide between cases for which halting_test yields
+equal values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min_preserved</code></td>
+<td>
+<p>The minimum number of preserved subjects.
+It can be used to ensure that the search will not take
+forever to run, but instead fail when a solution is not
+found when preserving this number of subjects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lookahead</code></td>
+<td>
+<p>The lookahead to use: a positive integer.
+It is used by the heuristic3 and heuristic4 algorithms,
+with a default of 2.
+The running time is O(N ^ lookahead), wheren N is the
+number of subjects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>prefer_test</code></td>
+<td>
+<p>If TRUE, prefers higher test statistic more than
+the expected group size proportion; default is TRUE.
+Used by all algorithms except exhaustive, which always</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print_info</code></td>
+<td>
+<p>If TRUE, prints summary information on the input and the
+results, as well as progress information for the
+exhaustive search and random algorithms. Default: TRUE;
+can be changed using
+<code>set_param("PRINT_INFO", FALSE)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_per_step</code></td>
+<td>
+<p>The number of equivalent subjects
+that can be removed in each step. (The actual allowed
+number may be less depending on the p-value / theshold ratio.)
+This parameters is used by the heuristic3 and heuristic4
+algorithms, with a default value of 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_removed_percent_per_step</code></td>
+<td>
+<p>The percentage of remaining subjects
+that can be removed in each step.
+Used when max_removed_per_step &gt; 1,
+with a default value of 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratio_for_slowdown</code></td>
+<td>
+<p>The p-value / threshold ratio at which
+it starts removing subjects one by one.
+Used when max_removed_per_step &gt; 1,
+with a default value of 0.5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>given_args</code></td>
+<td>
+<p>The names of arguments given to the search function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Consumes extra parameters that are not used by the
+search algorithm at hand; this function gives a warning
+about the ones whose value is not NULL that their value
+is not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Note that this algorithm is not deterministic, as it chooses one possible
+subject for removal randomly when there are multiple apparently equivalent ones.
+In practice it means that it may return different results on different runs
+(including the case that it fails to converge to a solution in one run,
+but converges in another run). If print_info = TRUE (the default), you will
+see a message about "Random choices" if the algorithm needed to make such
+random decisions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>All results found by search method in a list. It raises a
+"Convergence failure" error if it cannot find a matched set.
+</p>
+
+
+</div>

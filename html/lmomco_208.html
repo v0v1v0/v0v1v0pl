@@ -1,0 +1,168 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmrloc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Line-of-Organic Correlation</h2>
+
+<h3>Description</h3>
+
+<p>Compute the line-of-organic correlation (LOC) (Helsel and others, 2020, sec. 10.2.2, p. 280). The LOC is estimated by both L-moments and product moments. The LOC has other names in the literature including reduced major axis and line of diagonal correlation. When describing a functional relations between two variables without trying to predict one from the other, LOC is more appropriate than ordinary least squares (OLS).
+</p>
+<p>The LOC is a regression line whose slope is computed by the ratio between respective variations of the predictor variable and the response variable. The intercept of the line is computed such that the line passes through the familiar arithmetic mean (first L-moment) (<code class="reqn">\lambda_1</code>) each for the two variables. Relative variation is readily computed by the ratio of standard deviations or for more robust and less biased estimation by the ratio of the L-variations (second L-moment) (<code class="reqn">\lambda_2</code>) of the two variables.
+</p>
+<p>The <code class="reqn">\lambda_2</code> is generically based on the so-called Gini mean difference statistic (GMD) (<code class="reqn">\mathcal{G}</code>) by <code class="reqn">\lambda_2 = \mathcal{G}/2</code> (<code>gini.mean.diff</code>). Incidentally for the normal distribution, the well-known standard deviation is the product <code class="reqn">\lambda_2\sqrt{\pi}</code> (see also <code>lmomnor</code>). Mathematically, GMD is defined as the linear combination
+</p>
+<p style="text-align: center;"><code class="reqn">\mathcal{G} = \frac{2}{n(n-1)}\sum_{i=1}^n (2i - n - 1) x_{i:n}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">x_{i:n}</code> are the sample ascending order statistics.
+</p>
+<p>Returning to the need to estimate the LOC slope, algebra shows the slope is the ratio of the <code class="reqn">\mathcal{G}</code> values as
+</p>
+<p style="text-align: center;"><code class="reqn">m = \mathrm{sign[} \rho \mathrm{]}\cdot\frac{\sum_{i=1}^n (2i - n - 1) X_{i:n}}{\sum_{i=1}^n (2i - n - 1) Y_{i:n}}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">X_{i:n}</code> is an ordered (ascending) vector of random variable <code class="reqn">X</code>, <code class="reqn">Y_{i:n}</code> is an ordered (ascending) vector of random variable <code class="reqn">Y</code>, and the slope sign can be computed by a correlation coefficient sign (Pearson R, Kendall Tau [computationally slowest], Spearman Rho would all work [implemented for the function, <code class="reqn">\rho</code>]). For applications, it is critical that the correlation coefficient is computed using the original correlated-ordering of <code class="reqn">X</code> and <code class="reqn">Y</code> and not after individual vector sorting that is needed for the GMD (L-moments). A developer, therefore, must be cognizant of the placement in code when the two variables are sorted to the order statistics for <code class="reqn">\mathcal{G}</code> computations.
+</p>
+<p>The LOC intercept is given by algebra by
+</p>
+<p style="text-align: center;"><code class="reqn">b = \frac{1}{n}\biggl(\sum_{i=1}^n X_{i:n} - m \cdot \sum_{i=1}^n Y_{i:n}\biggr)\mbox{.}</code>
+</p>
+
+<p>Helsel and others (2020, p. 281) enumerate some advantages to the use of the LOC: (1) it minimizes errors in both <code>x</code> and <code>y</code> directions, (2) it provides a single line regardless of which variable (x or y) is used as the response variable, and (3) its cumulative distribution function of the predictions, including the variance and probabilities, is correct (meaning not compressed as in OLS). The LOC is particularly useful for modeling the intrinsic functional relation between two variables, both of which are measured with error and (or) when neither variable is considered an independent variable appropriate to predict the other.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmrloc(x, y=NULL, terse=TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A numeric vector, matrix or data frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p><code>NULL</code> (default) or a vector of same length of <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terse</code></td>
+<td>
+<p>A logical triggering only return of the coefficients of the two lines; otherwise, the intermediate computations are also returned.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned with <code>terse=TRUE</code> with two vectors of the intercept and slope coefficients for the L-moment and the product moment versions. The names on the vectors, respectively, are <code>"LMR_Intercept", "LMR_Slope"</code> and <code>"PMR_Intercept", "PMR_Slope"</code> for LMR (L-moment ratio) and PMR (product moment ratio) are monikers for the two approaches. An expanded <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned with <code>terse=FALSE</code> with the intermediate computations also provided.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>loc_lmr</code></td>
+<td>
+<p>The LOC by L-moments (L-variations or equivalently Gini Mean Differences).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loc_pmr</code></td>
+<td>
+<p>The LOC by product moments (standard deviations).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>srho</code></td>
+<td>
+<p>The sign on Spearman Rho.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_x</code></td>
+<td>
+<p>The arithmetic mean of the <code>x</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mu_y</code></td>
+<td>
+<p>The arithmetic mean of the <code>y</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gini_x</code></td>
+<td>
+<p>The GMD of the <code>x</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gini_y</code></td>
+<td>
+<p>The GMD of the <code>y</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_x</code></td>
+<td>
+<p>The standard deviation of the <code>x</code> variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sd_y</code></td>
+<td>
+<p>The standard deviation of the <code>y</code> variable.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Helsel, D.R., Hirsch, R.M., Ryberg, K.R., Archfield, S.A., and Gilroy, E.J., 2020, Statistical methods in water resources: U.S. Geological Survey Techniques and Methods, book 4, chap. A3, 458 p., <a href="https://doi.org/10.3133/tm4a3">doi:10.3133/tm4a3</a>.
+</p>
+<p>Hosking, J.R.M., 1990, L-moments—Analysis and estimation of
+distributions using linear combinations of order statistics: Journal of the Royal Statistical Society, Series B, v. 52, pp. 105–124.
+</p>
+<p>Jurečková, J., and Picek, J., 2006, Robust statistical methods with R: Boca Raton, Fla., Chapman and Hall/CRC, ISBN 1–58488–454–1.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>gini.mean.diff</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">n &lt;- 100; x &lt;- rnorm(n); y &lt;- -0.4 * x + rnorm(n, sd=0.2)
+y[x == min(x)] &lt;- 2 * min(y) # throw in an outlier to help separate two lines
+loc &lt;- lmrloc(x, y, terse=FALSE)
+plot(x, y)
+abline(loc$loc_lmr, lty=1)
+abline(loc$loc_pmr, lty=2)
+legend("topright", c("LOC by L-moments", "LOC by product moments"), lty=c(1,2))
+
+olsxy &lt;- 1 / coefficients(stats::lm(x~y))[2] # yes inversion needed to show
+olsyx &lt;-     coefficients(stats::lm(y~x))[2] # geometric mean in proper way
+mstar &lt;- loc$srho * sqrt(abs(olsxy) * abs(olsyx)); names(mstar) &lt;- NULL
+m_pmr &lt;- loc$loc_pmr[2]; names(m_pmr) &lt;- NULL
+m_lmr &lt;- loc$loc_lmr[2]; names(m_lmr) &lt;- NULL
+message("Geometric mean OLS slopes = ", mstar) # see that these two are
+message("           PMR LOC slope  = ", m_pmr) # equivalent by theory
+message("           LMR LOC slope  = ", m_lmr) # this one is not
+</code></pre>
+
+
+</div>

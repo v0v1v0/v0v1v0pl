@@ -1,0 +1,98 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fread_plus_date</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read a file and set a special libbib date attribute</h2>
+
+<h3>Description</h3>
+
+<p>Takes a file name, reads it with <code>data.table::fread</code>, and
+sets an attribute called <code>lb.date</code> with a date extracted
+from the file name.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fread_plus_date(fname, allow.fallback.date = TRUE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fname</code></td>
+<td>
+<p>The file name to read</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>allow.fallback.date</code></td>
+<td>
+<p>A logical indicating whether, if no
+matching file name with a date is found,
+to use today's date as the date attribute.
+Default is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arbitrary arguments to use with <code>fread</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The file name can be one with a valid ISO 8601 date (yyyy-mm-dd)
+already in it, or it can be a file name with the date elided.
+</p>
+<p>For example, if there is a file you'd like to read on your disk
+called "iris-2021-05-08.csv", you can call this function with
+either "iris.csv" or "iris-2021-05-08.csv" as the file name.
+</p>
+<p>When you call this function with a file name without an ISO 8601
+date (e.g. "iris.csv.gz"),  the file name extension ".csv.gz" is
+removed and the function looks for a file name beginning with
+"iris", a date, and the file extension. The file extension is
+considered to be anything after the first period in the base name.
+For example, if the file name given is "./my.data/iris.csv.gz", the
+extension is ".csv.gz". This means no period can be present in
+the base file name (after any directories) with the exception of
+the file extension.
+</p>
+<p>If you call this function with "iris.csv" and there is no file name
+with an ISO 8601 date appended to that file name on your disk, and
+<code>allow.fallback.date</code> is <code>TRUE</code>, then the <code>lb.date</code>
+attribute is set to the current date.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>data.table</code> with an attribute called <code>lb.date</code> set
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+  # there's a file called "iris-2021-05-08.csv" on disk
+  dat &lt;- fread_plus_date("iris.csv")
+  attribute(dat)$lb.date
+  # [1] "2021-05-08
+
+  # can also read the full file name
+  dat &lt;- fread_plus_date("iris-2021-05-08.csv")
+  attribute(dat)$lb.date
+  # [1] "2021-05-08
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,115 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PLR.CV</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validation for penalized Lorenz regression</h2>
+
+<h3>Description</h3>
+
+<p><code>PLR.CV</code> selects the grid and penalization parameters of the penalized Lorenz regression by cross-validation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PLR.CV(object, k, seed.CV = NULL, parallel = FALSE, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>An object with S3 class <code>"PLR"</code>, i.e. the return of a call to the <code>Lorenz.Reg</code> function where <code>penalty=="SCAD"</code> or <code>penalty=="LASSO"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>An integer indicating the number of folds in the k-fold cross-validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed.CV</code></td>
+<td>
+<p>An optional seed that is used internally for the creation of the folds. Default is <code>NULL</code>, in which case no seed is imposed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Whether parallel computing should be used to distribute the cross-validation computations. Either a logical value determining whether parallel computing is used (TRUE) or not (FALSE, the default value). Or a numerical value determining the number of cores to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters corresponding to arguments passed to the function <code>vfold_cv</code> from the <em>rsample</em> library.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The parameter <code>seed.CV</code> allows for local seed setting to control randomness in the generation of the folds.
+The specified seed is applied to the respective part of the computation, and the seed is reverted to its previous state after the operation.
+This ensures that the seed settings do not interfere with the global random state or other parts of the code.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>c("PLR_cv", "PLR")</code>. The object is a list containing the following components:
+</p>
+
+<dl>
+<dt><code>path</code></dt>
+<dd>
+<p>See the <code>Lorenz.Reg</code> function for the documentation of the original path. To this path is added the CV-score.</p>
+</dd>
+<dt><code>lambda.idx</code></dt>
+<dd>
+<p>A vector indicating the index of the optimal lambda obtained by each selection method.</p>
+</dd>
+<dt><code>grid.idx</code></dt>
+<dd>
+<p>A vector indicating the index of the optimal grid parameter obtained by each selection method.</p>
+</dd>
+</dl>
+<p>Note: The returned object may have additional classes such as <code>"PLR_boot"</code> if bootstrap was performed.
+</p>
+
+
+<h3>References</h3>
+
+<p>Jacquemain, A., C. Heuchenne, and E. Pircalabelu (2024). A penalised bootstrap estimation procedure for the explained Gini coefficient. <em>Electronic Journal of Statistics 18(1) 247-300</em>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Lorenz.Reg</code>, <code>Lorenz.SCADFABS</code>, <code>Lorenz.FABS</code>, <code>Lorenz.boot</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Continuing the  Lorenz.Reg(.) example:
+PLR_CV &lt;- PLR.CV(PLR, k = 5, seed.CV = 123)
+# The object now inherits from the class "PLR_CV".
+# Hence the methods (also) display the results obtained by cross-validation.
+print(PLR_CV)
+summary(PLR_CV)
+coef(PLR_CV, pars.idx = "CV")
+predict(PLR_CV, pars.idx = "CV")
+plot(PLR_CV)
+plot(PLR_CV, type = "diagnostic") # Plot of the scores depending on the grid and penalty parameters
+
+</code></pre>
+
+
+</div>

@@ -1,0 +1,408 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>xsample</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Randomly samples an underdetermined problem with linear equality and
+inequality constraints
+</h2>
+
+<h3>Description</h3>
+
+<p>Random sampling of inverse linear problems with linear equality and
+inequality constraints.
+Uses either a "hit and run" algorithm (random or coordinate directions)
+or a mirroring technique for sampling.
+</p>
+<p>The Markov Chain Monte Carlo method produces a sample solution for
+</p>
+<p style="text-align: center;"><code class="reqn">Ex=f</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Ax\simeq B</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">Gx&gt;=h</code>
+</p>
+
+<p>where <code class="reqn">Ex=F</code> have to be met exactly, and x is distributed
+according to <code class="reqn"> p(\mathbf{x})\propto
+  e^{-\frac{1}{2}(\mathbf{Ax-b})^T\mathbf{W}^2(\mathbf{Ax-b})}
+  </code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">xsample(A = NULL, B = NULL, E = NULL, F =NULL, 
+        G = NULL, H = NULL, sdB = NULL, W = 1, 
+        iter = 3000, outputlength = iter, burninlength = NULL, 
+        type = "mirror", jmp = NULL, tol = sqrt(.Machine$double.eps), 
+        x0 = NULL, fulloutput = FALSE, test = TRUE, verbose=TRUE,
+        lower = NULL, upper = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>A </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the
+(approximate) equality constraints, <code class="reqn">Ax\simeq B</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the
+(approximate) equality constraints.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>E </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the (exact)
+equality constraints, <code class="reqn">Ex=F</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>F </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the
+(exact) equality constraints.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>G </code></td>
+<td>
+<p>numeric matrix containing the coefficients of the inequality
+constraints, <code class="reqn">Gx&gt;=H</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>H </code></td>
+<td>
+<p>numeric vector containing the right-hand side of the inequality
+constraints.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sdB </code></td>
+<td>
+<p>vector with standard deviation on B. Defaults to <code>NULL</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>W </code></td>
+<td>
+<p>weighting for <code class="reqn">Ax\simeq B</code>. Only used if
+<code>sdB=NULL</code> and the problem is
+overdetermined. In that case, the error of B around the model Ax is
+estimated based on the residuals of <code class="reqn">Ax\simeq B</code>. This
+error is made proportional to 1/W. If sdB is not NULL, <code class="reqn">W=diag(sdB^-1)</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter </code></td>
+<td>
+<p>integer determining the number of iterations.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outputlength</code></td>
+<td>
+<p> number of iterations kept in the output; at most
+equal to <code>iter</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burninlength</code></td>
+<td>
+<p>a number of extra iterations, performed at first, to
+"warm up" the algorithm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type </code></td>
+<td>
+<p>type of algorithm: one of: "mirror", (mirroring algorithm),
+"rda" (random directions algorithm) or "cda" (coordinates directions
+algorithm).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jmp </code></td>
+<td>
+<p>jump length of the transformed variables q: <code class="reqn">x=x0+Zq</code>
+(only if <code>type</code>=="mirror"); if jmp is <code>NULL</code>, a reasonable
+value is determined by xsample, depending on the size of the NULL space.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol </code></td>
+<td>
+<p>tolerance for equality and inequality constraints; numbers
+whose absolute value is smaller than <code>tol</code> are set to zero.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0 </code></td>
+<td>
+<p>initial (particular) solution.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fulloutput </code></td>
+<td>
+<p>if <code>TRUE</code>, also outputs the transformed variables q.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>test </code></td>
+<td>
+<p>if <code>TRUE</code>, xsample will test for hidden equalities (see
+details). This may be necessary for large problems, but slows down
+execution a bit.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose </code></td>
+<td>
+<p>logical to print warnings and messages.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper, lower </code></td>
+<td>
+<p>vector containing upper and lower bounds 
+on the unknowns. If one value, it is assumed to apply to all unknowns.
+If a vector, it should have a length equal to the number of unknowns; this
+vector can contain NA for unbounded variables. 
+The upper and lower bounds are added to the inequality conditions G*x&gt;=H.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The algorithm proceeds in two steps.
+</p>
+
+<ol>
+<li>
+<p>  the equality constraints <code class="reqn">Ex=F</code> are eliminated, and the
+system <code class="reqn">Ex=f</code>, <code class="reqn">Gx&gt;=h</code> is rewritten as <code class="reqn">G(p+Zq)&gt;= h</code>,
+i.e. containing only inequality constraints and where Z is a basis for
+the null space of E.
+</p>
+</li>
+<li>
+<p>  the distribution of <code class="reqn">q</code> is sampled numerically
+using a random walk (based on the Metropolis algorithm).
+</p>
+</li>
+</ol>
+<p>There are three algorithms for selecting new samples: <code>rda</code>,
+<code>cda</code> (two hit-and-run algorithms) and a novel <code>mirror</code> algorithm.
+</p>
+
+<ul>
+<li>
+<p> In the <code>rda</code> algorithm first a random direction is selected,
+and the new sample obtained by uniformly sampling the line
+connecting the old sample and the intersection with the planes defined
+by the inequality constraints.
+</p>
+</li>
+<li>
+<p> the <code>cda</code> algorithm is similar, except that the direction is
+chosen along one of the coordinate axes.
+</p>
+</li>
+<li>
+<p> the <code>mirror</code> algorithm is yet unpublished; it uses the
+inequality constraints as "reflecting planes" along which jumps are
+reflected.
+In contrast to <code>cda</code> and <code>rda</code>, this algorithm also works
+with unbounded problems (i.e. for which some of the unknowns can attain
+Inf).
+</p>
+</li>
+</ul>
+<p>For more information, see the package vignette <code>vignette(xsample)</code> or
+the file xsample.pdf in the packages ‘<span class="file">docs</span>’ subdirectory.
+</p>
+<p>Raftery and Lewis (1996) suggest a minimum of 3000 iterations to reach
+the extremes.
+</p>
+<p>If provided, then <code>x0</code> should be a valid particular solution (i.e.
+<code class="reqn">E*x0=b</code> and <code class="reqn">G*x0&gt;=h</code>), else the algorithm will fail.
+</p>
+<p>For larger problems, a central solution may be necessary as a starting
+point for the <code>rda</code> and <code>cda</code> algorithms.  A good starting
+value is provided by the "central" value when running the function
+<code>xranges</code> with option <code>central</code> equal to <code>TRUE</code>.
+</p>
+<p>If the particular solution (<code>x0</code>) is not provided, then the
+parsimonious solution is sought, see <code>ldei</code>.
+</p>
+<p>This may however not be the most efficient way to start the algorithm. The
+parsimonious solution is usually located near the edges, and the
+<code>rda</code> and <code>cda</code> algorithms may not get out of this corner.
+The <code>mirror</code> algorithm is insensitive to that. Here it may be even
+better to start in a corner (as this position will always never be
+reached by random sampling).
+</p>
+<p>The algorithm will fail if there are hidden equalities. For instance, two
+inequalities may together impose an equality on an unknown,
+or, inequalities may impose equalities on a linear combination of two or
+more unknowns.
+</p>
+<p>In this case, the basis of the null space Z will be deficient. Therefore,
+<code>xsample</code> starts by checking if such hidden equalities exist.
+If it is suspected that this is NOT the case, set <code>test</code> to
+<code>FALSE</code>. This will speed up execution slightly.
+</p>
+<p>It is our experience that for small problems either the <code>rda</code> and
+<code>cda</code> algorithms are often more efficient.
+For really large problems, the <code>mirror</code> algorithm is usually much more
+efficient; select a jump length (<code>jmp</code>) that ensures good random
+coverage, while still keeping the number of reflections reasonable.
+If unsure about the size of jmp, the default will do.
+</p>
+<p>See <code>E_coli</code> for an example where a relatively large problem
+is sampled.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a list containing:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+<p>matrix whose rows contain the sampled values of x.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acceptedratio </code></td>
+<td>
+<p>ratio of acceptance (i.e. the ratio of the accepted
+runs / total iterations).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q </code></td>
+<td>
+<p>only returned if <code>fulloutput</code> is <code>TRUE</code>: the
+transformed samples Q.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p </code></td>
+<td>
+<p>only returned if <code>fulloutput</code> is <code>TRUE</code>: probability
+vector for all samples (e.g. one value for each row of <code>X</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jmp </code></td>
+<td>
+<p>the jump length used for the random walk. Can be used to
+check the automated jump length.
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Karel Van den Meersche
+</p>
+<p>Karline Soetaert &lt;karline.soetaert@nioz.nl&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Van den Meersche K, Soetaert K, Van Oevelen D (2009). xsample(): An R
+Function for Sampling Linear Inverse Problems.
+Journal of Statistical Software, Code Snippets, 30(1), 1-15.
+</p>
+<p><a href="https://www.jstatsoft.org/v30/c01/">https://www.jstatsoft.org/v30/c01/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Minkdiet</code>, for a description of the Mink diet example.
+</p>
+<p><code>ldei</code>, to find the least distance solution
+</p>
+<p><code>lsei</code>, to find the least squares solution
+</p>
+<p><code>varsample</code>, to randomly sample variables of an lsei problem.
+</p>
+<p><code>varranges</code>, to estimate ranges of inverse variables.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#-------------------------------------------------------------------------------
+# A simple problem
+#-------------------------------------------------------------------------------
+# Sample the probability density function of x1,...x4
+# subject to:
+# x1 + x2       + x4 = 3
+#      x2  -x3  + x4 = -1
+# xi   &gt; 0
+
+E &lt;- matrix(nrow = 2, byrow = TRUE, data = c(1, 1, 0,  1,
+                                             0, 1, -1, 1))
+F   &lt;- c(3, -1)
+
+xs  &lt;- xsample(E = E, F = F, lower = 0)
+pairs(xs)
+
+#-------------------------------------------------------------------------------
+# Sample the underdetermined Mink diet problem
+#-------------------------------------------------------------------------------
+E &lt;- rbind(Minkdiet$Prey, rep(1, 7))
+F &lt;- c(Minkdiet$Mink, 1)
+
+# Here the Requirement x &gt; 0 is been inposed in G and H.
+pairs(xsample(E = E, F = F, G = diag(7), H = rep(0, 7), iter = 5000,
+      output = 1000, type = "cda")$X,
+      main = "Minkdiet 1000 solutions, - cda")
+</code></pre>
+
+
+</div>

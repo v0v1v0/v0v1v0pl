@@ -1,0 +1,524 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>optim.auglag</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Optimize an objective function under
+multiple blackbox constraints
+</h2>
+
+<h3>Description</h3>
+
+<p>Uses a surrogate modeled augmented Lagrangian (AL) system to optimize
+an objective function (blackbox or known and linear) 
+under unknown multiple (blackbox) constraints via
+expected improvement (EI) and variations; a comparator based
+on EI with constraints is also provided
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">optim.auglag(fn, B, fhat = FALSE, equal = FALSE, ethresh = 1e-2, 
+  slack = FALSE, cknown = NULL, start = 10, end = 100, 
+  Xstart = NULL, sep = TRUE, ab = c(3/2, 8), lambda = 1, rho = NULL, 
+  urate = 10, ncandf = function(t) { t }, dg.start = c(0.1, 1e-06), 
+  dlim = sqrt(ncol(B)) * c(1/100, 10), Bscale = 1, ey.tol = 1e-2, 
+  N = 1000, plotprog = FALSE, verb = 2, ...)
+optim.efi(fn, B, fhat = FALSE, cknown = NULL, start = 10, end = 100, 
+  Xstart = NULL, sep = TRUE, ab = c(3/2,8), urate = 10, 
+  ncandf = function(t) { t }, dg.start = c(0.1, 1e-6), 
+  dlim = sqrt(ncol(B))*c(1/100,10), Bscale = 1, plotprog = FALSE, 
+  verb = 2, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fn</code></td>
+<td>
+
+<p>function of an input (<code>x</code>), facilitating vectorization on a 
+<code>matrix</code> <code>X</code> thereof,  returning a <code>list</code> 
+with elements <code>$obj</code> containing the (scalar) objective value and <code>$c</code> 
+containing a vector of evaluations of the (multiple) constraint function at <code>x</code>.
+The <code>fn</code> function must take a <code>known.only</code> argument which is explained
+in the note below; it need not act on that argument
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+
+<p>2-column <code>matrix</code> describing the bounding box.  The number of rows
+of the <code>matrix</code> determines the input dimension 
+(<code>length(x)</code> in <code>fn(x)</code>); the first column gives
+lower bounds and the second gives upper bounds
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fhat</code></td>
+<td>
+<p> a scalar logical indicating if the objective function should
+be modeled with a GP surrogate.  The default of <code>FALSE</code> assumes a known
+linear objective scaled by <code>Bscale</code>.  Using <code>TRUE</code> is an “alpha”
+feature at this time</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>equal</code></td>
+<td>
+<p> an optional vector containing zeros and ones, whose length equals the number of
+constraints, specifying which should be treated as equality constraints (<code>0</code>) and 
+which as inequality (<code>1</code>) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ethresh</code></td>
+<td>
+<p> a threshold used for equality constraints to determine validity for 
+progress measures; ignored if there are no equality constraints </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>slack</code></td>
+<td>
+<p> A scalar logical indicating if slack variables, and thus exact EI 
+calculations should be used.  The default of <code>slack = FALSE</code> results in Monte 
+Carlo EI approximation.  
+One can optionally specify <code>slack = 2</code> to get the <code>slack = TRUE</code> behavior,
+with a second-stage L-BFGS-B optimization of the EI acquisition applied at the end,
+starting from the best value found on the random search grid </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cknown</code></td>
+<td>
+<p> A optional positive integer vector specifying which of the constraint
+values returned by <code>fn</code> should be treated as “known”, i.e., not modeled
+with Gaussian processes</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>positive integer giving the number of random starting locations before 
+sequential design (for optimization) is performed; <code>start &gt;= 6</code> is
+recommended unless <code>Xstart</code> is non-<code>NULL</code>; in the current version
+the starting locations come from a space-filling design via <code>dopt.gp</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>end</code></td>
+<td>
+
+<p>positive integer giving the total number of evaluations/trials in the 
+optimization; must have <code>end &gt; start</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Xstart</code></td>
+<td>
+
+<p>optional matrix of starting design locations in lieu of, or in addition to,
+<code>start</code> random ones;  we recommend <code>nrow(Xstart) + start &gt;= 6</code>; also must
+have <code>ncol(Xstart) = nrow(B)</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sep</code></td>
+<td>
+
+<p>The default <code>sep = TRUE</code> uses separable GPs (i.e., via <code>newGPsep</code>, etc.)
+to model the constraints and objective; otherwise the isotropic GPs are used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ab</code></td>
+<td>
+
+<p>prior parameters; see <code>darg</code> describing the prior used on the
+lengthscale parameter during emulation(s) for the constraints
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda</code></td>
+<td>
+
+<p><code>m</code>-dimensional initial Lagrange multiplier parameter for <code>m</code>-constraints
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+
+<p>positive scalar initial quadratic penalty parameter in the augmented Lagrangian; the default setting of <code>rho = NULL</code> causes an automatic starting value to be chosen; see rejoinder to Gramacy, et al. (2016) or supplementary material to Picheny, et al. (2016)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>urate</code></td>
+<td>
+
+<p>positive integer indicating  how many optimization trials should pass before
+each MLE/MAP update is performed for GP correlation lengthscale 
+parameter(s) 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncandf</code></td>
+<td>
+
+<p>function taking a single integer indicating the optimization trial number <code>t</code>, where 
+<code>start &lt; t &lt;= end</code>, and returning the number of search candidates (e.g., for
+expected improvement calculations) at round <code>t</code>; the default setting
+allows the number of candidates to grow linearly with <code>t</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dg.start</code></td>
+<td>
+
+<p>2-vector giving starting values for the lengthscale and nugget parameters
+of the GP surrogate model(s) for constraints
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dlim</code></td>
+<td>
+
+<p>2-vector giving bounds for the lengthscale parameter(s) under MLE/MAP inference,
+thereby augmenting the prior specification in <code>ab</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Bscale</code></td>
+<td>
+
+<p>scalar indicating the relationship between the sum of the inputs, <code>sum(x)</code>, 
+to <code>fn</code> and the output <code>fn(x)$obj</code>; note that at this time only linear
+objectives are fully supported by the code - more details below
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ey.tol</code></td>
+<td>
+
+<p>a scalar proportion indicating how many of the EIs
+at <code>ncandf(t)</code> candidate locations must be non-zero to “trust”
+that metric to guide search, reducing to an EY-based search instead 
+[choosing that proportion to be one forces EY-based search]
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+
+<p>positive scalar integer indicating the number of Monte Carlo samples to be
+used for calculating EI and EY
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plotprog</code></td>
+<td>
+
+<p><code>logical</code> indicating if progress plots should be made after each inner iteration;
+the plots show three panels tracking the best valid objective, the EI or EY surface
+over the first two input variables (requires <code>interp</code>, 
+and the parameters of the lengthscale(s) of the GP(s) respectively.  When 
+<code>plotprog = TRUE</code> the <code>interp.loess</code> function is used to
+aid in creating surface plots, however this does not work well with fewer than 
+fifteen points.  You may also provide a function as an argument, having similar
+arguments/formals as <code>interp.loess</code>.  For example, we use
+<code>interp</code> below, which would have been the default if not 
+for licensing incompatibilities
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer indicating the verbosity level; the larger the value the
+more that is printed to the screen
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p> additional arguments passed to <code>fn</code></p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>These subroutines support a suite of
+methods used to optimize challenging constrained problems
+from Gramacy, et al. (2016); and from Picheny, et al., (2016) see references below.  
+</p>
+<p>Those schemes hybridize Gaussian process based surrogate modeling and expected
+improvement (EI; Jones, et., al, 2008) with the additive penalty method (APM)
+implemented by the augmented Lagrangian (AL, e.g., Nocedal &amp; Wright, 2006).
+The goal is to minimize a (possibly known) linear objective function <code>f(x)</code> under
+multiple, unknown (blackbox) constraint functions satisfying <code>c(x) &lt;= 0</code>,
+which is vector-valued.  The solution here emulates the components of <code>c</code>
+with Gaussian process surrogates, and guides optimization by searching the
+posterior mean surface, or the EI of, the following composite objective
+</p>
+<p style="text-align: center;"><code class="reqn">
+    Y(x) = f(x) + \lambda^\top Y_c(x) + \frac{1}{2\rho} \sum_{i=1}^m 
+\max(0, Y_{c_i}(x))^2,
+</code>
+</p>
+  
+<p>where <code class="reqn">\lambda</code> and <code class="reqn">\rho</code> follow updating equations that
+guarantee convergence to a valid solution minimizing the objective.  For more
+details, see Gramacy, et al. (2016).
+</p>
+<p>A slack variable implementation that allows for exact EI calculations and can 
+accommodate equality constraints, and mixed (equality and inequality) constraints,
+is also provided.  For further details, see Picheny, et al. (2016).
+</p>
+<p>The example below illustrates a variation on the toy problem considered in both papers,
+which bases sampling on EI.  For examples making used of equality constraints, 
+following the Picheny, et al (2016) papers; see the demos listed in the 
+“See Also” section below.
+</p>
+<p>Although it is off by default, these functions allow an unknown objective to
+be modeled (<code>fhat = TRUE</code>), rather than assuming a known linear one.  For examples see
+<code>demo("ALfhat")</code> and <code>demo("GSBP")</code> which illustrate the AL and comparators
+in inequality and mixed constraints setups, respectively.
+</p>
+<p>The <code>optim.efi</code> function is provided as a comparator.  This method uses
+the same underlying GP models to with the hybrid EI and probability of satisfying
+the constraints heuristic from Schonlau, et al., (1998).  See <code>demo("GSBP")</code>
+and <code>demo("LAH")</code> for <code>optim.efi</code> examples and comparisons between 
+the original AL, the slack variable enhancement(s) on mixed constraint
+problems with known and blackbox objectives, respectively
+</p>
+
+
+<h3>Value</h3>
+
+<p>The output is a <code>list</code> summarizing the progress of the evaluations of the
+blackbox under optimization
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>prog </code></td>
+<td>
+<p> vector giving the best valid (<code>c(x) &lt; 0</code>) value 
+of the objective over the trials </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obj </code></td>
+<td>
+<p> vector giving the value of the objective for the input under consideration 
+at each trial </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X </code></td>
+<td>
+ <p><code>matrix</code> giving the input values at which the blackbox function was
+evaluated </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>C </code></td>
+<td>
+ <p><code>matrix</code> giving the value of the constraint function for the input 
+under consideration at each trial</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d </code></td>
+<td>
+ <p><code>matrix</code> of lengthscale values obtained at the final update of the 
+GP emulator for each constraint</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>df </code></td>
+<td>
+<p> if <code>fhat = TRUE</code> then this is a <code>matrix</code> of lengthscale values
+for the objective obtained at the final update of the GP emulator</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda </code></td>
+<td>
+<p> a <code>matrix</code> containing <code>lambda</code> vectors used in each “outer
+loop” AL iteration </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho </code></td>
+<td>
+<p> a vector of <code>rho</code> values used in each “outer loop” AL iteration </p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>This function is under active development, especially the newest features
+including separable GP surrogate modeling, surrogate modeling of a
+blackbox objective, and the use of slack variables for exact EI calculations and
+the support if equality constraints. Also note that, compared with earlier versions, it is now
+required to augment your blackbox function (<code>fn</code>) with an argument named
+<code>known.only</code>. This allows the user to specify if a potentially different
+object 
+(with a subset of the outputs, those that are “known”) gets returned in
+certain circumstances. For example, the objective is treated as known in many of our
+examples. When a non-null <code>cknown</code> object is used, the <code>known.only</code>
+flag can be used to return only the outputs which are known.
+</p>
+<p>Older versions of this function provided an argument called <code>nomax</code>.
+The NoMax feature is no longer supported
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 7.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>Picheny, V., Gramacy, R.B., Wild, S.M., Le Digabel, S. (2016). 
+“Bayesian optimization under mixed constraints
+with a slack-variable augmented Lagrangian”. Preprint available on arXiv:1605.09466;
+<a href="https://arxiv.org/abs/1605.09466">https://arxiv.org/abs/1605.09466</a>
+</p>
+<p>Gramacy, R.B, Gray, G.A, Lee, H.K.H, Le Digabel, S., Ranjan P., Wells, G., Wild, S.M. (2016)
+“Modeling an Augmented Lagrangian for Improved
+Blackbox Constrained Optimization”, <em>Technometrics</em> (with discussion), 
+58(1), 1-11. Preprint available on arXiv:1403.4890;
+<a href="https://arxiv.org/abs/1403.4890">https://arxiv.org/abs/1403.4890</a>
+</p>
+<p>Jones, D., Schonlau, M., and Welch, W. J. (1998). 
+“Efficient Global Optimization of Expensive Black Box Functions.” 
+<em>Journal of Global Optimization</em>, 13, 455-492.
+</p>
+<p>Schonlau, M., Jones, D.R., and Welch, W. J. (1998). “Global Versus Local Search in
+Constrained Optimization of Computer Models.” In <em>New Developments and Applications
+in Experimental Design</em>, vol. 34, 11-25. Institute of Mathematical Statistics.
+</p>
+<p>Nocedal, J. and Wright, S.J. (2006). <em>Numerical Optimization.</em>
+2nd ed. Springer.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, <code>demo("ALfhat")</code> for blackbox objective,
+<code>demo("GSBP")</code> for a mixed constraints problem with blackbox objective,
+<code>demo("LAH")</code> for mix constraints with known objective,
+<code>optim.step.tgp</code> for unconstrained optimization;
+<code>optim</code> with <code>method="L-BFGS-B"</code> for box constraints, or
+<code>optim</code> with <code>method="SANN"</code> for simulated annealing
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## this example assumes a known linear objective; further examples
+## are in the optim.auglag demo
+
+## a test function returning linear objective evaluations and 
+## non-linear constraints
+aimprob &lt;- function(X, known.only = FALSE)
+{
+  if(is.null(nrow(X))) X &lt;- matrix(X, nrow=1)
+  f &lt;- rowSums(X)
+  if(known.only) return(list(obj=f))
+  c1 &lt;- 1.5-X[,1]-2*X[,2]-0.5*sin(2*pi*(X[,1]^2-2*X[,2]))
+  c2 &lt;- rowSums(X^2)-1.5
+  return(list(obj=f, c=cbind(c1,c2)))
+}
+
+## set bounding rectangle for adaptive sampling
+B &lt;- matrix(c(rep(0,2),rep(1,2)),ncol=2)
+
+## optimization (primarily) by EI, change 25 to 100 for
+## 99% chance of finding the global optimum with value 0.6
+if(require("interp")) { ## for plotprog=interp
+  out &lt;- optim.auglag(aimprob, B, end=25, plotprog=interp)
+} else {
+  out &lt;- optim.auglag(aimprob, B, end=25)
+}
+
+## using the slack variable implementation which is a little slower
+## but more precise; slack=2 augments random search with L-BFGS-B
+  
+out2 &lt;- optim.auglag(aimprob, B, end=25, slack=TRUE)
+## Not run: 
+out3 &lt;- optim.auglag(aimprob, B, end=25, slack=2)
+
+## End(Not run)
+
+## for more slack examples and comparison to optim.efi on problems
+## involving equality and mixed (equality and inequality) constraints,
+## see demo("ALfhat"), demo("GSBP") and demo("LAH")
+
+## for comparison, here is a version that uses simulated annealing
+## with the Additive Penalty Method (APM) for constraints
+## Not run: 
+aimprob.apm &lt;- function(x, B=matrix(c(rep(0,2),rep(1,2)),ncol=2))
+{ 
+  ## check bounding box
+  for(i in 1:length(x)) {
+    if(x[i] &lt; B[i,1] || x[i] &gt; B[i,2]) return(Inf)
+  }
+
+  ## evaluate objective and constraints
+  f &lt;- sum(x)
+  c1 &lt;- 1.5-x[1]-2*x[2]-0.5*sin(2*pi*(x[1]^2-2*x[2]))
+  c2 &lt;- x[1]^2+x[2]^2-1.5
+
+  ## return APM composite
+  return(f + abs(c1) + abs(c2))
+}
+
+## use SA; specify control=list(maxit=100), say, to control max 
+## number of iterations; does not easily facilitate plotting progress
+out4 &lt;- optim(runif(2), aimprob.apm, method="SANN") 
+## check the final value, which typically does not satisfy both
+## constraints
+aimprob(out4$par)
+
+## End(Not run)
+
+## for a version with a modeled objective see demo("ALfhat")
+</code></pre>
+
+
+</div>

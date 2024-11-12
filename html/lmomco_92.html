@@ -1,0 +1,80 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dist.list</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>List of Distribution Names</h2>
+
+<h3>Description</h3>
+
+<p>Return a list of the three character syntax identifying distributions supported within the <span class="pkg">lmomco</span> package. The distributions are
+<code>aep4</code>, <code>cau</code>, <code>emu</code>, <code>exp</code>, <code>gam</code>, <code>gep</code>,
+<code>gev</code>, <code>gld</code>, <code>glo</code>, <code>gno</code>, <code>gov</code>,
+<code>gpa</code>, <code>gum</code>, <code>kap</code>, <code>kmu</code>, <code>kur</code>,
+<code>lap</code>, <code>lmrq</code>, <code>ln3</code>, <code>nor</code>, <code>pdq3</code>, <code>pdq4</code>,
+<code>pe3</code>, <code>ray</code>, <code>revgum</code>, <code>rice</code>, <code>sla</code>, <code>smd</code>, <code>st3</code>,
+<code>texp</code>, <code>tri</code>, <code>wak</code>, and <code>wei</code>. These abbreviations and only these are used in routing logic within <span class="pkg">lmomco</span>. There is no provision for fuzzy matching. The full distributions names are available in <code>prettydist</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dist.list(type=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>If <code>type</code> is not <code>NULL</code> and is one of the abbreviations shown above, then the number of parameters of that distribution are returned or a warning message is issued. This subtle feature might be useful for developers.</p>
+</td>
+</tr></table>
+<h3>Value</h3>
+
+<p>A vector of distribution identifiers as listed above or the number of parameters for a given distribution type.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>prettydist</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dist.list("gpa")
+
+## Not run: 
+# Build an L-moment object
+LM &lt;- vec2lmom(c(10000, 1500, 0.3, 0.1, 0.04))
+lm2 &lt;- lmorph(LM)  # convert to vectored format
+lm1 &lt;- lmorph(lm2) # and back to named format
+dist &lt;- dist.list()
+# Demonstrate that lmom2par internally converts to needed L-moment object
+for(i in 1:length(dist)) {
+  # Skip Cauchy and Slash (need TL-moments).
+  # Skip AEP4, Kumaraswamy, LMRQ, Student t (3-parameter), Truncated Exponential
+  # are skipped because each is inapplicable to the given L-moments.
+  # The Eta-Mu and Kappa-Mu are skipped for speed.
+  if(dist[i] == 'aep4' | dist[i] == 'cau' | dist[i] == 'emu'  | dist[i] == 'gep' |
+     dist[i] == 'kmu'  | dist[i] == 'kur' | dist[i] == 'lmrq' | dist[i] == 'tri' |
+     dist[i] == 'sla'  | dist[i] == 'st3' | dist[i] == 'texp') next
+  message(dist[i], " parameters : ",
+          paste(round(lmom2par(lm1, type=dist[i])$para, digits=4), collapse=", "))
+  message(dist[i], " parameters : ",
+          paste(round(lmom2par(lm2, type=dist[i])$para, digits=4), collapse=", "))
+} # 
+## End(Not run)
+</code></pre>
+
+
+</div>

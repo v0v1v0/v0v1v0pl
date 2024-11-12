@@ -1,0 +1,156 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pbld</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Perform a Perception-based Logical Deduction (PbLD) with given rule-base on
+given dataset</h2>
+
+<h3>Description</h3>
+
+<p>Take a set of rules (a rule-base) and perform a Perception-based Logical
+Deduction (PbLD) on each row of a given <code>fsets()</code> object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pbld(
+  x,
+  rules,
+  partition,
+  values,
+  type = c("global", "local"),
+  parallel = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>Input to the inference. It should be an object of class
+<code>fsets()</code> (e.g. created by using the <code>fcut()</code> or <code>lcut()</code> functions).
+It is basically a matrix with columns representing fuzzy sets.
+</p>
+<p>Each row represents a single case of inference. Columns should be named
+after predicates in rules' antecedents.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rules</code></td>
+<td>
+<p>A rule-base (a.k.a. linguistic description) either in the form
+of the <code>farules()</code> object or as a list of character vectors where
+each element is a fuzzy set name (a predicate) and thus each such vector
+forms a rule.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partition</code></td>
+<td>
+<p>A <code>fsets()</code> object with columns that are
+consequents in <code>rules</code>. These membership degrees must correspond to
+<code>values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>Crisp values that correspond to rows of membership degrees in
+the <code>partition</code> matrix.  Function assumes that the values are sorted in
+the ascending order.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>The type of inference to use. It can be either <code>"local"</code> or
+<code>"global"</code> (default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parallel</code></td>
+<td>
+<p>Whether the processing should be run in parallel or not.
+Parallelization is implemented using the <code>foreach::foreach()</code>
+package. The parallel environment must be set properly in advance, e.g. with
+the <code>doMC::registerDoMC()</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Perform a Perception-based Logical Deduction (PbLD) with given rule-base
+<code>rules</code> on each row of input <code>x</code>. Columns of <code>x</code> are truth
+values of predicates that appear in the antecedent part of <code>rules</code>,
+<code>partition</code> together with <code>values</code> determine the shape of
+predicates in consequents: each element in <code>values</code> corresponds to a
+row of membership degrees in <code>partition</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector of inferred defuzzified values. The number of resulting
+values corresponds to the number of rows of the <code>x</code> argument.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Michal Burda
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Dvořák, M. Štěpnička, On perception-based logical deduction
+and its variants, in: Proc. 16th World Congress of the International Fuzzy
+Systems Association and 9th Conference of the European Society for Fuzzy
+Logic and Technology (IFSA-EUSFLAT 2015), Advances in Intelligent Systems
+Research, Atlantic Press, Gijon, 2015.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lcut()</code>, <code>searchrules()</code>, <code>fire()</code>, <code>aggregateConsequents()</code>, <code>defuzz()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# --- TRAINING PART ---
+# custom context of the RHS variable
+uptakeContext &lt;- ctx3(7, 28.3, 46)
+
+# convert data into fuzzy sets
+d &lt;- lcut(CO2, context=list(uptake=uptakeContext))
+
+# split data into the training and testing set
+testingIndices &lt;- 1:5
+trainingIndices &lt;- setdiff(seq_len(nrow(CO2)), testingIndices)
+training &lt;- d[trainingIndices, ]
+testing &lt;- d[testingIndices, ]
+
+# search for rules
+r &lt;- searchrules(training, lhs=1:38, rhs=39:58, minConfidence=0.5)
+
+# --- TESTING PART ---
+# prepare values and partition
+v &lt;- seq(uptakeContext[1], uptakeContext[3], length.out=1000)
+p &lt;- lcut(v, name='uptake', context=uptakeContext)
+
+# do the inference
+pbld(testing, r, p, v)
+
+</code></pre>
+
+
+</div>

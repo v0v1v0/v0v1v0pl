@@ -1,0 +1,135 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.cclcda</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict method for Common Components Latent Class Discriminant Analysis (CCLCDA)</h2>
+
+<h3>Description</h3>
+
+<p>Classifies new observations using parameters determined by
+the <code>cclcda</code>-function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'cclcda'
+predict(object, newdata, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object of class <code>cclcda</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data frame of cases to be classified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments are ignored.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Posterior probabilities for new observations using parameters determined by
+the <code>cclcda</code>-function are computed. The classification of the new data is done by the Bayes decision function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>class</code></td>
+<td>
+<p>Vector (of class <code>factor</code>) of classifications.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>posterior</code></td>
+<td>
+<p>Posterior probabilities for the classes. 
+For details of computation see <code>cclcda</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p> Michael B\"ucker</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>cclcda</code>, <code>lcda</code>, <code>predict.lcda</code>, <code>cclcda2</code>, <code>predict.cclcda2</code>, <code>poLCA</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># response probabilites
+probs1 &lt;- list()
+
+probs1[[1]] &lt;- matrix(c(0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1,
+                        0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7), 
+                      nrow=4, byrow=TRUE)
+probs1[[2]] &lt;- matrix(c(0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1,
+                        0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1),
+                      nrow=4, byrow=TRUE)
+probs1[[3]] &lt;- matrix(c(0.1,0.1,0.7,0.1,0.1,0.1,0.1,0.7,
+                        0.7,0.1,0.1,0.1,0.1,0.7,0.1,0.1),
+                      nrow=4, byrow=TRUE)
+probs1[[4]] &lt;- matrix(c(0.1,0.1,0.1,0.7,0.7,0.1,0.1,0.1,
+                        0.1,0.7,0.1,0.1,0.1,0.1,0.7,0.1),
+                      nrow=4, byrow=TRUE)
+
+prior &lt;- c(0.5,0.5)
+wmk &lt;- matrix(c(0.45,0.45,0.05,0.05,0.05,0.05,0.45,0.45),
+              ncol=4, nrow=2, byrow=TRUE)
+wkm &lt;- apply(wmk*prior, 2, function(x) x/sum(x))
+
+# generation of training data
+data_temp &lt;- poLCA.simdata(N = 1000, probs = probs1,
+                           nclass = 2, ndv = 4, nresp = 4,
+                           P=rep(0.25,4))
+data &lt;- data_temp$dat
+lclass &lt;- data_temp$trueclass
+grouping &lt;- numeric()
+for (i in 1:length(lclass))
+{
+grouping[i] &lt;- sample(c(1,2),1, prob=wkm[,lclass[i]])
+}
+
+# generation of test data
+data_temp &lt;- poLCA.simdata(N = 500, probs = probs1,
+                           nclass = 2, ndv = 4, nresp = 4,
+                           P=rep(0.25,4))
+data.test &lt;- data_temp$dat
+lclass &lt;- data_temp$trueclass
+grouping.test &lt;- numeric()
+for (i in 1:length(lclass))
+{
+grouping.test[i] &lt;- sample(c(1,2),1, prob=wkm[,lclass[i]])
+}
+
+# cclcda-procedure
+object &lt;- cclcda(data, grouping, m=4)
+pred &lt;- predict(object, data.test)$class
+1-(sum(pred==grouping.test)/500)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>x2xlo</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Conversion of a Vector through a Left-Hand Threshold to Setup Conditional Probability Computations</h2>
+
+<h3>Description</h3>
+
+<p>This function takes a vector of numerical values and subselects the values above and those equal to or less than the <code>leftout</code> argument and assigns plotting positions based on the <code>a</code> argument (passed into the <code>pp</code> function) and returns a list providing helpful as well as necessary results needed for conditional probability adjustment to support for general magnitude and frequency analysis as often is needed in hydrologic applications. This function only performs very simple vector operations. The real features for conditional probability application are found in the <code>f2flo</code> and <code>f2flo</code> functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">x2xlo(x, leftout=0, a=0, ghost=NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A vector of values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>leftout</code></td>
+<td>
+<p>The lower threshold for which to leave out. The default of zero sets up for conditional probability adjustments for values equal (or less than) zero. This argument is called “left out” so as to reinforce the idea that it is a lower threshold hold on which to “leave out” data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>a</code></td>
+<td>
+<p>The plotting position coefficient passed to <code>pp</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ghost</code></td>
+<td>
+<p>A ghosting or shadowing variable to be dragged along and then split up according to the lower threshold. If not <code>NULL</code>, then the output also contains <code>ghostin</code> and <code>ghostout</code>. This is a useful feature say if the year of data collection is associated with <code>x</code> and the user wants a convenient way to keep the proper association with the year. This feature is only for the convenience of the user and does not represent some special adjustment to the underlying concepts. A warning is issued if the lengths of <code>x</code> and <code>ghost</code> are not the same, but the function continues proceeding.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>xin</code></td>
+<td>
+<p>The subselection of values greater than the <code>leftout</code> threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppin</code></td>
+<td>
+<p>The plotting positions of the subselected values greater than the <code>leftout</code> threshold. These plotting positions correspond to those data values in <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xout</code></td>
+<td>
+<p>The subselection of values less than or equal to the <code>leftout</code> threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ppout</code></td>
+<td>
+<p>The plotting positions of the subselected values  less than or equal to the <code>leftout</code> threshold. These plotting positions correspond to those data values in <code>xout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pp</code></td>
+<td>
+<p>The plotting position of the largest value left out of <code>xin</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>thres</code></td>
+<td>
+<p>The threshold value provided by the argument <code>leftout</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nin</code></td>
+<td>
+<p>Number of values greater than the threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlo</code></td>
+<td>
+<p>Number of values less than or equal to the threshold.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n</code></td>
+<td>
+<p>Total number of values: <code>nin</code> + <code>nlo</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>The source of the parameters: “x2xlo”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>f2flo</code>, <code>flo2f</code>, <code>f2f</code>, <code>xlo2qua</code>, <code>par2qua2lo</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+set.seed(62)
+Fs &lt;- nonexceeds()
+type &lt;- "exp"; parent &lt;- vec2par(c(0,13.4), type=type)
+X &lt;- rlmomco(100, parent); a &lt;- 0; PP &lt;- pp(X, a=a); Xs &lt;- sort(X)
+par &lt;- lmom2par(lmoms(X), type=type)
+plot(PP, Xs, type="n", xlim=c(0,1), ylim=c(.1,100), log="y",
+     xlab="NONEXCEEDANCE PROBABILITY", ylab="RANDOM VARIATE")
+points(PP, Xs, col=3, cex=2, pch=0, lwd=2)
+X[X &lt; 2.1] &lt;- X[X &lt; 2.1]/2 # create some low outliers
+Xlo &lt;- x2xlo(X, leftout=2.1, a=a)
+parlo &lt;- lmom2par(lmoms(Xlo$xin), type=type)
+points(Xlo$ppout, Xlo$xout, pch=4, col=1)
+points(Xlo$ppin, Xlo$xin,   col=4, cex=.7)
+lines(Fs, qlmomco(Fs, parent), lty=2, lwd=2)
+lines(Fs, qlmomco(Fs, par),    col=2, lwd=4)
+lines(sort(c(Xlo$ppin,.999)),
+      qlmomco(f2flo(sort(c(Xlo$ppin,.999)), pp=Xlo$pp), parlo), col=4, lwd=3)
+# Notice how in the last line plotted that the proper plotting positions of the data
+# greater than the threshold are passed into the f2flo() function that has the effect
+# of mapping conventional nonexceedance probabilities into the conditional probability
+# space. These mapped probabilities are then passed into the quantile function.
+legend(.3,1, c("Simulated random variates",
+                "Values to 'leave' (condition) out because x/2 (low outliers)",
+                "Values to 'leave' in", "Exponential parent",
+                "Exponential fitted to whole data set",
+                "Exponential fitted to left-in values"), bty="n", cex=.75,
+                pch   =c(0,4,1,NA,NA,NA), col=c(3,1,4,1,2,4), pt.lwd=c(2,1,1,1),
+                pt.cex=c(2,1,0.7,1),      lwd=c(0,0,0,2,2,3),    lty=c(0,0,0,2,1,1))
+
+## End(Not run)
+</code></pre>
+
+
+</div>

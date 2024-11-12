@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>join_datasets</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Join similar Datasets</h2>
+
+<h3>Description</h3>
+
+<p>Join Light logging datasets that have a common structure. The least commonality are identical columns for <code>Datetime</code> and <code>Id</code> across all sets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">join_datasets(
+  ...,
+  Datetime.column = Datetime,
+  Id.column = Id,
+  add.origin = FALSE,
+  debug = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p><code style="white-space: pre;">⁠Object names⁠</code> of datasets that need to be joined.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.column, Id.column</code></td>
+<td>
+<p>Column names for the <code>Datetime</code> and <code>id</code> columns. The defaults (<code>Datetime</code>, <code>Id</code>) are already set up for data imported with LightLogR.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.origin</code></td>
+<td>
+<p>Should a column named <code>dataset</code> in the joined data indicate from which dataset each observation originated? Defaults to <code>FALSE</code> as the <code>Id</code> column should suffice. Expects a <code>logical</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>debug</code></td>
+<td>
+<p>Output changes to a tibble indicating which dataset is missing the respective <code>Datetime</code> or <code>Id</code> column. Expects a <code>logical</code> and defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>One of
+</p>
+
+<ul>
+<li>
+<p> a <code>data.frame</code> of joined datasets
+</p>
+</li>
+<li>
+<p> a <code>tibble</code> of datasets with missing columns. Only if <code>debug = TRUE</code>
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">#load in two datasets
+path &lt;- system.file("extdata", 
+package = "LightLogR")
+file.LL &lt;- "205_actlumus_Log_1020_20230904101707532.txt.zip"
+file.env &lt;- "cyepiamb_CW35_Log_1431_20230904081953614.txt.zip"
+dataset.LL &lt;- import$ActLumus(file.LL, path, auto.id = "^(\\d{3})")
+dataset.env &lt;- import$ActLumus(file.env, path, manual.id = "CW35")
+
+#join the datasets
+joined &lt;- join_datasets(dataset.LL, dataset.env)
+
+#compare the number of rows
+nrow(dataset.LL) + nrow(dataset.env) == nrow(joined)
+
+#debug, when set to TRUE, will output a tibble of datasets with missing necessary columns
+dataset.LL &lt;- dataset.LL %&gt;% dplyr::select(-Datetime)
+join_datasets(dataset.LL, dataset.env, debug = TRUE)
+</code></pre>
+
+
+</div>

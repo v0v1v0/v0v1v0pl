@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>predict.landmark</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Predict the risk of an event for a new individual using the landmark model</h2>
+
+<h3>Description</h3>
+
+<p>This function predicts the risk of an event for new data using the landmark model fitted by <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>.
+The 'event' is defined as event for which <code>event_status</code> is 1.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'landmark'
+predict(object, x_L, x_hor, newdata, cv_fold = NA, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>Object inheriting the class <code>landmark</code>, this should be the output from either <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>. It should contain a list
+of landmark models corresponding to different landmark times <code>x_L</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_L</code></td>
+<td>
+<p>Numeric specifying the landmark time. This indicates which landmark model in <code>object</code> to use.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x_hor</code></td>
+<td>
+<p>Numeric specifying the horizon time. The function assesses the risk of event before this time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>newdata</code></td>
+<td>
+<p>Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
+and the columns must contain the covariates and time variables that are used to fit the model.
+For the LME model this the variables <code>fixed_effects</code>, <code>random_effects</code>, <code>fixed_effects_time</code>, and
+<code>random_effects_time</code>. For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cv_fold</code></td>
+<td>
+<p>If cross validation is used to fit <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>, then the cross validation fold to use when making risk predictions needs to be specified.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to <code>riskRegression::predictRisk</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Data frame <code>newdata</code> updated to contained a new column <code>event_prediction</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(Landmarking)
+data(data_repeat_outcomes)
+data_model_landmark_LOCF &lt;-
+  fit_LOCF_landmark(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    covariates =
+      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time =
+      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    k = 10,
+    individual_id = "id",
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
+ newdata &lt;-
+   rbind(
+     data.frame(
+       id = c(3001, 3001, 3001),
+       response_time_sbp_stnd = c(57, 58, 59),
+       smoking = c(0, 0, 0),
+       diabetes = c(0, 0, 0),
+       ethnicity = c("Indian", "Indian", "Indian"),
+       sbp_stnd = c(0.45, 0.87, 0.85),
+       tchdl_stnd = c(-0.7, 0.24, 0.3),
+       response_time_tchdl_stnd = c(57, 58, 59)
+     )
+   )
+ predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
+</code></pre>
+
+
+</div>

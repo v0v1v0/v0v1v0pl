@@ -1,0 +1,117 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LEGIT_to_IMLEGIT</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LEGIT to IMLEGIT</h2>
+
+<h3>Description</h3>
+
+<p>Transforms a LEGIT model into a IMLEGIT model (Useful if you want to do plot() or GxE_interaction_test() with a model resulting from a variable selection method which gave a IMLEGIT model)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LEGIT_to_IMLEGIT(
+  fit,
+  data,
+  genes,
+  env,
+  formula,
+  eps = 0.001,
+  maxiter = 100,
+  family = gaussian,
+  ylim = NULL,
+  print = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>fit</code></td>
+<td>
+<p>LEGIT model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>data.frame of the dataset to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>genes</code></td>
+<td>
+<p>data.frame of the variables inside the genetic score <em>G</em> (can be any sort of variable, doesn't even have to be genetic).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>env</code></td>
+<td>
+<p>data.frame of the variables inside the environmental score <em>E</em> (can be any sort of variable, doesn't even have to be environmental).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>Model formula. Use <em>E</em> for the environmental score and <em>G</em> for the genetic score. Do not manually code interactions, write them in the formula instead (ex: G*E*z or G:E:z).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>Threshold for convergence (.01 for quick batch simulations, .0001 for accurate results).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxiter</code></td>
+<td>
+<p>Maximum number of iterations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>family</code></td>
+<td>
+<p>Outcome distribution and link function (Default = gaussian).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ylim</code></td>
+<td>
+<p>Optional vector containing the known min and max of the outcome variable. Even if your outcome is known to be in [a,b], if you assume a Gaussian distribution, predict() could return values outside this range. This parameter ensures that this never happens. This is not necessary with a distribution that already assumes the proper range (ex: [0,1] with binomial distribution).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>print</code></td>
+<td>
+<p>If FALSE, nothing except warnings will be printed (Default = TRUE).</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Returns an object of the class "IMLEGIT" which is list containing, in the following order: a glm fit of the main model, a list of the glm fits of the latent variables and a list of the true model parameters (AIC, BIC, rank, df.residual, null.deviance) for which the individual model parts (main, genetic, environmental) don't estimate properly.
+</p>
+
+
+<h3>References</h3>
+
+<p>Alexia Jolicoeur-Martineau, Ashley Wazana, Eszter Szekely, Meir Steiner, Alison S. Fleming, James L. Kennedy, Michael J. Meaney, Celia M.T. Greenwood and the MAVAN team. <em>Alternating optimization for GxE modelling with weighted genetic and environmental scores: examples from the MAVAN study</em> (2017). arXiv:1703.08111.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">train = example_2way(500, 1, seed=777)
+fit = LEGIT(train$data, train$G, train$E, y ~ G*E, train$coef_G, train$coef_E)
+fit_IMLEGIT = LEGIT_to_IMLEGIT(fit,train$data, train$G, train$E, y ~ G*E)
+fit_LEGIT = IMLEGIT_to_LEGIT(fit_IMLEGIT,train$data, train$G, train$E, y ~ G*E)
+</code></pre>
+
+
+</div>

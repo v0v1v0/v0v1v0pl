@@ -1,0 +1,105 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>map_along_dim</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply a function across subsets along an array dimension</h2>
+
+<h3>Description</h3>
+
+<p><code>map_along_dim(X, dim, func)</code> is a simple wrapper around <code>split_along_dim(X, dim) %&gt;% map(func)</code>. It is conceptually and functionally equivalent to
+<code>base::apply()</code>, with the following key differences:
+</p>
+
+<ul>
+<li>
+<p> it is guaranteed to return a list (<code>base::apply()</code> attempts to simplify the
+output to an array, sometimes unsuccessfully, making the output unstable)
+</p>
+</li>
+<li>
+<p> it accepts the compact lambda notation <code>~.x</code> just like in <code>purrr::map</code>
+(and <code>modify_along_dim()</code>)
+</p>
+</li>
+</ul>
+<h3>Usage</h3>
+
+<pre><code class="language-R">map_along_dim(X, .dim, .f, ...)
+
+map_along_rows(X, .f, ...)
+
+map_along_cols(X, .f, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>an R array</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.dim</code></td>
+<td>
+<p>which dimension to map along. Passed on to <code>split_along_dim()</code>,
+and accepts all the same inputs. Valid inputs include
+</p>
+
+<ul>
+<li>
+<p> positive integers (index position(s) of dimension),
+</p>
+</li>
+<li>
+<p> negative integers (index positions(s) of dimensions, counting from the back), or
+</p>
+</li>
+<li>
+<p> character vector (corresponding to array dimnames)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.f</code></td>
+<td>
+<p>A function, string of a function name, or <code>purrr</code> style compact lambda syntax (e.g, <code>~.x + 1</code>)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>passed on to <code>.f()</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>An R list
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">X &lt;- matrix2(letters[1:15], ncol = 3)
+
+apply(X, 1, function(x) paste(x, collapse = ""))   # simplifies to a vector
+map_along_dim(X, 1, ~paste(.x, collapse = ""))     # returns a list
+
+identical(
+  map_along_rows(X, identity),
+  map_along_dim(X, 1, identity)) # TRUE
+
+identical(
+  map_along_cols(X, identity),
+  map_along_dim(X, -1, identity)) # TRUE
+</code></pre>
+
+
+</div>

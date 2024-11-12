@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>laf_open</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a connection to a file using a data model.</h2>
+
+<h3>Description</h3>
+
+<p>Uses a data model to create a connection to a file. The data model contains
+all the information needed to open the file (column types, column widths,
+etc.).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">laf_open(model, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a data model, such as one returned by read_dm or
+detect_dm_csv.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments can be used to overwrite the values specified
+by the data model. These are listed in the argument documentation for
+<code>laf_open_csv</code> and <code>laf_open_fwf</code>, e.g.
+see <code>ignore_failed_conversion</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Depending on the field ‘type’ <code>laf_open</code> uses <code>laf_open_csv</code>
+and <code>laf_open_fwf</code> to open the file. The data model should contain
+all information needed by these routines to open the file.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Object of type <code>laf</code>. Values can be extracted from this
+object using indexing, and methods such as <code>read_lines</code>,
+<code>next_block</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>read_dm</code> and <code>detect_dm_csv</code> for ways of creating
+data models.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create some temporary files
+tmpcsv  &lt;- tempfile(fileext="csv")
+tmp2csv &lt;- tempfile(fileext="csv")
+tmpyaml &lt;- tempfile(fileext="yaml")
+
+# Generate test data
+ntest &lt;- 10
+column_types &lt;- c("integer", "integer", "double", "string")
+testdata &lt;- data.frame(
+    a = 1:ntest,
+    b = sample(1:2, ntest, replace=TRUE),
+    c = round(runif(ntest), 13),
+    d = sample(c("jan", "pier", "tjores", "corneel"), ntest, replace=TRUE)
+    )
+# Write test data to csv file
+write.table(testdata, file=tmpcsv, row.names=FALSE, col.names=FALSE, sep=',')
+
+# Create LaF-object
+laf &lt;- laf_open_csv(tmpcsv, column_types=column_types)
+
+# Write data model to file
+write_dm(laf, tmpyaml)
+
+# Read data model and open file
+laf &lt;- laf_open(read_dm(tmpyaml))
+
+# Write test data to second csv file
+write.table(testdata, file=tmp2csv, row.names=FALSE, col.names=FALSE, sep=',')
+
+# Read data model and open second file, demonstrating the use of the optional
+# arguments to laf_open
+laf2 &lt;- laf_open(read_dm(tmpyaml), filename=tmp2csv)
+
+# Cleanup
+file.remove(tmpcsv)
+file.remove(tmp2csv)
+file.remove(tmpyaml)
+
+</code></pre>
+
+
+</div>

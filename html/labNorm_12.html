@@ -1,0 +1,563 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ln_normalize</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Normalize lab values to age and sex</h2>
+
+<h3>Description</h3>
+
+<p>Normalize standard laboratory measurements (e.g. hemoglobin, cholesterol levels) according to age and sex, based on the algorithms described in "Personalized lab test models to quantify disease potentials in healthy individuals" <a href="https://doi.org/10.1038/s41591-021-01468-6">doi:10.1038/s41591-021-01468-6</a>. <br><br>
+The "Clalit" reference distributions are based on 2.1B lab measurements taken from 2.8M individuals between 2002-2019, filtered to exclude severe chronic diseases and medication effects. The resulting normalized value is a quantile between 0 and 1, representing the value's position in the reference distribution. <br><br>
+The "UKBB" reference distributions are based on the UK-Biobank, a large-scale population-based cohort study of 500K individuals, which underwent the same filtering process as the "Clalit" reference distributions.
+<br><br>
+The list of supported labs can be found below or by running <code>LAB_DETAILS$short_name</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ln_normalize(
+  values,
+  age,
+  sex,
+  lab,
+  units = NULL,
+  reference = "Clalit",
+  na.rm = FALSE
+)
+
+ln_normalize_multi(labs_df, reference = "Clalit", na.rm = FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>values</code></td>
+<td>
+<p>a vector of lab values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>age</code></td>
+<td>
+<p>a vector of ages between 20-89 for "Clalit" reference and 35-80 for "UKBB". Can be a single value if all values are the same age.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sex</code></td>
+<td>
+<p>a vector of either "male" or "female". Can be a single value if all values are the same sex.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lab</code></td>
+<td>
+<p>the lab name. See <code>LAB_DETAILS$short_name</code> for a list of available labs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>units</code></td>
+<td>
+<p>the units of the lab values. See <code>ln_lab_units(lab)</code> for a list of available units for each lab. If <code>NULL</code> then the default units (<code>ln_lab_default_units(lab)</code>) for the lab will be used. If different values have different units then this should be a vector of the same length as <code>values</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reference</code></td>
+<td>
+<p>the reference distribution to use. Can be either "Clalit" or "UKBB" or "Clalit-demo". Please download the Clalit and UKBB reference distributions using <code>ln_download_data()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>if <code>TRUE</code>, then <code>NA</code> in age, sex or values will be ignored and 'NA' would be returned. Otherwise, an error will be thrown.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>labs_df</code></td>
+<td>
+<p>a data frame with the columns "value", "age", "sex", "units", and "lab". The "lab" column should be a vector with the lab name per row. See <code>ln_normalize</code> for details on the other columns.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a vector of normalized values. If <code>ln_download_data()</code> was not run, a lower resolution reference distribution will be used, which can have an error of up to 5 quantiles (0.05). Otherwise, the full reference distribution will be used. You can check if the high resolution data was downloaded using <code>ln_data_downloaded()</code>. <br>
+You can force the function to use the lower resolution distribution by setting <code>options(labNorm.use_low_res = TRUE)</code>. <br>
+If the quantile information is not available (e.g. "Estradiol" for male patients, various labs which are not available in the UKBB data), then the function will return <code>NA</code>.
+</p>
+
+
+<h3>reference distribution</h3>
+
+<p>It is highly recommended to use <code>ln_download_data</code> to download the "Clalit" and "UKBB" reference distributions. If you choose not to download the data, the package will use the demo reference distributions included in the package ("Clalit-demo"), which doesn't include all the labs, and has a resolution of 20 quantile bins and therefore may have an error of up to 5 percentiles (0.05), particularly at the edges of the distribution. <br></p>
+
+
+<h3>labs</h3>
+
+<p>The following labs are supported in the "Clalit" reference (some labs are missing from the UKBB reference): <br></p>
+
+<ul>
+<li>
+<p> WBC
+</p>
+</li>
+<li>
+<p> RBC
+</p>
+</li>
+<li>
+<p> Hemoglobin
+</p>
+</li>
+<li>
+<p> Hematocrit
+</p>
+</li>
+<li>
+<p> Platelets
+</p>
+</li>
+<li>
+<p> MCV
+</p>
+</li>
+<li>
+<p> MCH
+</p>
+</li>
+<li>
+<p> MCHC
+</p>
+</li>
+<li>
+<p> RDW
+</p>
+</li>
+<li>
+<p> MPV
+</p>
+</li>
+<li>
+<p> Large unstained cells, Abs
+</p>
+</li>
+<li>
+<p> Albumin
+</p>
+</li>
+<li>
+<p> Total Cholesterol
+</p>
+</li>
+<li>
+<p> Triglycerides
+</p>
+</li>
+<li>
+<p> BMI
+</p>
+</li>
+<li>
+<p> Iron
+</p>
+</li>
+<li>
+<p> Transferrin
+</p>
+</li>
+<li>
+<p> Ferritin
+</p>
+</li>
+<li>
+<p> PDW
+</p>
+</li>
+<li>
+<p> MPXI
+</p>
+</li>
+<li>
+<p> Total Globulin
+</p>
+</li>
+<li>
+<p> PCT
+</p>
+</li>
+<li>
+<p> HDW
+</p>
+</li>
+<li>
+<p> Fibrinogen
+</p>
+</li>
+<li>
+<p> CH
+</p>
+</li>
+<li>
+<p> Chloride
+</p>
+</li>
+<li>
+<p> Large unstained cells, %
+</p>
+</li>
+<li>
+<p> Macrocytic
+</p>
+</li>
+<li>
+<p> Microcytic
+</p>
+</li>
+<li>
+<p> Hyperchromic
+</p>
+</li>
+<li>
+<p> Hypochromic
+</p>
+</li>
+<li>
+<p> Lymphocytes, Abs
+</p>
+</li>
+<li>
+<p> Lymphocytes, %
+</p>
+</li>
+<li>
+<p> Neutrophils, Abs
+</p>
+</li>
+<li>
+<p> Neutrophils, %
+</p>
+</li>
+<li>
+<p> Monocytes, Abs
+</p>
+</li>
+<li>
+<p> Monocytes, %
+</p>
+</li>
+<li>
+<p> Eosinophils, Abs
+</p>
+</li>
+<li>
+<p> Eosinophils, %
+</p>
+</li>
+<li>
+<p> Basophils, Abs
+</p>
+</li>
+<li>
+<p> Basophils, %
+</p>
+</li>
+<li>
+<p> Microcytic:Hypochromic
+</p>
+</li>
+<li>
+<p> Glucose
+</p>
+</li>
+<li>
+<p> Urea
+</p>
+</li>
+<li>
+<p> Creatinine
+</p>
+</li>
+<li>
+<p> Uric Acid
+</p>
+</li>
+<li>
+<p> Calcium
+</p>
+</li>
+<li>
+<p> Phosphorus
+</p>
+</li>
+<li>
+<p> Total Protein
+</p>
+</li>
+<li>
+<p> HDL Cholesterol
+</p>
+</li>
+<li>
+<p> LDL Cholesterol
+</p>
+</li>
+<li>
+<p> Alk. Phosphatase
+</p>
+</li>
+<li>
+<p> AST
+</p>
+</li>
+<li>
+<p> ALT
+</p>
+</li>
+<li>
+<p> GGT
+</p>
+</li>
+<li>
+<p> LDH
+</p>
+</li>
+<li>
+<p> CPK
+</p>
+</li>
+<li>
+<p> Total Bilirubin
+</p>
+</li>
+<li>
+<p> Direct Bilirubin
+</p>
+</li>
+<li>
+<p> Hemoglobin A1c
+</p>
+</li>
+<li>
+<p> Sodium
+</p>
+</li>
+<li>
+<p> Potassium
+</p>
+</li>
+<li>
+<p> Vitamin D (25-OH)
+</p>
+</li>
+<li>
+<p> Microalbumin:Creatinine
+</p>
+</li>
+<li>
+<p> Urine Creatinine
+</p>
+</li>
+<li>
+<p> Urine Microalbumin
+</p>
+</li>
+<li>
+<p> Non-HDL
+</p>
+</li>
+<li>
+<p> TSH
+</p>
+</li>
+<li>
+<p> T3, Free
+</p>
+</li>
+<li>
+<p> T4, Free
+</p>
+</li>
+<li>
+<p> Blood Pressure, Systolic
+</p>
+</li>
+<li>
+<p> Blood Pressure, Diastolic
+</p>
+</li>
+<li>
+<p> Urine Specific Gravity
+</p>
+</li>
+<li>
+<p> Urine pH
+</p>
+</li>
+<li>
+<p> PT, INR
+</p>
+</li>
+<li>
+<p> PT, sec
+</p>
+</li>
+<li>
+<p> PT, %
+</p>
+</li>
+<li>
+<p> Vitamin B12
+</p>
+</li>
+<li>
+<p> PSA
+</p>
+</li>
+<li>
+<p> ESR
+</p>
+</li>
+<li>
+<p> aPTT, sec
+</p>
+</li>
+<li>
+<p> CRP
+</p>
+</li>
+<li>
+<p> Amylase
+</p>
+</li>
+<li>
+<p> Folic Acid
+</p>
+</li>
+<li>
+<p> Total:HDL
+</p>
+</li>
+<li>
+<p> Hematocrit:Hemoglobin
+</p>
+</li>
+<li>
+<p> Magnesium
+</p>
+</li>
+<li>
+<p> aPTT, ratio
+</p>
+</li>
+<li>
+<p> Indirect Bilirubin
+</p>
+</li>
+<li>
+<p> RDW-SD
+</p>
+</li>
+<li>
+<p> RDW-CV
+</p>
+</li>
+<li>
+<p> LH
+</p>
+</li>
+<li>
+<p> Estradiol
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# Normalize Hemoglobin values to age and sex
+hemoglobin_data$quantile &lt;- ln_normalize(
+    hemoglobin_data$value,
+    hemoglobin_data$age,
+    hemoglobin_data$sex,
+    "Hemoglobin"
+)
+
+# plot the quantiles vs values for age 50-60
+library(ggplot2)
+library(dplyr)
+hemoglobin_data %&gt;%
+    filter(age &gt;= 50 &amp; age &lt;= 60) %&gt;%
+    ggplot(aes(x = value, y = quantile, color = sex)) +
+    geom_point() +
+    theme_classic()
+
+# Different units
+hemoglobin_diff_units &lt;- hemoglobin_data
+hemoglobin_diff_units$value &lt;- hemoglobin_diff_units$value * 0.1
+hemoglobin_diff_units$quantile &lt;- ln_normalize(
+    hemoglobin_data$value,
+    hemoglobin_data$age,
+    hemoglobin_data$sex,
+    "Hemoglobin",
+    "mg/mL"
+)
+
+# Multiple units
+creatinine_diff_units &lt;- creatinine_data
+creatinine_diff_units$value &lt;- c(
+    creatinine_diff_units$value[1:500] * 0.011312,
+    creatinine_diff_units$value[501:1000] * 11.312
+)
+creatinine_diff_units$quantile &lt;- ln_normalize(
+    creatinine_diff_units$value,
+    creatinine_diff_units$age,
+    creatinine_diff_units$sex,
+    "Creatinine",
+    c(rep("umol/L", 500), rep("mmol/L", 500))
+)
+
+# Use UKBB as reference
+hemoglobin_data_ukbb &lt;- hemoglobin_data %&gt;% filter(age &gt;= 35 &amp; age &lt;= 80)
+hemoglobin_data_ukbb$quantile_ukbb &lt;- ln_normalize(
+    hemoglobin_data_ukbb$value,
+    hemoglobin_data_ukbb$age,
+    hemoglobin_data_ukbb$sex,
+    "Hemoglobin",
+    reference = "UKBB"
+)
+
+# plot UKBB vs Clalit
+hemoglobin_data_ukbb %&gt;%
+    filter(age &gt;= 50 &amp; age &lt;= 60) %&gt;%
+    ggplot(aes(x = quantile, y = quantile_ukbb, color = sex)) +
+    geom_point() +
+    geom_abline() +
+    theme_classic()
+
+
+# examples on the demo data
+
+
+library(dplyr)
+multi_labs_df &lt;- bind_rows(
+    hemoglobin_data %&gt;% mutate(lab = "Hemoglobin"),
+    creatinine_data %&gt;% mutate(lab = "Creatinine")
+)
+
+
+multi_labs_df$quantile &lt;- ln_normalize_multi(multi_labs_df)
+
+
+# on the demo data
+
+
+head(multi_labs_df)
+
+</code></pre>
+
+
+</div>

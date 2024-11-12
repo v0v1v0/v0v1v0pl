@@ -1,0 +1,264 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pcfa</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>(Generalized) Partially Confirmatory Factor Analysis</h2>
+
+<h3>Description</h3>
+
+<p><code>PCFA</code> is a partially confirmatory approach covering a wide range of
+the exploratory-confirmatory continuum in factor analytic models (Chen, Guo, Zhang, &amp; Pan, 2021).
+The PCFA is only for continuous data, while the generalized PCFA (GPCFA; Chen, 2021)
+covers both continuous and categorical data.
+</p>
+<p>There are two major model variants with different constraints for identification. One assumes local
+independence (LI) with a more exploratory tendency, which can be also called the E-step.
+The other allows local dependence (LD) with a more confirmatory tendency, which can be also
+called the C-step. Parameters are obtained by sampling from the posterior distributions with
+the Markov chain Monte Carlo (MCMC) techniques. Different Bayesian Lasso methods are used to
+regularize the loading pattern and LD. The estimation results can be summarized with <code>summary.lawbl</code>
+and the factorial eigenvalue can be plotted with <code>plot_lawbl</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pcfa(
+  dat,
+  Q,
+  LD = TRUE,
+  cati = NULL,
+  cand_thd = 0.2,
+  PPMC = FALSE,
+  burn = 5000,
+  iter = 5000,
+  update = 1000,
+  missing = NA,
+  rfit = TRUE,
+  sign_check = FALSE,
+  sign_eps = -0.5,
+  rs = FALSE,
+  auto_stop = FALSE,
+  max_conv = 10,
+  rseed = 12345,
+  digits = 4,
+  alas = FALSE,
+  verbose = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>A <code class="reqn">N \times J</code> data <em>matrix</em> or <em>data.frame</em> consisting of the
+responses of <code class="reqn">N</code> individuals to <code class="reqn">J</code> items.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Q</code></td>
+<td>
+<p>A <code class="reqn">J \times K</code> design matrix for the loading pattern with <code class="reqn">K</code> factors and <code class="reqn">J</code> items.
+Elements are 1, -1, and 0 for specified, unspecified, and zero-fixed loadings, respectively. For models with
+LI or the E-step, one can specify a few (e.g., 2) loadings per factor. For models with LD or the C-step, the
+sufficient condition of one specified loading per item is suggested, although there can be a few items
+without any specified loading. See <code>Examples</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>LD</code></td>
+<td>
+<p>logical; <code>TRUE</code> for allowing LD (model with LD or C-step).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cati</code></td>
+<td>
+<p>The set of categorical (polytomous) items in sequence number (i.e., 1 to <code class="reqn">J</code>);
+<code>NULL</code> for no and -1 for all items (default is <code>NULL</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cand_thd</code></td>
+<td>
+<p>Candidate parameter for sampling the thresholds with the MH algorithm.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>PPMC</code></td>
+<td>
+<p>logical; <code>TRUE</code> for conducting posterior predictive model checking.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>burn</code></td>
+<td>
+<p>Number of burn-in iterations before posterior sampling.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Number of formal iterations for posterior sampling (&gt; 0).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>update</code></td>
+<td>
+<p>Number of iterations to update the sampling information.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>missing</code></td>
+<td>
+<p>Value for missing data (default is <code>NA</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rfit</code></td>
+<td>
+<p>logical; <code>TRUE</code> for providing relative fit (DIC, BIC, AIC).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sign_check</code></td>
+<td>
+<p>logical; <code>TRUE</code> for checking sign switch of loading vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sign_eps</code></td>
+<td>
+<p>minimum value for switch sign of loading vector (if <code>sign_check=TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rs</code></td>
+<td>
+<p>logical; <code>TRUE</code> for enabling recommendation system.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>auto_stop</code></td>
+<td>
+<p>logical; <code>TRUE</code> for enabling auto stop based on <code>EPSR&lt;1.1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>max_conv</code></td>
+<td>
+<p>maximum consecutive number of convergence for auto stop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rseed</code></td>
+<td>
+<p>An integer for the random seed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits</code></td>
+<td>
+<p>Number of significant digits to print when printing numeric values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alas</code></td>
+<td>
+<p>logical; for adaptive Lasso or not. The default is <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical; to display the sampling information every <code>update</code> or not.
+</p>
+
+<ul>
+<li> <p><code>Feigen</code>: Eigenvalue for each factor.
+</p>
+</li>
+<li> <p><code>NLA_le3</code>: Number of Loading estimates &gt;= .3 for each factor.
+</p>
+</li>
+<li> <p><code>Shrink</code>: Shrinkage (or ave. shrinkage for each factor for adaptive Lasso).
+</p>
+</li>
+<li> <p><code>EPSR &amp; NCOV</code>: EPSR for each factor &amp; # of convergence.
+</p>
+</li>
+<li> <p><code>Ave. Thd</code>: Ave. thresholds for polytomous items.
+</p>
+</li>
+<li> <p><code>Acc Rate</code>: Acceptance rate of threshold (MH algorithm).
+</p>
+</li>
+<li> <p><code>LD&gt;.2 &gt;.1 LD&gt;.2 &gt;.1</code>: # of LD terms larger than .2 and .1, and LD's shrinkage parameter.
+</p>
+</li>
+<li> <p><code>#Sign_sw</code>: Number of sign switch for each factor.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p><code>pcfa</code> returns an object of class <code>lawbl</code> without item intercepts. It contains a lot of information about
+the posteriors that can be summarized using <code>summary.lawbl</code>.
+</p>
+
+
+<h3>References</h3>
+
+<p>Chen, J., Guo, Z., Zhang, L., &amp; Pan, J. (2021). A partially confirmatory approach to scale development
+with the Bayesian Lasso. <em>Psychological Methods</em>. 26(2), 210–235. DOI: 10.1037/met0000293.
+</p>
+<p>Chen, J. (2021). A generalized partially confirmatory factor analysis framework with mixed Bayesian Lasso methods.
+<em>Multivariate Behavioral Research</em>. DOI: 10.1080/00273171.2021.1925520.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+#####################################################
+#  Example 1: Estimation with continuous data &amp; LD  #
+#####################################################
+
+dat &lt;- sim18cfa1$dat
+J &lt;- ncol(dat)
+K &lt;- 3
+Q&lt;-matrix(-1,J,K);
+Q[1:6,1]&lt;-Q[7:12,2]&lt;-Q[13:18,3]&lt;-1
+
+m0 &lt;- pcfa(dat = dat, Q = Q, LD = TRUE,burn = 2000, iter = 2000)
+summary(m0) # summarize basic information
+summary(m0, what = 'qlambda') #summarize significant loadings in pattern/Q-matrix format
+summary(m0, what = 'offpsx') #summarize significant LD terms
+
+######################################################
+#  Example 2: Estimation with categorical data &amp; LI  #
+######################################################
+dat &lt;- sim18ccfa40$dat
+J &lt;- ncol(dat)
+K &lt;- 3
+Q&lt;-matrix(-1,J,K);
+Q[1:2,1]&lt;-Q[7:8,2]&lt;-Q[13:14,3]&lt;-1
+
+m1 &lt;- pcfa(dat = dat, Q = Q,LD = FALSE,cati=-1,burn = 2000, iter = 2000)
+summary(m1) # summarize basic information
+summary(m1, what = 'qlambda') #summarize significant loadings in pattern/Q-matrix format
+summary(m1, what = 'offpsx') #summarize significant LD terms
+summary(m1,what='thd') #thresholds for categorical items
+
+</code></pre>
+
+
+</div>

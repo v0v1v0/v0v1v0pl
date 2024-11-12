@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>read_dm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Read and write data models for LaF</h2>
+
+<h3>Description</h3>
+
+<p>Using these routines data models can be written and read. These data models
+can be used to create LaF object without the need to specify all arguments
+(column names, column types etc.). Opening of files using the data models can
+be done using <code>laf_open</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">read_dm(modelfile, ...)
+
+write_dm(model, modelfile)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>modelfile</code></td>
+<td>
+<p>character containing the filename of the file the model is to
+be written to/read from.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments are added to the data model or, when they are
+also present in the file are used to overwrite the values specified in the
+file.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a data model or an object of type <code>laf</code>. See
+details for more information.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>A data model is a list containing information which open routine should be
+used (e.g. <code>laf_open_csv</code> or <code>laf_open_fwf</code>), and the
+arguments needed for these routines. Required elements are ‘type’, which can
+(currently) be ‘csv’, or ‘fwf’, and ‘columns’, which should be a
+<code>data.frame</code> containing at least the columns ‘name’ and ‘type’, and for
+fwf ‘width’. These columns correspond to the arguments <code>column_names</code>,
+<code>column_types</code> and <code>column_widths</code> respectively. Other arguments of
+the <code>laf_open_*</code> routines can be specified as additional elements of the
+list. 
+</p>
+<p><code>write_dm</code> can also be used to write a data model that is created
+from an object of type <code>laf</code>. This is probably one of the
+easiest ways to create a data model.
+</p>
+<p>The data model is stored in a text file in YAML format which is a format in
+which data structures can be stored in a readable and editable format.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>read_dm</code> returns a data model which can be used by
+<code>laf_open</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See <code>detect_dm_csv</code> for a routine which can automatically
+create a data model from a CSV-file. The data models can be used to open a
+file using <code>laf_open</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Create some temporary files
+tmpcsv  &lt;- tempfile(fileext="csv")
+tmp2csv &lt;- tempfile(fileext="csv")
+tmpyaml &lt;- tempfile(fileext="yaml")
+
+# Generate test data
+ntest &lt;- 10
+column_types &lt;- c("integer", "integer", "double", "string")
+testdata &lt;- data.frame(
+    a = 1:ntest,
+    b = sample(1:2, ntest, replace=TRUE),
+    c = round(runif(ntest), 13),
+    d = sample(c("jan", "pier", "tjores", "corneel"), ntest, replace=TRUE)
+    )
+# Write test data to csv file
+write.table(testdata, file=tmpcsv, row.names=FALSE, col.names=FALSE, sep=',')
+
+# Create LaF-object
+laf &lt;- laf_open_csv(tmpcsv, column_types=column_types)
+
+# Write data model to stdout() (screen)
+write_dm(laf, stdout())
+
+# Write data model to file
+write_dm(laf, tmpyaml)
+
+# Read data model and open file
+laf2 &lt;- laf_open(read_dm(tmpyaml))
+
+# Write test data to second csv file
+write.table(testdata, file=tmp2csv, row.names=FALSE, col.names=FALSE, sep=',')
+
+# Read data model and open seconde file, demonstrating the use of the optional
+# arguments to read_dm
+laf2 &lt;- laf_open(read_dm(tmpyaml, filename=tmp2csv))
+
+# Cleanup
+file.remove(tmpcsv)
+file.remove(tmp2csv)
+file.remove(tmpyaml)
+
+</code></pre>
+
+
+</div>

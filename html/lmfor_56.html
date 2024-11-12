@@ -1,0 +1,263 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>volvff</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+The Variable Form-Factor Volume Model
+</h2>
+
+<h3>Description</h3>
+
+<p>An R-function for the variable form-factor volume model and a function for computing 
+bias-corrected volumes augmented with parameter uncertainty from a model fitted using nlme.</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">volvff(dbh,h,theta=NA,logita=NA,lambda=NA)
+predvff(data,mod,p=0.05,varMethod="taylor",biasCorr="none",nrep=500)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dbh</code></td>
+<td>
+
+<p>vector of individual tree diameters, cm
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+
+<p>vector of individual tree heights (m), of same length as <code>dbh</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta, logita, lambda</code></td>
+<td>
+
+<p>The parameters <code>logita</code> and <code>lambda</code> can be given either in a two-column 
+matrix where the number of rows equals to the length of <code>dbh</code>, 
+or separately in objects <code>logita</code> and <code>lambda</code>, which can be 
+scalars or vectors of same length as <code>dbh</code>. 
+If <code>theta</code> is not <code>NA</code>, argumets <code>logita</code> 
+and <code>lambda</code> are ignored.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>A data set including variables <code>dbh</code> and <code>h</code> and 
+all variables that are used as second-order predictors in <code>mod</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mod</code></td>
+<td>
+
+<p>A variable form-factor model fitted using <code>nlme</code>. 
+Any second-order predictors can be used for parameters <code>logita</code> and 
+<code>lambda</code>. The bias-correction works properly only 
+if the model includes random intercepts in <code>logita</code>.   
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+
+<p>The probability used in constructiong the confidence intervals for 
+tree-level volumes and total volume. 
+Symmetric <code class="reqn">100(1-p)</code>% confidence intervals are returned.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varMethod</code></td>
+<td>
+
+<p>Either <code>"taylor"</code>(the default) or <code>"simul"</code>. Specifies whether parameter 
+uncertainty is approximated by using a linearized model based on the 
+first-order Taylor approximation or by using Monte Carlo simulation.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>biasCorr</code></td>
+<td>
+
+<p>Either <code>"none"</code>(the default), <code>"integrate"</code> or <code>"twopoint"</code>. 
+Specifies whether the bias correction is not done (<code>"none"</code>), 
+is done by computing expected value of the prediction over the distribution 
+of random intercepts in parameter <code>logita</code>, or by using the two-point 
+approximation described in Kangas et al. (XXXX).  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nrep</code></td>
+<td>
+
+<p>The number of replicates in the Monte Carlo simulation when 
+<code>varMethod="simul"</code>. Ignored if <code>varMethod="taylor"</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The variance-form-factor function is of form
+</p>
+<p style="text-align: center;"><code class="reqn">
+v(D,H,a,\lambda)=\pi \frac{\exp(a)}{1+\exp(a)} R(D,H,\lambda)^2 H
+</code>
+</p>
+
+<p>where <code class="reqn">a</code> is the logit-transformed form factor and <code class="reqn">R(D,H,\lambda)</code> 
+is the stem radius at stump height, which is approximated using 
+</p>
+<p style="text-align: center;"><code class="reqn">
+R(D,H,\lambda)=w(H,\lambda)\frac{D}{2}+(1-w(H,\lambda))\frac{H}{H-B}\frac{D}{2}
+</code>
+</p>
+
+<p>where the weight is taken from the right tail of the logit transformation 
+</p>
+<p style="text-align: center;"><code class="reqn">
+    w(H,\lambda)=2-2\frac{\exp\left( \frac{H-B}{\exp(\lambda)}\right)}{1+\exp\left( \frac{H-B}{\exp(\lambda)}\right)}
+    </code>
+</p>
+
+<p>Parameter uncertainty is reported because the same realized errors are used always when 
+a model based on certain model fitting data is used; therefore those errors behave 
+in practice like bias. Variance for total volume is computed as sum of all elements of the 
+variance-covariance matrix of prediction errors of the mean. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>Function <code>volvff</code> returns a vector of tree volumes (in liters) that is of same length as 
+vector <code>dbh</code>. In addition, attribute <code>grad</code> returns the Jacobian, which is used 
+in nlme fitting for computing the derivatives of the model with respect to parameters, 
+and in approximating the parameter uncertainty when <code>varMethod="taylor"</code>. 
+</p>
+<p>Function <code>predvff</code> returns a list with following objects
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>totvol</code></td>
+<td>
+
+<p>Total volume of the trees of <code>dat</code>, in <code class="reqn">m^3</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totvolvar</code></td>
+<td>
+
+<p>The estimated variance of <code>totvol</code>, taking into account parameter uncertainty. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>totvolci</code></td>
+<td>
+
+<p>The estimated <code class="reqn">100(1-p)</code>% confidence interval of <code>totvol</code>, based on parameter uncertainty. 
+If <code>varMethod="taylor"</code>, it is based on normality and 
+the approximated variance <code>totvolvar</code>. 
+If <code>varMethod="simul"</code>, the empirical quantiles of the 
+<code>nrep</code> simulations are used. 
+</p>
+</td>
+</tr>
+</table>
+<p>And attributes
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>trees</code></td>
+<td>
+
+<p>A data frame of including tree-level volumes, their variance and 95% confidence intervals.  
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varmu</code></td>
+<td>
+
+<p>The variance-covariance matrix of prediction errors, taking into account theparameter uncertainty. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Lauri Mehtatalo &lt;<a href="mailto:lauri.mehtatalo@luke.fi">lauri.mehtatalo@luke.fi</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Kangas A., Pitkanen T., Mehtatalo L., Heikkinen J. (xxxx)
+Mixed linear and non-linear tree volume models with regionally varying parameters
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(lmfor)
+data(treevol)
+
+treevol$formfactor&lt;-treevol$v/volvff(treevol$dbh,treevol$h,logita=100,lambda=log(0.2))
+treevol$logitff&lt;-log((treevol$formfactor)/(1-(treevol$formfactor)))
+
+ptrees&lt;-treevol[treevol$species=="pine",]
+mod.init&lt;-lm(logitff~I(1/h)+h+dbh+I(h*dbh)+I(1/(h*dbh))+
+                     dataset+dataset:dbh+dataset:h,data=ptrees)
+
+mod&lt;-nlme(v~volvff(dbh,h,logita=logita,lambda=lambda),
+         fixed=list(logita~I(1/h)+h+dbh+I(h*dbh)+I(1/(h*dbh))+dataset+
+                           dataset:dbh+dataset:h+soil+temp_sum,
+                           lambda~1),
+         random=logita~1|stand/plot,
+         start=c(coef(mod.init),rep(0,2),log(0.2)),
+         data=ptrees,
+         weights=varComb(varIdent(form=~1 |dataset),varPower()),
+         method="ML",
+#         control=list(msVerbose=TRUE),
+#         verbose=TRUE
+)
+
+pred1&lt;-predvff(ptrees,mod,varMethod="simul",biasCorr="integrate") 
+pred1$totvol    
+pred1$totvolvar
+pred1$totvolci         
+head(attributes(pred1)$trees)    
+
+pred2&lt;-predvff(ptrees,mod,varMethod="taylor",biasCorr="twopoint") 
+pred2$totvol    
+pred2$totvolvar
+pred2$totvolci         
+head(attributes(pred2)$trees)   
+
+## End(Not run)
+</code></pre>
+
+
+</div>

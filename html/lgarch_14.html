@@ -1,0 +1,161 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mlgarch</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Estimate a multivariate CCC-log-GARCH(1,1) model </h2>
+
+<h3>Description</h3>
+
+<p>Fit a multivariate Constant Conditional Correlation (CCC) log-GARCH(1,1) model with multivariate Gaussian Quasi Maximum Likelihood (QML) via the VARMA representation, see Sucarrat, Gronneberg and Escribano (2013). Zero-values on y are treated as missing values, as suggested in Sucarrat and Escribano (2013). Estimation is via the <code>nlminb</code> function, whereas a numerical estimate of the Hessian is obtained with <code>optimHess</code> for the computation of the variance-covariance matrix
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mlgarch(y, arch = 1, garch = 1, xreg = NULL, initial.values = NULL,
+  lower = NULL, upper = NULL, nlminb.control = list(), vcov = TRUE,
+  objective.penalty = NULL, solve.tol = .Machine$double.eps, c.code = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric matrix, typically financial returns or regression errors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>arch</code></td>
+<td>
+<p>the arch order (i.e. an integer equal to or greater than 0). The default is 1. NOTE: in the current version the order cannot be greater than 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>garch</code></td>
+<td>
+<p>the garch order (i.e. an integer equal to or greater than 0). The default is 1. NOTE: in the current version the order cannot be greater than 1</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xreg</code></td>
+<td>
+<p>a vector or a matrix with the conditioning variables. The x-variables enter in each of the equations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>initial.values</code></td>
+<td>
+<p>NULL (default) or a vector with the initial values of the VARMA representation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>NULL (default) or a vector with the lower bounds of the parameter space (of the VARMA representation). If NULL, then the values are automatically chosen</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>NULL (default) or a vector with the upper bounds of the parameter space (of the VARMA representation). If NULL, then the values are automatically chosen</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nlminb.control</code></td>
+<td>
+<p>list of control options passed on to the <code>nlminb</code> optimiser</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>logical. If TRUE (default), then the variance-covariance matrix is computed. The FALSE options makes estimation faster, but the variance-covariance matrix cannot be extracted subsequently</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>objective.penalty</code></td>
+<td>
+<p>NULL (default) or a numeric value. If NULL, then the log-likelihood value associated with the initial values is used. Sometimes estimation can result in NA and/or +/-Inf values (this can be fatal for simulations). The value objective.penalty is the value returned by the log-likelihood function <code>lgarchObjective</code> in the presence of NA or +/-Inf values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solve.tol</code></td>
+<td>
+<p>The function <code>solve</code> is used for the inversion of the Hessian in computing the variance-covariance matrix. The value solve.tol is passed on to <code>solve</code>, and is the tolerance for detecting linear dependencies in the columns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>c.code</code></td>
+<td>
+<p>logical. TRUE (default) is (much) faster, since it makes use of compiled C-code</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p> A list of class 'mlgarch' </p>
+
+
+<h3>Note</h3>
+
+<p>Empty</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Genaro Sucarrat, <a href="http://www.sucarrat.net/">http://www.sucarrat.net/</a></p>
+
+
+<h3>References</h3>
+
+<p>Sucarrat and Escribano (2013), 'Unbiased QML Estimation of Log-GARCH Models in the Presence of Zero Returns', MPRA Paper 50699: <a href="http://mpra.ub.uni-muenchen.de/50699/">http://mpra.ub.uni-muenchen.de/50699/</a> <br></p>
+<p>Sucarrat, Gronneberg and Escribano (2013), 'Estimation and Inference in Univariate and Multivariate Log-GARCH-X Models When the Conditional Density is Unknown', MPRA Paper 49344: <a href="http://mpra.ub.uni-muenchen.de/49344/">http://mpra.ub.uni-muenchen.de/49344/</a> <br></p>
+
+
+<h3>See Also</h3>
+
+<p><code>lgarchSim</code>, <code>coef.lgarch</code>, <code>fitted.lgarch</code>, <code>logLik.lgarch</code>, <code>print.lgarch</code>, <code>residuals.lgarch</code> and <code>vcov.lgarch</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">##simulate 1000 observations from a 2-dimensional
+##ccc-log-garch(1,1) w/default parameter values:
+set.seed(123)
+y &lt;- mlgarchSim(1000)
+
+##estimate a 2-dimensional ccc-log-garch(1,1):
+mymod &lt;- mlgarch(y)
+
+##print results:
+print(mymod)
+
+##extract ccc-log-garch coefficients:
+coef(mymod)
+
+##extract Gaussian log-likelihood (zeros excluded) of the ccc-log-garch model:
+logLik(mymod)
+
+##extract Gaussian log-likelihood (zeros excluded) of the varma representation:
+logLik(mymod, varma=TRUE)
+
+##extract variance-covariance matrix:
+vcov(mymod)
+
+##extract and plot the fitted conditional standard deviations:
+sdhat &lt;- fitted(mymod)
+plot(sdhat)
+
+##extract and plot standardised residuals:
+zhat &lt;- residuals(mymod)
+plot(zhat)
+</code></pre>
+
+
+</div>

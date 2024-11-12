@@ -1,0 +1,322 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lordif</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+performs Logistic Ordinal Regression Differential Item Functioning using IRT
+</h2>
+
+<h3>Description</h3>
+
+<p>performs iterative hybrid ordinal logistic regression/IRT DIF
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lordif(resp.data, group, selection = NULL, criterion = c("Chisqr", "R2", "Beta"), 
+pseudo.R2 = c("McFadden", "Nagelkerke", "CoxSnell"), alpha = 0.01, beta.change = 0.1, 
+R2.change = 0.02, maxIter = 10, minCell = 5, minTheta = -4, maxTheta = 4, inc = 0.1, 
+control = list(), model = "GRM", anchor = NULL, MonteCarlo = FALSE, nr = 100, 
+weights = NULL, normwt = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>resp.data</code></td>
+<td>
+<p> data frame or matrix containing item responses </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p> a vector of group designations </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p> a vector specifying a subset of items to be analyzed or NULL for all items </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>criterion</code></td>
+<td>
+<p> criterion for flagging (i.e., "Chisqr", "R2", or "Beta") </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pseudo.R2</code></td>
+<td>
+<p> pseudo R-squared measure (i.e., "McFadden", "Nagelkerke", or "CoxSnell") </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p> significance level for Chi-squared criterion </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>beta.change</code></td>
+<td>
+<p> proportionate change for Beta criterion </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R2.change</code></td>
+<td>
+<p> R-squared change for pseudo R-squared criterion </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxIter</code></td>
+<td>
+<p> maximum number of iterations for purification </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minCell</code></td>
+<td>
+<p> minimum cell frequency to avoid collapsing </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>minTheta</code></td>
+<td>
+<p> minimum for theta grid </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxTheta</code></td>
+<td>
+<p> maximum for theta grid </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inc</code></td>
+<td>
+<p> increment for theta grid </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>control</code></td>
+<td>
+<p> a list of control variables (refer to the <code>mirt</code> function in the <span class="pkg">mirt</span> package) </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p> IRT model of choice, either "GRM" or "GPCM" (default: "GRM") </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anchor</code></td>
+<td>
+<p> a vector specifying items to be used as anchors or NULL to determine anchors through purification </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MonteCarlo</code></td>
+<td>
+<p> TRUE to trigger Monte Carlo simulations to determine empirical thresholds </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nr</code></td>
+<td>
+<p> number of replications for Monte Carlo simulations </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>an optional vector (same length as nobs) of fractional case weights (refer to the <code>lrm</code> function in the <span class="pkg">rms</span> package which currently generates warning messages)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normwt</code></td>
+<td>
+<p>set to TRUE to scale weights so they sum to nobs</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Performs an ordinal (common odds-ratio) logistic regression differential item functioning (DIF) analysis using IRT theta estimates  
+as the conditioning variable. The graded response model (GRM) or the generalized partial credit model (GPCM) is used for IRT trait estimation.  
+Items flagged for DIF are treated as unique items and group-specific item parameters are obtained. Non-DIF items serve as anchor items to
+the initial single-group calibration. The procedure runs iteratively until the same set of items is flagged over two consecutive iterations,
+unless anchor items are specified.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns an object (list) of class "lordif" with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>calling expression</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>options used for the run</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>selection</code></td>
+<td>
+<p>all or a subset of items analyzed</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats</code></td>
+<td>
+<p>matrix containing output statistics</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag</code></td>
+<td>
+<p>logical vector of final flags indicating whether each item is displaying DIF or not</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>recoded</code></td>
+<td>
+<p>data frame containing recoded item responses</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>group</code></td>
+<td>
+<p>vector of group designation values</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ng</code></td>
+<td>
+<p>scalar for the number of groups</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncat</code></td>
+<td>
+<p>vector of the number of response categories for each item after collapsing/recoding</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calib</code></td>
+<td>
+<p>vector of theta estimates based on the overall (non-group-specific) item parameters</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>calib.sparse</code></td>
+<td>
+<p>vector of theta estimates based on the DIF-free and group-specific item parameters </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iteration</code></td>
+<td>
+<p>scalar for the number of iterations</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipar</code></td>
+<td>
+<p>data frame of the overall (non-group-specific) item parameter estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ipar.sparse</code></td>
+<td>
+<p>data frame of the group-specific item parameter estimates</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stats.raw</code></td>
+<td>
+<p>matrix containing output statistics (the same components as stats above but based on raw scores)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>meanraw</code></td>
+<td>
+<p>vector containing mean raw scores</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>flag.raw</code></td>
+<td>
+<p>logical vector of final DIF flags based on raw scores</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DFIT</code></td>
+<td>
+<p>place-holder for DFIT analysis output</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>anchor</code></td>
+<td>
+<p>vector of items used as anchors</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MonteCarlo</code></td>
+<td>
+<p>place-holder for Monte Carlo analysis output</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>requires the <span class="pkg">mirt</span> and <span class="pkg">rms</span> packages
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Seung W. Choi &lt;choi.phd@gmail.com&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Choi, S. W., Gibbons, L. E., Crane, P. K. (2011). lordif: An R Package for Detecting Differential Item Functioning Using Iterative Hybrid Ordinal Logistic Regression/Item Response Theory and Monte Carlo Simulations. Journal of Statistical Software, 39(8), 1-30. URL http://www.jstatsoft.org/v39/i08/.
+</p>
+<p>Crane, P. K., Gibbons, L. E., Jolley, L., and van Belle, G. (2006). Differential item functioning analysis with ordinal logistic regression techniques: DIF detect and difwithpar. Medical Care, 44(11 Suppl 3), S115-S123.
+</p>
+
+
+<h3>See Also</h3>
+
+ <p><code>rundif</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  ## Not run: data(Anxiety)
+  ## Not run: resp.data &lt;- Anxiety[paste("R",1:29,sep="")]
+  ## Not run: age &lt;- Anxiety$age
+  ## Not run: age.DIF &lt;- lordif(resp.data,age,model="GPCM",anchor=c(1:5,7,8,10,12:17,19:23,25:29))
+  ## Not run: print(age.DIF)
+</code></pre>
+
+
+</div>

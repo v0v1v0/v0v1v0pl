@@ -1,0 +1,91 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>terrain_points_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computation of terrain metrics</h2>
+
+<h3>Description</h3>
+
+<p>This function computes topographic variables from a point cloud
+</p>
+
+<ul>
+<li>
+<p>exposition
+</p>
+</li>
+<li>
+<p>altitude
+</p>
+</li>
+<li>
+<p>slope.
+</p>
+</li>
+</ul>
+<p>Values are computed after fitting a plane to the points. It supposes a 
+homogeneous sampling of the plot by points. Points can be cropped on disk if 
+center and radius are provided. In case a centre is provided, the altitude 
+is computed by bilinear interpolation at the center location 
+(<code>rasterize_terrain</code> with <code>tin</code> algorithm), 
+otherwise it is the mean of the points altitude range.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">terrain_points_metrics(p, centre = NULL, r = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>p</code></td>
+<td>
+<p>matrix, data.frame or <code>LAS</code> object with ground point 
+coordinates (X, Y, Z). In case of an object which is not LAS, the object is first 
+converted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>centre</code></td>
+<td>
+<p>vector. x y coordinates of center to extract points inside a disc</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p>numeric. radius of disc</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a data.frame with altitude, exposition (gr), slope (gr) and adjR2 of 
+plane fitting
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># sample points
+XYZ &lt;- data.frame(x = runif(200, -10, 10), y = runif(200, -10, 10))
+XYZ$z &lt;- 350 + 0.3 * XYZ$x + 0.1 * XYZ$y + rnorm(200, mean = 0, sd = 0.5)
+# compute terrain statistics
+terrain_points_metrics(XYZ)
+terrain_points_metrics(XYZ, centre = c(5, 5), r = 5)
+# with a LAS object
+LASfile &lt;- system.file("extdata", "las_chablais3.laz", package="lidaRtRee")
+las_chablais3 &lt;- lidR::readLAS(LASfile)
+terrain_points &lt;- lidR::filter_ground(las_chablais3)
+terrain_points_metrics(terrain_points)
+terrain_points_metrics(terrain_points, centre = c(974360, 6581650), r = 10)
+</code></pre>
+
+
+</div>

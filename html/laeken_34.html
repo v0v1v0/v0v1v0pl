@@ -1,0 +1,259 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>paretoTail</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pareto tail modeling for income distributions</h2>
+
+<h3>Description</h3>
+
+<p>Fit a Pareto distribution to the upper tail of income data.  Since a
+theoretical distribution is used for the upper tail, this is a semiparametric
+approach.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">paretoTail(
+  x,
+  k = NULL,
+  x0 = NULL,
+  method = "thetaPDC",
+  groups = NULL,
+  w = NULL,
+  alpha = 0.01,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>a numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of observations in the upper tail to which the Pareto
+distribution is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>the threshold (scale parameter) above which the Pareto distribution
+is fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>either a function or a character string specifying the function
+to be used to estimate the shape parameter of the Pareto distibution, such as
+<code>thetaPDC</code> (the default).  See “Details” for requirements
+for such a function and “See also” for available functions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>an optional vector or factor specifying groups of elements of
+<code>x</code> (e.g., households).  If supplied, each group of observations is
+expected to have the same value in <code>x</code> (e.g., household income).  Only
+the values of every first group member to appear are used for fitting the
+Pareto distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>an optional numeric vector giving sample weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric; values above the theoretical <code class="reqn">1 - </code><code>alpha</code>
+quantile of the fitted Pareto distribution will be flagged as outliers for
+further treatment with <code>reweightOut</code> or <code>replaceOut</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>addtional arguments to be passed to the specified method.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The arguments <code>k</code> and <code>x0</code> of course correspond with each other.
+If <code>k</code> is supplied, the threshold <code>x0</code> is estimated with the <code class="reqn">n
+- k</code> largest value in <code>x</code>, where <code class="reqn">n</code> is the number of observations.
+On the other hand, if the threshold <code>x0</code> is supplied, <code>k</code> is given
+by the number of observations in <code>x</code> larger than <code>x0</code>.  Therefore,
+either <code>k</code> or <code>x0</code> needs to be supplied.  If both are supplied,
+only <code>k</code> is used.
+</p>
+<p>The function supplied to <code>method</code> should take a numeric vector (the
+observations) as its first argument.  If <code>k</code> is supplied, it will be
+passed on (in this case, the function is required to have an argument called
+<code>k</code>).  Similarly, if the threshold <code>x0</code> is supplied, it will be
+passed on (in this case, the function is required to have an argument called
+<code>x0</code>).  As above, only <code>k</code> is passed on if both are supplied.  If
+the function specified by <code>method</code> can handle sample weights, the
+corresponding argument should be called <code>w</code>.  Additional arguments are
+passed via the ... argument.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An object of class <code>"paretoTail"</code> with the following
+components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>the supplied numeric vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>k</code></td>
+<td>
+<p>the number of observations in the upper tail to which the
+Pareto distribution has been fitted.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>groups</code></td>
+<td>
+<p>if supplied, the vector or factor specifying groups of
+elements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>w</code></td>
+<td>
+<p>if supplied, the numeric vector of sample weights.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>the function used to estimate the shape parameter, or the
+name of the function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x0</code></td>
+<td>
+<p>the scale parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>the estimated shape parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tail</code></td>
+<td>
+<p>if <code>groups</code> is not <code>NULL</code>, this gives the groups
+with values larger than the threshold (scale parameter), otherwise the
+indices of observations in the upper tail.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>the tuning parameter <code>alpha</code> used for flagging
+outliers.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out</code></td>
+<td>
+<p>if <code>groups</code> is not <code>NULL</code>, this gives the groups
+that are flagged as outliers, otherwise the indices of the flagged
+observations.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Andreas Alfons
+</p>
+
+
+<h3>References</h3>
+
+<p>A. Alfons and M. Templ (2013) Estimation of Social Exclusion Indicators
+from Complex Surveys: The <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> Package <span class="pkg">laeken</span>.  <em>Journal of
+Statistical Software</em>, <b>54</b>(15), 1–25.  <a href="https://doi.org/10.18637/jss.v054.i15">doi:10.18637/jss.v054.i15</a>
+</p>
+<p>A. Alfons, M. Templ, P. Filzmoser (2013) Robust estimation of economic
+indicators from survey samples based on Pareto tail modeling. <em>Journal
+of the Royal Statistical Society, Series C</em>, <b>62</b>(2), 271–286.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>reweightOut</code>, <code>shrinkOut</code>,
+<code>replaceOut</code>, <code>replaceTail</code>, <code>fitPareto</code>
+</p>
+<p><code>thetaPDC</code>, <code>thetaWML</code>, <code>thetaHill</code>,
+<code>thetaISE</code>, <code>thetaLS</code>, <code>thetaMoment</code>,
+<code>thetaQQ</code>, <code>thetaTM</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(eusilc)
+
+
+## gini coefficient without Pareto tail modeling
+gini("eqIncome", weights = "rb050", data = eusilc)
+
+
+## gini coefficient with Pareto tail modeling
+
+# estimate threshold
+ts &lt;- paretoScale(eusilc$eqIncome, w = eusilc$db090,
+    groups = eusilc$db030)
+
+# estimate shape parameter
+fit &lt;- paretoTail(eusilc$eqIncome, k = ts$k,
+    w = eusilc$db090, groups = eusilc$db030)
+
+# calibration of outliers
+w &lt;- reweightOut(fit, calibVars(eusilc$db040))
+gini(eusilc$eqIncome, w)
+
+# winsorization of outliers
+eqIncome &lt;- shrinkOut(fit)
+gini(eqIncome, weights = eusilc$rb050)
+
+# replacement of outliers
+eqIncome &lt;- replaceOut(fit)
+gini(eqIncome, weights = eusilc$rb050)
+
+# replacement of whole tail
+eqIncome &lt;- replaceTail(fit)
+gini(eqIncome, weights = eusilc$rb050)
+
+</code></pre>
+
+
+</div>

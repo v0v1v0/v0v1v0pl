@@ -1,0 +1,435 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pelp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parameter estimation for a general distribution by the method of L-moments</h2>
+
+<h3>Description</h3>
+
+<p>Computes the parameters of a probability distribution
+as a function of the <code class="reqn">L</code>-moments or trimmed <code class="reqn">L</code>-moments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pelp(lmom, pfunc, start, bounds = c(-Inf, Inf),
+     type = c("n", "s", "ls", "lss"),
+     ratios = NULL, trim = NULL, method = "nlm", acc = 1e-5,
+     subdiv = 100, ...)
+
+pelq(lmom, qfunc, start, type = c("n", "s", "ls", "lss"),
+     ratios = NULL, trim = NULL, method = "nlm", acc = 1e-5,
+     subdiv = 100, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>lmom</code></td>
+<td>
+<p>Numeric vector containing the <code class="reqn">L</code>-moments of the distribution
+or of a data sample.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pfunc</code></td>
+<td>
+<p>Cumulative distribution function of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qfunc</code></td>
+<td>
+<p>Quantile function of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+<p>Vector of starting values for the parameters.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>Either a vector of length 2, containing the lower
+and upper bounds of the distribution, or a function that calculates
+these bounds given the distribution parameters as inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>Type of distribution, i.e. how it is parametrized.
+Must be one of the following:
+</p>
+
+<dl>
+<dt><code>"ls"</code></dt>
+<dd>
+<p>The distribution has a location parameter and a scale parameter.</p>
+</dd>
+<dt><code>"lss"</code></dt>
+<dd>
+<p>The distribution has a location parameter and a scale parameter,
+and is symmetric about its median.</p>
+</dd>
+<dt><code>"s"</code></dt>
+<dd>
+<p>The distribution has a scale parameter but not a location parameter.</p>
+</dd>
+<dt><code>"n"</code></dt>
+<dd>
+<p>The distribution has neither a location parameter
+nor a scale parameter.</p>
+</dd>
+</dl>
+<p>For more details, see the “Distribution type” section below.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Logical or <code>NULL</code>.
+If <code>FALSE</code>, <code>lmom</code> should contain <code class="reqn">L</code>-moments;
+if <code>TRUE</code>, <code>lmom</code> should contain <code class="reqn">L</code>-moment ratios.
+If <code>NULL</code> and <code>lmom</code> has names, the contents of <code>lmom</code>
+will be inferred from these names - see section
+“Inferring ‘ratios’ and ‘trim’” below.
+The default value (if <code>ratios</code> is <code>NULL</code> and <code>lmom</code> has no names)
+is <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>The degree of trimming corresponding to the <code class="reqn">L</code>-moments in <code>lmom</code>.
+Can be a single value or a vector length 2, as for <code>samlmu</code>.
+Can also be <code>NULL</code>: in this case if <code>lmom</code> has names,
+the degree of trimming will be inferred from these names - see section
+“Inferring ‘ratios’ and ‘trim’” below.
+The default value (if <code>trim</code> is <code>NULL</code> and <code>lmom</code> has no names)
+is <code>0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>Method used to estimate the shape parameters
+(i.e. all parameters other than the location and scale parameters, if any).
+Valid values are <code>"nlm"</code> (the default), <code>"uniroot"</code>
+(which is valid only if the distribution has at most one shape parameter),
+and any of the values of the <code>method</code> argument of function <code>optim</code>.
+See the “Details” section below.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acc</code></td>
+<td>
+<p>Requested accuracy for the estimated parameters.
+This will be absolute accuracy for shape parameters,
+relative accuracy for a scale parameter, and
+absolute accuracy of the location parameter divided by the scale parameter
+for a location parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subdiv</code></td>
+<td>
+<p>Maximum number of subintervals used in the numerical integration
+that computes <code class="reqn">L</code>-moments of the distribution.  Passed to functions
+<code>lmrp</code> or <code>lmrq</code>, which perform this integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments will be passed to the optimization function
+(<code>nlm</code>, <code>uniroot</code>, or <code>optim</code>).</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For shape parameters, numerical optimization is used to
+find parameter values for which the population <code class="reqn">L</code>-moments or <code class="reqn">L</code>-moment ratios
+are equal to the values supplied in <code>lmom</code>.
+Computation of <code class="reqn">L</code>-moments or <code class="reqn">L</code>-moment ratios
+uses functions <code>lmrp</code> (for <code>pelp</code>) or <code>lmrq</code> (for <code>pelq</code>).
+Numerical optimization uses <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> functions <code>nlm</code> (if <code>method="nlm"</code>),
+<code>uniroot</code> (if <code>method="uniroot"</code>), or
+<code>optim</code> with the specified method (for the other values of <code>method</code>).
+Function <code>uniroot</code> uses one-dimensional root-finding,
+while functions <code>nlm</code> and <code>optim</code> try to minimize
+a criterion function that is the sum of squared differences between the
+population <code class="reqn">L</code>-moments or <code class="reqn">L</code>-moment ratios and the values supplied in <code>lmom</code>.
+Location and scale parameters are then estimated noniteratively.
+In all cases, the calculation of population <code class="reqn">L</code>-moments and
+<code class="reqn">L</code>-moment ratios is performed by function <code>lmrp</code> or <code>lmrq</code>
+(when using <code>pelp</code> or <code>pelq</code> respectively).
+</p>
+<p>This approach is very crude.  Nonetheless, it is often effective in practice.
+As in all numerical optimizations, success may depend on the way that
+the distribution is parametrized and on the particular choice of
+starting values for the parameters.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>Numeric vector containing the estimated parameters
+of the distribution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>code</code></td>
+<td>
+<p>An integer indicating the result of the numerical optimization
+used to estimate the shape parameters.  It is <code>0</code> if there
+are no shape parameters.  In general, values <code>1</code> and <code>2</code>
+indicate successful convergence of the iterative procedure,
+a value of <code>3</code> indicates that the iteration may not have converged,
+and values of <code>4</code> or more indicate that the iteration did not converge.
+Specifically, <code>code</code> is:
+</p>
+<p>For method <code>"nlm"</code>, the <code>code</code> component
+of the return value from <code>nlm</code>.
+</p>
+<p>For method <code>"uniroot"</code>, <code>1</code> if the estimated
+precision of the shape parameter is less than or equal to <code>acc</code>,
+and <code>4</code> otherwise.
+</p>
+<p>For the other methods, the <code>convergence</code> component
+of the return value from <code>optim</code>.
+</p>
+</td>
+</tr>
+</table>
+<h3>Further details of arguments</h3>
+
+<p>The length of <code>lmom</code> should be (at least) the highest
+order of <code class="reqn">L</code>-moment used in the estimation procedure.  For a distribution
+with <code class="reqn">r</code> parameters this is
+<code class="reqn">2r-2</code> if <code>type="lss"</code> and <code class="reqn">r</code> otherwise.
+</p>
+<p><code>pfunc</code> and <code>qfunc</code> can be either the standard <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> form of
+cumulative distribution function or quantile function
+(i.e. for a distribution with <code class="reqn">r</code> parameters, the first argument is the
+variate <code class="reqn">x</code> or the probability <code class="reqn">p</code> and the next <code class="reqn">r</code> arguments
+are the parameters of the distribution) or the <code>cdf...</code> or
+<code>qua...</code> forms used throughout the <span class="pkg">lmom</span> package
+(i.e. the first argument is the variate <code class="reqn">x</code> or probability <code class="reqn">p</code>
+and the second argument is a vector containing the parameter values).
+Even for the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> form, however, starting values for the parameters
+are supplied as a vector <code>start</code>.
+</p>
+<p>If <code>bounds</code> is a function, its arguments must match
+the distribution parameter arguments of <code>pfunc</code>:
+either a single vector, or a separate argument for each parameter.
+</p>
+<p>It is assumed that location and scale parameters come first in
+the set of parameters of the distribution. Specifically:
+if <code>type="ls"</code> or <code>type="lss"</code>, it is assumed
+that the first parameter is the location parameter and
+that the second parameter is the scale parameter;
+if <code>type="s"</code> it is assumed
+that the first parameter is the scale parameter.
+</p>
+<p>It is important that the length of <code>start</code> be equal to the number
+of parameters of the distribution.  Starting values for
+location and scale parameters should be included in <code>start</code>,
+even though they are not used.
+If <code>start</code> has the wrong length, it is possible that
+meaningless results will be returned without any warning being issued.
+</p>
+
+
+<h3>Distribution type </h3>
+
+<p>The <code>type</code> argument affects estimation as follows.
+We assume that location and scale parameters are <code class="reqn">\xi</code> and <code class="reqn">\alpha</code>
+respectively, and that the shape parameters (if there are any)
+are collectively designated by <code class="reqn">\theta</code>.
+</p>
+<p>If <code>type="ls"</code>, then the <code class="reqn">L</code>-moment ratios <code class="reqn">\tau_3, \tau_4, \ldots</code>
+depend only on the shape parameters. If there are any shape parameters,
+they are estimated by equating the sample <code class="reqn">L</code>-moment ratios of orders
+3, 4, etc., to the population <code class="reqn">L</code>-moment ratios
+and solving the resulting equations for the shape parameters
+(using as many equations as there are shape parameters).
+The <code class="reqn">L</code>-moment <code class="reqn">\lambda_2</code> is a multiple of <code class="reqn">\alpha</code>, the multiplier
+being a function only of <code class="reqn">\theta</code>.
+<code class="reqn">\alpha</code> is estimated by dividing the second sample <code class="reqn">L</code>-moment
+by the multiplier function evaluated at the estimated value of <code class="reqn">\theta</code>.
+The <code class="reqn">L</code>-moment <code class="reqn">\lambda_1</code> is <code class="reqn">\xi</code> plus
+a function of <code class="reqn">\alpha</code> and <code class="reqn">\theta</code>.
+<code class="reqn">\xi</code> is estimated by subtracting from the first sample <code class="reqn">L</code>-moment
+the function evaluated at the estimated values of
+<code class="reqn">\alpha</code> and <code class="reqn">\theta</code>.
+</p>
+<p>If <code>type="lss"</code>, then
+the <code class="reqn">L</code>-moment ratios of odd order, <code class="reqn">\tau_3, \tau_5, \ldots</code>, are zero and
+the <code class="reqn">L</code>-moment ratios of even order, <code class="reqn">\tau_4, \tau_6, \ldots</code>,
+depend only on the shape parameters. If there are any shape parameters,
+they are estimated by equating the sample <code class="reqn">L</code>-moment ratios of orders
+4, 6, etc., to the population <code class="reqn">L</code>-moment ratios
+and solving the resulting equations for the shape parameters
+(using as many equations as there are shape parameters).
+Parameters <code class="reqn">\alpha</code> and <code class="reqn">\xi</code> are estimated as in case when <code>type="ls"</code>.
+</p>
+<p>If <code>type="s"</code>, then the <code class="reqn">L</code>-moments divided by <code class="reqn">\lambda_1</code>,
+i.e. <code class="reqn">\lambda_2/\lambda_1, \lambda_3/\lambda_1, \ldots</code>,
+depend only on the shape parameters. If there are any shape parameters,
+they are estimated by equating the sample <code class="reqn">L</code>-moments
+(divided by the first sample <code class="reqn">L</code>-moment) of orders 2, 3, etc.,
+to the corresponding population <code class="reqn">L</code>-moments
+(divided by the first population <code class="reqn">L</code>-moment)
+and solving the resulting equations
+(as many equations as there are shape parameters).
+The <code class="reqn">L</code>-moment <code class="reqn">\lambda_1</code> is a multiple of <code class="reqn">\alpha</code>, the multiplier
+being a function only of <code class="reqn">\theta</code>.
+<code class="reqn">\alpha</code> is estimated by dividing the first sample <code class="reqn">L</code>-moment
+by the multiplier function evaluated at the estimated value of <code class="reqn">\theta</code>.
+</p>
+<p>If <code>type="n"</code>, then all parameters are shape parameters.
+They are estimated by equating the sample <code class="reqn">L</code>-moments of orders
+1, 2, etc., to the population <code class="reqn">L</code>-moments
+and solving the resulting equations for the parameters
+(using as many equations as there are parameters).
+</p>
+
+
+<h3>Inferring ‘ratios’ and ‘trim’</h3>
+
+<p>If <code>ratios</code> or <code>trim</code> is <code>NULL</code>, appropriate values will be inferred
+by inspecting the names of <code>lmom</code>. It is assumed that <code>lmom</code>
+was generated by a call to <code>samlmu</code>, <code>lmrp</code>, or <code>lmrq</code>;
+in this case its names will reflect the values of <code>ratios</code> and <code>trim</code>
+used in that  call.
+If in this case <code>lmom</code> has no names, default values
+<code>ratios=TRUE</code> and <code>trim=0</code> will be used.
+</p>
+<p>This inference is made in order to reduce the need to specify the
+orders of trimming repetitively.
+For example, a distribution with quantile function <code>qfunc</code> can be
+fitted to (1,1)-trimmed <code class="reqn">L</code>-moments of data in <code>x</code> by
+</p>
+<pre>
+  lmom &lt;- samlmu(x, trim=1)
+  fit &lt;- pelq(lmom, qfunc, start=...)
+</pre>
+<p>There is no need to specify <code>trim</code> both in the call to <code>samlmu</code>
+and the call to <code>pelq</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>See Also</h3>
+
+<p><code>pelexp</code> for parameter estimation of specific distributions.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Gamma distribution -- rewritten so that its first parameter
+## is a scale parameter
+my.pgamma &lt;- function(x, scale, shape) pgamma(x, shape=shape, scale=scale)
+pelp(c(5,2), my.pgamma, start=c(1,1), bounds=c(0,Inf), type="s")
+# We can also do the estimation suppressing our knowledge
+# that one parameter is a shape parameter.
+pelp(c(5,2), my.pgamma, start=c(1,1), bounds=c(0,Inf), type="n")
+rm(my.pgamma)
+
+## Kappa distribution -- has location, scale and 2 shape parameters
+# Estimate via pelq
+pel.out &lt;- pelq(c(10,5,0.3,0.15), quakap, start=c(0,1,0,0), type="ls")
+pel.out
+# Check that L-moments of estimated distribution agree with the
+# L-moments input to pelq()
+lmrkap(pel.out$para)
+# Compare with the distribution-specific routine pelkap
+pelkap(c(10,5,0.3,0.15))
+rm(pel.out)
+
+# Similar results -- what's the advantage of the specific routine?
+system.time(pelq(c(10,5,0.3,0.15), quakap, start=c(0,1,0,0), type="ls"))
+system.time(pelkap(c(10,5,0.3,0.15)))
+
+# Caution -- pelq() will not check that estimates are reasonable
+lmom &lt;- c(10,5,0.2,0.25)
+pel.out &lt;- pelq(lmom, quakap, start=c(0,1,0,0), type="ls")
+pel.out
+lmrkap(pel.out$para) # should be close to lmom, but tau_3 and tau_4 are not
+# What happened? pelkap will tell us
+try(pelkap(lmom))
+rm(lmom, pel.out)
+
+## Inverse Gaussian -- don't have explicit estimators for this
+## distribution, but can use numerical methods
+#
+# CDF of inverse gaussian distribution
+pig &lt;- function(x, mu, lambda) {
+  temp &lt;- suppressWarnings(sqrt(lambda/x))
+  xx &lt;- pnorm(temp*(x/mu-1))+exp(2*lambda/mu+pnorm(temp*(x/mu+1),
+              lower.tail=FALSE, log.p=TRUE))
+  out &lt;- ifelse(x&lt;=0, 0, xx)
+  out
+}
+# Fit to ozone data
+data(airquality)
+(lmom&lt;-samlmu(airquality$Ozone))
+pel.out &lt;- pelp(lmom[1:2], pig, start=c(10,10), bounds=c(0,Inf))
+pel.out
+# First four L-moments of fitted distribution,
+# for comparison with sample L-moments
+lmrp(pig, pel.out$para[1], pel.out$para[2], bounds=c(0,Inf))
+rm(pel.out)
+
+## A Student t distribution with location and scale parameters
+#
+qstu &lt;- function(p, xi, alpha, df) xi + alpha * qt(p, df)
+# Estimate parameters.  Distribution is symmetric: use type="lss"
+pelq(c(3,5,0,0.2345), qstu, start=c(0,1,10), type="lss")
+# Doesn't converge (at least on the author's system) --
+# try a different parametrization
+qstu2 &lt;- function(p, xi, alpha, shape) xi + alpha * qt(p, 1/shape)
+# Now it converges
+pelq(c(3,5,0,0.2345), qstu2, start=c(0,1,0.1), type="lss")
+# Or try a different optimization method
+pelq(c(3,5,0,0.2345), qstu, start=c(0,1,10), type="lss",
+    method="uniroot", lower=2, upper=100)
+
+## With trimmed L-moments, we can fit this distribution even when
+## it does not have a finite mean ('df' less than 1)
+set.seed(123456)
+dat &lt;- qstu(runif(1000), xi=3, alpha=5, df=0.75)
+lmom &lt;- samlmu(dat, trim=1)
+lmom
+# Note that pelq() infers 'trim=1' from the names of 'lmom'
+pelq(lmom, qstu, start=c(0,1,10), type="lss",  method="uniroot",
+  lower=0.51, upper=100)
+
+rm(qstu, qstu2, dat, lmom)
+
+</code></pre>
+
+
+</div>

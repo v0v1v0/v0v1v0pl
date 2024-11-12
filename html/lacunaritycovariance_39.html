@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>racscovariance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Covariance Estimation</h2>
+
+<h3>Description</h3>
+
+<p>Estimates the covariance of a stationary RACS.
+The plug-in moment covariance estimator and
+newer balanced estimators based on (Picka, 1997; Picka, 2000) are available.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">racscovariance(
+  xi,
+  obswin = NULL,
+  setcov_boundarythresh = NULL,
+  estimators = "all",
+  drop = FALSE
+)
+
+racscovariance.cvchat(
+  cvchat,
+  cpp1 = NULL,
+  phat = NULL,
+  estimators = "all",
+  drop = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>xi</code></td>
+<td>
+<p>A binary map. Either an <code>im</code> object or a <code>owin</code> object.
+If an <code>im</code> object then pixel values of 1 or TRUE represent foreground,
+0 or <code>FALSE</code> values represent background, and <code>NA</code> values
+represent outside the  observation window. If an <code>owin</code> object then
+<code>xi</code> represents foreground and <code>obswin</code> is required to specify
+the observation window.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obswin</code></td>
+<td>
+<p>The observation window as an <code>owin</code> object if <code>xi</code> is also as an <code>owin</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>setcov_boundarythresh</code></td>
+<td>
+<p>To avoid instabilities caused by dividing by very small quantities, if the set covariance of the observation window
+is smaller than <code>setcov_boundarythresh</code>, then the covariance is given a value of NA.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estimators</code></td>
+<td>
+<p>A list of strings specifying covariance estimators to use.
+See details.
+Passing <code>estimators = "all"</code> will select all available estimators.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drop</code></td>
+<td>
+<p>If TRUE and one estimator is selected then the returned value will be a single <code>im</code> object and not a list of <code>im</code> objects.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cvchat</code></td>
+<td>
+<p>The plug-in moment estimate of covariance as an <code>im</code> object.
+Typically created with <code>plugincvc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpp1</code></td>
+<td>
+<p>Picka's reduced window estimate of coverage probability as an <code>im</code> object - used in improved (balanced) covariance estimators.
+Can be generated using <code>cppicka</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phat</code></td>
+<td>
+<p>The classical estimate of coverage probability,
+which is the observed area in <code>xi</code> divided by the total area of the observation window.
+See <code>coverageprob</code> for more information.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The covariance of a RACS is also known as the two-point coverage probability, and is
+closely related to the semivariogram.
+The covariance of a stationary RACS <code class="reqn">\Xi</code> given a vector <code class="reqn">v</code> is
+the probability that two points separated by a vector <code class="reqn">v</code> are covered by
+<code class="reqn">\Xi</code>.
+</p>
+<p>Given a vector <code class="reqn">v</code>, the plug-in moment covariance estimate from a binary map is the volume of the set of points, <code class="reqn">x</code>, such that both
+<code class="reqn">x</code> and <code class="reqn">x+v</code> are observed to be in the foreground
+relative to the volume of points, <code class="reqn">x</code>, for which both <code class="reqn">x</code> and <code class="reqn">x+v</code>
+are in the observation window (Hingee, 2019).
+Picka (1997, 2000) suggested a number of improvements to centred
+covariance estimation (see <code>cencovariance</code>) that 'balanced' the
+data used to estimate covariance with the data used to estimate coverage
+probability. These lead to covariance estimators that give
+estimates for the covariance of <code class="reqn">\Xi</code> that are a constant offset from
+covariance estimates for the complement of <code class="reqn">\Xi</code> (note the constant offset
+depends on the coverage probability), which
+appears to avoid some surprising behaviour that the plug-in moment covariance estimator
+suffers (Hingee, 2019).
+These estimators are called <code>pickaint</code> and <code>pickaH</code> in this package.
+</p>
+<p>Another improved estimator, inspired by an 'intrinsic modification' briefly mentioned by Picka (1997)
+for pair-correlation estimators, is also available.
+We have called this estimator <code>mattfeldt</code> as a similar isotropic estimator for pair-correlation
+was studied by Mattfeldt and Stoyan (2000).
+</p>
+<p>The estimators available are (see (Hingee, 2019) for more information):
+</p>
+
+<ul>
+<li>
+<p><code>plugin</code> the plug-in moment covariance estimator
+</p>
+</li>
+<li>
+<p><code>mattfeldt</code> an estimator inspired by an
+'intrinsically' balanced pair-correlation estimator from Picka that was later studied in an
+isotropic situation by Mattfeldt and Stoyan (2000)
+</p>
+</li>
+<li>
+<p><code>pickaint</code> an estimator inspired by an
+'intrinsically' balanced centred covariance estimator from Picka (2000).
+</p>
+</li>
+<li>
+<p><code>pickaH</code> an estimator inspired by the
+'additively' balanced centred covariance estimator from Picka (2000).
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>If <code>drop = TRUE</code> and only one estimator is requested then
+an <code>im</code> object containing the covariance estimate.
+Otherwise a named <code>imlist</code> of covariance estimates corresponding to each requested estimator.
+</p>
+
+
+<h3>Functions</h3>
+
+
+<ul>
+<li> <p><code>racscovariance()</code>: Estimates covariance from a binary map.
+</p>
+</li>
+<li> <p><code>racscovariance.cvchat()</code>: Computes covariance estimates from
+a plug-in moment estimate of covariance, Picka's reduced window estimate of coverage probability,
+and the usual estimate of coverage probability.
+If these estimates already exist then <code>racscovariance.cvchat</code> can save significant computation time.
+</p>
+</li>
+</ul>
+<h3>Author(s)</h3>
+
+<p>Kassel Liam Hingee
+</p>
+
+
+<h3>References</h3>
+
+<p>Hingee, K.L. (2019) <em>Spatial Statistics of Random Closed Sets for Earth Observations</em>. PhD: Perth, Western Australia: University of Western Australia. Submitted.
+</p>
+<p>Mattfeldt, T. and Stoyan, D. (2000) Improved estimation of the pair correlation function of random sets. <em>Journal of Microscopy</em>, 200, 158-173.
+</p>
+<p>Picka, J.D. (1997) <em>Variance-Reducing Modifications for Estimators of Dependence in Random Sets</em>. Ph.D.: Illinois, USA: The University of Chicago.
+</p>
+<p>Picka, J.D. (2000) Variance reducing modifications for estimators of standardized moments of random sets. <em>Advances in Applied Probability</em>, 32, 682-700.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">xi &lt;- heather$coarse
+obswin &lt;- Frame(xi)
+
+# Estimate from a binary map
+balancedcvchats_direct &lt;- racscovariance(xi, obswin = obswin, estimators = "all")
+
+phat &lt;- coverageprob(xi, obswin = obswin)
+cvchat &lt;- plugincvc(xi, obswin)
+cpp1 &lt;- cppicka(xi, obswin = Frame(heather$coarse))
+harmonised &lt;- harmonise.im(cvchat = cvchat, cpp1 = cpp1)
+cvchat &lt;- harmonised$cvchat
+cpp1 &lt;- harmonised$cpp1
+
+# Compute balanced estimate of covariance from other estimates
+balancedcvchats_fromplugincvc &lt;- racscovariance.cvchat(cvchat,
+                         cpp1, phat, estimators = "pickaH", drop = TRUE)
+
+</code></pre>
+
+
+</div>

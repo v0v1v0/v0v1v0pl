@@ -1,0 +1,163 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>reb_bootstrap.lmerMod</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>REB Bootstrap for Two-Level Nested LMEs</h2>
+
+<h3>Description</h3>
+
+<p>Generate random effect block (REB) bootstrap replicates of a statistic for a 
+two-level nested linear mixed-effects model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmerMod'
+reb_bootstrap(model, .f, B, reb_type, .refit = TRUE)
+
+## S3 method for class 'lme'
+reb_bootstrap(model, .f, B, reb_type, .refit = TRUE)
+
+reb_bootstrap(model, .f, B, reb_type, .refit = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>The model object you wish to bootstrap.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.f</code></td>
+<td>
+<p>A function returning the statistic(s) of interest.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>B</code></td>
+<td>
+<p>The number of bootstrap resamples.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>reb_type</code></td>
+<td>
+<p>Specification of what random effect block bootstrap version to
+implement. Possible values are <code>0</code>, <code>1</code> or <code>2</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.refit</code></td>
+<td>
+<p>a logical value indicating whether the model should be refit to 
+the bootstrap resample, or if the simulated bootstrap resample should be 
+returned. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The random effects block (REB) bootstrap was outlined by Chambers and Chandra (2013)
+and has been developed for two-level nested linear mixed-effects (LME) models. 
+Consider a two-level LME of the form
+</p>
+<p style="text-align: center;"><code class="reqn">y = X \beta + Z b + \epsilon</code>
+</p>
+
+<p>The REB bootstrap algorithm (<code>type = 0</code>) is as follows:
+</p>
+
+<ol>
+<li>
+<p> Calculate the nonparametric residual quantities for the fitted model
+</p>
+
+<ul>
+<li>
+<p> marginal residuals <code class="reqn">r = y - X\beta</code>
+</p>
+</li>
+<li>
+<p> predicted random effects <code class="reqn">\tilde{b} = (Z^\prime Z)^{-1} Z^\prime r</code>
+</p>
+</li>
+<li>
+<p> error terms <code class="reqn">\tilde{e} = r - Z \tilde{b}</code>
+</p>
+</li>
+</ul>
+</li>
+<li>
+<p> Take a simple random sample, with replacement, of the predicted random effects, <code class="reqn">\tilde{b}</code>.
+</p>
+</li>
+<li>
+<p> Draw a simple random sample, with replacement, of the group (cluster) IDs.
+For each sampled cluster, draw a random sample, with replacement, of size 
+<code class="reqn">n_i</code> from that cluster's vector of error terms, <code class="reqn">\tilde{e}</code>.
+</p>
+</li>
+<li>
+<p> Generate bootstrap samples via the fitted model equation 
+<code class="reqn">y = X \widehat{\beta} + Z \tilde{b} + \tilde{e}</code>
+</p>
+</li>
+<li>
+<p> Refit the model and extract the statistic(s) of interest.
+</p>
+</li>
+<li>
+<p> Repeat steps 2-5 B times.
+</p>
+</li>
+</ol>
+<p>Variation 1 (<code>type = 1</code>): 
+The first variation of the REB bootstrap zero centers and rescales the 
+residual quantities prior to resampling.
+</p>
+<p>Variation 2 (<code>type = 2</code>):
+The second variation of the REB bootstrap scales the estimates and centers
+the bootstrap distributions (i.e., adjusts for bias) after REB bootstrapping.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The returned value is an object of class "lmeresamp".
+</p>
+
+
+<h3>References</h3>
+
+<p>Chambers, R. and Chandra, H. (2013) A random effect block bootstrap for 
+clustered data. <em>Journal of Computational and Graphical Statistics</em>, 
+<b>22</b>, 452–470.
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li>
+<p> Examples are given in <code>bootstrap</code>
+</p>
+</li>
+<li> <p><code>parametric_bootstrap</code>, <code>resid_bootstrap</code>,
+<code>case_bootstrap</code>, <code>reb_bootstrap</code>, 
+<code>wild_bootstrap</code> for more details on a specific bootstrap.
+</p>
+</li>
+<li> <p><code>bootMer</code> in the <span class="pkg">lme4</span> package for an 
+implementation of (semi-)parametric bootstrap for mixed models.
+</p>
+</li>
+</ul>
+</div>

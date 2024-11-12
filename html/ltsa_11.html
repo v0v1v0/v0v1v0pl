@@ -1,0 +1,133 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>PredictionVariance</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2> Prediction variance</h2>
+
+<h3>Description</h3>
+
+<p>The prediction variance of the forecast for lead times l=1,...,maxLead
+is computed given theoretical autocovariances. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">PredictionVariance(r, maxLead = 1, DLQ = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>r</code></td>
+<td>
+<p> the autocovariances at lags 0, 1, 2, ... </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxLead</code></td>
+<td>
+<p> maximum lead time of forecast </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>DLQ</code></td>
+<td>
+<p> Using Durbin-Levinson if TRUE. Otherwise Trench algorithm used. </p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Two algorithms are available which 
+are described in detail in McLeod, Yu and Krougly (2007).
+The default method, DLQ=TRUE, uses the autocovariances provided in r to
+determine the optimal linear mean-square error predictor of order
+length(r)-1.  
+The mean-square error of this predictor is the lead-one error variance.
+The moving-average expansion of this model is used to compute any
+remaining variances (McLeod, Yu and Krougly, 2007).
+With the other Trench algorithm, when DLQ=FALSE, a direct matrix representation
+of the forecast variances is used (McLeod, Yu and Krougly, 2007).
+The Trench method is exact.  Provided the length of r is large enough,
+the two methods will agree.
+</p>
+
+
+<h3>Value</h3>
+
+<p>vector of length maxLead containing the variances
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p> A.I. McLeod </p>
+
+
+<h3>References</h3>
+
+ 
+<p>McLeod, A.I., Yu, Hao, Krougly, Zinovi L.  (2007).
+Algorithms for Linear Time Series Analysis,
+Journal of Statistical Software.
+</p>
+
+
+<h3>See Also</h3>
+
+ 
+<p><code>predict.Arima</code>, 
+<code>TrenchForecast</code>,
+<code>exactLoglikelihood</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#Example 1. Compare using DL method or Trench method
+va&lt;-PredictionVariance(0.9^(0:10), maxLead=10)
+vb&lt;-PredictionVariance(0.9^(0:10), maxLead=10, DLQ=FALSE)
+cbind(va,vb)
+# 
+#Example 2. Compare with predict.Arima
+#general script, just change z, p, q, ML
+z&lt;-sqrt(sunspot.year)
+n&lt;-length(z)
+p&lt;-9
+q&lt;-0
+ML&lt;-10
+#for different data/model just reset above
+out&lt;-arima(z, order=c(p,0,q))
+sda&lt;-as.vector(predict(out, n.ahead=ML)$se)
+#
+phi&lt;-theta&lt;-numeric(0)
+if (p&gt;0) phi&lt;-coef(out)[1:p]
+if (q&gt;0) theta&lt;-coef(out)[(p+1):(p+q)]
+zm&lt;-coef(out)[p+q+1]
+sigma2&lt;-out$sigma2
+r&lt;-sigma2*tacvfARMA(phi, theta, maxLag=n+ML-1)
+sdb&lt;-sqrt(PredictionVariance(r, maxLead=ML))
+cbind(sda,sdb)
+#
+# 
+#Example 3. DL and Trench method can give different results
+#  when the acvf is slowly decaying. Trench is always
+#  exact based on a finite-sample.
+L&lt;-5
+r&lt;-1/sqrt(1:(L+1))
+va&lt;-PredictionVariance(r, maxLead=L)
+vb&lt;-PredictionVariance(r, maxLead=L, DLQ=FALSE)
+cbind(va,vb) #results are slightly different
+r&lt;-1/sqrt(1:(1000)) #larger number of autocovariances
+va&lt;-PredictionVariance(r, maxLead=L)
+vb&lt;-PredictionVariance(r, maxLead=L, DLQ=FALSE)
+cbind(va,vb) #results now agree
+</code></pre>
+
+
+</div>

@@ -1,0 +1,150 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>contestMD.lmerModLmerTest</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiple Degrees-of-Freedom Contrast Tests</h2>
+
+<h3>Description</h3>
+
+<p>Compute the multi degrees-of-freedom test in a linear mixed model fitted
+by <code>lmer</code>. The contrast (L) specifies a linear function of the
+mean-value parameters, beta. Satterthwaite's method is used to compute the
+denominator df for the F-test.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'lmerModLmerTest'
+contestMD(
+  model,
+  L,
+  rhs = 0,
+  ddf = c("Satterthwaite", "Kenward-Roger"),
+  eps = sqrt(.Machine$double.eps),
+  ...
+)
+
+calcSatterth(model, L)
+
+## S3 method for class 'lmerMod'
+contestMD(
+  model,
+  L,
+  rhs = 0,
+  ddf = c("Satterthwaite", "Kenward-Roger"),
+  eps = sqrt(.Machine$double.eps),
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>a model object fitted with <code>lmer</code> from package
+<span class="pkg">lmerTest</span>, i.e., an object of class <code>lmerModLmerTest</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>L</code></td>
+<td>
+<p>a contrast matrix with nrow &gt;= 1 and ncol ==
+<code>length(fixef(model))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rhs</code></td>
+<td>
+<p>right-hand-side of the statistical test, i.e. the hypothesized
+value. A numeric vector of length <code>nrow(L)</code> or a numeric scalar.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ddf</code></td>
+<td>
+<p>the method for computing the denominator degrees of freedom and
+F-statistics. <code>ddf="Kenward-Roger"</code> uses Kenward-Roger's method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>tolerance on eigenvalues to determine if an eigenvalue is
+positive. The number of positive eigenvalues determine the rank of
+L and the numerator df of the F-test.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>currently not used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The F-value and associated p-value is for the hypothesis
+<code class="reqn">L \beta = \mathrm{rhs}</code> in which rhs may be non-zero
+and <code class="reqn">\beta</code> is <code>fixef(model)</code>.
+</p>
+<p>Note: NumDF = row-rank(L) is determined automatically so row rank-deficient L
+are allowed. One-dimensional contrasts are also allowed (L has 1 row).
+</p>
+
+
+<h3>Value</h3>
+
+<p>a <code>data.frame</code> with one row and columns with <code>"Sum Sq"</code>,
+<code>"Mean Sq"</code>, <code>"F value"</code>, <code>"NumDF"</code> (numerator df),
+<code>"DenDF"</code> (denominator df) and <code>"Pr(&gt;F)"</code> (p-value).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Rune Haubo B. Christensen
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>contest</code> for a flexible and
+general interface to tests of contrasts among fixed-effect parameters.
+<code>contest1D</code> is a direct interface for
+tests of 1-dimensional contrasts.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data("sleepstudy", package="lme4")
+fm &lt;- lmer(Reaction ~ Days + I(Days^2) + (1|Subject) + (0+Days|Subject),
+           sleepstudy)
+
+# Define 2-df contrast - since L has 2 (linearly independent) rows
+# the F-test is on 2 (numerator) df:
+L &lt;- rbind(c(0, 1, 0), # Note: ncol(L) == length(fixef(fm))
+           c(0, 0, 1))
+
+# Make the 2-df F-test of any effect of Days:
+contestMD(fm, L)
+
+# Illustrate rhs argument:
+contestMD(fm, L, rhs=c(5, .1))
+
+# Make the 1-df F-test of the effect of Days^2:
+contestMD(fm, L[2, , drop=FALSE])
+# Same test, but now as a t-test instead:
+contest1D(fm, L[2, , drop=TRUE])
+
+</code></pre>
+
+
+</div>

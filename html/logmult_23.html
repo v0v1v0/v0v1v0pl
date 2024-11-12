@@ -1,0 +1,201 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>iac</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Intrinsic Association Coefficient
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute the intrisic association coefficient of a table.
+This coefficient was first devised by Goodman (1996) as the
+“generalized contingency” when a logarithm link is used, and it is equal
+to the standard deviation of the log-linear two-way interaction parameters
+<code class="reqn">\lambda_{ij}</code>.
+To obtain the Altham index, multiply the result by
+<code>sqrt(nrow(tab) * ncol(tab)) * 2</code> (see “Examples” below).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">iac(tab, cell = FALSE,
+    weighting = c("marginal", "uniform", "none"),
+    component = c("total", "symmetric", "antisymmetric"),
+    shrink = FALSE,
+    normalize = FALSE,
+    row.weights = NULL, col.weights = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p>a two- or three-way table without zero cells; for three-way tables,
+average marginal weighting is used when “weighting = "marginal"”, and
+the MAOR is computed for each layer (third dimension).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cell</code></td>
+<td>
+<p>if “TRUE”, return the per-cell contributions
+(affected by the value of <code>phi</code>, see “Details” below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p>what weights should be used when normalizing the scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>component</code></td>
+<td>
+<p>whether to compute the total association, or from symmetric
+or antisymmetric interaction coefficients only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>shrink</code></td>
+<td>
+<p>whether to use the empirical Bayes shrinkage estimator proposed by Zhou (2015)
+rather than the direct estimator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>normalize</code></td>
+<td>
+<p>whether to return the normalized version of the index varying
+between 0 and 1 proposed by Bouchet-Valat (2022) rather than the
+classic index varying between 0 and positive infinity.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.weights</code></td>
+<td>
+<p>optional custom weights to be used for rows, e.g. to compute
+the phi coefficient for several tables using their overall marginal
+distribution. If specified, <code>weighting</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.weights</code></td>
+<td>
+<p>see <code>row.weights</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Goodman (1996), Equation 52 for the (marginal or other) weighted version of
+the intrinsic association coefficient (<code class="reqn">\tilde \lambda</code>); the unweighted version can be
+computed with unit weights. The coefficient should not be confused with Goodman and Kruskal's lambda coefficient.
+The uniform-weighted version is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">\lambda^\dagger = \sqrt{ \frac{1}{IJ} \sum_{i = 1}^I \sum_{j = 1}^J \lambda_{ij}^2 }</code>
+</p>
+
+<p>The (marginal or other) weighted version is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde \lambda = \sqrt{ \sum_{i = 1}^I \sum_{j = 1}^J \tilde \lambda_{ij}^2 P_{i+} P_{+j} }</code>
+</p>
+
+<p>with <code class="reqn">\sum_{i = 1}^I \lambda_{ij} = \sum_{j = 1}^J \lambda_{ij} = 0</code> and
+<code class="reqn">\sum_{i = 1}^I P_{i+} \tilde \lambda_{ij} = \sum_{j = 1}^J P_{+j} \tilde \lambda_{ij} = 0</code>.
+</p>
+<p>The normalized version of the index is defined from <code class="reqn">\lambda^\dagger</code> and
+<code class="reqn">\tilde \lambda</code> as:
+</p>
+<p style="text-align: center;"><code class="reqn">\tau = \sqrt{1 + 1/(2 \lambda)^2} - 1/(2 \lambda)</code>
+</p>
+
+<p>Per-cell contributions <code class="reqn">c_{ij}</code> are defined so that:
+<code class="reqn">\tilde \phi = \sqrt{ \sum_{i = 1}^I \sum_{j = 1}^J c_{ij} }</code>. For the unweighted case,
+<code class="reqn">c_{ij} = \lambda_{ij}^2 / IJ</code>; for the weighted case,
+<code class="reqn">\tilde c_{ij} = \tilde \lambda_{ij}^2 P_{i+} P_{+j}</code>.
+</p>
+<p>This index cannot be computed in the presence of zero cells since it is based
+on the logarithm of proportions. In these cases, 0.5 is added to all cells of the table
+(Agresti 2002, sec. 9.8.7, p. 397; Berkson 1955), and a warning is printed.
+Make sure this correction does not affect too much the results (especially
+with small samples) by manually adding different values before calling this function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The numeric value of the intrinsic association coefficient (if <code>cell = FALSE</code>),
+or the corresponding per-cell contributions (if <code>cell = TRUE</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>Agresti, A. 2002. Categorical Data Analysis. New York: Wiley.
+</p>
+<p>Altham, P. M. E., Ferrie J. P., 2007. Comparing Contingency Tables Tools for Analyzing Data
+from Two Groups Cross-Classified by Two Characteristics. <em>Historical Methods</em> 40(1):3-16.
+</p>
+<p>Bouchet-Valat, M. (2022). General Marginal-free Association Indices for Contingency Tables:
+From the Altham Index to the Intrinsic Association Coefficient. <em>Sociological Methods &amp; Research</em> 51(1): 203-236.
+</p>
+<p>Berkson, J. (1955). Maximum Likelihood and Minimum chi2 Estimates of the Logistic Function.
+<em>J. of the Am. Stat. Ass.</em> 50(269):130-162.
+</p>
+<p>Goodman, L. A. (1996). A Single General Method for the Analysis of Cross-Classified Data: Reconciliation
+and Synthesis of Some Methods of Pearson, Yule, and Fisher, and Also Some Methods of Correspondence
+Analysis and Association Analysis. <em>J. of the Am. Stat. Ass.</em> 91(433):408-428.
+</p>
+<p>Zhou, X. (2015). Shrinkage Estimation of Log-Odds Ratios for Comparing Mobility Tables.
+<em>Sociological Methodology</em> 45(1):33-63.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>unidiff</code>, <code>rc</code>, <code>maor</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Altham index (Altham and Ferrie, 2007, Table 1, p. 3 and commentary p. 8)
+  tab1 &lt;- matrix(c(260, 195, 158, 70,
+                   715, 3245, 874, 664,
+                   424, 454, 751, 246,
+                   142, 247, 327, 228), 4, 4)
+  iac(tab1, weighting="n") * sqrt(nrow(tab1) * ncol(tab1)) * 2
+
+  # Zhou (2015)
+  data(hg16)
+  # Add 0.5 due to the presence of zero cells
+  hg16 &lt;- hg16 + 0.5
+  # Figure 3, p. 343: left column then right column
+  # (reported values are actually twice the Altham index)
+  iac(hg16, weighting="n") * sqrt(nrow(hg16) * ncol(hg16)) * 2 * 2
+  iac(hg16, weighting="n", shrink=TRUE) * sqrt(nrow(hg16) * ncol(hg16)) * 2 * 2
+  # Table 4, p. 347: values are not exactly the same
+  u &lt;- unidiff(hg16)
+  # First row
+  cor(u$unidiff$layer$qvframe$estimate, iac(hg16, weighting="n"))
+  cor(u$unidiff$layer$qvframe$estimate, iac(hg16, weighting="n"), method="spearman")
+  # Second row
+  cor(u$unidiff$layer$qvframe$estimate, iac(hg16, shrink=TRUE, weighting="n"))
+  cor(u$unidiff$layer$qvframe$estimate, iac(hg16, shrink=TRUE, weighting="n"), method="spearman")
+</code></pre>
+
+
+</div>

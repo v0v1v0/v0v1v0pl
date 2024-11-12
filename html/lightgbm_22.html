@@ -1,0 +1,108 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lgb.get.eval.result</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Get record evaluation result from booster</h2>
+
+<h3>Description</h3>
+
+<p>Given a <code>lgb.Booster</code>, return evaluation results for a
+particular metric on a particular dataset.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lgb.get.eval.result(
+  booster,
+  data_name,
+  eval_name,
+  iters = NULL,
+  is_err = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>booster</code></td>
+<td>
+<p>Object of class <code>lgb.Booster</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data_name</code></td>
+<td>
+<p>Name of the dataset to return evaluation results for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eval_name</code></td>
+<td>
+<p>Name of the evaluation metric to return results for.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iters</code></td>
+<td>
+<p>An integer vector of iterations you want to get evaluation results for. If NULL
+(the default), evaluation results for all iterations will be returned.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is_err</code></td>
+<td>
+<p>TRUE will return evaluation error instead</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>numeric vector of evaluation result
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+
+
+# train a regression model
+data(agaricus.train, package = "lightgbm")
+train &lt;- agaricus.train
+dtrain &lt;- lgb.Dataset(train$data, label = train$label)
+data(agaricus.test, package = "lightgbm")
+test &lt;- agaricus.test
+dtest &lt;- lgb.Dataset.create.valid(dtrain, test$data, label = test$label)
+params &lt;- list(
+  objective = "regression"
+  , metric = "l2"
+  , min_data = 1L
+  , learning_rate = 1.0
+  , num_threads = 2L
+)
+valids &lt;- list(test = dtest)
+model &lt;- lgb.train(
+  params = params
+  , data = dtrain
+  , nrounds = 5L
+  , valids = valids
+)
+
+# Examine valid data_name values
+print(setdiff(names(model$record_evals), "start_iter"))
+
+# Examine valid eval_name values for dataset "test"
+print(names(model$record_evals[["test"]]))
+
+# Get L2 values for "test" dataset
+lgb.get.eval.result(model, "test", "l2")
+
+</code></pre>
+
+
+</div>

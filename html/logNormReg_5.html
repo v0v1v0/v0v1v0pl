@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lognlm</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Multiple linear regression with log Normal errors
+</h2>
+
+<h3>Description</h3>
+
+<p>The function fits simple multiple linear regression models with log Normals erros. Two objectives as well as two optimizing functions can be used. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lognlm(formula, data, subset, weights, na.action, y = TRUE, start, model = TRUE, 
+     lik = FALSE, opt = c("nlminb", "optim"), contrasts=NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+
+<p>a standard R formula with response and explanatory variables (and possible offset) specifying the regression model being fitted.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+
+<p>an optional data frame, list or environment containing some or all the variables in the model.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+
+<p>an optional vector specifying a subset of observations to be used in the fitting process.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+
+<p>an optional vector of (positive) weights to be used in the fitting process. Currently implemented only if <code>lik=FALSE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+
+<p>a function  indicating what should happen when the data contain NAs. The default is set by the <code>na.action</code> setting of <code>options</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+
+<p>logical. If <code>TRUE</code> the response vector is returned as <code>y</code> in the fit object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start</code></td>
+<td>
+
+<p>(optional) starting values of the parameter to be estimated. If <code>start</code> is missing they are computed via ordinary least squares with the intercept <code class="reqn">\hat\beta_0</code> replaced by <code class="reqn">max(\hat\beta_0,median\{y_i\})</code>. <br> 
+If <code>lik=TRUE</code> (i.e. a log Normal model is fitted), <code>start</code> refers to the regression parameters <em>and</em> the error standard deviation; if <code>lik=FALSE</code>, <code>start</code> does <em>not</em> include the starting guess for the standard deviation.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+
+<p>logical. If <code>TRUE</code> the model frame is returned as <code>model</code> in the fit object.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lik</code></td>
+<td>
+
+<p>If <code>TRUE</code> the log Normal log likelihood is optimized, otherwise the sum of squared residuals based on the logs (see Details).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+
+<p>the optimization function to be used. <code>nlminb</code> appears to be more efficient, probably because it uses (unlike <code>optim</code>) also the hessian matrix (supplied in the code). However results are often indistinguishable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+
+<p>an optional list. See the contrasts.arg of model.matrix.default.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>optional arguments passed on to the optimizing functions (<code>nlminb</code> or <code>optim</code>), (and therefore should be <em>consistent</em> with that).
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>lognlm</code> fits simple linear regression models with log Normal errors and identity link. Actually two objectives could be used.
+</p>
+<p>If <code>lik=TRUE</code> the usual log Normal likelihood is optimized, otherwise estimation is based on minimization of the following loss function
+</p>
+<p style="text-align: center;"><code class="reqn">\sum_i(\log y_i-\log \mu_i )^2</code>
+</p>
+
+<p>where <code class="reqn">\mu_i=x_i^T\beta</code> is the mean function equal to the linear predictor (as an identity link is exploited).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list with components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>coefficients</code></td>
+<td>
+<p>the regression parameters estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loglik</code></td>
+<td>
+<p>The objective function value, namely the log Normal log likelihood or the sum of the squared ‘log residuals’ (depending on <code>lik</code> option).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s2</code></td>
+<td>
+<p>the error variance estimate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fitted.values</code></td>
+<td>
+<p>the fitted values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>residuals</code></td>
+<td>
+<p>the raw residuals on the original scale, i.e. 'observed - fitted'.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grad</code></td>
+<td>
+<p>the gradient at solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hessian</code></td>
+<td>
+<p>the hessian matrix at solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Ehessian</code></td>
+<td>
+<p>the expected hessian matrix at solution (only if <code>lik=FALSE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>convergence</code></td>
+<td>
+<p>the convergence code coming from the fitter function. <code>0</code> means succefull convergence. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>the matched call.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>the response vector (provided that <code>y=TRUE</code> has been set).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>opt</code></td>
+<td>
+<p>the employed optimizer.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lik</code></td>
+<td>
+<p>logical, indicating if the fit comes from a log Normal likelihood approach.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xlevels</code></td>
+<td>
+<p>(only where relevant) a record of the levels of the factors used in fitting.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>terms</code></td>
+<td>
+<p>the terms object used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>contrasts</code></td>
+<td>
+<p>(only where relevant) the contrasts used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>if requested, i.e. <code>model=TRUE</code> has been set (the default), the model frame used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>offset</code></td>
+<td>
+<p>the (possible) offset used.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Vito M.R. Muggeo
+</p>
+
+
+<h3>See Also</h3>
+
+<p>See also <code>print.lognlm</code> and <code>summary.lognlm</code> to display results.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+n=300
+s=.4
+set.seed(123)      #just to get reproducible results..
+
+x&lt;-seq(.1,10,l=n) #covariate
+mu&lt;- 10+2*x  #linear regression function
+y&lt;-rlnorm(n, log(mu)-s^2/2, s) #data..
+
+o0&lt;-lm(log(y)~x) #the usual but WRONG model
+o&lt;- lognlm(y~x, lik=TRUE) #fit the 'right' model by ML
+
+plot(x,y)
+lines(x, mu, lwd=2)
+points(x, exp(fitted(o0)), col=2, type="l", lwd=2)
+points(x, fitted(o), col=3, type="l", lwd=2)
+legend("topleft", legend=c("true", "lm(log(y)~x)", "lognlm(y~x)"), 
+    col=c(1,2,3), lwd=2)
+
+#Sometimes people would estimate parameters by minimizing a least square objective 
+# (i.e. by setting 'lik=FALSE', see Details), wherein data would come from 
+# Y = mu * exp(eps) where eps~N(0,s)..
+y1&lt;-mu*exp(rnorm(n,0,1)) #data..
+o1&lt;-lognlm(y1~x, lik=FALSE) #set 'lik=FALSE', see Details
+
+
+</code></pre>
+
+
+</div>

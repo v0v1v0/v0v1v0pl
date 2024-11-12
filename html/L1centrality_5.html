@@ -1,0 +1,182 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>group_reduce</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Group Reduced Graph</h2>
+
+<h3>Description</h3>
+
+<p>Computes the vertex multiplicities (weights) and the distance matrix of the
+group reduced graph. The group reduced graph is constructed by replacing a
+group of vertices in the original graph by a single ‘pseudo-vertex’.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">group_reduce(g, nodes, eta, method)
+
+## S3 method for class 'igraph'
+group_reduce(g, nodes, eta = NULL, method = c("minimum", "maximum", "average"))
+
+## S3 method for class 'matrix'
+group_reduce(g, nodes, eta = NULL, method = "minimum")
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>An <code>igraph</code> graph object or a distance matrix. Here, the
+(<i>i,j</i>) component of the distance
+matrix is the geodesic distance from the
+<i>i</i>th vertex to the
+<i>j</i>th vertex.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodes</code></td>
+<td>
+<p>A vector of integers. Each integer indicates the index of the
+vertex.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>An optional nonnegative multiplicity (weight) vector for (vertex)
+weighted networks. The sum of its components must be positive. If set to
+<code>NULL</code> (the default), all vertices will have the same positive weight
+(multiplicity) of 1, i.e., <code>g</code> is treated as a vertex unweighted graph. The
+length of the <code>eta</code> must be equivalent to the number of vertices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method</code></td>
+<td>
+<p>A character string. It specifies the method of setting the edge
+weight between the pseudo-vertex and the other vertices. Note that the S3
+method for the <code>matrix</code> class only supports the <code>minimum</code> option. This
+is because it is not possible to derive the group reduced graph's distance
+matrix from the original distance matrix when using the maximum or average
+method. On the other hand, the group reduced graph's distance matrix can be
+derived from the original distance matrix when the minimum method is used.
+See the discussion in Kang (2025).
+</p>
+
+<ul>
+<li> <p><code>minimum</code> (the default): the minimum method is used in setting the edge weights.
+</p>
+</li>
+<li> <p><code>maximum</code>: the maximum method is used in setting the edge weights.
+</p>
+</li>
+<li> <p><code>average</code>: the average method is used in setting the edge weights.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The group reduced graph is constructed by replacing the vertices indicated in
+the argument <code>nodes</code> with a single ‘pseudo-vertex’. The
+multiplicity (weight) of this new vertex is set to the sum of the
+multiplicities of the vertices within <code>nodes</code>. An edge from the
+pseudo-vertex to any vertex that is not in <code>nodes</code>, say
+<i>v</i>, is created in the group reduced graph if
+there is at least one edge from the vertices in <code>nodes</code> to
+<i>v</i> in the original graph. The weight of
+this newly added edge is determined using one of the following methods:
+</p>
+
+<ul>
+<li>
+<p> Minimum method: The edge weight from the pseudo-vertex to
+<i>v</i> is set to the minimum of the edge
+weights of the edges between the vertices in <code>nodes</code> to
+<i>v</i> in the original graph.
+</p>
+</li>
+<li>
+<p> Maximum method: The edge weight from the pseudo-vertex to
+<i>v</i> is set to the maximum of the edge
+weights of the edges between the vertices in <code>nodes</code> to
+<i>v</i> in the original graph.
+</p>
+</li>
+<li>
+<p> Average method: The edge weight from the pseudo-vertex to
+<i>v</i> is set to the average of the edge
+weights of the edges between the vertices in <code>nodes</code> to
+<i>v</i> in the original graph.
+</p>
+</li>
+</ul>
+<p>An edge from <i>v</i> to the pseudo-vertex is
+set in a similar manner. For details, refer to Kang (2025).
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list consisting of three objects:
+</p>
+
+<ul>
+<li> <p>‘distmat’: A matrix representing the group reduced graph's
+distance matrix, where the first row and column correspond to the
+pseudo-vertex.
+</p>
+</li>
+<li> <p>‘eta’: A vector of the group reduced graph's vertex
+multiplicity. The first element corresponds to the pseudo-vertex.
+</p>
+</li>
+<li> <p>‘label’: A vector of the vertex names specified by <code>nodes</code>.
+</p>
+</li>
+</ul>
+<h3>Note</h3>
+
+<p>Multiple edges (edges with the same head and tail vertices) are not allowed,
+because they make the edge weight setting procedure confusing.
+</p>
+
+
+<h3>References</h3>
+
+<p>S. Kang. <em>Topics in Non-Euclidean Dimension Reduction</em>. PhD thesis,
+Seoul National University, 2025.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>L1cent()</code> for
+<i>L</i><sub>1</sub> centrality/prestige.
+<code>L1centGROUP()</code> internally uses <code>group_reduce()</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Group reduced graph of the 'Iron Man' series using the minimum method
+vertex_weight &lt;- igraph::V(MCUmovie)$worldwidegross
+ironman_series &lt;- c(1,3,7)
+reduced_graph &lt;- group_reduce(MCUmovie, nodes = ironman_series, eta = vertex_weight)
+reduced_graph$distmat[1:3,1:3]
+reduced_graph$label
+
+# Multiplicity of the pseudo-vertex equals the sums of the replaced vertices' multiplicities
+reduced_graph$eta[1] == sum(vertex_weight[ironman_series])
+</code></pre>
+
+
+</div>

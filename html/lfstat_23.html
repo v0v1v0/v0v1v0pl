@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>find_droughts</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Identifying Low Flow Periods</h2>
+
+<h3>Description</h3>
+
+<p>A streamflow deficit is defined as an event where discharges are below a given threshold.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">find_droughts(x, threshold = vary_threshold, varying = "constant", interval = "day", ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+
+<p>an object which can be coerced to class <code>'xts'</code>. Either with a single column or with a column named <code>'discharge'</code>. Units of <code>'x'</code> are retrieved from the attributes. If it fails, an error is raised.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>The threshold can either be a constant value, a time series with the same length as <code>x</code> or a function (taking a single argument) returning either of these. Furthermore <code>threshold</code> can be a character vector of length one specifying a quantile of x like <code>threshold = 'Q80'</code> as a shortcut of <code>threshold = function(x) quantile(x, 0.2, na.rm = TRUE)</code>. See <code>vary_threshold</code> for varying a threshold in time.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varying</code></td>
+<td>
+<p>if <code>varying</code> is a character vector of length one, values of "constant", "daily", "weekly" and "monthly" are allowed. If a vector of class POSIX is provided, a seasonal varying threshold is computed, where the times provided define the start of the season. Only the day of the year is taken, the year itself doesn't have a meaning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>A character string, containing one of "day", "week", "month", "quarter" or "year" as accepted by <code>seq.Date</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+
+<p>if threshold is a function, these additional arguments are passed on to the function
+</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>an object of class <code>'deficit'</code>, which is basically an <code>'xts'</code> object with the columns
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>discharge</code></td>
+<td>
+<p>discharges as provided with <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>threshold</code></td>
+<td>
+<p>the threshold</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>def.increase</code></td>
+<td>
+<p>The increase of the deficit volume in m^3 per day. </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>event.no</code></td>
+<td>
+<p>an event id. If an event is numbered "0" this period not considered as a streamflow deficit.</p>
+</td>
+</tr>
+</table>
+<h3>See Also</h3>
+
+<p>There are summary and plot methods, see <code>summary.deficit</code> and <code>plot.deficit</code>.
+</p>
+<p><code>pooling</code>, <code>summary.deficit</code>, <code>plot.deficit</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(ray)
+ray &lt;- as.xts(ray)["1970::1979", ]
+r &lt;- find_droughts(ray)
+head(r)
+summary(r)
+
+
+plot(r)
+
+
+# threshold is to low, because there are many days with
+# zero flow observations
+# provide threshold as a constant value
+r &lt;- find_droughts(ray, threshold = 0.02)
+head(r)
+summary(r)
+
+plot(r)
+
+
+
+# provide threshold as a function
+r &lt;- find_droughts(ray,
+                   threshold = function(x) quantile(x, 0.2, na.rm = TRUE))
+head(r)
+summary(r)
+</code></pre>
+
+
+</div>

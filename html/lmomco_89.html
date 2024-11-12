@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dat2bernquaf</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Equivalent Nonexceedance Probability for a Given Value through Observed Data to Empirical Quantiles through Bernstein or Kantorovich Polynomials </h2>
+
+<h3>Description</h3>
+
+<p>This function computes an equivalent nonexceedance probability <code class="reqn">F</code> of a single value <code class="reqn">x</code> for the sample data set (<code class="reqn">\hat{X}</code>) through inversion of the empricial quantile function as computable through Bernstein or Kantorovich Polynomials by the <code>dat2bernqua</code> function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dat2bernquaf(x, data, interval=NA, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A scalar value for which the equivalent nonexceedance probability <code class="reqn">F</code> through the function <code>dat2bernqua</code> is to be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A vector of data values that directly correspond to the argument <code>x</code> in the function <code>dat2bernqua</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>The search interval. If <code>NA</code>, then <code class="reqn">[1/(n+1), 1 - 1/(n+1)]</code> is used. If <code>interval</code> is a single value <code class="reqn">a</code>, then the interval is computed as <code class="reqn">[a, 1 - a]</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments passed to <code>dat2bernqua</code> through the <code>uniroot()</code> function in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The basic logic is thus. The <code class="reqn">\hat{X}</code> in conjunction with the settings for the polynomials provides the empirical quantile function (EQF). The <code>dat2bernquaf</code> function then takes the EQF (through dynamic recomputation) and seeks a root for the single value also given.
+</p>
+<p>The critical piece likely is the search interval, which can be modified by the <code>interval</code> argument if the internal defaults are not sufficient. The default interval is determined as the first and last Weibull plotting positions of <code class="reqn">\hat{X}</code> having a sample size <code class="reqn">n</code>: <code class="reqn">[1/(n+1), 1 - 1/(n+1)]</code>.  Because the <code>dat2bernqua</code> function has a substantial set of options that control how the empirical curve is (might be) extrapolated beyond the range of <code class="reqn">\hat{X}</code>, it is difficult to determine an always suitable interval for the rooting.  However, it should be considered obvious that the result is more of an interpolation if <code class="reqn">F(x)</code> is within <code class="reqn">F \in  [1/(n+1), 1 - 1/(n+1)]</code> and increasingly becomes an accurate interpolation as <code class="reqn">F(x) \rightarrow 1/2</code> (the median).
+</p>
+<p>If the value <code class="reqn">x</code> is too far beyond the data or if the search interval is not sufficient then the following error will be triggered:
+</p>
+<pre>
+Error in uniroot(afunc, interval, ...) :
+  f() values at end points not of opposite sign
+</pre>
+<p>The Examples section explores this aspect.
+</p>
+
+
+<h3>Value</h3>
+
+<p>An <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> <code>list</code> is returned.
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An echoing of the <code class="reqn">x</code> value via the <code>x</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>f</code></td>
+<td>
+<p>The equivalent nonexceedance probability <code class="reqn">F(x{\mid}\hat{X})</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>interval</code></td>
+<td>
+<p>The search interval of <code class="reqn">F</code> used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>afunc.root</code></td>
+<td>
+<p>Corresponds to the <code>f.root</code> element returned by the <code>uniroot()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter</code></td>
+<td>
+<p>Corresponds to the <code>iter</code> element returned by the <code>uniroot()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>estim.prec</code></td>
+<td>
+<p>Corresponds to the <code>estim.prec</code> element returned by the <code>uniroot()</code> function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>source</code></td>
+<td>
+<p>An attribute identifying the computational source: “dat2bernquaf”.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>See Also</h3>
+
+<p><code>dat2bernqua</code> </p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">dat2bernquaf(6, c(2,10)) # median 1/2 of 2 and 10 is 6 (trivial and fast)
+## Not run: 
+set.seed(5135)
+lmr &lt;- vec2lmom(c(1000, 400, 0.2, 0.3, 0.045))
+par &lt;- lmom2par(lmr, type="wak")
+Q   &lt;- rlmomco(83, par) # n = 83 and extremely non-Normal data
+lgQ &lt;- max(Q) # 5551.052 by theory
+dat2bernquaf(median(Q), Q)$f  # returns 0.5100523 (nearly 1/2)
+dat2bernquaf(lgQ,   Q)$f                   # unable to root
+dat2bernquaf(lgQ,   Q, bound.type="sd")$f  # unable to root
+itf &lt;- c(0.5, 0.99999)
+f &lt;- dat2bernquaf(lgQ, Q, interval=itf, bound.type="sd")$f
+print(f) # F=0.9961118
+qlmomco(f, par) # 5045.784 for the estimate F=0.9961118
+# If we were not using the maximum and something more near the center of the
+# distribution then that estimate would be closer to qlmomco(f, par).
+# You might consider lqQ &lt;- qlmomco(0.99, Q) # theoretical 99th percentile and
+# let the random seed wander and see the various results. 
+## End(Not run)
+</code></pre>
+
+
+</div>

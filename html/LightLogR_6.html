@@ -1,0 +1,178 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>bright_dark_period</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Brightest or darkest continuous period</h2>
+
+<h3>Description</h3>
+
+<p>This function finds the brightest or darkest continuous period of a given
+timespan and calculates its <code>mean</code> light level, as well as the timing of the period's
+<code>onset</code>, <code>midpoint</code>, and <code>offset</code>. It is defined as the period with the maximum
+or minimum mean light level. Note that the data need to be regularly spaced
+(i.e., no gaps) for correct results.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">bright_dark_period(
+  Light.vector,
+  Time.vector,
+  period = c("brightest", "darkest"),
+  timespan = "10 hours",
+  epoch = "dominant.epoch",
+  loop = FALSE,
+  na.rm = FALSE,
+  as.df = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>Light.vector</code></td>
+<td>
+<p>Numeric vector containing the light data.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Time.vector</code></td>
+<td>
+<p>Vector containing the time data. Can be POSIXct,
+hms, duration, or difftime.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>period</code></td>
+<td>
+<p>String indicating the type of period to look for. Can be either
+<code>"brightest"</code>(the default) or <code>"darkest"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>timespan</code></td>
+<td>
+<p>The timespan across which to calculate. Can be either a
+duration or a duration string, e.g.,
+<code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>epoch</code></td>
+<td>
+<p>The epoch at which the data was sampled. Can be either a
+duration or a string. If it is a string, it needs to be
+either <code>"dominant.epoch"</code> (the default) for a guess based on the data, or a valid
+duration string, e.g., <code>"1 day"</code> or <code>"10 sec"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>loop</code></td>
+<td>
+<p>Logical. Should the data be looped? If <code>TRUE</code>, a full copy of the data
+will be concatenated at the end of the data. Makes only sense for 24 h data.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.rm</code></td>
+<td>
+<p>Logical. Should missing values be removed for the calculation?
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>as.df</code></td>
+<td>
+<p>Logical. Should the output be returned as a data frame? Defaults
+to <code>TRUE</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Assumes regular 24h light data. Otherwise, results may not be
+meaningful. Looping the data is recommended for finding the darkest period.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A named list with the <code>mean</code>, <code>onset</code>, <code>midpoint</code>, and <code>offset</code> of the
+calculated brightest or darkest period, or if <code>as.df == TRUE</code> a data frame
+with columns named <code style="white-space: pre;">⁠{period}_{timespan}_{metric}⁠</code>. The output type corresponds
+to the type of <code>Time.vector</code>, e.g., if <code>Time.vector</code> is HMS, the timing metrics
+will be also HMS, and vice versa for POSIXct.
+</p>
+
+
+<h3>References</h3>
+
+<p>Hartmeyer, S.L., Andersen, M. (2023). Towards a framework for light-dosimetry studies:
+Quantification metrics. <em>Lighting Research &amp; Technology</em>.
+<a href="https://doi.org/10.1177/14771535231170500">doi:10.1177/14771535231170500</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other metrics: 
+<code>centroidLE()</code>,
+<code>disparity_index()</code>,
+<code>duration_above_threshold()</code>,
+<code>exponential_moving_average()</code>,
+<code>frequency_crossing_threshold()</code>,
+<code>interdaily_stability()</code>,
+<code>intradaily_variability()</code>,
+<code>midpointCE()</code>,
+<code>nvRC()</code>,
+<code>nvRD()</code>,
+<code>nvRD_cumulative_response()</code>,
+<code>period_above_threshold()</code>,
+<code>pulses_above_threshold()</code>,
+<code>threshold_for_duration()</code>,
+<code>timing_above_threshold()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Dataset with light &gt; 250lx between 06:00 and 18:00
+dataset1 &lt;-
+  tibble::tibble(
+    Id = rep("A", 24),
+    Datetime = lubridate::as_datetime(0) + lubridate::hours(0:23),
+    MEDI = c(rep(1, 6), rep(250, 13), rep(1, 5))
+  )
+
+dataset1 %&gt;%
+  dplyr::reframe(bright_dark_period(MEDI, Datetime, "brightest", "10 hours",
+    as.df = TRUE))
+dataset1 %&gt;%
+  dplyr::reframe(bright_dark_period(MEDI, Datetime, "darkest", "7 hours",
+    loop = TRUE, as.df = TRUE))
+
+# Dataset with duration as Time.vector
+dataset2 &lt;-
+  tibble::tibble(
+    Id = rep("A", 24),
+    Datetime = lubridate::dhours(0:23),
+    MEDI = c(rep(1, 6), rep(250, 13), rep(1, 5))
+  )
+
+dataset2 %&gt;%
+  dplyr::reframe(bright_dark_period(MEDI, Datetime, "brightest", "10 hours",
+                                    as.df = TRUE))
+dataset2 %&gt;%
+  dplyr::reframe(bright_dark_period(MEDI, Datetime, "darkest", "5 hours",
+                                    loop = TRUE, as.df = TRUE))
+
+</code></pre>
+
+
+</div>

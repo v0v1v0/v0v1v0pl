@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>modelsearch2</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Data-driven Extension of a Latent Variable Model</h2>
+
+<h3>Description</h3>
+
+<p>Procedure adding relationship between variables that are supported by the data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">modelsearch2(
+  object,
+  link,
+  data,
+  method.p.adjust,
+  method.maxdist,
+  n.sample,
+  na.omit,
+  alpha,
+  nStep,
+  trace,
+  cpus
+)
+
+## S3 method for class 'lvmfit'
+modelsearch2(
+  object,
+  link = NULL,
+  data = NULL,
+  method.p.adjust = "fastmax",
+  method.maxdist = "approximate",
+  n.sample = 1e+05,
+  na.omit = TRUE,
+  alpha = 0.05,
+  nStep = NULL,
+  trace = TRUE,
+  cpus = 1
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvmfit</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>link</code></td>
+<td>
+<p>[character, optional for <code>lvmfit</code> objects] the name of the additional relationships to consider when expanding the model. Should be a vector containing strings like "Y~X". See the details section.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>[data.frame, optional] the dataset used to identify the model</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.p.adjust</code></td>
+<td>
+<p>[character] the method used to adjust the p.values for multiple comparisons.
+Can be any method that is valid for the <code>stats::p.adjust</code> function (e.g. <code>"fdr"</code>).
+Can also be <code>"max"</code>, <code>"fastmax"</code>, or <code>"gof"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>method.maxdist</code></td>
+<td>
+<p>[character] the method used to estimate the distribution of the max statistic.
+<code>"resampling"</code> resample the score under the null to estimate the null distribution.
+<code>"bootstrap"</code> performs a wild bootstrap of the iid decomposition of the score to estimate the null distribution.
+<code>"approximate"</code> attemps to identify the latent gaussian variable corresponding to each score statistic (that is chi-2 distributed).
+It approximates the correlation matrix between these latent gaussian variables and uses numerical integration to compute the distribution of the max.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.sample</code></td>
+<td>
+<p>[integer, &gt;0] number of samples used in the resampling approach.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.omit</code></td>
+<td>
+<p>should tests leading to NA for the test statistic be ignored. Otherwise this will stop the selection process.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>[numeric 0-1] the significance cutoff for the p-values.
+When the p-value is below, the corresponding link will be added to the model
+and the search will continue. Otherwise the search will stop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nStep</code></td>
+<td>
+<p>the maximum number of links that can be added to the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace</code></td>
+<td>
+<p>[logical] should the execution of the function be traced?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cpus</code></td>
+<td>
+<p>the number of cpus that can be used for the computations.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>method.p.adjust = <code>"max"</code> computes the p-values based on the distribution of the max statistic.
+This max statistic is the max of the square root of the score statistic.
+The p-value are computed integrating the multivariate normal distribution.
+</p>
+<p>method.p.adjust = <code>"fastmax"</code> only compute the p-value for the largest statistic.
+It is faster than <code>"max"</code> and lead to identical results.
+</p>
+<p>method.p.adjust = <code>"gof"</code> keep adding links until the chi-squared test (of correct specification of the covariance matrix) is no longer significant.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing:
+</p>
+
+<ul>
+<li>
+<p> sequenceTest: the sequence of test that has been performed.
+</p>
+</li>
+<li>
+<p> sequenceModel: the sequence of models that has been obtained.
+</p>
+</li>
+<li>
+<p> sequenceQuantile: the sequence of rejection threshold. Optional. 
+</p>
+</li>
+<li>
+<p> sequenceIID: the influence functions relative to each test. Optional. 
+</p>
+</li>
+<li>
+<p> sequenceSigma: the covariance matrix relative to each test. Optional. 
+</p>
+</li>
+<li>
+<p> initialModel: the model before the sequential search.
+</p>
+</li>
+<li>
+<p> statistic: the argument <code>statistic</code>.
+</p>
+</li>
+<li>
+<p> method.p.adjust: the argument <code>method.p.adjust</code>.
+</p>
+</li>
+<li>
+<p> alpha: [numeric 0-1] the significance cutoff for the p-values.
+</p>
+</li>
+<li>
+<p> cv: whether the procedure has converged.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## simulate data 
+mSim &lt;- lvm()
+regression(mSim) &lt;- c(y1,y2,y3,y4)~u
+regression(mSim) &lt;- u~x1+x2
+categorical(mSim,labels=c("A","B","C")) &lt;- "x2"
+latent(mSim) &lt;- ~u
+covariance(mSim) &lt;- y1~y2
+transform(mSim, Id~u) &lt;- function(x){1:NROW(x)}
+
+set.seed(10)
+df.data &lt;- lava::sim(mSim, n = 1e2, latent = FALSE)
+
+## only identifiable extensions
+m &lt;- lvm(c(y1,y2,y3,y4)~u)
+latent(m) &lt;- ~u
+addvar(m) &lt;- ~x1+x2
+
+e &lt;- estimate(m, df.data)
+
+## Not run: 
+resSearch &lt;- modelsearch(e)
+resSearch
+
+resSearch2 &lt;- modelsearch2(e, nStep = 2)
+resSearch2
+
+## End(Not run)
+
+
+## some extensions are not identifiable
+m &lt;- lvm(c(y1,y2,y3)~u)
+latent(m) &lt;- ~u
+addvar(m) &lt;- ~x1+x2 
+
+e &lt;- estimate(m, df.data)
+
+## Not run: 
+resSearch &lt;- modelsearch(e)
+resSearch
+resSearch2 &lt;- modelsearch2(e)
+resSearch2
+
+## End(Not run)
+
+## for instance
+mNI &lt;- lvm(c(y1,y2,y3)~u)
+latent(mNI) &lt;- ~u
+covariance(mNI) &lt;- y1~y2
+## estimate(mNI, data = df.data)
+## does not converge
+
+
+
+</code></pre>
+
+
+</div>

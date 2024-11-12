@@ -1,0 +1,295 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lmrp</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>L-moments of a general probability distribution</h2>
+
+<h3>Description</h3>
+
+<p>Computes the <code class="reqn">L</code>-moments or trimmed <code class="reqn">L</code>-moments
+of a probability distribution
+given its cumulative distribution function (for function <code>lmrp</code>)
+or quantile function (for function <code>lmrq</code>).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lmrp(pfunc, ..., bounds=c(-Inf,Inf), symm=FALSE, order=1:4,
+     ratios=TRUE, trim=0, acc=1e-6, subdiv=100, verbose=FALSE)
+
+lmrq(qfunc, ..., symm=FALSE, order=1:4, ratios=TRUE, trim=0,
+     acc=1e-6, subdiv=100, verbose=FALSE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>pfunc</code></td>
+<td>
+<p>Cumulative distribution function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>qfunc</code></td>
+<td>
+<p>Quantile function.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments to <code>pfunc</code> or <code>qfunc</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bounds</code></td>
+<td>
+<p>Either a vector of length 2, containing the lower
+and upper bounds of the distribution, or a function that calculates
+these bounds given the distribution parameters as inputs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>symm</code></td>
+<td>
+
+<p>For <code>lmrq</code>, a logical value indicating whether
+the distribution is symmetric about its median.
+</p>
+<p>For <code>lmrp</code>, either the logical value <code>FALSE</code> or <code>NA</code>
+to indicate that the distribution is not symmetric,
+or a numeric value to indicate that the distribution is symmetric
+and that the specified value is the center of symmetry.
+</p>
+<p>If the distribution is symmetric, odd-order <code class="reqn">L</code>-moments
+are exactly zero and the symmetry is used to slightly speed up
+the computation of even-order <code class="reqn">L</code>-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>order</code></td>
+<td>
+<p>Orders of the <code class="reqn">L</code>-moments and <code class="reqn">L</code>-moment ratios to be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ratios</code></td>
+<td>
+<p>Logical. If <code>FALSE</code>, <code class="reqn">L</code>-moments are computed;
+if <code>TRUE</code> (the default), <code class="reqn">L</code>-moment ratios are computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trim</code></td>
+<td>
+<p>Degree of trimming.
+If a single value, symmetric trimming of the specified degree will be used.
+If a vector of length 2, the two values
+indicate the degrees of trimming at the lower and upper ends of the
+“conceptual sample” (Elamir and Seheult, 2003) of order statistics
+that is used to define the trimmed <code class="reqn">L</code>-moments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>acc</code></td>
+<td>
+<p>Requested accuracy.  The function will try to achieve
+this level of accuracy, as relative error for <code class="reqn">L</code>-moments and absolute
+error for <code class="reqn">L</code>-moment ratios.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subdiv</code></td>
+<td>
+<p>Maximum number of subintervals used in numerical integration.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>Logical.  If <code>FALSE</code>, only the values of the <code class="reqn">L</code>-moments
+and <code class="reqn">L</code>-moment ratios are returned.  If <code>TRUE</code>, more details of the
+numerical integration are returned: see “Value” section below.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Computations use expressions in Hosking (2007):
+eq. (7) for <code>lmrp</code>, eq. (5) for <code>lmrq</code>.
+Integrals in those expressions are computed by numerical integration.
+</p>
+
+
+<h3>Value</h3>
+
+<p>If <code>verbose</code> is <code>FALSE</code> and <code>ratios</code> is <code>FALSE</code>,
+a numeric vector containing the <code class="reqn">L</code>-moments.
+</p>
+<p>If <code>verbose</code> is <code>FALSE</code> and <code>ratios</code> is <code>TRUE</code>,
+a numeric vector containing the <code class="reqn">L</code>-moments (of orders 1 and 2)
+and <code class="reqn">L</code>-moment ratios (of orders 3 and higher).
+</p>
+<p>If <code>verbose</code> is <code>TRUE</code>, a data frame with columns as follows:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>value</code></td>
+<td>
+<p><code class="reqn">L</code>-moments (if <code>ratios</code> is <code>FALSE</code>),
+or <code class="reqn">L</code>-moments and <code class="reqn">L</code>-moment ratios (if <code>ratios</code> is <code>TRUE</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>abs.error</code></td>
+<td>
+<p>Estimate of the absolute error in the computed value.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>message</code></td>
+<td>
+<p><code>"OK"</code> or a character string giving the error message
+resulting from the numerical integration.</p>
+</td>
+</tr>
+</table>
+<h3>Arguments of cumulative distribution functions and quantile functions</h3>
+
+<p><code>pfunc</code> and <code>qfunc</code> can be either the standard <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> form of
+cumulative distribution function or quantile function
+(i.e. for a distribution with <code class="reqn">r</code> parameters, the first argument is the
+variate <code class="reqn">x</code> or the probability <code class="reqn">p</code> and the next <code class="reqn">r</code> arguments
+are the parameters of the distribution) or the <code>cdf...</code> or
+<code>qua...</code> forms used throughout the <span class="pkg">lmom</span> package
+(i.e. the first argument is the variate <code class="reqn">x</code> or probability <code class="reqn">p</code>
+and the second argument is a vector containing the parameter values).
+Even for the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> form, however, starting values for the parameters
+are supplied as a vector <code>start</code>.
+</p>
+<p>If <code>bounds</code> is a function, its arguments must match
+the distribution parameter arguments of <code>pfunc</code>:
+either a single vector, or a separate argument for each parameter.
+</p>
+
+
+<h3>Warning</h3>
+
+<p>Arguments <code>bounds</code>, <code>symm</code>, <code>order</code>,
+<code>ratios</code>, <code>trim</code>, <code>acc</code>, <code>subdiv</code>, and <code>verbose</code>
+cannot be abbreviated and must be specified by their full names
+(if abbreviated, the names would be matched to the arguments of
+<code>pfunc</code> or <code>qfunc</code>).</p>
+
+
+<h3>Note</h3>
+
+<p>In package <span class="pkg">lmom</span> versions 1.6 and earlier, the “Details” section stated that
+“Integrals in those expressions are computed by numerical integration,
+using the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> function <code>integrate</code>”.
+As of version 2.0, numerical integration uses an internal function that directly calls
+(slightly modified versions of) Fortran routines in QUADPACK (Piessens et al. 1983).
+<span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>'s own <code>integrate</code> function uses C code “based on” the QUADPACK routines,
+but in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> versions 2.12.0 through 3.0.1 did not in every case reproduce the results
+that would have been obtained with the Fortran code (this is <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> bug PR#15219).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>J. R. M. Hosking <a href="mailto:jrmhosking@gmail.com">jrmhosking@gmail.com</a></p>
+
+
+<h3>References</h3>
+
+<p>Elamir, E. A. H., and Seheult, A. H. (2003).  Trimmed L-moments.
+<em>Computational Statistics and Data Analysis</em>, <b>43</b>, 299-314.
+</p>
+<p>Hosking, J. R. M. (2007).  Some theory and practical uses of trimmed L-moments.
+<em>Journal of Statistical Planning and Inference</em>, <b>137</b>, 3024-3039.
+</p>
+<p>Piessens, R., deDoncker-Kapenga, E., Uberhuber, C., and Kahaner, D. (1983).
+<em>Quadpack: a Subroutine Package for Automatic Integration</em>.
+Springer Verlag.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lmrexp</code> to compute (untrimmed) <code class="reqn">L</code>-moments of specific distributions.
+</p>
+<p><code>samlmu</code> to compute (trimmed or untrimmed) <code class="reqn">L</code>-moments of a data sample.
+</p>
+<p><code>pelp</code> and <code>pelexp</code>,
+to compute the parameters of a distribution given its (trimmed or untrimmed) <code class="reqn">L</code>-moments.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Generalized extreme-value (GEV) distribution
+## - three ways to get its L-moments
+lmrp(cdfgev, c(2,3,-0.2))
+lmrq(quagev, c(2,3,-0.2))
+lmrgev(c(2,3,-0.2), nmom=4)
+
+## GEV bounds specified as a vector
+lmrp(cdfgev, c(2,3,-0.2), bounds=c(-13,Inf))
+
+## GEV bounds specified as a function -- single vector of parameters
+gevbounds &lt;- function(para) {
+  k &lt;- para[3]
+  b &lt;- para[1]+para[2]/k
+  c(ifelse(k&lt;0, b, -Inf), ifelse(k&gt;0, b, Inf))
+}
+lmrp(cdfgev, c(2,3,-0.2), bounds=gevbounds)
+
+## GEV bounds specified as a function -- separate parameters
+pgev &lt;- function(x, xi, alpha, k)
+  pmin(1, pmax(0, exp(-((1-k*(x-xi)/alpha)^(1/k)))))
+pgevbounds &lt;- function(xi,alpha,k) {
+  b &lt;- xi+alpha/k
+  c(ifelse(k&lt;0, b, -Inf), ifelse(k&gt;0, b, Inf))
+}
+lmrp(pgev, xi=2, alpha=3, k=-0.2, bounds=pgevbounds)
+
+## Normal distribution
+lmrp(pnorm)
+lmrp(pnorm, symm=0)
+lmrp(pnorm, mean=2, sd=3, symm=2)
+# For comparison, the exact values
+lmrnor(c(2,3), nmom=4)
+
+# Many L-moment ratios of the exponential distribution
+# This may warn that "the integral is probably divergent"
+lmrq(qexp, order=3:20)
+
+# ... nonetheless the computed values seem accurate:
+# compare with the exact values, tau_r = 2/(r*(r-1)):
+cbind(exact=2/(3:20)/(2:19), lmrq(qexp, order=3:20, verbose=TRUE))
+
+# Of course, sometimes the integral really is divergent
+## Not run: 
+lmrq(function(p) (1-p)^(-1.5))
+
+## End(Not run)
+
+# And sometimes the integral is divergent but that's not what
+# the warning says (at least on the author's system)
+lmrp(pcauchy)
+
+# Trimmed L-moments for Cauchy distribution are finite
+lmrp(pcauchy, symm=0, trim=1)
+
+# Works for discrete distributions too, but often requires
+# a larger-than-default value of 'subdiv'
+lmrp(ppois, lambda=5, subdiv=1000)
+</code></pre>
+
+
+</div>

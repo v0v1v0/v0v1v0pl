@@ -1,0 +1,596 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>logitr</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>The main function for estimating logit models</h2>
+
+<h3>Description</h3>
+
+<p>Use this function to estimate multinomial (MNL) and mixed logit (MXL)
+models with "Preference" space or "Willingness-to-pay" (WTP) space utility
+parameterizations. The function includes an option to run a multistart
+optimization loop with random starting points in each iteration, which is
+useful for non-convex problems like MXL models or models with WTP space
+utility parameterizations. The main optimization loop uses the <code>nloptr()</code>
+function to minimize the negative log-likelihood function.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">logitr(
+  data,
+  outcome,
+  obsID,
+  pars,
+  scalePar = NULL,
+  randPars = NULL,
+  randScale = NULL,
+  modelSpace = NULL,
+  weights = NULL,
+  panelID = NULL,
+  clusterID = NULL,
+  robust = FALSE,
+  correlation = FALSE,
+  startValBounds = c(-1, 1),
+  startVals = NULL,
+  numMultiStarts = 1,
+  useAnalyticGrad = TRUE,
+  scaleInputs = TRUE,
+  standardDraws = NULL,
+  drawType = "halton",
+  numDraws = 50,
+  numCores = NULL,
+  vcov = FALSE,
+  predict = TRUE,
+  options = list(print_level = 0, xtol_rel = 1e-06, xtol_abs = 1e-06, ftol_rel = 1e-06,
+    ftol_abs = 1e-06, maxeval = 1000, algorithm = "NLOPT_LD_LBFGS"),
+  price,
+  randPrice,
+  choice,
+  parNames,
+  choiceName,
+  obsIDName,
+  priceName,
+  weightsName,
+  clusterName,
+  cluster
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>The data, formatted as a <code>data.frame</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outcome</code></td>
+<td>
+<p>The name of the column that identifies the outcome variable,
+which should be coded with a <code>1</code> for <code>TRUE</code> and <code>0</code> for <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsID</code></td>
+<td>
+<p>The name of the column that identifies each observation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pars</code></td>
+<td>
+<p>The names of the parameters to be estimated in the model.
+Must be the same as the column names in the <code>data</code> argument. For WTP space
+models, do not include the <code>scalePar</code> variable in <code>pars</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scalePar</code></td>
+<td>
+<p>The name of the column that identifies the scale variable,
+which is typically "price" for WTP space models, but could be any
+continuous variable, such as "time". Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randPars</code></td>
+<td>
+<p>A named vector whose names are the random parameters and
+values the distribution: <code>'n'</code> for normal, <code>'ln'</code> for log-normal, or
+<code>'cn'</code> for zero-censored normal. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randScale</code></td>
+<td>
+<p>The random distribution for the scale parameter: <code>'n'</code> for
+normal, <code>'ln'</code> for log-normal, or <code>'cn'</code> for zero-censored normal. Only used
+for WTP space MXL models. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelSpace</code></td>
+<td>
+<p>This argument is no longer needed as of v0.7.0. The model
+space is now determined based on the <code>scalePar</code> argument:
+if <code>NULL</code> (the default), the model will be in the preference space,
+otherwise it will be in the WTP space. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weights</code></td>
+<td>
+<p>The name of the column that identifies the weights to be
+used in model estimation. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>panelID</code></td>
+<td>
+<p>The name of the column that identifies the individual (for
+panel data where multiple observations are recorded for each individual).
+Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterID</code></td>
+<td>
+<p>The name of the column that identifies the cluster
+groups to be used in model estimation. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>robust</code></td>
+<td>
+<p>Determines whether or not a robust covariance matrix is
+estimated. Defaults to <code>FALSE</code>. Specification of a <code>clusterID</code> or
+<code>weights</code> will override the user setting and set this to ‘TRUE’ (a
+warning will be displayed in this case). Replicates the functionality of
+Stata's cmcmmixlogit.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>correlation</code></td>
+<td>
+<p>Set to <code>TRUE</code> to account for correlation across random
+parameters (correlated heterogeneity). Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startValBounds</code></td>
+<td>
+<p>sets the <code>lower</code> and <code>upper</code> bounds for the starting
+parameter values for each optimization run, which are generated by
+<code>runif(n, lower, upper)</code>. Defaults to <code>c(-1, 1)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>startVals</code></td>
+<td>
+<p>is vector of values to be used as starting values for the
+optimization. Only used for the first run if <code>numMultiStarts &gt; 1</code>. Defaults
+to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numMultiStarts</code></td>
+<td>
+<p>is the number of times to run the optimization loop,
+each time starting from a different random starting point for each parameter
+between <code>startValBounds</code>. Recommended for non-convex models, such as WTP
+space models and mixed logit models. Defaults to <code>1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>useAnalyticGrad</code></td>
+<td>
+<p>Set to <code>FALSE</code> to use numerically approximated
+gradients instead of analytic gradients during estimation. For now, using
+the analytic gradient is faster for MNL models but slower for MXL models.
+Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>scaleInputs</code></td>
+<td>
+<p>By default each variable in <code>data</code> is scaled to be
+between 0 and 1 before running the optimization routine because it usually
+helps with stability, especially if some of the variables have very large or
+very small values (e.g. <code style="white-space: pre;">⁠&gt; 10^3⁠</code> or <code style="white-space: pre;">⁠&lt; 10^-3⁠</code>). Set to <code>FALSE</code> to turn this
+feature off. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>standardDraws</code></td>
+<td>
+<p>By default, a new set of standard normal draws are
+generated during each call to <code>logitr</code> (the same draws are used during each
+multistart iteration). The user can override those draws by providing a
+matrix of standard normal draws if desired. Defaults to <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drawType</code></td>
+<td>
+<p>Specify the draw type as a character: <code>"halton"</code>
+(the default) or <code>"sobol"</code> (recommended for models with more than 5
+random parameters).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numDraws</code></td>
+<td>
+<p>The number of Halton draws to use for MXL models for the
+maximum simulated likelihood. Defaults to <code>50</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numCores</code></td>
+<td>
+<p>The number of cores to use for parallel processing of the
+multistart. Set to <code>1</code> to serially run the multistart. Defaults to <code>NULL</code>,
+in which case the number of cores is set to <code>parallel::detectCores() - 1</code>.
+Max cores allowed is capped at <code>parallel::detectCores()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vcov</code></td>
+<td>
+<p>Set to <code>TRUE</code> to evaluate and include the variance-covariance
+matrix and coefficient standard errors in the returned object.
+Defaults to <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predict</code></td>
+<td>
+<p>If <code>FALSE</code>, predicted probabilities, fitted values, and
+residuals are not included in the returned object. Defaults to <code>TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>options</code></td>
+<td>
+<p>A list of options for controlling the <code>nloptr()</code> optimization.
+Run <code>nloptr::nloptr.print.options()</code> for details.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>price</code></td>
+<td>
+<p>No longer used as of v0.7.0 - if provided, this is passed
+to the <code>scalePar</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>randPrice</code></td>
+<td>
+<p>No longer used as of v0.7.0 - if provided, this is passed
+to the <code>randScale</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>choice</code></td>
+<td>
+<p>No longer used as of v0.4.0 - if provided, this is passed
+to the <code>outcome</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>parNames</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>pars</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>choiceName</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>outcome</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>obsIDName</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>obsID</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>priceName</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>scalePar</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weightsName</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>weights</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>clusterName</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>clusterID</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>No longer used as of v0.2.3 - if provided, this is passed
+to the <code>clusterID</code> argument and a warning is displayed.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The the <code>options</code> argument is used to control the detailed behavior of the
+optimization and must be passed as a list, e.g. <code>options = list(...)</code>.
+Below are a list of the default options, but other options can be included.
+Run <code>nloptr::nloptr.print.options()</code> for more details.</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   Argument </td>
+<td style="text-align: left;"> Description </td>
+<td style="text-align: left;"> Default </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>xtol_rel</code> </td>
+<td style="text-align: left;"> The relative <code>x</code> tolerance for the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>1.0e-6</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>xtol_abs</code> </td>
+<td style="text-align: left;"> The absolute <code>x</code> tolerance for the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>1.0e-6</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>ftol_rel</code> </td>
+<td style="text-align: left;"> The relative <code>f</code> tolerance for the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>1.0e-6</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>ftol_abs</code> </td>
+<td style="text-align: left;"> The absolute <code>f</code> tolerance for the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>1.0e-6</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>maxeval</code> </td>
+<td style="text-align: left;"> The maximum number of function evaluations for the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>1000</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>algorithm</code> </td>
+<td style="text-align: left;"> The optimization algorithm that <code>nloptr</code> uses. </td>
+<td style="text-align: left;"> <code>"NLOPT_LD_LBFGS"</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>print_level</code> </td>
+<td style="text-align: left;"> The print level of the <code>nloptr</code> optimization loop. </td>
+<td style="text-align: left;"> <code>0</code> </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The function returns a list object containing the following objects.</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+   Value </td>
+<td style="text-align: left;"> Description </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>coefficients</code> </td>
+<td style="text-align: left;"> The model coefficients at convergence. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>logLik</code> </td>
+<td style="text-align: left;"> The log-likelihood value at convergence. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>nullLogLik</code> </td>
+<td style="text-align: left;"> The null log-likelihood value (if all coefficients are 0). </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>gradient</code> </td>
+<td style="text-align: left;"> The gradient of the log-likelihood at convergence. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>hessian</code> </td>
+<td style="text-align: left;"> The hessian of the log-likelihood at convergence. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>probabilities</code> </td>
+<td style="text-align: left;"> Predicted probabilities. Not returned if <code>predict = FALSE</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>fitted.values</code> </td>
+<td style="text-align: left;"> Fitted values. Not returned if <code>predict = FALSE</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>residuals</code> </td>
+<td style="text-align: left;"> Residuals. Not returned if <code>predict = FALSE</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>startVals</code> </td>
+<td style="text-align: left;"> The starting values used. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>multistartNumber</code> </td>
+<td style="text-align: left;"> The multistart run number for this model. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>multistartSummary</code> </td>
+<td style="text-align: left;"> A summary of the log-likelihood values for each multistart run (if more than one multistart was used). </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>time</code> </td>
+<td style="text-align: left;"> The user, system, and elapsed time to run the optimization. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>iterations</code> </td>
+<td style="text-align: left;"> The number of iterations until convergence. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>message</code> </td>
+<td style="text-align: left;"> A more informative message with the status of the optimization result. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>status</code> </td>
+<td style="text-align: left;"> An integer value with the status of the optimization (positive values are successes). Use <code>statusCodes()</code> for a detailed description. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>call</code> </td>
+<td style="text-align: left;"> The matched call to <code>logitr()</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>inputs</code> </td>
+<td style="text-align: left;"> A list of the original inputs to <code>logitr()</code>. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>data</code> </td>
+<td style="text-align: left;"> A list of the original data provided to <code>logitr()</code> broken up into components used during model estimation. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>numObs</code> </td>
+<td style="text-align: left;"> The number of observations. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>numParams</code> </td>
+<td style="text-align: left;"> The number of model parameters. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>freq</code> </td>
+<td style="text-align: left;"> The frequency counts of each alternative. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>modelType</code> </td>
+<td style="text-align: left;"> The model type, <code>'mnl'</code> for multinomial logit or <code>'mxl'</code> for mixed logit. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>weightsUsed</code> </td>
+<td style="text-align: left;"> <code>TRUE</code> or <code>FALSE</code> for whether weights were used in the model. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>numClusters</code> </td>
+<td style="text-align: left;"> The number of clusters. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>parSetup</code> </td>
+<td style="text-align: left;"> A summary of the distributional assumptions on each model parameter (<code>"f"</code>="fixed", <code>"n"</code>="normal distribution", <code>"ln"</code>="log-normal distribution"). </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>parIDs</code> </td>
+<td style="text-align: left;"> A list identifying the indices of each parameter in <code>coefficients</code> by a variety of types. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>scaleFactors</code> </td>
+<td style="text-align: left;"> A vector of the scaling factors used to scale each coefficient during estimation. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>standardDraws</code> </td>
+<td style="text-align: left;"> The draws used during maximum simulated likelihood (for MXL models). </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+   <code>options</code> </td>
+<td style="text-align: left;"> A list of options for controlling the <code>nloptr()</code> optimization. Run <code>nloptr::nloptr.print.options()</code> for details. </td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># For more detailed examples, visit
+# https://jhelvy.github.io/logitr/articles/
+
+library(logitr)
+
+# Estimate a MNL model in the Preference space
+mnl_pref &lt;- logitr(
+  data    = yogurt,
+  outcome = "choice",
+  obsID   = "obsID",
+  pars    = c("price", "feat", "brand")
+)
+
+# Estimate a MNL model in the WTP space, using a 5-run multistart
+mnl_wtp &lt;- logitr(
+  data           = yogurt,
+  outcome        = "choice",
+  obsID          = "obsID",
+  pars           = c("feat", "brand"),
+  scalePar       = "price",
+  numMultiStarts = 5
+)
+
+# Estimate a MXL model in the Preference space with "feat"
+# following a normal distribution
+# Panel structure is accounted for in this example using "panelID"
+mxl_pref &lt;- logitr(
+  data     = yogurt,
+  outcome  = "choice",
+  obsID    = "obsID",
+  panelID  = "id",
+  pars     = c("price", "feat", "brand"),
+  randPars = c(feat = "n")
+)
+</code></pre>
+
+
+</div>

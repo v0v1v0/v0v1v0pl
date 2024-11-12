@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>crack</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Parse R Markdown or R scripts</h2>
+
+<h3>Description</h3>
+
+<p>Parse input into code chunks, inline code expressions, and text fragments:
+<code>crack()</code> is for parsing R Markdown, and <code>sieve()</code> is for R scripts.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">crack(input, text = NULL)
+
+sieve(input, text = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>A character vector to provide the input file path or text. If
+not provided, the <code>text</code> argument must be provided instead. The <code>input</code>
+vector will be treated as a file path if it is a single string, and points
+to an existing file or has a filename extension. In other cases, the vector
+will be treated as the <code>text</code> argument input. To avoid ambiguity, if a
+string should be treated as <code>text</code> input when it happens to be an existing
+file path or has an extension, wrap it in <code>I()</code>, or simply use the <code>text</code>
+argument instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>text</code></td>
+<td>
+<p>A character vector as the text input. By default, it is read from
+the <code>input</code> file if provided.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>For R Markdown, a code chunk must start with a fence of the form <code style="white-space: pre;">⁠```{lang}⁠</code>, where <code>lang</code> is the language name, e.g., <code>r</code> or <code>python</code>. The
+body of a code chunk can start with chunk options written in "pipe comments",
+e.g., <code style="white-space: pre;">⁠#| eval = TRUE, echo = FALSE⁠</code> (the CSV syntax) or <code style="white-space: pre;">⁠#| eval: true⁠</code> (the
+YAML syntax). An inline code fragment is of the form <code>`{lang} source`</code>
+embedded in Markdown text.
+</p>
+<p>For R scripts, text blocks are extracted by removing the leading
+<code style="white-space: pre;">⁠#'⁠</code> tokens. All other lines are treated as R code, which can optionally be
+separated into chunks by consecutive lines of <code style="white-space: pre;">⁠#|⁠</code> comments (chunk options
+are written in these comments). If no <code style="white-space: pre;">⁠#'⁠</code> or <code style="white-space: pre;">⁠#|⁠</code> tokens are found in the
+script, the script will be divided into chunks that contain smallest
+possible complete R expressions.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of code chunks and text blocks:
+</p>
+
+<ul>
+<li>
+<p> Code chunks are of the form <code>list(source, type = "code_chunk", options,   comments, ...)</code>: <code>source</code> is a character vector of the source code of a
+code chunk, <code>options</code> is a list of chunk options, and <code>comments</code> is a
+vector of pipe comments.
+</p>
+</li>
+<li>
+<p> Text blocks are of the form <code>list(source, type = "text_block", ...)</code>. If
+the text block does not contain any inline code, <code>source</code> will be a
+character string (lines of text concatenated by line breaks), otherwise it
+will be a list with members that are either character strings (normal text
+fragments) or lists of the form <code>list(source, options, ...)</code> (<code>source</code> is
+the inline code, and <code>options</code> contains its options specified inside <code>  `{lang, ...}`</code>).
+</p>
+</li>
+</ul>
+<p>Both code chunks and text blocks have a list member named <code>lines</code> that
+stores their starting and ending line numbers in the input.
+</p>
+
+
+<h3>Note</h3>
+
+<p>For simplicity, <code>sieve()</code> does not support inline code expressions.
+Text after <code style="white-space: pre;">⁠#'⁠</code> is treated as pure Markdown.
+</p>
+<p>It is a pure coincidence that the function names <code>crack()</code> and <code>sieve()</code>
+weakly resemble Carson Sievert's name, but I will consider adding a class
+name <code>sievert</code> to the returned value of <code>sieve()</code> if Carson becomes the
+president of the United States someday, which may make the value
+radioactive and introduce a new programming paradigm named <em>Radioactive
+Programming</em> (in case <em>Reactive Programming</em> is no longer fun or cool).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(litedown)
+# parse R Markdown
+res = crack(c("```{r}\n1+1\n```", "Hello, `pi` = `{r} pi` and `e` = `{r} exp(1)`!"))
+str(res)
+# evaluate inline code and combine results with text fragments
+txt = lapply(res[[2]]$source, function(x) {
+    if (is.character(x))
+        x else eval(parse(text = x$source))
+})
+paste(unlist(txt), collapse = "")
+
+# parse R code
+res = sieve(c("#' This is _doc_.", "", "#| eval=TRUE", "# this is code", "1 + 1"))
+str(res)
+</code></pre>
+
+
+</div>

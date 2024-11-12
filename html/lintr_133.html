@@ -1,0 +1,81 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>seq_linter</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Sequence linter</h2>
+
+<h3>Description</h3>
+
+<p>This linter checks for <code>1:length(...)</code>, <code>1:nrow(...)</code>, <code>1:ncol(...)</code>,
+<code>1:NROW(...)</code> and <code>1:NCOL(...)</code> expressions in base-R, or their usage in
+conjunction with <code>seq()</code> (e.g., <code>seq(length(...))</code>, <code>seq(nrow(...))</code>, etc.).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">seq_linter()
+</code></pre>
+
+
+<h3>Details</h3>
+
+<p>Additionally, it checks for <code>1:n()</code> (from <code>{dplyr}</code>) and <code>1:.N</code> (from <code>{data.table}</code>).
+</p>
+<p>These often cause bugs when the right-hand side is zero.
+It is safer to use <code>base::seq_len()</code> or <code>base::seq_along()</code> instead.
+</p>
+
+
+<h3>Tags</h3>
+
+<p>best_practices, consistency, default, efficiency, robustness
+</p>
+
+
+<h3>See Also</h3>
+
+<p>linters for a complete list of linters available in lintr.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># will produce lints
+lint(
+  text = "seq(length(x))",
+  linters = seq_linter()
+)
+
+lint(
+  text = "1:nrow(x)",
+  linters = seq_linter()
+)
+
+lint(
+  text = "dplyr::mutate(x, .id = 1:n())",
+  linters = seq_linter()
+)
+
+# okay
+lint(
+  text = "seq_along(x)",
+  linters = seq_linter()
+)
+
+lint(
+  text = "seq_len(nrow(x))",
+  linters = seq_linter()
+)
+
+lint(
+  text = "dplyr::mutate(x, .id = seq_len(n()))",
+  linters = seq_linter()
+)
+
+</code></pre>
+
+
+</div>

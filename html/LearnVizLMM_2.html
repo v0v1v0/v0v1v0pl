@@ -1,0 +1,128 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>extract_structure</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Image of the data structure</h2>
+
+<h3>Description</h3>
+
+<p><code>extract_structure</code> generates an image of the multilevel data structure. It
+does this in two steps. First, characteristics of the group(s) or grouping
+factor(s) are identified via the <code>model</code> input or the <code>n_gf</code>,
+<code>gf_description</code>, and <code>gf_names</code> inputs. Second, this information is used to
+run <code>DiagrammeR::grViz()</code>, which returns an image.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">extract_structure(
+  model = NULL,
+  n_gf = NULL,
+  gf_description = NULL,
+  gf_names = NULL,
+  gf_nlevels = NULL,
+  gf3_index = "i",
+  label_levels = "yes",
+  export_type = "print"
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>model</code></td>
+<td>
+<p>Code for fitting a <code>nlme::lme()</code> or <code>lme4::lmer()</code> model given
+as a string.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n_gf</code></td>
+<td>
+<p>Number of groups or grouping factors: <code>1</code>, <code>2</code>, or <code>3</code>. Only
+applies if <code>model</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gf_description</code></td>
+<td>
+<p>Description of the structure of the groups or grouping
+factors: <code>"nested"</code>, <code>"crossed"</code>, <code>"crossed with nested"</code>, or
+<code>"crossed within nested"</code>. Only applies if <code>n_gf</code> is greater than <code>1</code> and
+<code>model</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gf_names</code></td>
+<td>
+<p>Character vector of the names of group(s) or grouping
+factor(s). For nested, order names by level from highest to lowest. Must be
+a vector of length equal to <code>n_gf</code>. Only applies if <code>model</code> is <code>NULL</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gf_nlevels</code></td>
+<td>
+<p>Optional numeric or character vector of the number of
+levels for each group or grouping factor in the <code>model</code> or <code>gf_names</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gf3_index</code></td>
+<td>
+<p>String for the index of the highest-level group or grouping
+factor. Only applies if <code>n_gf</code> is <code>3</code>. Default is <code>"i"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>label_levels</code></td>
+<td>
+<p>Indicates whether levels of the data structure should be
+labeled on the left-hand side of the figure (default) or not
+(<code>label_levels</code> = <code>"no"</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>export_type</code></td>
+<td>
+<p>Export type can be <code>"print"</code> (default), <code>"png"</code> to save
+as a PNG file, or <code>"text"</code> to get the input used to run
+<code>DiagrammeR::grViz()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A PNG (<code>export_type = "png"</code>), character
+(<code>export_type = "text"</code>), or object of class htmlwidget that will print
+in the R console, within R Markdown documents, and within Shiny output
+bindings (<code>export_type = "print"</code>).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Using the model input
+extract_structure(model = "lme(Score ~ type, random=list(School=pdDiag(~1+type),Class=~1))")
+extract_structure(model = "lme(Weight ~ Time, random=~Time|Subject, data)",
+                  gf_nlevels = 47)
+extract_structure(model = "lmer(Strength ~ 1 + (1|Machine) + (1|Worker))",
+                  gf_nlevels = c("23", "J"))
+
+# Using the n_gf, gf_description, and gf_names inputs
+extract_structure(n_gf = 1,
+                  gf_names = "Subject")
+extract_structure(n_gf = 3,
+                  gf_description = "nested",
+                  gf_names = c("District", "School", "Class"),
+                  gf_nlevels = c(8, 15, 5),
+                  label_levels = "no")
+</code></pre>
+
+
+</div>

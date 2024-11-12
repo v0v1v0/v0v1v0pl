@@ -1,0 +1,389 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pivot</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create a Pivot (Summary) Table</h2>
+
+<h3>Description</h3>
+
+<p>Compute one or more designated descriptive statistics (<code>compute</code> over one or more numerical variables (<code>variable</code>) either for all the data or aggregated over one or more categorical variables (<code>by</code>). Because the output is a two-dimensional table, select any two of the three possibilities: Multiple compute functions for the descriptive statistics, multiple continuous variables over which to compute, and multiple categorical variables by which to define groups for aggregation. Displays the sample size for each group. Uses the base R function <code>aggregate</code> for which to perform the aggregation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pivot(data, compute, variable, by=NULL, by_cols=NULL, filter=NULL,
+         show_n=TRUE, na_by_show=TRUE, na_remove=TRUE, na_group_show=TRUE,
+         out_names=NULL, sort=NULL, sort_var=NULL,  
+         table_prop=c("none", "all", "row", "col"), table_long=FALSE,
+         factors=TRUE, q_num=4, digits_d=NULL, quiet=getOption("quiet"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data frame that contains the variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>compute</code></td>
+<td>
+<p>One or more statistics, defined as one or more functions,
+to aggregate over the combinations of the values of the categorical
+variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>variable</code></td>
+<td>
+<p>One or more numeric response variables for which to
+<code>compute</code> the specified statistics, perhaps aggregated,
+i.e., summarized across the groups.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by</code></td>
+<td>
+<p>Categorical variables that define the groups (cells) listed
+in the rows of the output long-form data frame, available to input
+into other data analysis routines. Ignore to compute over the variables
+for all the data, e.g., the grand mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>by_cols</code></td>
+<td>
+<p>Up to two categorical variables that define the groups
+displayed as columns in a two dimensional table.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter</code></td>
+<td>
+<p>Subset, i.e., filter, rows of the input data frame for
+analysis.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>show_n</code></td>
+<td>
+<p>By default, display the sample size and number missing for each
+computed summary statistic. If <code>FALSE</code>, delete all variables
+from the output data frame that end with <code>n_</code> or <code>na_</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_by_show</code></td>
+<td>
+<p>If <code>TRUE</code>,
+the default, if all values of 'variable' are missing for a group
+so that the entire level of the 'by' variables is missing, show those
+missing cells with a reported value of computed variable <code>n</code> as 0.
+Otherwise delete the row from the output.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_remove</code></td>
+<td>
+<p>Sets base R parameter <code>na.rm</code>. If <code>TRUE</code>,
+the default, removes missing values from the <code>variable</code>(s),
+then reports how many values were missing. Otherwise, the 
+aggregation statistic for a cell with any missing data returns <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na_group_show</code></td>
+<td>
+<p>If <code>TRUE</code>, the default, display <code>&lt;NA&gt;</code> for missing
+data of a grouping variable as a level for that variable. Otherwise, do
+not treat a missing value of a group as a level for which to aggregate.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>out_names</code></td>
+<td>
+<p>Custom names for the aggregated variables. If more than one,
+list in the same order as specified in <code>variable</code>. Does not apply
+to the <code>table</code> option where the column names are the levels of
+the <code>by</code> variable(s).</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>sort</code></td>
+<td>
+<p>Set to <code>"+"</code> for an ascending sort or <code>"-"</code> for
+a descending sort according to the last variable in the output data
+frame.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sort_var</code></td>
+<td>
+<p>Either the name of the variable in the output data frame
+to sort, or its column number. Default is the last column.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>table_prop</code></td>
+<td>
+<p>Applies to a created <code>table</code> for the value of
+<code>compute</code>. Default value of <code>"none"</code> leaves frequencies.
+Value of <code>"all"</code> converts to cell proportions based on the
+grand total. Values of <code>"row"</code> and <code>"col"</code> provide
+proportions based on row and column sums.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>table_long</code></td>
+<td>
+<p>Applies to the value of <code>compute</code> of <code>table</code>.
+If set to <code>TRUE</code>, then the cross-tabs table is output in
+long form, one count per row.</p>
+</td>
+</tr>
+</table>
+<p><br></p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>factors</code></td>
+<td>
+<p>For <code>by</code> variables of type
+<code>character</code> and <code>integer</code>, converted to factors
+in the summary table by default, except for <code>Date</code>
+variables that always retain their type. If <code>FALSE</code>, then
+the <code>by</code> variables retain their original character or 
+integer type.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>q_num</code></td>
+<td>
+<p>For the computation of quantiles, number of intervals. Default
+value of 4 provides quartiles.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>digits_d</code></td>
+<td>
+<p>Number of significant digits for each displayed
+summary statistic. Trailing zeros are deleted, so, for example, integers
+display as integers. If not specified, defaults to 3
+unless there are more than 3 decimal digits and only a single
+digit to the left of the decimal point. Then enough digits are
+displayed to capture some non-zero decimal digits to avoid rounding
+to 0.000. To see all digits without trailing decimal 0's,
+set at a large number such as 20.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>If set to <code>TRUE</code>, no text output. Can change system default
+with <code>style</code> function.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>pivot</code> uses base R <code>aggregate</code> to generate a pivot table (Excel terminology). Express multiple categorical variables over which to pivot as a vector with the <code>c</code> function.
+</p>
+<p><code>pivot</code> provides two additional features than <code>aggregate</code> provides. First is a complete missing data analysis. If there is no missing data for the numerical variables that are aggregated, then the cell sizes are included with the aggregated data. If there is such missing data, then the amount of available data is displayed for all values to be aggregated for each cell.
+</p>
+<p>The second is that the data parameter is listed first in the parameter list, which facilitates the use of the pipe operator from the <code>magrittr</code> package. Also, there is a different interface as the <code>by</code> variables are specified as a vector.
+</p>
+<p>Variable ranges in the specification of <code>by</code> are not needed in general. Only a small number of grouping variables generally define the cells for the aggregation.
+</p>
+<p>The following table lists available single summary statistics. The list is not necessarily exhaustive as the references are to functions provided by base R, including any not listed below.
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+Statistic </td>
+<td style="text-align: left;"> Meaning</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+----------- </td>
+<td style="text-align: left;"> --------------------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>sum</code> </td>
+<td style="text-align: left;"> sum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>mean</code> </td>
+<td style="text-align: left;"> arithmetic mean</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>median</code> </td>
+<td style="text-align: left;"> median</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>min</code> </td>
+<td style="text-align: left;"> minimum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>max</code> </td>
+<td style="text-align: left;"> maximum</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>sd</code> </td>
+<td style="text-align: left;"> standard deviation</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>var</code> </td>
+<td style="text-align: left;"> variance</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>skew</code> </td>
+<td style="text-align: left;"> skew</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>kurtosis</code> </td>
+<td style="text-align: left;"> kurtosis</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>IQR</code> </td>
+<td style="text-align: left;"> inter-quartile range</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>mad</code> </td>
+<td style="text-align: left;"> mean absolute deviation</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+----------- </td>
+<td style="text-align: left;"> --------------------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The functions <code>skew()</code> and <code>kurtosis()</code> are provided by this package as they have no counterparts in base R. All other functions are from base R.
+</p>
+<p>The <code>quantile</code> and <code>table</code> statistical function returns multiple values.
+</p>
+
+<table>
+<tr>
+<td style="text-align: left;">
+Statistic </td>
+<td style="text-align: left;"> Meaning</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+----------- </td>
+<td style="text-align: left;"> --------------------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>quantile</code> </td>
+<td style="text-align: left;"> min, quartiles, max</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+<code>table</code>    </td>
+<td style="text-align: left;"> frequencies or proportions</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+----------- </td>
+<td style="text-align: left;"> --------------------------------</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+</td>
+</tr>
+</table>
+<p>The <code>table</code> computation applies to an aggregated variable that consists of discrete categories, such as the numbers 1 through 5 for responses to a 5-pt Likert scale. The result is a table of frequencies or proportions, a contingency table, referred to for two or more variables as a cross-tabulation table or a joint frequency distribution. Other statistical functions can be simultaneously computed with <code>table</code>, though only meaningful if the aggregated variable consists of a relatively small set of discrete, numeric values. 
+</p>
+<p>The default quantiles for <code>quantile</code> are quartiles. Specify a custom number of quantiles with the <code>q_num</code> parameter, which has the default value of 4 for quartiles.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a data frame of the aggregated values, unless for two <code>by</code> variables and <code>table_2d</code> is <code>TRUE</code>, when a table is returned. 
+</p>
+<p>The count of the number of elements in each group is provided as the variable <code>n</code>. If a combination of <code>by</code> variable levels that defines a group is empty, the <code>n</code> is set to 0 with the values of the <code>variable</code> set to <code>NA</code>.
+</p>
+<p>The number of missing elements of the <code>value</code> variable is provided as the variable <code>miss</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>David W. Gerbing (Portland State University; <a href="mailto:gerbing@pdx.edu">gerbing@pdx.edu</a>)</p>
+
+
+<h3>See Also</h3>
+
+<p><code>aggregate</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(knitr)  # for kable() called from pivot()
+d &lt;- Read("Employee", quiet=TRUE)
+
+# parameter values named
+pivot(data=d, compute=mean, variable=Salary, by=c(Dept, Gender))
+
+# visualize the aggregation
+# when reading a table of coordinates, a, BarChart cannot deal with
+#   with missing data so do not show groups that are missing as
+#   another level
+a &lt;- pivot(d, mean, Salary, c(Dept, Gender), na_group_show=FALSE)
+BarChart(Dept, Salary_mean, by=Gender, data=a)
+
+# calculate mean of Years and Salary for each combination of Dept and Gender
+# parameter values by position
+pivot(d, mean, c(Years, Salary), c(Dept, Gender))
+
+# output as a 2-d cross-tabulation table
+pivot(d, mean, Salary, Dept, Gender)
+
+# cross-tabulation table
+pivot(d, table, Dept, Gender)
+# long form
+pivot(d, table, Dept, Gender, table_long=TRUE)
+
+# multiple functions for which to aggregate
+pivot(d, c(mean,sd,median,IQR), Years, c(Gender,Dept), digits_d=2)
+
+# A variety of statistics computed for several variables over the
+#  entire data set without aggregation
+pivot(d, c(mean,sd,skew,kurtosis), c(Years,Salary,Pre,Post), digits_d=2)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,347 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>mleGP</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Inference for GP correlation parameters
+</h2>
+
+<h3>Description</h3>
+
+<p>Maximum likelihood/a posteriori inference for (isotropic and separable)
+Gaussian lengthscale and nugget parameters, marginally or jointly, for 
+Gaussian process regression
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">mleGP(gpi, param = c("d", "g"), tmin=sqrt(.Machine$double.eps), 
+  tmax = -1, ab = c(0, 0), verb = 0)
+mleGPsep(gpsepi, param=c("d", "g", "both"), tmin=rep(sqrt(.Machine$double.eps), 2),
+  tmax=c(-1,1), ab=rep(0,4), maxit=100, verb=0)
+mleGPsep.R(gpsepi, param=c("d", "g"), tmin=sqrt(.Machine$double.eps), 
+  tmax=-1, ab=c(0,0), maxit=100, verb=0)
+jmleGP(gpi, drange=c(sqrt(.Machine$double.eps),10), 
+  grange=c(sqrt(.Machine$double.eps), 1), dab=c(0,0), gab=c(0,0), verb=0)
+jmleGP.R(gpi, N=100, drange=c(sqrt(.Machine$double.eps),10), 
+  grange=c(sqrt(.Machine$double.eps), 1), dab=c(0,0), gab=c(0,0), verb=0)
+jmleGPsep(gpsepi, drange=c(sqrt(.Machine$double.eps),10), 
+  grange=c(sqrt(.Machine$double.eps), 1), dab=c(0,0), gab=c(0,0), 
+  maxit=100, verb=0)
+jmleGPsep.R(gpsepi, N=100, drange=c(sqrt(.Machine$double.eps),10), 
+  grange=c(sqrt(.Machine$double.eps), 1), dab=c(0,0), gab=c(0,0), 
+  maxit=100, mleGPsep=mleGPsep.R, verb=0)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>gpi</code></td>
+<td>
+
+<p>a C-side GP object identifier (positive integer);
+e.g., as returned by <code>newGP</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gpsepi</code></td>
+<td>
+<p> similar to <code>gpi</code> but indicating a separable GP object,
+as returned by <code>newGPsep</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>N</code></td>
+<td>
+<p> for <code>jmleGP.R</code>, the maximum number of times the pair of margins
+should be iterated over before determining failed convergence; note
+that (at this time) <code>jmleGP</code> uses a hard-coded <code>N=100</code> in
+its C implementation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>param</code></td>
+<td>
+
+<p>for <code>mleGP</code>, indicating whether to work on the lengthscale
+(<code>d</code>) or nugget (<code>g</code>) margin
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmin</code></td>
+<td>
+
+<p>for <code>mleGP</code>, smallest value considered for the parameter (<code>param</code>)
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tmax</code></td>
+<td>
+
+<p>for <code>mleGP</code>, largest value considered for the parameter (<code>param</code>); a setting of <code>-1</code> for lengthscales, the default, causes
+<code>ncol(X)^2</code> to be used
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>drange</code></td>
+<td>
+<p> for <code>jmleGP</code>, these are <code>c(tmin, tmax)</code>
+values for the lengthscale parameter; the default values are
+reasonable for 1-d inputs in the unit interval </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>grange</code></td>
+<td>
+<p> for <code>jmleGP</code>, these are <code>c(tmin, tmax)</code>
+values for the nugget parameter; the default values are reasonable
+for responses with a range of one </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ab</code></td>
+<td>
+
+<p>for <code>mleGP</code>, a non-negative 2-vector describing shape and rate parameters to a
+Gamma prior for the parameter (<code>param</code>); a zero-setting for
+either value results in no-prior being used (MLE inference); otherwise
+MAP inference is performed
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxit</code></td>
+<td>
+<p> for <code>mleGPsep</code> this is passed as <code>control=list(trace=maxit)</code>
+to <code>optim</code>'s L-BFGS-B method for optimizing
+the likelihood/posterior of a separable GP representation; this argument is
+not used for isotropic GP versions, nor for optimizing the nugget </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>dab</code></td>
+<td>
+<p> for <code>jmleGP</code>, this is <code>ab</code> for the lengthscale
+parameter </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gab</code></td>
+<td>
+<p> for <code>jmleGP</code>, this is <code>ab</code> for the nugget
+parameter </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mleGPsep</code></td>
+<td>
+<p> function for internal MLE calculation of the separable
+lengthscale parameter; one of either <code>mleGPsep.R</code> based on 
+<code>method="L-BFGS-B"</code> using <code>optim</code>; 
+or <code>mleGPsep</code> using the <code>C</code> entry point <code>lbfgsb</code>.  
+Both options use a <code>C</code> backend for the nugget </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a verbosity argument indicating how much information about the optimization
+steps should be printed to the screen; <code>verb &lt;= 0</code> is quiet; for
+<code>jmleGP</code>, a <code>verb - 1</code> value is passed to the <code>mleGP</code> or 
+<code>mleGPsep</code> subroutine(s)
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>mleGP</code> and <code>mleGPsep</code> perform marginal (or profile) inference
+for the specified <code>param</code>, either the lengthscale or the nugget.  
+<code>mleGPsep</code> can perform simultaneous lengthscale and nugget inference via
+a common gradient with <code>param = "both"</code>.  More details are provided below.
+</p>
+<p>For the lengthscale, <code>mleGP</code> uses a Newton-like scheme with analytic first 
+and second derivatives (more below) to find the scalar parameter for the isotropic
+Gaussian correlation function, with hard-coded 100-max iterations threshold and a
+<code>sqrt(.Machine$double.eps)</code> tolerance for determining convergence;
+<code>mleGPsep.R</code> uses L-BFGS-B via <code>optim</code> for the 
+vectorized parameter of the separable Gaussian correlation, with a user-supplied
+maximum number of iterations (<code>maxit</code>) passed to <code>optim</code>.  
+When <code>maxit</code> is reached the output <code>conv = 1</code> is returned, 
+subsequent identical calls to <code>mleGPsep.R</code> can be used to continue with
+further iterations.  <code>mleGPsep</code> is similar, but uses the <code>C</code> 
+entry point <code>lbfgsb</code>.
+</p>
+<p>For the nugget, both <code>mleGP</code> and <code>mleGPsep</code> utilize a (nearly 
+identical) Newton-like scheme leveraging first and second derivatives.
+</p>
+<p><code>jmleGP</code> and <code>jmleGPsep</code> provide joint inference by iterating
+over the marginals of lengthscale and nugget.  The <code>jmleGP.R</code> function
+is an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>-only wrapper around
+<code>mleGP</code> (which is primarily in C), whereas <code>jmleGP</code> is
+primarily in C but with reduced output and 
+with hard-coded <code>N=100</code>.  The same is true for <code>jmleGPsep</code>.
+</p>
+<p><code>mleGPsep</code> provides a <code>param = "both"</code> alternative to <code>jmleGPsep</code> 
+leveraging a common gradient. It can be helpful to supply a larger <code>maxit</code> 
+argument compared to <code>jmleGPsep</code> as the latter may do up to 100 outer
+iterations, cycling over lengthscale and nugget.  <code>mleGPsep</code> usually requires
+many fewer total iterations, unless one of the lengthscale or nugget is 
+already converged. In anticipation of <code>param = "both"</code> the 
+<code>mleGPsep</code> function has longer default values for its bounds and prior 
+arguments.  These longer arguments are 
+ignored when <code>param != "both"</code>.  At this time <code>mleGP</code> does not have a 
+<code>param = "both"</code> option.
+</p>
+<p>All methods are initialized at the value of the parameter(s) currently
+stored by the C-side object referenced by <code>gpi</code> or <code>gpsepi</code>.  It is
+<em>highly recommended</em> that sensible range values (<code>tmin</code>, <code>tmax</code>
+or <code>drange</code>, <code>grange</code>) be provided.  The defaults provided are
+too loose for most applications.  As illustrated in the examples below,
+the <code>darg</code> and <code>garg</code> functions can be used
+to set appropriate ranges from the distributions of inputs and output
+data respectively.
+</p>
+<p>The Newton-like method implemented for the isotropic lengthscale and for the
+nugget offers very fast convergence to local maxima, but sometimes it fails
+to converge (for any of the usual reasons).  The implementation
+detects this, and in such cases it invokes a <code>Brent_fmin</code> call instead -
+this is the method behind the <code>optimize</code> function.
+</p>
+<p>Note that the <code>gpi</code> or <code>gpsepi</code> object(s) must have been allocated with
+<code>dK=TRUE</code>; alternatively, one can call <code>buildKGP</code> or <code>buildKGPsep</code>
+- however, this is not in the NAMESPACE at this time
+</p>
+
+
+<h3>Value</h3>
+
+<p>A self-explanatory <code>data.frame</code> is returned containing the
+values inferred and the number of iterations used.  The
+<code>jmleGP.R</code> and <code>jmleGPsep.R</code> functions will also show progress details (the values
+obtained after each iteration over the marginals).
+</p>
+<p>However, the most important “output” is the modified GP object
+which retains the setting of the parameters reported on output as a 
+side effect.
+</p>
+<p><code>mleGPsep</code> and <code>jmleGPsep</code> provide an output field/column
+called <code>conv</code> indicating convergence (when 0), or alternately 
+a value agreeing with a non-convergence code provided on 
+output by <code>optim</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>For standard GP inference, refer to any graduate text, e.g., Rasmussen
+&amp; Williams <em>Gaussian Processes for Machine Learning</em>, or
+</p>
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 5.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>newGP</code>, <code>laGP</code>, <code>llikGP</code>, <code>optimize</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## a simple example with estimated nugget
+if(require("MASS")) {
+
+  ## motorcycle data and predictive locations
+  X &lt;- matrix(mcycle[,1], ncol=1)
+  Z &lt;- mcycle[,2]
+
+  ## get sensible ranges
+  d &lt;- darg(NULL, X)
+  g &lt;- garg(list(mle=TRUE), Z)
+
+  ## initialize the model
+  gpi &lt;- newGP(X, Z, d=d$start, g=g$start, dK=TRUE)
+
+  ## separate marginal inference (not necessary - for illustration only)
+  print(mleGP(gpi, "d", d$min, d$max))
+  print(mleGP(gpi, "g", g$min, g$max))
+
+  ## joint inference (could skip straight to here)
+  print(jmleGP(gpi, drange=c(d$min, d$max), grange=c(g$min, g$max)))
+
+  ## plot the resulting predictive surface
+  N &lt;- 100
+  XX &lt;- matrix(seq(min(X), max(X), length=N), ncol=1)
+  p &lt;- predGP(gpi, XX, lite=TRUE)
+  plot(X, Z, main="stationary GP fit to motorcycle data")
+  lines(XX, p$mean, lwd=2)
+  lines(XX, p$mean+1.96*sqrt(p$s2*p$df/(p$df-2)), col=2, lty=2)
+  lines(XX, p$mean-1.96*sqrt(p$s2*p$df/(p$df-2)), col=2, lty=2)
+
+  ## clean up
+  deleteGP(gpi)
+}
+
+## 
+## with a separable correlation function 
+##
+
+## 2D Example: GoldPrice Function, mimicking GP_fit package
+f &lt;- function(x) 
+{
+  x1 &lt;- 4*x[,1] - 2
+  x2 &lt;- 4*x[,2] - 2;
+  t1 &lt;- 1 + (x1 + x2 + 1)^2*(19 - 14*x1 + 3*x1^2 - 14*x2 + 6*x1*x2 + 3*x2^2);
+  t2 &lt;- 30 + (2*x1 -3*x2)^2*(18 - 32*x1 + 12*x1^2 + 48*x2 - 36*x1*x2 + 27*x2^2);
+  y &lt;- t1*t2;
+  return(y)
+}
+
+## build design
+library(tgp)
+n &lt;- 50 ## change to 100 or 1000 for more interesting demo
+B &lt;- rbind(c(0,1), c(0,1))
+X &lt;- dopt.gp(n, Xcand=lhs(10*n, B))$XX
+## this differs from GP_fit in that we use the log response
+Y &lt;- log(f(X))
+
+## get sensible ranges
+d &lt;- darg(NULL, X)
+g &lt;- garg(list(mle=TRUE), Y)
+
+## build GP and jointly optimize via profile mehtods
+gpisep &lt;- newGPsep(X, Y, d=rep(d$start, 2), g=g$start, dK=TRUE)
+jmleGPsep(gpisep, drange=c(d$min, d$max), grange=c(g$min, g$max))
+
+## clean up
+deleteGPsep(gpisep)
+
+## alternatively, we can optimize via a combined gradient
+gpisep &lt;- newGPsep(X, Y, d=rep(d$start, 2), g=g$start, dK=TRUE)
+mleGPsep(gpisep, param="both", tmin=c(d$min, g$min), tmax=c(d$max, g$max))
+deleteGPsep(gpisep)
+</code></pre>
+
+
+</div>

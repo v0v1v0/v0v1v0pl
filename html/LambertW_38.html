@@ -1,0 +1,125 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>gamma_Taylor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Estimate gamma by Taylor approximation</h2>
+
+<h3>Description</h3>
+
+<p>Computes an initial estimate of <code class="reqn">\gamma</code> based on the Taylor
+approximation of the skewness of Lambert W <code class="reqn">\times</code> Gaussian RVs around
+<code class="reqn">\gamma = 0</code>. See Details for the formula.
+</p>
+<p>This is the initial estimate for <code>IGMM</code> and
+<code>gamma_GMM</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">gamma_Taylor(y, skewness.y = skewness(y), skewness.x = 0, degree = 3)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>a numeric vector of data values.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skewness.y</code></td>
+<td>
+<p>skewness of <code class="reqn">y</code>; default: empirical skewness of data
+<code>y</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>skewness.x</code></td>
+<td>
+<p>skewness for input X; default: 0 (symmetric input).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>degree</code></td>
+<td>
+<p>degree of the Taylor approximation; in Goerg (2011) it just
+uses the first order approximation (<code class="reqn">6 \cdot \gamma</code>); a much better
+approximation is the third order (<code class="reqn">6 \cdot \gamma + 8 \cdot
+\gamma^3</code>).  By default it uses the better <code>degree = 3</code>
+approximation.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The first order Taylor approximation of the theoretical skewness
+<code class="reqn">\gamma_1</code> (not to be confused with the skewness parameter <code class="reqn">\gamma</code>)
+of a Lambert W x Gaussian random variable around <code class="reqn">\gamma = 0</code> equals
+</p>
+<p style="text-align: center;"><code class="reqn"> \gamma_1(\gamma) = 6 \gamma + \mathcal{O}(\gamma^3). </code>
+</p>
+
+<p>Ignoring higher order terms, using the empirical estimate on the left hand
+side, and solving <code class="reqn">\gamma</code> yields a first order Taylor approximation
+estimate of <code class="reqn">\gamma</code> as
+</p>
+<p style="text-align: center;"><code class="reqn">
+\widehat{\gamma}_{Taylor}^{(1)} = \frac{1}{6} \widehat{\gamma}_1(\mathbf{y}), 
+</code>
+</p>
+
+<p>where <code class="reqn">\widehat{\gamma}_1(\mathbf{y})</code> is the empirical skewness of the
+data <code class="reqn">\mathbf{y}</code>.
+</p>
+<p>As the Taylor approximation is only good in a neighborhood of <code class="reqn">\gamma =
+0</code>, the output of <code>gamma_Taylor</code> is restricted to the interval
+<code class="reqn">(-0.5, 0.5)</code>.
+</p>
+<p>The solution of the third order Taylor approximation
+</p>
+<p style="text-align: center;"><code class="reqn"> \gamma_1(\gamma) = 6 \gamma + 8 \gamma^3 + \mathcal{O}(\gamma^5),</code>
+</p>
+
+<p>is also supported.  See code for the solution to this third order polynomial.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Scalar; estimate of <code class="reqn">\gamma</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>IGMM</code> to estimate all parameters jointly.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+set.seed(2)
+# a little skewness
+yy &lt;- rLambertW(n = 1000, theta = list(beta = c(0, 1), gamma = 0.1), 
+                distname = "normal") 
+# Taylor estimate is good because true gamma = 0.1 close to 0
+gamma_Taylor(yy) 
+
+# very highly negatively skewed
+yy &lt;- rLambertW(n = 1000, theta = list(beta = c(0, 1), gamma = -0.75), 
+                distname = "normal") 
+# Taylor estimate is bad since gamma = -0.75 is far from 0; 
+# and gamma = -0.5 is the lower bound by default.
+gamma_Taylor(yy) 
+
+</code></pre>
+
+
+</div>

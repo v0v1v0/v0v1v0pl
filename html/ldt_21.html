@@ -1,0 +1,198 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>get.combinations</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Define Combinations for Search Process</h2>
+
+<h3>Description</h3>
+
+<p>This function defines a structure for a two-level nested loop used in a model search (or screening) process. The outer loop is defined by a vector of sizes and all the combinations of the variables are generated automatically. The inner loop is defined by a list of predefined combinations of the variables. Each variable can belong to either endogenous or exogenous variables based on their usage.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">get.combinations(
+  sizes = c(1),
+  partitions = NULL,
+  numFixPartitions = 0,
+  innerGroups = list(c(1)),
+  numTargets = 1,
+  stepsNumVariables = c(NA),
+  stepsFixedNames = NULL,
+  stepsSavePre = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>sizes</code></td>
+<td>
+<p>A numeric vector or a list of numeric vectors that determines the sizes of outer loop combinations. For example, if the outer loop belongs to the endogenous variables, <code>c(1, 2)</code> means all models with 1 and 2 equations. If the outer loop belongs to exogenous variables, <code>c(1,2)</code> means all regressions with 1 and 2 exogenous variables. It can also be a list of numeric vectors for step-wise search. Each vector determines the size of the models in a step. In the next step, a subset of potential variables is selected by using <code>stepsNumVariables</code> argument.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partitions</code></td>
+<td>
+<p>A list of numeric vectors or character vectors that partitions the outer loop variables. No model is estimated with two variables from the same partition.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFixPartitions</code></td>
+<td>
+<p>A single number that determines the number of partitions at the beginning of <code>partitions</code> to be included in all models.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innerGroups</code></td>
+<td>
+<p>A list of numeric vectors or character vectors that determines different combinations of the variables for the inner loop. For example, if the inner loop belongs to exogenous data, <code>list(c(1), c(1, 2))</code> means estimating all models with just the first exogenous variable and all models with both first and second exogenous variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numTargets</code></td>
+<td>
+<p>An integer for the number of target variables at the first columns of the data matrix. Results of a search process are specific to these variables. A model is not estimated if it does not contain a target variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsNumVariables</code></td>
+<td>
+<p>A numeric vector. If <code>sizes</code> is a list (i.e., a step-wise search), this vector must be of equal length and determines the number of variables (with best performance) in each step.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsFixedNames</code></td>
+<td>
+<p>A character vector. If <code>sizes</code> is a list (i.e., a step-wise search), this vector determines the name of variables to be included in all steps.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsSavePre</code></td>
+<td>
+<p>A name for saving and loading progress, if <code>sizes</code> is a list. Each step's result is saved in a file (name=<code>paste0(stepsSavePre,i)</code>) where <code>i</code> is the index of the step.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The <code>get.combinations</code> function in the <code>ldt</code> package uses a two-level nested loop to iterate over different combinations of endogenous and exogenous variables. This is similar to running the following code:
+</p>
+<pre>
+for (endo in list(c(1), c(1, 2)))
+  for (exo in list(c(1), c(1, 2)))
+    Estimate a model using \code{endo} and \code{exo} indexation
+</pre>
+<p>However, predefining both loops is not memory efficient. Therefore, <code>ldt</code> uses a running algorithm to define the outer loop. It asks for the desired size of endogenous or exogenous variables in the model (i.e., <code>sizes</code>) and creates the outer groups using all possible combinations of the variables. The <code>partitions</code> and <code>numFixPartitions</code> parameters can be used to restrict this set.
+</p>
+<p>For the inner loop, you must provide the desired combination of variables (endogenous or exogenous). Given <code>m</code> as the number of variables, you can generate all possible combinations using the following code:
+</p>
+<pre>
+m &lt;- 4
+combinations &lt;- unlist(lapply(1:m, function(i) {
+ t(combn(1:m, i, simplify = FALSE))
+}), recursive = FALSE)
+</pre>
+<p>You can use this as the <code>innerGroups</code> argument. However, this might result in a large model set.
+</p>
+<p>Note that in <code>ldt</code>, if the data matrix does not have column names, default names for the endogenous variables are <code>Y1, Y2, ...</code>, and default names for the exogenous variables are <code>X1, X2, ...</code>. See <code>get.data()</code> function for more details.
+</p>
+<p>Also note that <code>ldt</code> ensure that all possible models can be estimated with the given number of partitions and sizes. If it's not possible, it will stop with an error message.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list suitable for use in <code>ldt::search.?</code> functions. The list contains:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>sizes</code></td>
+<td>
+<p>The sizes of outer loop combinations.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>partitions</code></td>
+<td>
+<p>The partitions of outer loop variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numFixPartitions</code></td>
+<td>
+<p>The number of fixed partitions at the beginning.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>innerGroups</code></td>
+<td>
+<p>Different combinations of variables for inner loop.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>numTargets</code></td>
+<td>
+<p>The number of target variables at first columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsNumVariables</code></td>
+<td>
+<p>The number of variables in each step for step-wise search.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsFixedNames</code></td>
+<td>
+<p>The names of fixed variables in each step for step-wise search.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stepsSavePre</code></td>
+<td>
+<p>The name for saving and loading progress for step-wise search.</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Some basic examples are given in this section. However, more practical examples are available
+# for the \code{search.?} functions.
+
+# Example 1:
+combinations1 &lt;- get.combinations(sizes = c(1, 2))
+# The function will generate all possible combinations of sizes 1 and 2.
+
+# Example 2: Using partitions
+combinations2 &lt;- get.combinations(sizes = c(1, 2), partitions = list(c(1, 2), c(3, 4)))
+
+# Here, we're specifying partitions for the variables.
+# The function will generate combinations such that no model is estimated with two variables
+# from the same partition.
+
+# Example 3: Specifying inner groups
+combinations3 &lt;- get.combinations(sizes = c(1, 2), innerGroups = list(c(1), c(1, 2)))
+
+# In this example, we're specifying different combinations of variables for the inner loop.
+# For instance, \code{list(c(1), c(1, 2))} means estimating all models with just the first
+# variable and all models with both first and second variables.
+
+# Example 4: Step-wise search
+combinations4 &lt;- get.combinations(sizes = list(c(1), c(1, 2)), stepsNumVariables = c(NA, 1))
+
+# This example demonstrates a step-wise search. In the first step (\code{sizes = c(1)}), all
+# models with one variable are estimated.
+# In the next step (\code{sizes = c(1, 2)}), a subset of potential variables is selected based
+# on their performance in the previous step and all models with both first and second variables
+# are estimated.
+
+</code></pre>
+
+
+</div>

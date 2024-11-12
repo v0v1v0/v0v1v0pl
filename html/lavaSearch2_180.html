@@ -1,0 +1,113 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>skeleton</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Pre-computation for the Score</h2>
+
+<h3>Description</h3>
+
+<p>Pre-compute quantities that are necessary to compute the score of a lvm model.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">skeleton(object, X, endogenous, latent, n.cluster, index.Omega)
+
+skeletonDtheta(
+  object,
+  X,
+  endogenous,
+  latent,
+  missing.pattern,
+  unique.pattern,
+  name.pattern,
+  n.cluster,
+  index.Omega
+)
+
+skeletonDtheta2(object)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>a <code>lvm</code> object.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+<p>[matrix] design matrix containing the covariates for each endogeneous and latent variable.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>endogenous</code></td>
+<td>
+<p>[character vector] the name of the endogeneous variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>latent</code></td>
+<td>
+<p>[character vector] the name of the latent variables.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>When the user specifies names for the coefficients (e.g. Y1[mu:sigma]) or uses constraints (Y1~beta*X1), <code>as.lava=FALSE</code> will use the names specified by the user (e.g. mu, sigma, beta)
+while <code>as.lava=TRUE</code> will use the name of the first link defining the coefficient.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+skeleton &lt;- lavaSearch2::skeleton
+skeleton.lvm &lt;- lavaSearch2::skeleton.lvm
+skeleton.lvmfit &lt;- lavaSearch2::skeleton.lvmfit
+
+## without constrain
+m &lt;- lvm(Y1~X1+X2+eta,Y2~X3+eta,Y3~eta)
+latent(m) &lt;- ~eta
+
+e &lt;- estimate(m, lava::sim(m,1e2))
+M.data &lt;- as.matrix(model.frame(e))
+
+skeleton(e$model, as.lava = TRUE,
+         name.endogenous = endogenous(e), n.endogenous = 3,
+         name.latent = latent(e), 
+         update.value = FALSE)
+skeleton(e, data = M.data, p = pars(e), as.lava = TRUE,
+         name.endogenous = endogenous(e), n.endogenous = 3,
+         name.latent = latent(e), 
+         update.value = TRUE)
+
+## with constrains
+m &lt;- lvm(Y[mu:sigma] ~ beta*X1+X2)
+e &lt;- estimate(m, lava::sim(m,1e2))
+M.data &lt;- as.matrix(model.frame(e))
+
+skeleton(e$model, as.lava = TRUE,
+         name.endogenous = "Y", n.endogenous = 1,
+         name.latent = NULL, 
+         update.value = FALSE)$skeleton
+
+skeleton(e, data = M.data, p = pars(e), as.lava = FALSE,
+         name.endogenous = "Y", n.endogenous = 1,
+         name.latent = NULL, 
+         update.value = FALSE)$skeleton
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

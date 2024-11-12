@@ -1,0 +1,134 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>runOTB</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Execute the OTB command via system call</h2>
+
+<h3>Description</h3>
+
+<p>Wrapper function that inserts the OTB command list into a system call compatible string and executes that command.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">runOTB(
+  otbCmdList = NULL,
+  gili = NULL,
+  retRaster = TRUE,
+  retCommand = FALSE,
+  quiet = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>otbCmdList</code></td>
+<td>
+<p>the correctly populated OTB algorithm parameter list</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gili</code></td>
+<td>
+<p>optional list of available 'OTB' installations, if not specified, 
+'linkOTB()' is called to automatically try to find a valid OTB installation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retRaster</code></td>
+<td>
+<p>boolean if TRUE a raster stack is returned default is FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>retCommand</code></td>
+<td>
+<p>boolean if TRUE only the OTB API command is returned default is FALSE</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quiet</code></td>
+<td>
+<p>boolean  if TRUE suppressing messages default is TRUE</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>#' Please NOTE: You must check the help to identify the correct input file argument ($input_in or $input_il).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+require(link2GI)
+require(terra)
+require(listviewer)
+
+## link to OTB
+otblink&lt;-link2GI::linkOTB()
+
+if (otblink$exist) {
+ root_folder&lt;-tempdir()
+ fn &lt;- system.file('ex/elev.tif', package = 'terra')
+
+## for an image output example we use the Statistic Extraction, 
+algoKeyword&lt;- 'LocalStatisticExtraction'
+
+## extract the command list for the choosen algorithm 
+cmd&lt;-parseOTBFunction(algo = algoKeyword, gili = otblink)
+
+## Please NOTE:
+## You must check the help to identify the correct argument codewort ($input_in or $input_il)
+listviewer::jsonedit(cmd$help)
+
+## define the mandatory arguments all other will be default
+cmd$input_in  &lt;- fn
+cmd$out &lt;- file.path(tempdir(),'test_otb_stat.tif')
+cmd$radius &lt;- 7
+
+## run algorithm
+retStack&lt;-runOTB(cmd,gili = otblink)
+
+## plot image
+terra::plot(retStack)
+
+## for a data output example we use the 
+
+algoKeyword&lt;- 'ComputeImagesStatistics'
+
+## extract the command list for the chosen algorithm 
+cmd&lt;-parseOTBFunction(algo = algoKeyword, gili = otblink)
+
+## get help using the convenient listviewer
+listviewer::jsonedit(cmd$help)
+
+## define the mandatory arguments all other will be default
+cmd$input_il  &lt;- file.path(tempdir(),'test.tif')
+cmd$ram &lt;- 4096
+cmd$out.xml &lt;- file.path(tempdir(),'test_otb_stat.xml')
+cmd$progress &lt;- 1
+
+## run algorithm
+ret &lt;- runOTB(cmd,gili = otblink, quiet = F)
+
+## as vector
+print(ret)
+
+## as xml
+XML::xmlParse(cmd$out)
+ 
+}
+
+## End(Not run)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,478 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>glkerns</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Kernel Regression Smoothing with Adaptive Plug-in Bandwidth</h2>
+
+<h3>Description</h3>
+
+<p>Nonparametric estimation of regression functions and their derivatives
+with kernel regression estimators and automatically adapted
+(<b>gl</b>obal) plug-in bandwidth.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">glkerns(x, ...)
+
+## Default S3 method:
+glkerns(x, y=NULL, deriv = 0, n.out = 300, x.out=NULL, x.inOut = TRUE,
+        korder= deriv + 2, hetero=FALSE, is.rand=TRUE,
+        inputb = is.numeric(bandwidth) &amp;&amp; all(bandwidth &gt; 0),
+        m1 = 400, xl=NULL, xu=NULL,
+        s=NULL, sig=NULL, bandwidth=NULL, trace.lev = 0, ...)
+
+## S3 method for class 'formula'
+glkerns(formula, data, subset, na.action, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of design points, not necessarily ordered.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of observations of the same length as <code>x</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>order of derivative of the regression function to be
+estimated.  Only <code>deriv = 0,1,2</code> are allowed for automatic smoothing,
+whereas <code>deriv = 0,1,2,3,4</code> is possible when smoothing with
+a global input bandwidth.  By default, <code>deriv=0</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>n.out</code></td>
+<td>
+<p>number of output design points where the function has to
+be estimated; default is <code>n.out=300</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.out</code></td>
+<td>
+<p>vector of output design points where the function has to
+be estimated.  The default is an equidistant grid of n.out points
+from min(x) to max(x).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.inOut</code></td>
+<td>
+<p>logical or character string indicating if <code>x.out</code>
+should contain the input <code>x</code> values.
+Note that this argument did not exist, equivalently to being
+<code>FALSE</code>, up to <span class="pkg">lokern</span> version <code>1.0-9</code>.
+</p>
+<p>In order for <code>residuals()</code> or <code>fitted()</code>
+methods to be applicable, it must be <code>TRUE</code> or a character
+string specifying one of the <code>methods</code>s of
+<code>seqXtend</code> (package <a href="https://CRAN.R-project.org/package=sfsmisc"><span class="pkg">sfsmisc</span></a>). The default,
+<code>TRUE</code> corresponds to method <code>"aim"</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>korder</code></td>
+<td>
+
+<p>nonnegative integer giving the kernel order <code class="reqn">k</code>; it defaults to
+<code>korder = deriv+2</code> or <code class="reqn">k = \nu + 2</code> where <code class="reqn">k - \nu</code>
+must be even.  The maximal possible values are for automatic
+smoothing, <code class="reqn">k \le 4</code>, whereas for smoothing with input
+bandwidth, <code class="reqn">k \le 6</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hetero</code></td>
+<td>
+<p>logical: if TRUE, heteroscedastic error variables are
+assumed for variance estimation, if FALSE the variance estimation is
+optimized for homoscedasticity.  Default value is hetero=FALSE.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>is.rand</code></td>
+<td>
+
+<p>logical: if <code>TRUE</code> (default), random x are assumed and the
+s-array of the convolution estimator is computed as smoothed
+quantile estimators in order to adapt this variability.  If FALSE,
+the s-array is choosen as mid-point sequences as the classical
+Gasser-Mueller estimator, this will be better for equidistant and
+fixed design.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputb</code></td>
+<td>
+
+<p>logical: if true, a local input bandwidth array is used; if
+<code>FALSE</code> (by default when <code>bandwidth</code> is not specified), a
+data-adaptive local plug-in bandwidths array is calculated and used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m1</code></td>
+<td>
+
+<p>integer, the number of grid points for integral approximation when
+estimating the plug-in bandwidth. The default, 400, may be increased
+if a very large number of observations are available.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xl, xu</code></td>
+<td>
+
+<p>numeric (scalars), the lower and upper bounds for integral
+approximation and variance estimation when estimating the plug-in
+bandwidth. By default (when <code>xl</code> and <code>xu</code> are not specified),
+the 87% middle part of <code class="reqn">[xmin,xmax]</code> is used.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+
+<p>s-array of the convolution kernel estimator. If it is not given by input
+it is calculated as midpoint-sequence of the ordered design points for
+<code>is.rand=FALSE</code> or as quantiles estimators of the design density
+for <code>is.rand=TRUE</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig</code></td>
+<td>
+<p>variance of the error variables.  If it is not given by
+input or if <code>hetero=TRUE</code> it is calculated by a
+nonparametric variance estimator.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+
+<p><em>global</em> bandwidth for kernel regression estimation.  If it is
+not given by input or if <code>inputb=FALSE</code> a data-adaptive global
+plug-in bandwidth is used instead.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>trace.lev</code></td>
+<td>
+<p>integer indicating how much the internal (Fortran
+level) computations should be “traced”, i.e., be reported.
+The default, <code>0</code>, does not print anything.</p>
+</td>
+</tr>
+</table>
+<table>
+<tr style="vertical-align: top;">
+<td><code>formula</code></td>
+<td>
+<p>a <code>formula</code> of the form <code>y ~ pred</code>,
+specifying the response variable <code>y</code> and predictor variable
+<code>pred</code> which must be in <code>data</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>an optional matrix or data frame (or similar: see
+<code>model.frame</code>) containing the variables in the
+formula <code>formula</code>.  By default the variables are taken from
+<code>environment(formula)</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>subset</code></td>
+<td>
+<p>an optional vector specifying a subset of observations
+to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>na.action</code></td>
+<td>
+<p>a function which indicates what should happen when
+the data contain <code>NA</code>s.  Defaults to
+<code>getOption("na.action")</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>for the <code>formula</code> method: Optional arguments all
+passed to <code>glkerns.default()</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This function calls an efficient and fast algorithm for automatically
+adaptive nonparametric regression estimation with a kernel method.
+</p>
+<p>Roughly spoken, the method performs a local averaging of the
+observations when estimating the regression function. Analogously, one
+can estimate derivatives of small order of the regression function.
+Crucial for the kernel regression estimation used here is the choice
+of a global bandwidth. Too small bandwidths will lead to a wiggly
+curve, too large ones will smooth away important details.  The
+function glkerns calculates an estimator of the regression function or
+derivatives of the regression function with an automatically chosen
+global plugin bandwidth. It is also possible to use global bandwidths
+which are specified by the user.
+</p>
+<p>Main ideas of the plugin method are to estimate the optimal bandwidths
+by estimating the asymptotically optimal mean integrated squared error
+optimal bandwidths. Therefore, one has to estimate the variance for
+homoscedastic error variables and a functional of a smooth variance
+function for heteroscedastic error variables, respectively. Also, one
+has to estimate an integral functional of the squared <code class="reqn">k</code>-th derivative
+of the regression function (<code class="reqn">k=\code{korder}</code>) for the global bandwidth.
+</p>
+<p>Here, a further kernel estimator for this derivative is used with a
+bandwidth which is adapted iteratively to the regression function.  A
+convolution form of the kernel estimator for the regression function
+and its derivatives is used. Thereby one can adapt the s-array for
+random design. Using this estimator leads to an asymptotically minimax
+efficient estimator for fixed and random design.  Polynomial kernels
+and boundary kernels are used with a fast and stable updating
+algorithm for kernel regression estimation.  More details can be found
+in the references and previously at
+Biostats, University of Zurich under ‘<span class="file">software/kernel.html</span>’, but no longer.
+
+
+
+
+
+</p>
+
+
+<h3>Value</h3>
+
+<p>an object of class(es) <code>c("glkerns", "KernS")</code>, which is
+a list including used parameters and estimator, containing among others
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>vector of ordered design points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>y</code></td>
+<td>
+<p>vector of observations ordered with respect to x.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bandwidth</code></td>
+<td>
+<p>bandwidth which was used for kernel regression estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x.out</code></td>
+<td>
+<p>vector of ordered output design points.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>est</code></td>
+<td>
+<p>vector of estimated regression function or its derivative
+(at <code>x.out</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>sig</code></td>
+<td>
+<p>variance estimation which was used for calculating the
+plug-in bandwidth</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>deriv</code></td>
+<td>
+<p>derivative of the regression function which was estimated.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>korder</code></td>
+<td>
+<p>order of the kernel function which was used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xl</code></td>
+<td>
+<p>lower bound for integral approximation and variance estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>xu</code></td>
+<td>
+<p>upper bound for integral approximation and variance estimation.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>s</code></td>
+<td>
+<p>vector of midpoint values used for the convolution kernel
+regression estimator.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+
+<p>- Eva Herrmann, TU Darmstadt(1995-1997): principal code (origianl Fortran and S+),
+see the references.
+<br>
+- Martin Maechler, 2001 ff: translated to R, created the package, refactored
+‘<span class="file">src/</span>’, added class, methods (predict, plot ..), arguments, docu,
+tweaks, help, examples, etc.
+<br>
+- The <code>formula</code> method was added in 2014 after proposals by Andri Signorell.
+</p>
+
+
+<h3>References</h3>
+
+<p>- global plug-in bandwidth estimator:<br>
+Theo Gasser, Alois Kneip &amp; Walter Koehler (1991)
+A flexible and fast method for automatic smoothing.
+<em>Journal of the American Statistical Association</em> <b>86</b>, 643–652.
+<a href="https://doi.org/10.2307/2290393">doi:10.2307/2290393</a> 
+
+</p>
+<p>Muller, H.-G. (1984)
+Smooth optimum kernel estimators of densities, regression curves and modes.
+<em>The Annals of Statistics</em> <b>12</b>, 766–774.
+
+</p>
+<p>- variance estimation:<br>
+Theo Gasser, Lothar Sroka &amp; Christine Jennen-Steinmetz (1986)
+Residual Variance and Residual Pattern in Nonlinear Regression.
+<em>Biometrika</em> <b>73</b>, 625–633. <a href="https://doi.org/10.2307/2336527">doi:10.2307/2336527</a>
+</p>
+<p>- adapting heteroscedasticity:<br>
+E. Herrmann (1997)
+Local bandwidth choice in kernel regression estimation.
+<em>Journal of Graphical and Computational Statistics</em> <b>6</b>, 35–54.
+</p>
+<p>- fast algorithm for kernel regression estimator:<br>
+T. Gasser &amp; A. Kneip (1989)
+discussion of Buja, A., Hastie, T. and Tibshirani, R.: Linear smoothers
+and additive models, <em>The Annals of Statistics</em> <b>17</b>, 532–535.
+</p>
+<p>B. Seifert, M. Brockmann, J. Engel &amp; T. Gasser (1994)
+Fast algorithms for nonparametric curve estimation.
+<em>J. Computational and Graphical Statistics</em> <b>3</b>, 192–213.
+</p>
+<p>- on the special kernel estimator for random design point:<br>
+E. Herrmann (1996)
+<em>On the convolution type kernel regression estimator</em>;
+Preprint 1833, FB Mathematik, Technische Universitaet Darmstadt;
+currently available from
+<a href="https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.32.6383">https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.32.6383</a>
+
+
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>lokerns</code> for <b>lo</b>cal bandwidth computation.
+<code>plot.KernS</code> documents all the <code>methods</code> for <code>"KernS"</code>
+classed objects.
+</p>
+<p>The <code>demo</code> for computing derivatives, <code>demo("glk-derivs")</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(xSim)## linear plus an exponential peak, see help(xSim)
+n &lt;- length(xSim)
+tt &lt;- ((1:n) - 1/2)/n # equidistant x ==&gt; is.rand = FALSE
+gk &lt;- glkerns(tt, xSim, is.rand = FALSE)
+gk # print method
+plot(gk) # nice plot() method
+if(require("sfsmisc")) {
+  TA.plot(gk)
+} else { plot(residuals(gk) ~ fitted(gk)); abline(h = 0, lty=2) }
+qqnorm(residuals(gk), ylab = "residuals(gk)")
+
+cat("glkerns() bandwidth:",format(gk$bandwidth, dig=10),"\n")
+## local bandwidth: fit is very similar :
+(lk &lt;- lokerns(tt, xSim, is.rand = FALSE))
+nobs(lk)
+
+cols &lt;- c(gl="PaleGreen", lo="Firebrick")
+plot(lk$x.out, lk$bandwidth, axes = FALSE, xlab="", ylab="",
+     ylim=c(0,max(lk$bandwidth)), type="h", col = "gray90")
+axis(4); mtext("bandwidth(s)", side=4)
+lines(lk$x.out, lk$bandwidth, col = cols["lo"], lty = 3)
+abline(     h = gk$bandwidth, col = cols["gl"], lty = 4)
+par(new=TRUE)
+plot(tt, xSim, main = "global and local bandwidth kernel regression")
+lines(gk$x.out, gk$est, col = cols["gl"], lwd = 1.5)
+lines(lk$x.out, lk$est, col = cols["lo"])
+# the red curve (local bw) is very slightly better
+legend(0.7,4.4, c("global bw","local bw"), col = cols, lwd=1)
+
+## This should look
+op &lt;- par(mfrow = c(3,1), mar = .1 + c(4,4,2,1), oma = c(0,0,3,0),
+          mgp = c(1.5, 0.6,0))
+plot(gk, main = expression(paste("Data &amp; ", hat(f))))
+## calling extra plot() method
+gk1 &lt;- glkerns(tt, xSim, deriv = 1, is.rand = FALSE)
+plot(gk1$x.out, gk1$est, col = "green", lwd = 1.5, type = "l",
+     main = expression(widehat(paste(f,"'"))))
+abline(h=0, col="gray", lty = 3)
+gk2 &lt;- glkerns(tt, xSim, deriv = 2, is.rand = FALSE)
+plot(gk2$x.out, gk2$est, col = "orange", lwd = 1.5, type = "l",
+     main = expression(widehat(paste(f,"''"))))
+abline(h=0, col="gray", lty = 3)
+mtext("Example from www.unizh.ch/biostat/..../kernf77.html",side=3,
+      outer = TRUE, cex = 1, font = par("font.main"))
+
+par(op)
+data(cars)
+plot(dist ~ speed, data = cars,
+     main = "Global Plug-In Bandwidth")
+## these two are equivalent
+m1glk &lt;- glkerns(dist ~ speed, data = cars)
+m.glk &lt;- glkerns(cars$ speed, cars$ dist)
+lines(m.glk, col=2) # using the lines() method
+mtext(paste("bandwidth = ", format(m.glk$bandwidth, dig = 4)))
+ii &lt;- names(m1glk) != "call"
+stopifnot(all.equal(m1glk[ii], m.glk[ii], tol = 1e-15))
+</code></pre>
+
+
+</div>

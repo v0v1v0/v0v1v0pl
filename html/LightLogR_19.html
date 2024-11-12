@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>dst_change_handler</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Handle jumps in Daylight Savings (DST) that are missing in the data</h2>
+
+<h3>Description</h3>
+
+<p>When data is imported through <code>LightLogR</code> and a timezone applied, it is
+assumed that the timestamps are correct - which is the case, e.g., if
+timestamps are stored in <code>UTC</code>, or they are in local time. Some if not most
+measurement devices are set to local time before a recording interval starts.
+If during the recording a daylight savings jump happens (in either
+direction), the device might not adjust timestamps for this change. This
+results in an unwanted shift in the data, starting at the time of the DST
+jump and likely continues until the end of a file. <code>dst_change_handler</code> is
+used to detect such jumps within a group and apply the correct shift in the
+data (i.e., the shift that should have been applied by the device).
+</p>
+<p><strong>important</strong> Note that this function is only useful if the time stamp in
+the raw data deviates from the actual date-time. Note also, that this
+function results in a gap during the DST jump, which should be handled by
+<code>gap_handler()</code> afterwards. It will also result in potentially double the
+timestamps during the jum back from DST to standard time. This will result
+in some inconsistencies with some functions, so we recommend to use
+<code>aggregate_Datetime()</code> afterwards with a <code>unit</code> equal to the dominant epoch.
+Finally, the function is not equipped to handle more than one jump per group.
+The jump is based on whether the group starts out with DST or not. <strong>the
+function will remove datetime rows with <code>NA</code> values</strong>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">dst_change_handler(
+  dataset,
+  Datetime.colname = Datetime,
+  filename.colname = NULL
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>dataset to be summarized, must be a <code>dataframe</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>name of the column that contains the Datetime data, expects a <code>symbol</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filename.colname</code></td>
+<td>
+<p>(optional) column name that contains the filename.
+If provided, it will use this column as a temporary grouping variable
+additionally to the <code>dataset</code> grouping.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The detection of a DST jump is based on the function <code>lubridate::dst()</code> and jumps are only applied within a group. During import, this function is used if <code>dst_adjustment = TRUE</code> is set and includes by default the filename as the grouping variable, additionally to <code>Id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A <code>tibble</code> with the same columns as the input dataset, but shifted
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other DST: 
+<code>dst_change_summary()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#create some data that crosses a DST jump
+data &lt;- 
+ tibble::tibble(
+ Datetime = seq.POSIXt(from = as.POSIXct("2023-03-26 01:30:00", tz = "Europe/Berlin"),
+                     to = as.POSIXct("2023-03-26 03:00:00", tz = "Europe/Berlin"),
+                     by = "30 mins"),
+                     Value = 1)
+ #as can be seen next, there is a gap in the data - this is necessary when
+ #using a timezone with DST. 
+ data$Datetime
+ #Let us say now, that the device did not adjust for the DST - thus the 03:00 
+ #timestamp is actually 04:00 in local time. This can be corrected for by:
+ data %&gt;% dst_change_handler() %&gt;% .$Datetime
+</code></pre>
+
+
+</div>

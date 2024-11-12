@@ -1,0 +1,107 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fitted.l2boost</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract the fitted model estimates along the solution path for an l2boost model.</h2>
+
+<h3>Description</h3>
+
+<p><code>fitted</code> is a generic function which extracts fitted values from objects 
+returned by modeling functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">## S3 method for class 'l2boost'
+fitted(object, m = NULL, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>an l2boost object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>m</code></td>
+<td>
+<p>the iteration number with the l2boost path. (default m=NULL)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>other arguments</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>fitted.l2boost</code> returns the function estimates obtained 
+from  the training set observations of an l2boost model object at any point along the solution path. 
+The estimate, F_m(x) is evaluated at iteration m using the training data set x. By default, 
+<code>fitted.l2boost</code> returns the estimate at the last iteration step M, unless a specific 
+iteration step m is specified.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The vector of fitted response estimates at the given iteration m. By default,
+the coefficients are obtained from the last iteration m=M.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fitted</code> and <code>l2boost</code> and <code>predict.l2boost</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#--------------------------------------------------------------------------
+# Example: Diabetes 
+#  
+# See Efron B., Hastie T., Johnstone I., and Tibshirani R. 
+# Least angle regression. Ann. Statist., 32:407-499, 2004.
+data(diabetes, package="l2boost")
+
+l2.object &lt;- l2boost(diabetes$x,diabetes$y, M=1000, nu=.01)
+
+# return the fitted values
+fitted(l2.object)
+fitted(l2.object, m=500)
+
+#' # Create diagnostic plots
+par(mfrow=c(2,2))
+qqnorm(fitted(l2.object), ylim=c(0, 300))
+qqline(fitted(l2.object), col=2)
+
+qqnorm(fitted(l2.object, m=500), ylim=c(0, 300))
+qqline(fitted(l2.object, m=500), col=2)
+
+# Tukey-Anscombe's plot
+plot(y=residuals(l2.object), x=fitted(l2.object), main="Tukey-Anscombe's plot",
+  ylim=c(-3e-13, 3e-13))
+lines(smooth.spline(fitted(l2.object), residuals(l2.object), df=4), type="l", 
+  lty=2, col="red", lwd=2)
+abline(h=0, lty=2, col = 'gray')
+
+plot(y=residuals(l2.object, m=500), x=fitted(l2.object, m=500), 
+  main="Tukey-Anscombe's plot", ylim=c(-3e-13, 3e-13))
+lines(smooth.spline(fitted(l2.object,m=500), residuals(l2.object, m=500), df=4), 
+  type="l", lty=2, col="red", lwd=2)
+abline(h=0, lty=2, col = 'gray')
+
+</code></pre>
+
+
+</div>

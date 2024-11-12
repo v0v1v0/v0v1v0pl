@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cv.estimateSpikes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cross-validate and optimize model parameters</h2>
+
+<h3>Description</h3>
+
+<p>Cross-validate and optimize model parameters
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cv.estimateSpikes(dat, type = "ar1", gam = NULL, lambdas = NULL,
+  nLambdas = 10, hardThreshold = TRUE)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dat</code></td>
+<td>
+<p>fluorescence trace (a vector)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>type of model, must be one of AR(1) 'ar1', or AR(1) with intercept 'intercept'</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gam</code></td>
+<td>
+<p>a scalar value for the AR(1)/AR(1) + intercept decay parameter</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambdas</code></td>
+<td>
+<p>vector of tuning parameters to use in cross-validation</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nLambdas</code></td>
+<td>
+<p>number of tuning parameters to estimate the model (grid of values is automatically produced)</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hardThreshold</code></td>
+<td>
+<p>boolean specifying whether the calcium concentration must be non-negative (in the AR-1 problem)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>We perform cross-validation over a one-dimensional grid of <code class="reqn">\lambda</code> values.
+For each value of <code class="reqn">\lambda</code> in this grid, we solve the corresponding optimization problem, that is, one of
+</p>
+<p><strong>AR(1)-model:</strong>
+minimize_c1,...,cT 0.5 sum_t=1^T ( y_t - c_t )^2 + lambda sum_t=2^T 1_c_t neq gamma c_t-1 
+for the global optimum, where $y_t$ is the observed fluorescence at the tth
+timepoint.
+</p>
+<p>If hardThreshold = T then the additional constraint
+c_t &gt;= 0 is added to the optimzation problem above.
+</p>
+<p><strong>AR(1) with intercept:</strong>
+minimize_c1,...,cT,b1,...,bT 0.5 sum_t=1^T (y_t - c_t - b_t)^2 + lambda sum_t=2^T 1_c_t neq gamma c_t-1, b_t neq b_t-1 
+where the indicator variable 1_(A,B) equals 1 if the event A cup B holds, and equals zero otherwise.
+</p>
+<p>on a training set using a candidate value for <code class="reqn">\gamma</code>. Given the resulting set of changepoints, we solve a constrained optimization problem for <code class="reqn">\gamma</code>. We then refit the optimization problem with the optimized value of <code class="reqn">\gamma</code>,
+and then evaluate the mean squared error (MSE) on a hold-out set. Note that in the final output of the algorithm,
+we take the square root of the optimal value of <code class="reqn">\gamma</code> in order to address the fact that the cross-validation
+scheme makes use of training and test sets consisting of alternately-spaced timesteps.
+</p>
+<p>If there is a tuning parameter lambdaT in the path [lambdaMin, lambdaMax] that produces a fit with
+less than 1 spike per 10,000 timesteps the path is truncated to [lambdaMin, lambdaT] and a warning is produced.
+</p>
+<p>See Algorithm 3 of Jewell and Witten (2017) &lt;arXiv:1703.08644&gt;
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of values corresponding to the 2-fold cross-validation:
+</p>
+<p><code>cvError</code> the MSE for each tuning parameter
+</p>
+<p><code>cvSE</code> the SE for the MSE for each tuning parameter
+</p>
+<p><code>lambdas</code> tuning parameters
+</p>
+<p><code>optimalGam</code> matrix of (optimized) parameters, rows correspond to tuning parameters, columns correspond to optimized parameter
+</p>
+<p><code>lambdaMin</code> tuning parameter that gives the smallest MSE
+</p>
+<p><code>lambda1SE</code> 1 SE tuning parameter
+</p>
+<p><code>indexMin</code> the index corresponding to lambdaMin
+</p>
+<p><code>index1SE</code> the index corresponding to lambda1SE
+</p>
+
+
+<h3>See Also</h3>
+
+<p><strong>Estimate spikes:</strong>
+<code>estimateSpikes</code>,
+<code>print.estimatedSpikes</code>,
+<code>plot.estimatedSpikes</code>.
+</p>
+<p><strong>Cross validation:</strong>
+<code>cv.estimateSpikes</code>,
+<code>print.cvSpike</code>,
+<code>plot.cvSpike</code>.
+</p>
+<p><strong>Simulation:</strong>
+<code>simulateAR1</code>,
+<code>plot.simdata</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Not run
+# sim &lt;- simulateAR1(n = 500, gam = 0.998, poisMean = 0.009, sd = 0.05, seed = 1)
+# plot(sim)
+
+# AR(1) model
+# outAR1 &lt;- cv.estimateSpikes(sim$fl, type = "ar1")
+# plot(outAR1)
+# print(outAR1)
+# fit &lt;- estimateSpikes(sim$fl, gam = outAR1$optimalGam[outAR1$index1SE, 1],
+# lambda = outAR1$lambda1SE, type = "ar1")
+# plot(fit)
+# print(fit)
+
+# AR(1) + intercept model
+# outAR1Intercept &lt;- cv.estimateSpikes(sim$fl, type = "intercept",
+# lambdas = seq(0.1, 5, length.out = 10))
+# plot(outAR1Intercept)
+# print(outAR1Intercept)
+# fit &lt;- estimateSpikes(sim$fl, gam = outAR1Intercept$optimalGam[outAR1Intercept$index1SE, 1],
+# lambda = outAR1Intercept$lambda1SE, type = "intercept")
+# plot(fit)
+# print(fit)
+</code></pre>
+
+
+</div>

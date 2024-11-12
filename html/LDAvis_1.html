@@ -1,0 +1,216 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>createJSON</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Create the JSON object to read into the javascript visualization</h2>
+
+<h3>Description</h3>
+
+<p>This function creates the JSON object that feeds the visualization template.
+For a more detailed overview,
+see <code>vignette("details", package = "LDAvis")</code>
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">createJSON(phi = matrix(), theta = matrix(), doc.length = integer(),
+  vocab = character(), term.frequency = integer(), R = 30,
+  lambda.step = 0.01, mds.method = jsPCA, cluster, plot.opts = list(xlab =
+  "PC1", ylab = "PC2"), ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>matrix, with each row containing the distribution over terms
+for a topic, with as many rows as there are topics in the model, and as
+many columns as there are terms in the vocabulary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>theta</code></td>
+<td>
+<p>matrix, with each row containing the probability distribution
+over topics for a document, with as many rows as there are documents in the
+corpus, and as many columns as there are topics in the model.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>doc.length</code></td>
+<td>
+<p>integer vector containing the number of tokens in each
+document of the corpus.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>vocab</code></td>
+<td>
+<p>character vector of the terms in the vocabulary (in the same
+order as the columns of <code>phi</code>). Each term must have at least one
+character.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>term.frequency</code></td>
+<td>
+<p>integer vector containing the frequency of each term
+in the vocabulary.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>R</code></td>
+<td>
+<p>integer, the number of terms to display in the barcharts
+of the interactive viz. Default is 30. Recommended to be roughly
+between 10 and 50.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lambda.step</code></td>
+<td>
+<p>a value between 0 and 1.
+Determines the interstep distance in the grid of lambda
+values over which to iterate when computing relevance.
+Default is 0.01. Recommended to be between 0.01 and 0.1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mds.method</code></td>
+<td>
+<p>a function that takes <code>phi</code> as an input and outputs
+a K by 2 data.frame (or matrix). The output approximates the distance
+between topics. See jsPCA for details on the default method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cluster</code></td>
+<td>
+<p>a cluster object created from the parallel package.
+If supplied, computations are performed using parLapply instead
+of lapply.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot.opts</code></td>
+<td>
+<p>a named list used to customize various plot elements.
+By default, the x and y axes are labeled "PC1" and "PC2"
+(principal components 1 and 2), since jsPCA is the default
+scaling method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function first computes the topic frequencies (across the whole
+corpus), and then it reorders the topics in decreasing order of
+frequency. The main computation is to loop through the topics and through the
+grid of lambda values (determined by <code>lambda.step</code>)
+to compute the <code>R</code> most
+<em>relevant</em> terms for each topic and value of lambda.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A string containing JSON content which can be written to a file
+or feed into serVis for easy viewing/sharing. One element of this
+string is the new ordering of the topics.
+</p>
+
+
+<h3>References</h3>
+
+<p>Sievert, C. and Shirley, K. (2014) <em>LDAvis: A Method for
+Visualizing and Interpreting Topics</em>, ACL Workshop on Interactive
+Language Learning, Visualization, and Interfaces.
+<a href="http://nlp.stanford.edu/events/illvi2014/papers/sievert-illvi2014.pdf">http://nlp.stanford.edu/events/illvi2014/papers/sievert-illvi2014.pdf</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p>serVis
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+data(TwentyNewsgroups, package="LDAvis")
+# create the json object, start a local file server, open in default browser
+json &lt;- with(TwentyNewsgroups,
+             createJSON(phi, theta, doc.length, vocab, term.frequency))
+serVis(json) # press ESC or Ctrl-C to kill
+
+# createJSON() reorders topics in decreasing order of term frequency
+RJSONIO::fromJSON(json)$topic.order
+
+# You may want to just write the JSON and other dependency files
+# to a folder named TwentyNewsgroups under the working directory
+serVis(json, out.dir = 'TwentyNewsgroups', open.browser = FALSE)
+# then you could use a server of your choice; for example,
+# open your terminal, type `cd TwentyNewsgroups &amp;&amp; python -m SimpleHTTPServer`
+# then open http://localhost:8000 in your web browser
+
+# A different data set: the Jeopardy Questions+Answers data:
+# Install LDAvisData (the associated data package) if not already installed:
+# devtools::install_github("cpsievert/LDAvisData")
+library(LDAvisData)
+data(Jeopardy, package="LDAvisData")
+json &lt;- with(Jeopardy,
+             createJSON(phi, theta, doc.length, vocab, term.frequency))
+serVis(json) # Check out Topic 22 (bodies of water!)
+
+# If you have a GitHub account, you can even publish as a gist
+# which allows you to easily share with others!
+serVis(json, as.gist = TRUE)
+
+# Run createJSON on a cluster of machines to speed it up
+system.time(
+json &lt;- with(TwentyNewsgroups,
+             createJSON(phi, theta, doc.length, vocab, term.frequency))
+)
+#   user  system elapsed
+# 14.415   0.800  15.066
+library("parallel")
+cl &lt;- makeCluster(detectCores() - 1)
+cl # socket cluster with 3 nodes on host 'localhost'
+system.time(
+ json &lt;- with(TwentyNewsgroups,
+   createJSON(phi, theta, doc.length, vocab, term.frequency,
+     cluster = cl))
+)
+#   user  system elapsed
+#  2.006   0.361   8.822
+
+# another scaling method (svd + tsne)
+library("tsne")
+svd_tsne &lt;- function(x) tsne(svd(x)$u)
+json &lt;- with(TwentyNewsgroups,
+             createJSON(phi, theta, doc.length, vocab, term.frequency,
+                        mds.method = svd_tsne,
+                        plot.opts = list(xlab="", ylab="")
+                        )
+             )
+serVis(json) # Results in a different topic layout in the left panel
+
+
+## End(Not run)
+</code></pre>
+
+
+</div>

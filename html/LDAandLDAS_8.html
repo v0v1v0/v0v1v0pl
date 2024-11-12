@@ -1,0 +1,148 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>LDAS</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>LDA Score</h2>
+
+<h3>Description</h3>
+
+<p>Computation of the Linkage Disequilibrium of Ancestry Score (LDAS) of each single nucleotide polymorphism (SNP).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">LDAS(
+  LDA_data,
+  SNPidx = NULL,
+  map,
+  window = 5,
+  runparallel = FALSE,
+  mc.cores = 8,
+  verbose = TRUE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>LDA_data</code></td>
+<td>
+<p>a data frame of LDA between all pairs of SNPs that are within the 'window'.
+SNPs should be in the decreasing order of physical position on a chromosome for both rows and columns.
+This is the output from <code>LDA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>SNPidx</code></td>
+<td>
+<p>a numeric vector denoting the LDAS of which SNPs
+(located in which rows of the map) are computed.
+All the SNPs' indices in the LDA_data should be included in SNPidx.
+By default, SNPidx=NULL which specifies the LDAS of all the SNPs in the map will be computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>map</code></td>
+<td>
+<p>a data frame of the physical position and genetic distance of
+all the SNPs contained in 'LDA_data'.
+'map' contains two columns.
+The first column is the physical distance (unit: b) of SNPs in the decreasing order.
+The second column is the genetic distance (unit: cM) of SNPs.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>window</code></td>
+<td>
+<p>a positive number specifying the genetic distance that
+the LDA score of each SNP is computed within. By default, window=5.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>runparallel</code></td>
+<td>
+<p>logical. Parallel programming or not (note: unavailable for Windows system).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mc.cores</code></td>
+<td>
+<p>a positive number specifying the number of cores used for parallel programming.
+By default, mc.cores=8.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verbose</code></td>
+<td>
+<p>logical. Print the process of calculating the LDA score for the i-th SNP.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>LDA score is the total amount of genome in LDA with each SNP
+(measured in recombination map distance).
+A low LDA score is the signal of “recombinant favouring selection”.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data frame of the LDA score and its upper and lower bound
+at the physical position of each SNP.
+</p>
+
+
+<h3>References</h3>
+
+<p>Barrie, W., Yang, Y., Irving-Pease, E.K. et al. Elevated genetic risk for multiple sclerosis emerged in steppe pastoralist populations. Nature 625, 321–328 (2024).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# visualize the painting data
+# Painting data are the average probabilities of different populations
+head(LDAandLDAS::example_painting_p1[1:5,],10)
+
+# combine the painting data for two ancestries as a list
+# to make to input data for function 'LDA'.
+paintings=list(LDAandLDAS::example_painting_p1,
+          LDAandLDAS::example_painting_p2)
+
+# calculate the pairwise LDA of SNPs
+LDA_result &lt;- LDA(paintings)
+
+# map is the data containing two columns
+# The first column is the physical position (unit: b) (decreasing order)
+# The second column is the recombination distance (unit: cM) of the SNPs
+head(LDAandLDAS::example_map,10)
+
+# calculate the LDA score for the SNPs
+LDA_score &lt;- LDAS(LDA_result,map=LDAandLDAS::example_map,window=10)
+
+#visualize the LDA scores
+plot(x=LDA_score$SNP,y=LDA_score$LDAS)
+
+#' # if we only want to calculate the LDA of the 76th-85th SNP in the map
+# based on the 31st-130th SNP, which aims at saving the memory
+paintings2=list(LDAandLDAS::example_painting_p1[,31:130],
+                LDAandLDAS::example_painting_p2[,31:130])
+# note that the 76th-85th SNP in the original dataset is only the
+# (76-30)th-(85-30)th SNP in the new dataset (paintings2)
+LDA_result2 &lt;- LDA(paintings2,SNPidx=76:85-30)
+
+# calculate the LDA score for the SNPs
+LDA_score2 &lt;- LDAS(LDA_result2,SNPidx=76:85-30,
+                   map=LDAandLDAS::example_map[31:130,],window=5)
+
+</code></pre>
+
+
+</div>

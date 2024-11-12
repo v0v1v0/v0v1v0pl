@@ -1,0 +1,87 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>roundSum</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Round elements in matrix or data.frame rows</h2>
+
+<h3>Description</h3>
+
+<p>Round all numbers in a matrix or data.frame while ensuring that all rows sum
+to the same value.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">roundSum(x, ncell, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>matrix or data.frame</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ncell</code></td>
+<td>
+<p>numeric specifying the target sum for each row in <code>x</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional arguments (none)</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The main application of <code>roundSum</code> is to ensure that each row in the
+demand matrix specifies exactly the number of cells to be allocated to each
+land use category for the respective timestep. It may also be used to convert
+the units of demand to number of cells.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A matrix.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Sibuyan Island
+
+## load observed land use data and create demand scenario
+obs &lt;- ObsLulcRasterStack(x=sibuyan$maps,
+                    pattern="lu",
+                    categories=c(1,2,3,4,5),
+                    labels=c("Forest","Coconut","Grass","Rice","Other"),
+                    t=c(0,14))
+
+dmd &lt;- approxExtrapDemand(obs, tout=0:14)
+apply(dmd, 1, sum)
+
+## artificially perturb for illustration purposes
+dmd &lt;- dmd * runif(1)
+apply(dmd, 1, sum)
+
+## use roundSum to correct demand scenario
+ncell &lt;- length(which(!is.na(getValues(sibuyan$maps$lu_sib_1997))))
+ncell
+dmd &lt;- roundSum(dmd, ncell=ncell)
+apply(dmd, 1, sum)
+
+</code></pre>
+
+
+</div>

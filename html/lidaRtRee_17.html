@@ -1,0 +1,92 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>clouds_metrics</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Computes metrics on list of point clouds</h2>
+
+<h3>Description</h3>
+
+<p>Computes metrics for a list of <code>LAS</code> objects (should be
+normalized point clouds). Calls the function <code>cloud_metrics</code>
+on each element and then arranges the results in a data.frame.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">clouds_metrics(
+  llasn,
+  func = ~lidR::stdmetrics(X, Y, Z, Intensity, ReturnNumber, Classification, dz = 1)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>llasn</code></td>
+<td>
+<p>list of <code>LAS</code> objects</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>func</code></td>
+<td>
+<p>function. function applied on each element to compute metrics,
+default function is <code>stdmetrics</code> from package <code>lidR</code></p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A data frame with metrics in columns corresponding to LAS objects of
+the list (lines)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>cloud_metrics</code>, <code>stdmetrics</code>,
+<code>aba_metrics</code>, <code>pixel_metrics</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># load LAS file
+LASfile &lt;- system.file("extdata", "las_chablais3.laz", package="lidaRtRee")
+las_chablais3 &lt;- lidR::readLAS(LASfile)
+# set projection
+lidR::projection(las_chablais3) &lt;- 2154
+
+# extract four point clouds from LAS object
+llas &lt;- list()
+llas[["A"]] &lt;- lidR::clip_circle(las_chablais3, 974350, 6581680, 10)
+llas[["B"]] &lt;- lidR::clip_circle(las_chablais3, 974390, 6581680, 10)
+llas[["C"]] &lt;- lidR::clip_circle(las_chablais3, 974350, 6581640, 10)
+# normalize point clouds
+llas &lt;- lapply(llas, function(x) {
+  lidR::normalize_height(x, lidR::tin())
+})
+
+# compute metrics
+clouds_metrics(llas)
+
+# compute metrics with user-defined function
+# mean and standard deviation of first return points above 10 m
+user_func &lt;- function(z, rn, hmin = 10) {
+  # first return above hmin subset
+  dummy &lt;- which(z &gt;= hmin &amp; rn == 1)
+  return(list(
+    mean.z = mean(z[dummy]),
+    sd.z = stats::sd(z[z &gt; hmin])
+  ))
+}
+clouds_metrics(llas, func = ~ user_func(Z, ReturnNumber, 10))
+</code></pre>
+
+
+</div>

@@ -1,0 +1,84 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>log_shiny_input_changes</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Auto logging input changes in Shiny app</h2>
+
+<h3>Description</h3>
+
+<p>This is to be called in the <code>server</code> section of the Shiny app.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">log_shiny_input_changes(
+  input,
+  level = INFO,
+  namespace = NA_character_,
+  excluded_inputs = character()
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>input</code></td>
+<td>
+<p>passed from Shiny's <code>server</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+<p>log level</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>namespace</code></td>
+<td>
+<p>the name of the namespace</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>excluded_inputs</code></td>
+<td>
+<p>character vector of input names to exclude from logging</p>
+</td>
+</tr>
+</table>
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+library(shiny)
+
+ui &lt;- bootstrapPage(
+    numericInput('mean', 'mean', 0),
+    numericInput('sd', 'sd', 1),
+    textInput('title', 'title', 'title'),
+    textInput('foo', 'This is not used at all, still gets logged', 'foo'),
+    passwordInput('password', 'Password not to be logged', 'secret'),
+    plotOutput('plot')
+)
+
+server &lt;- function(input, output) {
+
+    logger::log_shiny_input_changes(input, excluded_inputs = 'password')
+
+    output$plot &lt;- renderPlot({
+        hist(rnorm(1e3, input$mean, input$sd), main = input$title)
+    })
+
+}
+
+shinyApp(ui = ui, server = server)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

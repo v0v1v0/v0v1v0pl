@@ -1,0 +1,123 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>vc</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Extract variance components from mixed models</h2>
+
+<h3>Description</h3>
+
+<p>Extract the variance components from a fitted model.  Currently supports
+<code>asreml</code>, <code>lme4</code>, <code>mmer</code>, <code>nlme</code> and <code>mcmc.list</code> objects.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">vc(object, ...)
+
+## Default S3 method:
+vc(object, ...)
+
+## S3 method for class 'asreml'
+vc(object, gamma = FALSE, ...)
+
+## S3 method for class 'lme'
+vc(object, ...)
+
+## S3 method for class 'glmerMod'
+vc(object, ...)
+
+## S3 method for class 'lmerMod'
+vc(object, ...)
+
+## S3 method for class 'mcmc.list'
+vc(object, quantiles = c(0.025, 0.5, 0.975), ...)
+
+## S3 method for class 'mmer'
+vc(object, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>object</code></td>
+<td>
+<p>A fitted model object</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Not used. Extra arguments.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>gamma</code></td>
+<td>
+<p>If gamma=FALSE, then the 'gamma' column is omitted from the
+results from asreml</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantiles</code></td>
+<td>
+<p>The quantiles to use for printing mcmc.list objects</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The extracted variance components are stored in a data frame with an
+additional 'vc.xxx' class that has an associated print method.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A data frame or other object.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+## Not run: 
+
+require("nlme")
+data(Rail)
+m3 &lt;- lme(travel~1, random=~1|Rail, data=Rail)
+vc(m3)
+##       effect variance stddev
+##  (Intercept)   615.3  24.81
+##     Residual    16.17  4.021
+
+require("lme4")
+m4 &lt;- lmer(travel~1 + (1|Rail), data=Rail)
+vc(m4)
+##      grp        var1 var2   vcov  sdcor
+##     Rail (Intercept) &lt;NA&gt; 615.3  24.81
+## Residual        &lt;NA&gt; &lt;NA&gt;  16.17  4.021 
+
+require("asreml")
+ma &lt;- asreml(travel~1, random=~Rail, data=Rail)
+vc(ma)
+##         effect component std.error z.ratio constr
+##  Rail!Rail.var    615.3      392.6     1.6    pos
+##     R!variance     16.17       6.6     2.4    pos
+
+# See vignette for rjags example
+
+# To change the number of digits, use the print function.
+print(vc(m3), dig=5)
+
+
+## End(Not run)
+
+</code></pre>
+
+
+</div>

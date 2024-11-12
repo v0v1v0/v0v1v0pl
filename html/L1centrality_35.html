@@ -1,0 +1,139 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>L1centEDGE</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Multiscale Edge Representation</h2>
+
+<h3>Description</h3>
+
+<p>Derives a multiscale edge representation. Each vertex is connected to its
+local median, which is found in its
+<i>L</i><sub>1</sub> centrality-based
+neighborhood.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">L1centEDGE(g, eta, alpha)
+
+## S3 method for class 'igraph'
+L1centEDGE(g, eta = NULL, alpha)
+
+## S3 method for class 'matrix'
+L1centEDGE(g, eta = NULL, alpha)
+
+## S3 method for class 'L1centEDGE'
+print(x, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+<p>An <code>igraph</code> graph object or a distance matrix. The graph must
+be undirected and connected. Equivalently, the distance matrix must be
+symmetric, and all entries must be finite.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eta</code></td>
+<td>
+<p>An optional nonnegative multiplicity (weight) vector for (vertex)
+weighted networks. The sum of its components must be positive. If set to
+<code>NULL</code> (the default), all vertices will have the same positive weight
+(multiplicity) of 1, i.e., <code>g</code> is treated as a vertex unweighted graph. The
+length of the <code>eta</code> must be equivalent to the number of vertices.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>A number or a numeric vector of locality levels. Values
+must be between 0 and 1.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>An <code>L1centEDGE</code> object, obtained as a result of the function
+<code>L1centEDGE()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Further arguments passed to or from other methods. This argument
+is ignored here.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>In a global perspective, any given undirected graph can be represented as a
+star-shaped directed graph, with each vertex making a connection to the
+median vertex. Based on this idea, an undirected graph can be represented as
+a directed graph, with each vertex making a connection to the <em>local</em>
+median vertex. The local median vertex of, say, <code class="reqn">v_i</code>, is defined as a
+median vertex among the
+<i>L</i><sub>1</sub> centrality-based
+neighborhood of <code class="reqn">v_i</code>. By varying the level of locality, the given graph
+can be visually inspected at multiple scales. Refer to Kang and Oh (2024) for
+details.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>L1centEDGE()</code> returns an object of class <code>L1centEDGE</code>. It
+is a list of ‘edge lists’. The length of the list is equivalent to
+the length of <code>alpha</code>, and the names of the list are the values of
+<code>alpha</code>. The <code>i</code>th component of the list is a 2-column matrix,
+and each row defines one directed edge, i.e., it is an edge list. The
+second column is the local (level <code>alpha[i]</code>) median of the vertex at
+the first column. There may be more than one edge from each vertex, since
+there may be more than one local median.
+</p>
+<p><code>print.L1centEDGE()</code> prints the edge lists and returns them invisibly.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The function is valid only for undirected and connected graphs.
+</p>
+
+
+<h3>References</h3>
+
+<p>S. Kang and H.-S. Oh. On a notion of graph centrality based on
+<i>L</i><sub>1</sub> data depth.
+<em>arXiv preprint arXiv:2404.13233</em>, 2024.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>L1cent()</code>, <code>L1centNB()</code>, <code>L1centLOC()</code>. Using the output, one can
+use <code>igraph::graph_from_edgelist()</code> for creating an <code>igraph</code> object.
+See the example code below.
+</p>
+<p>Summary for a relevant summary method.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">library(igraph)
+MCU_edge &lt;- L1centEDGE(MCUmovie, eta = V(MCUmovie)$worldwidegross, alpha = 5/32)
+graph &lt;- graph_from_edgelist(MCU_edge[[1]], directed = TRUE)
+plot(graph)
+</code></pre>
+
+
+</div>

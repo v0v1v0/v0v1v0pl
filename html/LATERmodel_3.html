@@ -1,0 +1,154 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fit_data</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Fit a LATER model to a single dataset or a pair of datasets.</h2>
+
+<h3>Description</h3>
+
+<p>Fit a LATER model to a single dataset or a pair of datasets.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fit_data(
+  data,
+  share_a = FALSE,
+  share_sigma = FALSE,
+  share_sigma_e = FALSE,
+  with_early_component = FALSE,
+  intercept_form = FALSE,
+  use_minmax = FALSE,
+  fit_criterion = "likelihood",
+  jitter_settings = list(n = 7, prop = 0.5, seed = NA, processes = 2)
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>A data frame with columns <code>name</code> and <code>promptness</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>share_a, share_sigma, share_sigma_e</code></td>
+<td>
+<p>If <code>FALSE</code> (the default), each
+dataset has its own parameter. If <code>TRUE</code>, the datasets share the relevant
+parameter.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>with_early_component</code></td>
+<td>
+<p>If <code>TRUE</code>, the model contains a second 'early'
+component that is absent when <code>FALSE</code> (the default).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>intercept_form</code></td>
+<td>
+<p>If <code>FALSE</code> (the default), the <code>a</code> parameter describes
+the mu parameter in the model; if <code>TRUE</code>, the <code>a</code> parameter describes the
+<code>k</code> parameter in the model (the intercept).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>use_minmax</code></td>
+<td>
+<p>If <code>FALSE</code> (the default), the optimiser targets the sum
+of the goodness-of-fit values across datasets; if <code>TRUE</code>, it instead
+targets the maximum of the goodness-of-fit values across datasets.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fit_criterion</code></td>
+<td>
+<p>String indicating the criterion used to optimise the
+fit by seeking its minimum.
+</p>
+
+<ul>
+<li> <p><code>ks</code>: Kolmogorov-Smirnov statistic.
+</p>
+</li>
+<li> <p><code>likelihood</code>: Negative log-likelihood.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>jitter_settings</code></td>
+<td>
+<p>Settings for running the fitting multiple times with
+randomly-generated offsets ('jitter') applied to the starting estimates.
+</p>
+
+<ul>
+<li> <p><code>n</code>: How many jitter iterations to run (default of 7); the total number
+of fits is <code>n + 1</code> (because the un-jittered start points are also fit).
+</p>
+</li>
+<li> <p><code>prop</code>: The maximum jitter offset, as a proportion of the start
+value (default of 0.5).
+</p>
+</li>
+<li> <p><code>seed</code>: Seed for the random jitter generator (default is unseeded).
+</p>
+</li>
+<li> <p><code>processes</code>: Maximum number of CPU processes that can be used (default
+is 2).
+</p>
+</li>
+</ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list of fitting arguments and outcomes.
+</p>
+
+<ul>
+<li> <p><code>fitted_params</code> is a named list of fitted parameter values.
+</p>
+</li>
+<li> <p><code>named_fit_params</code> is a data frame with rows given by the dataset names
+and columns given by the parameter names.
+</p>
+</li>
+<li> <p><code>loglike</code> is the overall log-likelihood of the fit.
+</p>
+</li>
+<li> <p><code>aic</code> is the "Akaike's 'An Information Criterion'" value for the model.
+</p>
+</li>
+<li> <p><code>optim_result</code> is the raw output from <code>stats::optim</code> for the best fit.
+</p>
+</li>
+<li> <p><code>jitter_optim_results</code> contains the raw output from each call to
+<code>stats::optim</code> for the different start points.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+data &lt;- data.frame(name = "test", promptness = rnorm(100, 3, 1))
+data_other &lt;- data.frame(name = "test_2", promptness = rnorm(100, 1, 1))
+fit_shared_sigma &lt;- fit_data(
+  data = rbind(data, data_other), share_sigma = TRUE
+)
+
+</code></pre>
+
+
+</div>

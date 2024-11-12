@@ -1,0 +1,306 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>import_Dataset</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Import a light logger dataset or related data</h2>
+
+<h3>Description</h3>
+
+<p>Imports a dataset and does the necessary transformations to get the right
+column formats. Unless specified otherwise, the function will set the
+timezone of the data to <code>UTC</code>. It will also enforce an <code>Id</code> to separate
+different datasets and will order/arrange the dataset within each <code>Id</code> by
+Datetime. See the Details and Devices section for more information and the
+full list of arguments.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">import_Dataset(device, ...)
+
+import
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>device</code></td>
+<td>
+<p>From what device do you want to import? For a few devices,
+there is a sample data file that you can use to test the function (see the
+examples). See supported.devices for a list of supported devices and see
+below for more information on devices with specific requirements.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameters that get handed down to the specific import functions</p>
+</td>
+</tr>
+</table>
+<h3>Format</h3>
+
+<p>An object of class <code>list</code> of length 10.
+</p>
+
+
+<h3>Details</h3>
+
+<p>There are specific and a general import function. The general import function
+is described below, whereas the specific import functions take the form of
+<code>import$device()</code>. The general import function is a thin wrapper around the
+specific import functions. The specific import functions take the following
+arguments:
+</p>
+
+<ul>
+<li> <p><code>filename</code>: Filename(s) for the Dataset. Can also contain the filepath,
+but <code>path</code> must then be <code>NULL</code>. Expects a <code>character</code>. If the vector is
+longer than <code>1</code>, multiple files will be read in into one Tibble.
+</p>
+</li>
+<li> <p><code>path</code>: Optional path for the dataset(s). <code>NULL</code> is the default. Expects
+a <code>character</code>.
+</p>
+</li>
+<li> <p><code>n_max</code>: maximum number of lines to read. Default is <code>Inf</code>.
+</p>
+</li>
+<li> <p><code>tz</code>: Timezone of the data. <code>"UTC"</code> is the default. Expects a
+<code>character</code>. You can look up the supported timezones with <code>OlsonNames()</code>.
+</p>
+</li>
+<li> <p><code>Id.colname</code>: Lets you specify a column for the id of a dataset. Expects a
+symbol (Default is <code>Id</code>). This column will be used for grouping
+(<code>dplyr::group_by()</code>).
+</p>
+</li>
+<li> <p><code>auto.id</code>: If the <code>Id.colname</code> column is not part of the <code>dataset</code>, the <code>Id</code>
+can be automatically extracted from the filename. The argument expects a
+regular expression regex and will by default just give the whole filename
+without file extension.
+</p>
+</li>
+<li> <p><code>manual.id</code>: If this argument is not <code>NULL</code>, and no <code>Id</code> column is part
+of the <code>dataset</code>, this <code>character</code> scalar will be used. <strong>We discourage the
+use of this arguments when importing more than one file</strong>
+</p>
+</li>
+<li> <p><code>locale</code>: The locale controls defaults that vary from place to place.
+</p>
+</li>
+<li> <p><code>dst_adjustment</code>: If a file crosses daylight savings time, but the device does not adjust time stamps accordingly, you can set this argument to <code>TRUE</code>, to apply this shift manually. It is selective, so it will only be done in files that cross between DST and standard time. Default is <code>FALSE</code>. Uses <code>dst_change_handler()</code> to do the adjustment. Look there for more infos. It is not equipped to handle two jumps in one file (so back and forth between DST and standard time), but will work fine if jums occur in separate files.
+</p>
+</li>
+<li> <p><code>auto.plot</code>: a logical on whether to call <code>gg_overview()</code> after import. Default is <code>TRUE</code>.
+</p>
+</li>
+<li> <p><code>...</code>: supply additional arguments to the <span class="pkg">readr</span> import functions, like <code>na</code>. Might also be used to supply arguments to the specific import functions, like <code>column_names</code> for <code>Actiwatch_Spectrum</code> devices. Those devices will always throw a helpful error message if you forget to supply the necessary arguments.
+If the <code>Id</code> column is already part of the <code>dataset</code> it will just use
+this column. If the column is not present it will add this column and fill
+it with the filename of the importfile (see param <code>auto.id</code>).
+<code>print_n</code> can be used if you want to see more rows from the observation intervals
+</p>
+</li>
+</ul>
+<h3>Value</h3>
+
+<p>Tibble/Dataframe with a POSIXct column for the datetime
+</p>
+
+
+<h3>Devices</h3>
+
+<p>The set of import functions provide a convenient way to import light logger
+data that is then perfectly formatted to add metadata, make visualizations
+and analyses. There are a number of devices supported, where import should
+just work out of the box. To get an overview, you can simply call the
+<code>supported.devices</code> dataset. The list will grow continuously as the package
+is maintained.
+</p>
+<div class="sourceCode r"><pre>supported.devices
+#&gt;  [1] "Actiwatch_Spectrum" "ActLumus"           "ActTrust"          
+#&gt;  [4] "DeLux"              "LiDo"               "LightWatcher"      
+#&gt;  [7] "LYS"                "nanoLambda"         "Speccy"            
+#&gt; [10] "SpectraWear"
+</pre></div>
+
+
+<h4>ActLumus</h4>
+
+<p>Manufacturer: Condor Instruments
+Model: ActLumus
+Implemented: 2023
+A sample file is provided with the package, it can be accessed through
+<code>system.file("extdata/205_actlumus_Log_1020_20230904101707532.txt.zip", package = "LightLogR")</code>. It does not need to be unzipped to be imported.
+This sample file is a good example for a regular dataset without gaps
+</p>
+
+
+
+<h4>LYS</h4>
+
+<p>Manufacturer: LYS Technologies
+Model: LYS Button
+Implemented: 2023
+A sample file is provided with the package, it can be accessed
+through <code>system.file("extdata/sample_data_LYS.csv", package = "LightLogR")</code>. This sample file is a good example for an irregular dataset.
+</p>
+
+
+
+<h4>Actiwatch_Spectrum</h4>
+
+<p>Manufacturer: Philips Respironics
+Model: Actiwatch Spectrum
+Implemented: 2023
+<strong>Required Argument: <code>column_names</code></strong> A character vector containing column
+names in the order in which they appear in the file. This is necessary to
+find the starting point of actual data.
+</p>
+
+
+
+<h4>ActTrust</h4>
+
+<p>Manufacturer: Condor Instruments
+Model: ActTrust1, ActTrust2
+Implemented: 2024
+This function works for both ActTrust 1 and 2 devices
+</p>
+
+
+
+<h4>Speccy</h4>
+
+<p>Manufacturer: Monash University
+Model: Speccy
+Implemented: 2024
+</p>
+
+
+
+<h4>DeLux</h4>
+
+<p>Manufacturer: Intelligent Automation Inc
+Model: DeLux
+Implemented: 2023
+</p>
+
+
+
+<h4>LiDo</h4>
+
+<p>Manufacturer: University of Lucerne
+Model: LiDo
+Implemented: 2023
+</p>
+
+
+
+<h4>SpectraWear</h4>
+
+<p>Manufacturer:
+Model: SpectraWear
+Implemented: 2024
+</p>
+
+
+
+<h4>NanoLambda</h4>
+
+<p>Manufacturer: NanoLambda
+Model: XL-500 BLE
+Implemented: 2024
+</p>
+
+
+
+<h4>LightWatcher</h4>
+
+<p>Manufacturer: Object-Tracker
+Model: LightWatcher
+Implemented: 2024
+</p>
+
+
+
+<h3>Examples</h3>
+
+
+
+<h4>Imports made easy</h4>
+
+<p>To import a file, simple specify the filename (and path) and feed it to the
+<code>import_Dataset</code> function. There are sample datasets for all devices.
+</p>
+<p>The import functions provide a basic overview of the data after import,
+such as the intervals between measurements or the start and end dates.
+</p>
+<div class="sourceCode r"><pre>filepath &lt;- system.file("extdata/sample_data_LYS.csv", package = "LightLogR")
+dataset &lt;- import_Dataset("LYS", filepath, auto.plot = FALSE)
+#&gt; 
+#&gt; Successfully read in 11'422 observations across 1 Ids from 1 LYS-file(s).
+#&gt; Timezone set is UTC.
+#&gt; The system timezone is Europe/Berlin. Please correct if necessary!
+#&gt; 
+#&gt; First Observation: 2023-06-21 00:00:12
+#&gt; Last Observation: 2023-06-22 23:59:48
+#&gt; Timespan: 2 days
+#&gt; 
+#&gt; Observation intervals: 
+#&gt;   Id              interval.time     n pct    
+#&gt; 1 sample_data_LYS 15s           10015 87.689%
+#&gt; 2 sample_data_LYS 16s            1367 11.969%
+#&gt; 3 sample_data_LYS 17s              23 0.201% 
+#&gt; 4 sample_data_LYS 18s              16 0.140%
+</pre></div>
+<p>Import functions can also be called directly:
+</p>
+<div class="sourceCode r"><pre>filepath &lt;- system.file("extdata/205_actlumus_Log_1020_20230904101707532.txt.zip", package = "LightLogR")
+dataset &lt;- import$ActLumus(filepath, auto.plot = FALSE)
+#&gt; 
+#&gt; Successfully read in 61'016 observations across 1 Ids from 1 ActLumus-file(s).
+#&gt; Timezone set is UTC.
+#&gt; The system timezone is Europe/Berlin. Please correct if necessary!
+#&gt; 
+#&gt; First Observation: 2023-08-28 08:47:54
+#&gt; Last Observation: 2023-09-04 10:17:04
+#&gt; Timespan: 7.1 days
+#&gt; 
+#&gt; Observation intervals: 
+#&gt;   Id                                          interval.time     n pct  
+#&gt; 1 205_actlumus_Log_1020_20230904101707532.txt 10s           61015 100%
+dataset %&gt;% gg_days()
+</pre></div>
+<p><img src="../help/figures/unnamed-chunk-1-1.png" alt="unnamed-chunk-1-1.png"></p>
+<div class="sourceCode r"><pre>dataset %&gt;%
+dplyr::select(Datetime, TEMPERATURE, LIGHT, MEDI, Id) %&gt;%
+dplyr::slice(1500:1505)
+#&gt; # A tibble: 6 x 5
+#&gt; # Groups:   Id [1]
+#&gt;   Datetime            TEMPERATURE LIGHT  MEDI Id                                
+#&gt;   &lt;dttm&gt;                    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;                             
+#&gt; 1 2023-08-28 12:57:44        26.9  212.  202. 205_actlumus_Log_1020_20230904101~
+#&gt; 2 2023-08-28 12:57:54        26.9  208.  199. 205_actlumus_Log_1020_20230904101~
+#&gt; 3 2023-08-28 12:58:04        26.9  205.  196. 205_actlumus_Log_1020_20230904101~
+#&gt; 4 2023-08-28 12:58:14        26.8  204.  194. 205_actlumus_Log_1020_20230904101~
+#&gt; 5 2023-08-28 12:58:24        26.9  203.  194. 205_actlumus_Log_1020_20230904101~
+#&gt; 6 2023-08-28 12:58:34        26.8  204.  195. 205_actlumus_Log_1020_20230904101~
+</pre></div>
+
+
+
+<h3>See Also</h3>
+
+<p>supported.devices
+</p>
+
+
+</div>

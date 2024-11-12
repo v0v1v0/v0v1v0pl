@@ -1,0 +1,353 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>state.ident.lsd</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+IRF state Identification
+</h2>
+
+<h3>Description</h3>
+
+<p>This function implements the Random Forest Identification Algorithm (RFSIA) on the data produced by a Monte Carlo experiment, typically from (but not restricted to) a LSD simulation model. It exploits the random forest regression technique to obtain a series of "meaningful" stratifications of the data on which state-dependence is then tested.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">state.ident.lsd( data, irf, state.vars = NULL, metr.irf = NULL,
+                 add.vars = NULL, state.cont = FALSE,
+                 ntree = 500, maxdepth = 1, nodesize  = 5,
+                 mtry = max( floor( ifelse( ! is.null( state.vars ),
+                                            length( state.vars ),
+                                            dim( data )[ 2 ] ) / 3 ),
+                             1 ),
+                 quantile = 10, alpha = 0.05, seed = 1, ... )
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>numeric: a 3-dimensional array containing data from Monte Carlo (MC) simulation samples where the impulse (shock/treatment) was not applied/occurred. The array must have dimensions ordered as time steps x variables x MC samples. This format is automatically produced by read.3d.lsd but using it is not required. The second array dimension (variables) must be named with the names of the variables used in the analysis. The absolute minimum array dimensions are 2x1x2.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>irf</code></td>
+<td>
+<p>object: an object produced by a previous run of <code>irf.lsd</code> over the same dataset (as defined by <code>data</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state.vars</code></td>
+<td>
+<p>character: a vector of variable names to consider as state variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>metr.irf</code></td>
+<td>
+<p>function: a function that assigns a metric to compare each run of a Monte Carlo experiment, to be used on regressions. The function must take a cumulative impulse-response matrix, organized as runs on rows and response times (0, 1, ...,<code>t.horiz</code>) on columns. It must return a numeric vector of length equal to the number of runs, defining the metric associated with each run. Higher metric values correspond to increased impulse effect. If no function is supplied (<code>NULL</code>), the default, the mean of state variable value(s) from impulse time (<code>t=0</code>) until the time horizon (<code>t=t.horiz</code>) is used as metric.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>add.vars</code></td>
+<td>
+<p>function: an optional function to add new variables to the MC dataset, before the analysis is performed. The function must take a single Monte Carlo run data frame, organized as time on rows and (original) variables on columns. It must return this data frame with new column(s) added, one per each new variable.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state.cont</code></td>
+<td>
+<p>logical: if <code>TRUE</code>, the resulting object will contain the full list of continuous states produced during the analysis. If <code>FALSE</code>, the default, the list of continuous states is not saved.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntree</code></td>
+<td>
+<p>integer: number of trees to grow. This number should not be set to too small values, to ensure that every possible state gets predicted at least a few times.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdepth</code></td>
+<td>
+<p>integer: maximum depth of the trees to consider. The default (1) represents the shortest possible trees.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodesize</code></td>
+<td>
+<p>integer: minimum number of associated data observations to a node be considered in the analysis.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtry</code></td>
+<td>
+<p>integer: number of state variables randomly sampled as candidates at each node for the random forest algorithm. The default is to use one third of the number of considered state variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile</code></td>
+<td>
+<p>integer: number of quantiles to consider when discretizing states.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric: a value between 0 and 0.5, defining the desired statistical significance level to be adopted in the analysis. The default is 0.05 (5%).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>seed</code></td>
+<td>
+<p>integer: a value defining the initial state of the pseudo-random number generator.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>additional parameters to configure printing and plotting.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>As a dynamic system, a simulation model may have its outputs analyzed when a brief input signal (an impulse or "shock") is applied to one of its inputs. In particular, the effect of the shock may be correlated to some system-specific state, in which it may be amplified or attenuated. This function allows for the identification of possible relevant states, that is, states which are both probable and distinguishable among them.
+</p>
+<p>The function operates over <code>data</code> from multiple realizations of a Monte Carlo experiment, and a previous (linear) impulse-response function analysis (<code>irf</code>) performed by <code>irf.lsd</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>It returns an object of class <code>state.ident.lsd</code>, which has a <code>print</code>-specific method for presenting the analysis results. This object contains several items:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>state.freq</code></td>
+<td>
+<p>data frame: each row represents one of the identified discrete states, ordered in decreasing frequency. First column (<code>State</code>) identifies the state textually, in terms of state variable values in terms of the quantiles (as defined by <code>quantile</code> argument). Second column (<code>Prob</code>) lists the frequency of the state among the random forest sample used. Third column (<code>MetrD</code>) brings the mean/median (according to <code>stat</code> in <code>irf.lsd</code>) relative metric of the state. Fourth column (<code>MetrAD</code>) presents the mean/median of the absolute deviations relative to the state metric. The next columns, in groups of four, bring the mean/median threshold quantile, its standard deviation or variance absolute deviation (MAD), and absolute minimum and maximum. These groups repeat for each state variable considered in the respective identified state.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state.vars</code></td>
+<td>
+<p>character: a vector of variable names effectively available as state variables.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>t.horiz</code></td>
+<td>
+<p>integer: the time horizon used in the analysis (same as the <code>t.horiz</code> argument in <code>irf.lsd</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.irf</code></td>
+<td>
+<p>character: the name of the variable used in the impulse-response analysis (same as the <code>var.irf</code> argument in <code>irf.lsd</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>var.ref</code></td>
+<td>
+<p>character: the name of the scale-reference variable used in the analysis (same as the <code>var.ref</code> argument in <code>irf.lsd</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>stat</code></td>
+<td>
+<p>character: the Monte Carlo statistic used in the analysis (same as the <code>stat</code> argument in <code>irf.lsd</code>).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>alpha</code></td>
+<td>
+<p>numeric: the statistical significance level used in the analysis (same as the <code>alpha</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nsample</code></td>
+<td>
+<p>integer: the effective number of of Monte Carlo (MC) samples effectively used for deriving the response function, after the removal of outliers if <code>lim.outl &gt; 0</code> in <code>irf.lsd</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>outliers</code></td>
+<td>
+<p>integer: vector containing the number of each MC sample considered an outlier, and so removed from the analysis in <code>irf.lsd</code>, or an empty vector if no outlier was excluded. The MC numbers are the indexes to the third dimension of <code>data</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ntree</code></td>
+<td>
+<p>integer: number of trees grown (same as <code>ntree</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>maxdepth</code></td>
+<td>
+<p>integer: maximum depth of the trees considered (same as <code>maxdepth</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nodesize</code></td>
+<td>
+<p>integer: minimum number of data observations in a node considered  (same as <code>nodesize</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>mtry</code></td>
+<td>
+<p>integer: number of state variables sampled per node (same as <code>mtry</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>quantile</code></td>
+<td>
+<p>integer: number of quantiles used for discretizing states (same as <code>quantile</code> argument).
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state.cont</code></td>
+<td>
+<p>data frame: each row represents one of the identified continuous states, ordered by the absolute effect on the metric. Columns are organized in groups of three: state variable name (<code>VarN</code>), relation code (<code>RelN</code>), and split threshold (<code>VarN</code>). There is one column group per variable included in the corresponding state. After all column groups, there is a final column presenting the metric deviation (from non-shocked response) of each identified state.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>state.cont.num</code></td>
+<td>
+<p>integer: the total number of continuous states identified.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>call</code></td>
+<td>
+<p>character: the command line used to call the function.
+</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>See the note in LSDirf-package for an methodological overview and for instructions on how to perform the state-dependent impulse-response function analysis.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Marcelo C. Pereira [aut, cre] (&lt;https://orcid.org/0000-0002-8069-2734&gt;),
+  Marco Amendola [aut] (&lt;https://orcid.org/0000-0003-3056-5558&gt;)
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>irf.lsd</code>,
+<code>read.3d.lsd</code>,
+<code>read.4d.lsd</code>,
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R"># Example data generation: Y is an AR(1) process that may receive a shock at
+# t=50, S is the shock (0/1), a combination of 3 AR(1) processes (X1-X3)
+# X4 is another AR(1) process, uncorrelated with S, X4sq is just X4^2
+# All AR(1) processes have the same phi=0.98 coefficient, and are Monte
+# Carlo sampled 500 times
+set.seed( 1 )   # make results reproducible
+# LSD-like arrays to store simulated time series (t x var x MC)
+dataNoShock &lt;- dataShock &lt;-array ( 0, dim = c( 60, 7, 500 ) )
+colnames( dataNoShock ) &lt;- colnames( dataShock ) &lt;-
+  c( "Y", "S", "X1", "X2", "X3", "X4", "X4sq" )
+# Monte Carlo sampling
+for( n in 1 : 500 ) {
+  # simulation time
+  for( t in 2 : 60 ) {
+    # AR process on X vars
+    for( v in c( "X1", "X2", "X3", "X4" ) ) {
+      dataNoShock[ t, v, n ] = dataShock[ t, v, n ] =
+        0.98 * dataShock[ t - 1, v, n ] + rnorm( 1, 0, 0.1 )
+    }
+    # apply shock once
+    if( t == 50 ) {
+      dataShock[ t, "S", n ] &lt;- 1
+      shockEff &lt;- 0.4 + 0.7 * isTRUE( dataShock[ t, "X1", n ] &gt; 0.1 ) -
+        0.4 * isTRUE( dataShock[ t, "X2", n ] &gt; 0.1 ) +
+        0.2 * isTRUE( dataShock[ t, "X3", n ] &gt; 0.05 ) + rnorm( 1, 0, 0.2 )
+    } else
+      shockEff &lt;- 0
+    # AR process on Y var
+    rs &lt;- rnorm( 1, 0, 0.1 )
+    dataNoShock[ t, "Y", n ] = 0.98 * dataNoShock[ t - 1, "Y", n ] + rs
+    dataShock[ t, "Y", n ] = 0.98 * dataShock[ t - 1, "Y", n ] + shockEff + rs
+  }
+}
+# another uncorrelated var
+dataNoShock[ , "X4sq", ] &lt;- dataShock[ , "X4sq", ] &lt;- dataShock[ , "X4", ] ^ 2
+
+# linear IRF analysis
+linearIRF &lt;- irf.lsd( data = dataNoShock,       # non-shocked MC data
+                      data.shock = dataShock,   # shocked data
+                      t.horiz = 10,             # post-shock analysis t horizon
+                      var.irf = "Y",            # variable to compute IRF
+                      var.shock = "S",          # shock variable (impulse)
+                      irf.type = "none" )       # no plot of linear IRF
+
+# Random-forest state identification
+stateId &lt;- state.ident.lsd( data = dataNoShock, # non-shocked MC data
+                            irf = linearIRF,    # linear IRF produced by irf.lsd
+                            state.vars = c( "X1", "X2", "X3", "X4", "X4sq" ),
+                                                # state variables to consider
+                            mtry = 3 )          # number of samples per node
+
+print( stateId )                                # show identification data
+
+# state-dependent IRF analysis for most frequent state identified
+stateIRF &lt;- state.irf.lsd( data = dataNoShock,  # non-shocked MC data
+                           irf = linearIRF,     # linear IRF produced by irf.lsd
+                           states = stateId )   # object with identified states
+
+plot( stateIRF, irf.type = "cum.irf" )          # cumulative IRF plot
+
+print( stateIRF )                               # show IRF data
+
+</code></pre>
+
+
+</div>

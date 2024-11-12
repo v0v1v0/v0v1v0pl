@@ -1,0 +1,75 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>trials</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run the left side of the pipeline multiple times.</h2>
+
+<h3>Description</h3>
+
+<p>Write a pipeline to perform some calculation whose result can
+be coerced into one line of a data frame. Add <code>trials(times=3)</code> to the end
+of the pipeline in order to repeat the calculation multiple times. Typically,
+each trial involves some random component, but another (or an additional)
+capability is to parameterize the pipeline expression by including some
+unbound variable in it, e.g. <code>lambda</code>. Then call <code>trials(lambda=c(10,20))</code> to
+repeat the calculation for each of the elements of the named parameter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">trials(.ex, times = 1, ...)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.ex</code></td>
+<td>
+<p>(Not user-facing.) The left side of the pipeline.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>times</code></td>
+<td>
+<p>The number of times to run the trial.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Values for any unbound parameter in the left side of the pipeline. If a
+vector of length &gt; 1, the trials will be run separately for each element of the vector.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>This is intended as a pipeline friendly replacement for <code>mosaic::do()</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>a dataframe with one row for each trial. (But see the ... argument.)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">mean(rnorm(10)) |&gt; trials(times=3)
+mean(rnorm(lambda)) |&gt; trials(lambda=c(1, 100, 10000))
+mean(rnorm(lambda)) |&gt; trials(times=5, lambda=c(1, 100, 10000))
+sample(mtcars, n=lambda, replace=TRUE) |&gt; select(mpg, hp) |&gt;
+  model_train(mpg ~ resample(hp)) |&gt;
+  regression_summary() |&gt; trials(times=3, lambda=c(10, 20, 40)) |&gt;
+  filter(term == "resample(hp)")
+
+</code></pre>
+
+
+</div>

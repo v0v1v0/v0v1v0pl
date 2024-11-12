@@ -1,0 +1,253 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>nslphom_dual</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Implements the nslphom_dual algorithm</h2>
+
+<h3>Description</h3>
+
+<p>Estimates RxC vote transfer matrices (ecological contingency tables) with nslphom_dual
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">nslphom_dual(
+  votes_election1,
+  votes_election2,
+  iter.max = 10,
+  min.first = FALSE,
+  integers = FALSE,
+  solver = "lp_solve",
+  integers.solver = "symphony",
+  tol = 10^-5,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>votes_election1</code></td>
+<td>
+<p>data.frame (or matrix) of order IxJ with the counts to be initially
+mapped to rows. When estimating vote transfer matrices, the votes gained by
+the <em>J</em> political options competing on election 1 (or origin) in the <em>I</em>
+territorial units considered.  The sum by rows of <code>votes_election1</code> and
+<code>votes_election2</code> must coincide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>votes_election2</code></td>
+<td>
+<p>data.frame (or matrix) of order IxK with the counts to be initially mapped
+to columns. When estimating vote transfer matrices, the votes gained by
+the <em>K</em> political options competing on election 2 (or destination) in the <em>I</em>
+territorial units considered. The sum by rows of <code>votes_election1</code> and
+<code>votes_election2</code> must coincide.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>iter.max</code></td>
+<td>
+<p>Maximum number of iterations to be performed in each dual linear program.
+The process ends independently in each system when either the number of iterations reaches
+iter.max or when the maximum variation between two consecutive estimates of the
+probability transfer matrix is less than <code>tol</code>. By default, 10.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>min.first</code></td>
+<td>
+<p>A <code>TRUE/FALSE</code> value. If <code>FALSE</code>, the matrix associated with the minimum <code>HETe</code> after
+performing <code>iter.max</code> iterations is taken as solution.
+If <code>TRUE</code>, the associated matrix to the instant in which the first decrease of <code>HETe</code> occurs
+is taken as solution. The process stops at that moment. In this last scenario
+(when <code>min.first = TRUE</code>), <code>iter.max</code> is is forced to be at least 100. Default, <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers</code></td>
+<td>
+<p>A <code>TRUE/FALSE</code> value that indicates whether the problem is solved in integer values in
+each iteration: zero (lphom) and intermediate and final (including unit) solutions.
+If <code>TRUE</code>, the initial LP matrices are approximated in each iteration to the closest integer solution
+solving the corresponding Integer Linear Program. Default, <code>FALSE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used, only
+<code>lp_solve</code> and <code>symphony</code> are allowed. By default, <code>lp_solve</code>. The package <code>Rsymphony</code>
+needs to be installed for the option <code>symphony</code> to be used.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>integers.solver</code></td>
+<td>
+<p>A character string indicating the linear programming solver to be used to approximate
+to the closest integer solution, only <code>symphony</code> and <code>lp_solve</code> are allowed.
+By default, <code>symphony</code>. The package <code>Rsymphony</code> needs to be installed for the option <code>symphony</code>
+to be used. Only used when <code>integers = TRUE</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tol</code></td>
+<td>
+<p>Maximum deviation allowed between two consecutive iterations. The process ends when the maximum
+variation between two proportions for the estimation of the transfer matrix between two consecutive
+iterations is less than <code>tol</code> or the maximum number of iterations, <code>iter.max</code>, has been reached. By default, 0.00001.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Other arguments to be passed to the function. Not currently used.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>A list with the following components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes.w</code></td>
+<td>
+<p> The matrix of order JxK with the estimated cross-distribution of votes of elections 1 and 2,
+attained weighting the two dual solutions using as weights the corresponding HTEe estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes.units.w</code></td>
+<td>
+<p> The array of order JxKxI with the local estimated cross-distributions of votes of elections 1 and 2 by unit,
+attained weighting the two dual solutions using as weights the corresponding HTEe estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes.a</code></td>
+<td>
+<p> The matrix of order JxK with the estimated cross-distribution of votes of elections 1 and 2,
+attained simple averaging the two dual solutions.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM.votes.units.a</code></td>
+<td>
+<p> The matrix of order JxKxI with the estimated cross-distributions of votes of elections 1 and 2 by unit,
+attained weighting the two dual solutions using as weights the corresponding HTEe estimates.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HETe.w</code></td>
+<td>
+<p> Estimated heterogeneity index associated to the <code>VTM.votes.w</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>HETe.a</code></td>
+<td>
+<p> Estimated heterogeneity index associated to the <code>VTM.votes.a</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM12.w</code></td>
+<td>
+<p> The matrix of order JxK with the estimated row-standardized proportions of vote transitions from election 1
+to election 2 associated to the <code>VTM.votes.w</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM21.w</code></td>
+<td>
+<p> The matrix of order KxJ with the estimated row-standardized proportions of vote transitions from election 2
+to election 1 associated to the <code>VTM.votes.w</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM12.a</code></td>
+<td>
+<p> The matrix of order JxK with the estimated row-standardized proportions of vote transitions from election 1
+to election 2 associated to the <code>VTM.votes.a</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>VTM21.a</code></td>
+<td>
+<p> The matrix of order KxJ with the estimated row-standardized proportions of vote transitions from election 2
+to election 1 associated to the <code>VTM.votes.a</code> solution.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nslphom.object.12</code></td>
+<td>
+<p> The output of the <code>nslphom</code> function attained solving the problem X –&gt; Y,
+that is, mapping <code>votes_election1</code> to rows and <code>votes_election2</code> to columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nslphom.object.21</code></td>
+<td>
+<p> The output of the <code>nslphom</code> function attained solving the problem Y –&gt; X,
+that is, mapping <code>votes_election2</code> to rows and <code>votes_election1</code> to columns.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>inputs</code></td>
+<td>
+<p> A list containing all the objects with the values used as arguments by the function.</p>
+</td>
+</tr>
+</table>
+<h3>Author(s)</h3>
+
+<p>Jose M. Pavia, <a href="mailto:pavia@uv.es">pavia@uv.es</a>
+</p>
+<p>Rafael Romero <a href="mailto:rromero@eio.upv.es">rromero@eio.upv.es</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Pavia, JM and Romero, R (2024). Symmetry estimating RxC vote transfer matrices from aggregate data. <em>Journal of the Royal Statistical Society, Series A – Statistics in Society</em>, forthcoming.  <a href="https://doi.org/10.1093/jrsssa/qnae013">doi:10.1093/jrsssa/qnae013</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>nslphom</code> <code>lphom_dual</code> <code>tslphom_dual</code> <code>lphom_joint</code> <code>tslphom_joint</code> <code>nslphom_joint</code>
+</p>
+<p>Other linear programing ecological inference functions: 
+<code>lclphom()</code>,
+<code>lp_apriori()</code>,
+<code>lphom_dual()</code>,
+<code>lphom_joint()</code>,
+<code>lphom()</code>,
+<code>nslphom_joint()</code>,
+<code>nslphom()</code>,
+<code>rslphom()</code>,
+<code>tslphom_dual()</code>,
+<code>tslphom_joint()</code>,
+<code>tslphom()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">x &lt;- France2017P[, 1:8]
+y &lt;- France2017P[, 9:12]
+y[,1] &lt;- y[,1]  - (rowSums(y) - rowSums(x))
+mt &lt;- nslphom_dual(x, y)
+mt$VTM.votes.w
+mt$HETe.w
+
+</code></pre>
+
+
+</div>

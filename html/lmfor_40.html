@@ -1,0 +1,265 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>ImputeHeights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Impute missing tree heights into a forest data using a nonlinear (mixed-effects) model. 
+</h2>
+
+<h3>Description</h3>
+
+<p>A function to impute tree heights in a forest inventory situation where all trees have been measured 
+for diameter but only some trees have been measured for height. 
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">ImputeHeights(d, h, plot, modelName = "naslund", nranp = 2, varf = TRUE, 
+              addResidual = FALSE, makeplot=TRUE, level = 1,
+              start=NA, bh=1.3, control=list(),random=NA)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>A numerical vector of tree diameters, usually given in cm.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>h</code></td>
+<td>
+
+<p>A numerical vector of tree heights, usually given in meters. Should be of the same length as <code>d</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>plot</code></td>
+<td>
+
+<p>A vector of type <code>numeric</code> or <code>factor</code>, defining the groups of the data; usually the plot indices. 
+Should be of the same length as <code>d</code> and <code>h</code>.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>modelName</code></td>
+<td>
+
+<p>Either (i) a character vector specifying the name of the nonlinear function or (ii) the formula specifying 
+a linear model.
+In case (i) the name should be one of the functions documented on the help page of <code>HDmodels</code>. 
+In case (ii), it should be the linear formula in the form that is entered to the function <code>lme</code>, for example 
+<code>model=h~d+I(d^2)-1</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>nranp</code></td>
+<td>
+
+<p>Parameters nranp and random specify two alternative ways to specify the random effects of the model. An easy but restricted way 
+is to use argument <code>nranp</code>. It is an integer between 0 and the number of fixed parameters, and has the the following meaning 
+in the case of nonlinear model: 
+</p>
+
+<ul>
+<li>
+<p> If <code>nranp=0</code>, then a model without random parameters is fitted. 
+Results to a fixed-effects model, and argument <code>plot</code> is not used.  
+</p>
+</li>
+<li>
+<p> If <code>nranp=1</code>, then parameter a of a nonlinear function or the first coefficient of the linear formula 
+is assumed to vary among plots. 
+</p>
+</li>
+<li>
+<p> If <code>nranp=2</code>, then a and b or the first two terms of the linear formula are assumed to vary among plots or  
+</p>
+</li>
+<li>
+<p> If <code>nranp=3</code>, then a b, and c of a three-parameter nonlinear model or three first coefficients of a linear model 
+are assumed to vary among plots
+</p>
+</li>
+</ul>
+<p>In the case of linear model, the constant (if exists) it always counted as the first term.  
+</p>
+<p>As an alternative to nranp, argument <code>random</code> can be used to express the random part as a nlme formula, 
+but without specification of the grouping structure. The provided formula is passed to the lme or nlme 
+function. Argument random is always used when provided, so nranp has effect only if <code>random=NA</code> (the default).                           
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>varf</code></td>
+<td>
+
+<p>Numeric with values 0, 1 or 2. If 0 or FALSE, no variance function is used. 
+If varf=1, 2 or TRUE, then the power- type variance function var(e)=sigma^2*w^(2*delta) is used.
+where weight w is the raw diameter (when varf=1 or TRUE), or w=max(1,dsd+3) (when varf=2), 
+where dsd=(d-D)/SDD. Here d is tree diameter, D and SDD are the mean and standard deviation 
+of diameters on the plot in question.    
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>addResidual</code></td>
+<td>
+
+<p>Boolean. If <code>TRUE</code>, a random residual is added to the imputed height from a normal distribution using 
+the estimated variance function. If also <code>level=0</code> or if the plot did not include any measured heights
+to predict the random effects,  
+then also a randomly selected plot effect from among the predicted plot effects is added.
+The added plot effect is the same for all trees of a given plot.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>makeplot</code></td>
+<td>
+
+<p>Should a residual plot of the fitted model be produced for evaluation of goodness of fit? 
+The plot is produced using the default arguments of function <code>plot.hdmod</code>, 
+and is not affected by the value of arguments <code>level</code> and <code>addResidual</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>level</code></td>
+<td>
+
+<p>The level of prediction. 0 means fixed-effect prediction and 1 means plot-level prediction using the random effects. Has no effect if <code>nranp=0</code>. 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start, bh, control, random</code></td>
+<td>
+
+<p>Arguments passed to <code>fithd</code>. See documentation of <code>fithd</code>. 
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The function predicts the missing 
+heights using a nonlinear mixed-effects model or a nonlinear fixed-effects model. In mixed-effects model, 
+plot-specific random effects can be used if other tree heights have been measured from the same plot. 
+Also random, normally distributed residual can be added to the heights according to the estimated 
+constant or heteroscedastic residual variance structure. 
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list of components
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>h </code></td>
+<td>
+<p>A vector of tree heights, including the measured heights for the trees with known height and imputed heights for the others.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>imputed </code></td>
+<td>
+<p>A booelan vector of the same length as h, having value TRUE for imputed heights. Produced as <code>is.na(data$h)</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>model </code></td>
+<td>
+<p>The fitted model that was used in imputation. Fitted using <code>fithd</code> which in turn 
+calls <code>nlme</code> or  <code>gnls</code></p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>predType</code></td>
+<td>
+<p>A vector of the same length as h, including information on the level of prediction. Value 0 means a measured height 
+(no model prediction is used), value 1 means the plot-level prediction has been done using the estimated plot effects.
+Value 2 means that no sample trees were available and the prediction is based on fixed part only (if level=0) or on a simulated 
+plot effect (if level=1).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>hpred</code></td>
+<td>
+<p>Predicted heights for all trees. Equals to vector h for trees that had missing heights.</p>
+</td>
+</tr>
+</table>
+<h3>Note</h3>
+
+<p>Works only with the nonlinear functions specified in <code>HDmodels</code>; does not work if the modelName is specified as a linear expression.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Lauri Mehtatalo &lt;<a href="mailto:lauri.mehtatalo@uef.fi">lauri.mehtatalo@uef.fi</a>&gt;
+</p>
+
+
+<h3>References</h3>
+
+<p>Mehtatalo, L., Gregoire, T.G., and de Miguel, S. Modeling Height-diameter curves for height prediction. Canadian Journal of Forest Research, 45(7): 826-837, <a href="https://doi.org/10.1139/cjfr-2015-0054">doi:10.1139/cjfr-2015-0054</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>fithd</code> for model fitting and <code>plot.hdmod</code> for plotting.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">data(spati) 
+
+ImpFixed&lt;-ImputeHeights(spati$d,spati$h,spati$plot,level=0)
+ImpRandom&lt;-ImputeHeights(spati$d,spati$h,spati$plot,level=1,makeplot=FALSE)
+# Try also
+# ImpRanRes&lt;-ImputeHeights(spati$d,spati$h,spati$plot,level=1,addResidual=TRUE,makeplot=FALSE)
+
+plot(spati$d[!is.na(spati$h)],
+     spati$h[!is.na(spati$h)],
+     col=spati$plot[!is.na(spati$h)],
+     main="Observations", xlab="d, cm", ylab="h, m",
+     ylim=c(0,30))
+
+plot(spati$d[ImpFixed$imputed],
+     ImpFixed$h[ImpFixed$imputed],
+     col=spati$plot[ImpFixed$imputed],
+     main="Imputed, Naslund, Fixed", xlab="d, cm", ylab="h, m",
+     ylim=c(0,30))
+       
+plot(spati$d[ImpRandom$imputed],
+     ImpRandom$h[ImpRandom$imputed],
+     col=spati$plot[ImpRandom$imputed],
+     main="Imputed, Naslund, Fixed + Plot", xlab="d, cm", ylab="h, m",
+     ylim=c(0,30))
+
+# Try also
+# plot(spati$d[ImpRanRes$imputed],
+#     ImpRanRes$h[ImpRanRes$imputed],
+#     col=spati$plot[ImpRanRes$imputed],
+#     main="Imputed, Naslund, Fixed + Plot + Tree", xlab="d, cm", ylab="h, m",
+#     ylim=c(0,30))
+</code></pre>
+
+
+</div>

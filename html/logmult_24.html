@@ -1,0 +1,169 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>maor</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Mean Absolute Odds Ratio or Intrinsic Association Coefficient
+</h2>
+
+<h3>Description</h3>
+
+<p>Compute the mean absolute odds ratio of a table, i.e. the (possibly weighted)
+geometric mean of the odds ratios or of their inverse when they are above one,
+which is also closely related to the the intrinsic association coefficient.
+The latter coefficient was first devised by Goodman (1996) as the
+“generalized contingency” when a logarithm link is used, and it is equal
+to the mean of the absolute value of log-linear two-way interaction parameters
+<code class="reqn">\lambda_{ij}</code> (in its original version it consists in the square root of
+the sum of squared parameters).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">maor(tab, phi = FALSE, cell = FALSE,
+     weighting = c("marginal", "uniform", "none"),
+     norm = 2, component=c("total", "symmetric", "antisymmetric"),
+     row.weights = NULL, col.weights = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>tab</code></td>
+<td>
+<p>a two- or three-way table without zero cells; for three-way tables,
+average marginal weighting is used when “weighting = "marginal"”, and
+the MAOR is computed for each layer (third dimension).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>phi</code></td>
+<td>
+<p>if “TRUE”, return the intrinsic association coefficient
+rather than the Mean absolute odds ratio.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cell</code></td>
+<td>
+<p>if “TRUE”, return the per-cell contributions
+(affected by the value of <code>phi</code>, see “Details” below).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>weighting</code></td>
+<td>
+<p>what weights should be used when normalizing the scores.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>norm</code></td>
+<td>
+<p>the norm to use to compute the mean of <code class="reqn">\lambda_{ij}</code> parameters,
+1 for the mean of absolute values, or 2 for the square root
+of the sum of squared parameters (as in the original version).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>component</code></td>
+<td>
+<p>whether to compute the total association, or from symmetric
+or antisymmetric interaction coefficients only.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>row.weights</code></td>
+<td>
+<p>optional custom weights to be used for rows, e.g. to compute
+the phi coefficient for several tables using their overall marginal
+distribution. If specified, <code>weighting</code> is ignored.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>col.weights</code></td>
+<td>
+<p>see <code>row.weights</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See Goodman (1996), Equation 52 for the (marginal or other) weighted version of
+the intrinsic association coefficient (<code class="reqn">\tilde \phi</code>); the unweighted version can be
+computed with unit weights. The coefficient is called <code class="reqn">\tilde \lambda^2</code> in the original
+article, but to avoid the confusion with Goodman and Kruskal's lambda coefficient,
+it is here denoted as <code class="reqn">\phi</code>, as usual in row-column association models.
+The uniform-weighted version is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">\phi = \sqrt{ \frac{1}{IJ} \sum_{i = 1}^I \sum_{j = 1}^J \lambda_{ij}^2 }</code>
+</p>
+
+<p>The (marginal or other) weighted version is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">\tilde \phi = \sqrt{ \sum_{i = 1}^I \sum_{j = 1}^J \tilde \lambda_{ij}^2 P_{i+} P_{+j} }</code>
+</p>
+
+<p>with <code class="reqn">\sum_{i = 1}^I \lambda_{ij} = \sum_{j = 1}^J \lambda_{ij} = 0</code> and
+<code class="reqn">\sum_{i = 1}^I P_{i+} \tilde \lambda_{ij} = \sum_{j = 1}^J P_{+j} \tilde \lambda_{ij} = 0</code>.
+</p>
+<p>The uniform-weighted version of the mean absolute odds ratio (MAOR) is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">MAOR = \exp \left[ \sqrt{ \frac{4}{ IJ (I-1) (J-1)} } \phi \right]</code>
+</p>
+
+<p>The (marginal or other) weighted version is defined as:
+</p>
+<p style="text-align: center;"><code class="reqn">MAOR = \exp \left[ \sqrt{ \frac{4}{\sum_{i = 1}^I \sum_{j = 1}^J P_{i+}
+      (1 -  P_{i+}) P_{+j} (1 - P_{+j})} } \tilde \phi \right]</code>
+</p>
+
+<p>Per-cell contributions <code class="reqn">c_{ij}</code> are defined so that <code class="reqn">\tilde \phi = \sqrt{ \sum_{i = 1}^I \sum_{j = 1}^J c_{ij} }</code> <br>
+and <code class="reqn">MAOR = exp \left[ \sqrt{ \sum_{i = 1}^I \sum_{j = 1}^J c_{ij} } \right]</code>.
+</p>
+<p>This index cannot be computed in the presence of zero cells since it is based
+on the logarithm of proportions. In these cases, 0.5 is added to all cells of the table
+(Agresti 2002, sec. 9.8.7, p. 397; Berkson 1955), and a warning is printed.
+Make sure this correction does not affect too much the results (especially
+with small samples) by manually adding different values before calling this function.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The numeric value of the mean absolute odds ratio, or of the intrinsic association
+coefficient (if <code>phi = TRUE</code>), or the corresponding per-cell contributions
+(if <code>cell = TRUE</code>).
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Milan Bouchet-Valat
+</p>
+
+
+<h3>References</h3>
+
+<p>Agresti, A. 2002. Categorical Data Analysis. New York: Wiley.
+</p>
+<p>Goodman, L. A. (1996). A Single General Method for the Analysis of Cross-Classified Data: Reconciliation
+and Synthesis of Some Methods of Pearson, Yule, and Fisher, and Also Some Methods of Correspondence
+Analysis and Association Analysis. <em>J. of the Am. Stat. Ass.</em> 91(433):408-428.
+</p>
+<p>Berkson, J. (1955). Maximum Likelihood and Minimum chi2 Estimates of the Logistic Function.
+<em>J. of the Am. Stat. Ass.</em> 50(269):130-162.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>iac</code>, <code>unidiff</code>, <code>rc</code>
+</p>
+
+
+</div>

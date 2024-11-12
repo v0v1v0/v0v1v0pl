@@ -1,0 +1,407 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fcalib</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+Objective function for performing large scale computer model
+calibration via optimization
+</h2>
+
+<h3>Description</h3>
+
+<p>Defines an objective function for performing blackbox optimization towards
+solving a modularized calibration of large computer model simulation to field
+data </p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fcalib(u, XU, Z, X, Y, da, d, g, uprior = NULL, methods = rep("alc", 2), 
+  M = NULL, bias = TRUE, omp.threads = 1, save.global = FALSE, verb = 1)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>u</code></td>
+<td>
+
+<p>a vector of length <code>ncol(XU) - ncol(X)</code> containing a setting
+of the calibration parameter
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>XU</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations to a computer
+simulator whose final <code>ncol(XU) - ncol(X)</code> columns
+contain settings of a calibration or tuning parameter like
+<code>u</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Z</code></td>
+<td>
+
+<p>a vector of responses/dependent values with <code>length(Z) = ncol(XU)</code>
+of computer model outputs at <code>XU</code>
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>X</code></td>
+<td>
+
+<p>a <code>matrix</code> or <code>data.frame</code> containing
+the full (large) design matrix of input locations
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Y</code></td>
+<td>
+
+<p>a vector of values with <code>length(Y) = ncol(X)</code>
+containing the response from field data observations
+at <code>X</code>.  A <code>Y</code>-vector with <code>length(Y) = k*ncol(X)</code>,
+for positive integer <code>k</code>, can be supplied in which case
+the multiple <code>Y</code>-values will be treated as replicates
+at the <code>X</code>-values
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>da</code></td>
+<td>
+
+<p>for emulating <code>Z</code> at <code>XU</code>: 
+a prior or initial setting for the (single/isotropic) lengthscale
+parameter in a Gaussian correlation function; a (default)
+<code>NULL</code> value triggers a sensible regularization (prior) and
+initial setting to be generated via <code>darg</code>;
+a scalar specifies an initial value, causing <code>darg</code>
+to only generate the prior; otherwise,
+a list or partial list matching the output
+of <code>darg</code> can be used to specify a custom prior.  In the
+case of a partial list, the only the missing entries will be
+generated. Note that a default/generated list specifies MLE/MAP
+inference for this parameter.  When specifying initial values, a
+vector of length <code>nrow(XX)</code> can be provided, giving a
+different initial value for each predictive location
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>d</code></td>
+<td>
+
+<p>for the discrepancy between emulations <code>Yhat</code> at <code>X</code>, based
+on <code>Z</code> at <code>XU</code>, and the oputs <code>Y</code> observed at <code>X</code>.
+Otherwise, same description as <code>da</code> above 
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>g</code></td>
+<td>
+
+<p>for the nugget in the GP model for the discrepancy between emulation
+<code>Yhat</code> at <code>X</code>, based
+on <code>Z</code> at <code>XU</code>, and the outputs <code>Y</code> observed at <code>X</code>:
+a prior or initial setting for the nugget parameter; a 
+<code>NULL</code> value causes a sensible regularization (prior) and
+initial setting to be generated via <code>garg</code>; a scalar (default
+<code>g = 1/1000</code>) specifies an initial value, causing <code>garg</code>
+to only generate the prior; otherwise, a list or partial list matching the
+output of <code>garg</code> can be used to specify a custom prior.  In
+the case of a partial list, only the missing entries will be
+generated. Note that a default/generated list specifies <em>no</em>
+inference for this parameter; i.e., it is fixed at its starting value,
+which may be appropriate for emulating deterministic computer code output.
+At this time, estimating a nugget for the computer model emulator is not
+supported by <code>fcalib</code> </p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>uprior</code></td>
+<td>
+
+<p>an optional function taking <code>u</code> arguments which returns a log
+prior density value for the calibration parameter.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>methods</code></td>
+<td>
+
+<p>a sequence of local search methods to be deployed when emulating 
+<code>Z</code> at <code>XU</code> via <code>aGP</code>;  see <code>aGP.seq</code> for more
+details; provide <code>methods = FALSE</code> to use the computer model <code>M</code>
+directly
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>M</code></td>
+<td>
+
+<p>a computer model “simulation” function taking two matrices as
+inputs, to be used in lieu of emulation; see <code>aGP.seq</code> for mode details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>bias</code></td>
+<td>
+
+<p>a scalar logical indicating whether a GP discrepancy or bias term should
+be estimated via <code>discrep.est</code>, as opposed to 
+only a Gaussian (zero-mean) variance;
+see <code>discrep.est</code> for more details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>omp.threads</code></td>
+<td>
+
+<p>a scalar positive integer indicating the number
+of threads to use for SMP parallel processing; see <code>aGP</code> for more details
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>save.global</code></td>
+<td>
+
+<p>an environment, e.g., <code>.GlobalEnv</code> if each evaluation of <code>fcalib</code>, say as
+called by a wrapper or optimization routine, should be saved.  The variable
+used in that environment will be <code>fcalib.save</code>.  Otherwise <code>save.global = FALSE</code>
+will skip saving the information</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>verb</code></td>
+<td>
+
+<p>a non-negative integer specifying the verbosity level; <code>verb = 0</code>
+is quiet, whereas a larger value causes each evaluation to be printed
+to the screen</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>Gramacy, et al. (2015) defined an objective function which, when optimized,
+returns a setting of calibration parameters under a setup akin to
+the modularized calibration method of Liu, et al., (2009).  The <code>fcalib</code>
+function returns a log density (likelihood or posterior probability) value 
+obtained by performing emulation at a set of inputs <code>X</code> augmented
+with a value of the calibration parameter, <code>u</code>.  The emulator
+is trained on <code>XU</code> and <code>Z</code>, presumed to be very large 
+relative to the size of the field data set <code>X</code> and <code>Y</code>,
+necessitating the use of approximate methods like <code>aGP</code>, 
+via <code>aGP.seq</code>.  The
+emulated values, call them <code>Yhat</code> are fed along with <code>X</code> and 
+<code>Y</code> into the <code>discrep.est</code> function, whose
+likelihood or posterior calculation serves as a measure of merit for
+the value <code>u</code>.
+</p>
+<p>The <code>fcalib</code> function is deterministic but, as Gramacy, et al. (2015)
+described, can result is a rugged objective surface for optimizing,
+meaning that conventional methods, like those in <code>optim</code>
+are unlikely to work well.  They instead recommend using a blackbox
+derivative-free method, like NOMAD (Le Digabel, 2011).  In our example
+below we use the implementation in the <span class="pkg">crs</span> package, which provides
+an <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> wrapper around the underlying C library.
+</p>
+<p>Note that while <code>fcalib</code> automates a call first to <code>aGP.seq</code>
+and then to <code>discrep.est</code>, it does not return enough
+information to complete, say, an out-of-sample prediction exercise like
+the one demonstrated in the <code>discrep.est</code> documentation.
+Therefore, after <code>fcalib</code> is used in an optimization to
+find the best setting of the calibration parameter, <code>u</code>, 
+those functions must then be used in post-processing to complete a
+prediction exercise.  See <code>demo("calib")</code> or <code>vignette("laGP")</code>
+for more details
+</p>
+
+
+<h3>Value</h3>
+
+<p>Returns a scalar measuring the negative log likelihood or posterior density
+of the calibration parameter <code>u</code> given the other inputs, for
+the purpose of optimization over <code>u</code>
+</p>
+
+
+<h3>Note</h3>
+
+<p>Note that in principle a separable correlation function could be used 
+(e.g, via <code>newGPsep</code> and <code>mleGPsep</code>), 
+however this is not implemented at this time
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Robert B. Gramacy <a href="mailto:rbg@vt.edu">rbg@vt.edu</a>
+</p>
+
+
+<h3>References</h3>
+
+<p>Gramacy, R. B. (2020) <em>Surrogates: Gaussian Process Modeling,
+Design and Optimization for the Applied Sciences</em>. Boca Raton,
+Florida: Chapman Hall/CRC.  (See Chapter 8.)
+<a href="https://bobby.gramacy.com/surrogates/">https://bobby.gramacy.com/surrogates/</a>
+</p>
+<p>R.B. Gramacy (2016). <em><span class="pkg">laGP</span>: Large-Scale Spatial Modeling via 
+Local Approximate Gaussian Processes in <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>.</em>, Journal of Statistical 
+Software, 72(1), 1-46; <a href="https://doi.org/10.18637/jss.v072.i01">doi:10.18637/jss.v072.i01</a> 
+or see <code>vignette("laGP")</code>
+</p>
+<p>R.B. Gramacy, D. Bingham, JP. Holloway, M.J. Grosskopf, C.C. Kuranz, E. Rutter, 
+M. Trantham, and P.R. Drake (2015). <em>Calibrating a large computer 
+experiment simulating radiative shock hydrodynamics.</em> 
+Annals of Applied Statistics, 9(3) 1141-1168; preprint on arXiv:1410.3293 
+<a href="https://arxiv.org/abs/1410.3293">https://arxiv.org/abs/1410.3293</a>
+</p>
+<p>F. Liu, M. Bayarri, and J. Berger (2009). 
+<em>Modularization in Bayesian analysis, with emphasis on analysis of computer models.</em> 
+Bayesian Analysis, 4(1) 119-150.
+</p>
+<p>S. Le Digabel (2011). 
+<em>Algorithm 909: NOMAD: Nonlinear Optimization with the MADS algorithm</em>.
+ACM Transactions on Mathematical Software, 37, 4, 44:1-44:15.
+</p>
+<p>J.S. Racine, Z. and Nie (2012). <span class="pkg">crs</span>: 
+<em>Categorical regression splines</em>. <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> package version 0.15-18.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>vignette("laGP")</code>, 
+<code>jmleGP</code>, <code>newGP</code>, <code>aGP.seq</code>, <code>discrep.est</code>,
+<code>snomadr</code> 
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## the example here illustrates how fcalib combines aGP.seq and 
+## discrep.est functions, duplicating the example in the discrep.est
+## documentation file.  It is comprised of snippets from demo("calib"), 
+## which contains code from the Calibration Section of vignette("laGP")
+
+## Here we generate calibration data using a true calibration
+## parameter, u, and then evaluate log posterior probabilities; 
+## the discrep.est documentation repeats this with by first calling
+## aGP.seq and then discrep.est.  The answers should be identical, however
+## note that a call first to example("fcalib") and then 
+## example("discrep.est") will generate two random data sets, causing
+## the results not to match
+
+## begin data-generation code identical to aGP.seq, discrep.est, fcalib
+## example sections and demo("calib")
+
+## M: computer model test function used in Goh et al, 2013 (Technometrics)
+## an elaboration of one from Bastos and O'Hagan, 2009 (Technometrics) 
+M &lt;- function(x,u) 
+  {
+    x &lt;- as.matrix(x)
+    u &lt;- as.matrix(u)
+    out &lt;- (1-exp(-1/(2*x[,2]))) 
+    out &lt;- out * (1000*u[,1]*x[,1]^3+1900*x[,1]^2+2092*x[,1]+60) 
+    out &lt;- out / (100*u[,2]*x[,1]^3+500*x[,1]^2+4*x[,1]+20)  
+    return(out)
+  }
+  
+## bias: discrepancy function from Goh et al, 2013 
+bias &lt;- function(x) 
+  {
+    x&lt;-as.matrix(x)   
+    out&lt;- 2*(10*x[,1]^2+4*x[,2]^2) / (50*x[,1]*x[,2]+10)
+    return(out)
+  }
+
+## beta.prior: marginal beta prior for u, 
+## defaults to a mode at 1/2 in hypercube
+beta.prior &lt;- function(u, a=2, b=2, log=TRUE)
+{
+  if(length(a) == 1) a &lt;- rep(a, length(u))
+  else if(length(a) != length(u)) stop("length(a) must be 1 or length(u)")
+  if(length(b) == 1) b &lt;- rep(b, length(u))
+  else if(length(b) != length(u)) stop("length(b) must be 1 or length(u)")
+  if(log) return(sum(dbeta(u, a, b, log=TRUE)))
+  else return(prod(dbeta(u, a, b, log=FALSE)))
+}
+
+## tgp for LHS sampling
+library(tgp)
+rect &lt;- matrix(rep(0:1, 4), ncol=2, byrow=2)
+
+## training inputs
+ny &lt;- 50; 
+X &lt;- lhs(ny, rect[1:2,])    ## computer model train
+
+## true (but unknown) setting of the calibration parameter
+## for the computer model
+u &lt;- c(0.2, 0.1)
+Zu &lt;- M(X, matrix(u, nrow=1)) 
+
+## field data response, biased and replicated
+sd &lt;- 0.5
+## Y &lt;- computer output + bias + noise
+reps &lt;- 2 ## example from paper uses reps &lt;- 10
+Y &lt;- rep(Zu,reps) + rep(bias(X),reps) + rnorm(reps*length(Zu), sd=sd) 
+## variations: remove the bias or change 2 to 1 to remove replicates
+
+## computer model design
+nz &lt;- 10000
+XU &lt;- lhs(nz, rect)
+nth &lt;- 1 ## number of threads to use in emulation, demo uses 8
+
+## augment with physical model design points 
+## with various u settings
+XU2 &lt;- matrix(NA, nrow=10*ny, ncol=4)
+for(i in 1:10) {
+  I &lt;- ((i-1)*ny+1):(ny*i)
+  XU2[I,1:2] &lt;- X
+}
+XU2[,3:4] &lt;- lhs(10*ny, rect[3:4,])
+XU &lt;- rbind(XU, XU2)
+
+## evaluate the computer model
+Z &lt;- M(XU[,1:2], XU[,3:4])
+
+## flag indicating if estimating bias/discrepancy or not
+bias.est &lt;- TRUE
+## two passes of ALC with MLE calculations for aGP.seq
+methods &lt;- rep("alcray", 2) ## demo uses rep("alc", 2)
+
+## set up priors
+da &lt;- d &lt;- darg(NULL, XU)
+g &lt;- garg(list(mle=TRUE), Y) 
+
+## end identical data generation code
+
+## now calculate log posterior for true calibration parameter 
+## value (u).  You could repeat this for an estimate value 
+## from demo("calib"), for example u.hat &lt;- c(0.8236673, 0.1406989)
+
+fcalib(u, XU, Z, X, Y, da, d, g, beta.prior, methods, M, bias.est, nth)
+</code></pre>
+
+
+</div>

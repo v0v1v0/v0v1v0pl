@@ -1,0 +1,210 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>sis</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Standard importance sampling (SIS)</h2>
+
+<h3>Description</h3>
+
+<p>Implementation of standard importance sampling (SIS).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">sis(log_ratios, ...)
+
+## S3 method for class 'array'
+sis(log_ratios, ..., r_eff = NULL, cores = getOption("mc.cores", 1))
+
+## S3 method for class 'matrix'
+sis(log_ratios, ..., r_eff = NULL, cores = getOption("mc.cores", 1))
+
+## Default S3 method:
+sis(log_ratios, ..., r_eff = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>log_ratios</code></td>
+<td>
+<p>An array, matrix, or vector of importance ratios on the log
+scale (for Importance sampling LOO, these are <em>negative</em> log-likelihood
+values). See the <strong>Methods (by class)</strong> section below for a detailed
+description of how to specify the inputs for each method.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Arguments passed on to the various methods.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>r_eff</code></td>
+<td>
+<p>Vector of relative effective sample size estimates containing
+one element per observation. The values provided should be the relative
+effective sample sizes of <code>1/exp(log_ratios)</code> (i.e., <code>1/ratios</code>).
+This is related to the relative efficiency of estimating the normalizing
+term in self-normalizing importance sampling. See the <code>relative_eff()</code>
+helper function for computing <code>r_eff</code>. If using <code>psis</code> with
+draws of the <code>log_ratios</code> not obtained from MCMC then the warning
+message thrown when not specifying <code>r_eff</code> can be disabled by
+setting <code>r_eff</code> to <code>NA</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>cores</code></td>
+<td>
+<p>The number of cores to use for parallelization. This defaults to
+the option <code>mc.cores</code> which can be set for an entire R session by
+<code>options(mc.cores = NUMBER)</code>. The old option <code>loo.cores</code> is now
+deprecated but will be given precedence over <code>mc.cores</code> until
+<code>loo.cores</code> is removed in a future release. <strong>As of version
+2.0.0 the default is now 1 core if <code>mc.cores</code> is not set</strong>, but we
+recommend using as many (or close to as many) cores as possible.
+</p>
+
+<ul><li>
+<p> Note for Windows 10 users: it is <strong>strongly</strong>
+<a href="https://github.com/stan-dev/loo/issues/94">recommended</a> to avoid using
+the <code>.Rprofile</code> file to set <code>mc.cores</code> (using the <code>cores</code> argument or
+setting <code>mc.cores</code> interactively or in a script is fine).
+</p>
+</li></ul>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>The <code>sis()</code> methods return an object of class <code>"sis"</code>,
+which is a named list with the following components:
+</p>
+
+<dl>
+<dt><code>log_weights</code></dt>
+<dd>
+<p>Vector or matrix of smoothed but <em>unnormalized</em> log
+weights. To get normalized weights use the
+<code>weights()</code> method provided for objects of
+class <code>sis</code>.
+</p>
+</dd>
+<dt><code>diagnostics</code></dt>
+<dd>
+<p>A named list containing one vector:
+</p>
+
+<ul>
+<li> <p><code>pareto_k</code>: Not used in <code>sis</code>, all set to 0.
+</p>
+</li>
+<li> <p><code>n_eff</code>: effective sample size estimates.
+</p>
+</li>
+</ul>
+</dd>
+</dl>
+<p>Objects of class <code>"sis"</code> also have the following attributes:
+</p>
+
+<dl>
+<dt><code>norm_const_log</code></dt>
+<dd>
+<p>Vector of precomputed values of <code>colLogSumExps(log_weights)</code> that are
+used internally by the <code>weights</code> method to normalize the log weights.
+</p>
+</dd>
+<dt><code>r_eff</code></dt>
+<dd>
+<p>If specified, the user's <code>r_eff</code> argument.
+</p>
+</dd>
+<dt><code>tail_len</code></dt>
+<dd>
+<p>Not used for <code>sis</code>.
+</p>
+</dd>
+<dt><code>dims</code></dt>
+<dd>
+<p>Integer vector of length 2 containing <code>S</code> (posterior sample size)
+and <code>N</code> (number of observations).
+</p>
+</dd>
+<dt><code>method</code></dt>
+<dd>
+<p>Method used for importance sampling, here <code>sis</code>.
+</p>
+</dd>
+</dl>
+<h3>Methods (by class)</h3>
+
+
+<ul>
+<li> <p><code>sis(array)</code>: An <code class="reqn">I</code> by <code class="reqn">C</code> by <code class="reqn">N</code> array, where <code class="reqn">I</code>
+is the number of MCMC iterations per chain, <code class="reqn">C</code> is the number of
+chains, and <code class="reqn">N</code> is the number of data points.
+</p>
+</li>
+<li> <p><code>sis(matrix)</code>: An <code class="reqn">S</code> by <code class="reqn">N</code> matrix, where <code class="reqn">S</code> is the size
+of the posterior sample (with all chains merged) and <code class="reqn">N</code> is the number
+of data points.
+</p>
+</li>
+<li> <p><code>sis(default)</code>: A vector of length <code class="reqn">S</code> (posterior sample size).
+</p>
+</li>
+</ul>
+<h3>References</h3>
+
+<p>Vehtari, A., Gelman, A., and Gabry, J. (2017). Practical Bayesian model
+evaluation using leave-one-out cross-validation and WAIC.
+<em>Statistics and Computing</em>. 27(5), 1413–1432. doi:10.1007/s11222-016-9696-4
+(<a href="https://link.springer.com/article/10.1007/s11222-016-9696-4">journal version</a>,
+<a href="https://arxiv.org/abs/1507.04544">preprint arXiv:1507.04544</a>).
+</p>
+<p>Vehtari, A., Simpson, D., Gelman, A., Yao, Y., and Gabry, J. (2024).
+Pareto smoothed importance sampling. <em>Journal of Machine Learning Research</em>,
+25(72):1-58.
+<a href="https://jmlr.org/papers/v25/19-556.html">PDF</a>
+</p>
+
+
+<h3>See Also</h3>
+
+
+<ul>
+<li> <p><code>psis()</code> for approximate LOO-CV using PSIS.
+</p>
+</li>
+<li> <p><code>loo()</code> for approximate LOO-CV.
+</p>
+</li>
+<li> <p>pareto-k-diagnostic for PSIS diagnostics.
+</p>
+</li>
+</ul>
+<h3>Examples</h3>
+
+<pre><code class="language-R">log_ratios &lt;- -1 * example_loglik_array()
+r_eff &lt;- relative_eff(exp(-log_ratios))
+sis_result &lt;- sis(log_ratios, r_eff = r_eff)
+str(sis_result)
+
+# extract smoothed weights
+lw &lt;- weights(sis_result) # default args are log=TRUE, normalize=TRUE
+ulw &lt;- weights(sis_result, normalize=FALSE) # unnormalized log-weights
+
+w &lt;- weights(sis_result, log=FALSE) # normalized weights (not log-weights)
+uw &lt;- weights(sis_result, log=FALSE, normalize = FALSE) # unnormalized weights
+
+</code></pre>
+
+
+</div>

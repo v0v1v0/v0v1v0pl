@@ -1,0 +1,224 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>fb_insights</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Facebook Insights API</h2>
+
+<h3>Description</h3>
+
+<p>This returns all available FB insights per day including any given
+breakdown to the specified report level, and place into a data frame.
+For more information on Ad Insights' API, go to the original
+<a href="https://developers.facebook.com/docs/marketing-api/insights/">documentaion</a>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">fb_insights(
+  token,
+  which,
+  start_date = Sys.Date() - 7,
+  end_date = Sys.Date(),
+  time_increment = "1",
+  report_level = "campaign",
+  ad_object = "insights",
+  breakdowns = NA,
+  fields = NA,
+  filtering = NULL,
+  limit = 100,
+  api_version = NULL,
+  process = TRUE,
+  async = FALSE,
+  ...
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>token</code></td>
+<td>
+<p>Character. Valid access token with sufficient privileges. Visit the
+<a href="https://developers.facebook.com/tools/explorer">Facebook API Graph Explorer</a>
+to acquire one.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>which</code></td>
+<td>
+<p>Character vector. This is the accounts, campaigns, adsets,
+or ads IDs to be queried. Remember: if <code>report_level = "account"</code>, you must
+start the ID with <code>act_</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start_date, end_date</code></td>
+<td>
+<p>Character. The first and last full day to report, in the
+format <code>"YYYY-MM-DD"</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>time_increment</code></td>
+<td>
+<p>Character. Group by months ("monthly"),
+everything together ("all_days") or an integer per days [1-90].
+Default: each day separately (i.e. "1").</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>report_level</code></td>
+<td>
+<p>Character. One of "ad", "adset", "campaign", or "account"</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>ad_object</code></td>
+<td>
+<p>Character. One of: "insights" (default), "adsets", ...</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>breakdowns</code></td>
+<td>
+<p>Character Vector. One or more of breakdowns for
+segmentation results. Set to NA for no breakdowns</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>fields</code></td>
+<td>
+<p>Character, json format. Leave <code>NA</code> for default fields OR
+<code>NULL</code> to ignore.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filtering</code></td>
+<td>
+<p>List. Each filter will be a list containing "field",
+"operator", and "value". Read more about the operators in the official
+<a href="https://developers.facebook.com/docs/marketing-api/insights">docs</a>.
+Example: <code>dplyr::tibble(field = "country", operator = "IN", value = list("PE")))</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>limit</code></td>
+<td>
+<p>Integer. Query limit by pagination.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>api_version</code></td>
+<td>
+<p>Character. Facebook API version.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>process</code></td>
+<td>
+<p>Boolean. Process GET results to a more friendly format?</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>async</code></td>
+<td>
+<p>Boolean. Run an async query. When set to <code>TRUE</code>, instead of making
+a GET query, it'll run a POST query and will return a report run ID.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional parameters.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>data.frame with un-nested processed results if <code>process=TRUE</code> or
+raw API results as list when <code>process=FALSE</code>.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other API: 
+<code>bring_api()</code>,
+<code>fb_accounts()</code>,
+<code>fb_ads()</code>,
+<code>fb_creatives()</code>,
+<code>fb_process()</code>,
+<code>fb_report_check()</code>,
+<code>fb_rf()</code>,
+<code>fb_token()</code>,
+<code>gemini_ask()</code>,
+<code>gpt_ask()</code>,
+<code>li_auth()</code>,
+<code>li_profile()</code>,
+<code>queryGA()</code>,
+<code>slackSend()</code>
+</p>
+<p>Other Meta: 
+<code>fb_accounts()</code>,
+<code>fb_ads()</code>,
+<code>fb_creatives()</code>,
+<code>fb_process()</code>,
+<code>fb_report_check()</code>,
+<code>fb_rf()</code>,
+<code>fb_token()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+token &lt;- "YOURTOKEN"
+which &lt;- "act_20846447"
+
+# Platforms' Insights: all ad-sets platforms of "which" account,
+# aggregated, for the last 30 days
+platforms &lt;- fb_insights(
+  token, which,
+  start_date = Sys.Date() - 30,
+  time_increment = "all_days",
+  report_level = "adset",
+  fields = c(
+    "account_name",
+    "adset_id",
+    "adset_start",
+    "adset_end"
+  ),
+  breakdowns = c(
+    "publisher_platform",
+    "platform_position",
+    "device_platform"
+  )
+)
+
+# Daily results for all campaigns of "which" account,
+# with custom performance fields with no breakdowns.
+insights_adset &lt;- fb_insights(
+  token, which,
+  time_increment = "1",
+  report_level = "campaign",
+  fields = c(
+    "adset_id",
+    "reach",
+    "frequency",
+    "spend",
+    "cpm",
+    "objective",
+    "optimization_goal"
+  )
+)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

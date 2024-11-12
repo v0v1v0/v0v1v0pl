@@ -1,0 +1,245 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Gelman.Diagnostic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Gelman and Rubin's MCMC Convergence Diagnostic</h2>
+
+<h3>Description</h3>
+
+<p>Gelman and Rubin (1992) proposed a general approach to monitoring
+convergence of MCMC output in which <code class="reqn">m &gt; 1</code> parallel chains are
+updated with initial values that are overdispersed relative to each
+target distribution, which must be normally distributed. Convergence
+is diagnosed when the chains have ‘forgotten’ their initial values,
+and the output from all chains is indistinguishable. The
+<code>Gelman.Diagnostic</code> function makes a comparison of within-chain
+and between-chain variances, and is similar to a classical analysis of
+variance. A large deviation between these two variances indicates
+non-convergence.
+</p>
+<p>This diagnostic is popular as a stopping rule, though it requires
+parallel chains. The <code>LaplacesDemon.hpc</code> function is an
+extension of <code>LaplacesDemon</code> to enable parallel chains.
+As an alternative, the popular single-chain stopping rule is based on
+<code>MCSE</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Gelman.Diagnostic(x, confidence=0.95, transform=FALSE)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument accepts an object of class
+<code>demonoid.hpc</code>, or a list of multiple objects of class
+<code>demonoid</code>, where the number of components in the list 
+is the number of chains.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>confidence</code></td>
+<td>
+<p>This is the coverage probability of the confidence
+interval for the potential scale reduction factor (PSRF).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>transform</code></td>
+<td>
+<p>Logical. If <code>TRUE</code>, then marginal posterior
+distributions in <code>x</code> may be transformed to improve the
+normality of the distribution, which is assumed. A log-transform is
+applied to marginal posterior distributions in the interval <code class="reqn">(0,
+      \infty]</code>, or a logit-transform is applied to marginal
+posterior distributions in the interval <code class="reqn">(0,1)</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>To use the <code>Gelman.Diagnostic</code> function, the user must first have
+multiple MCMC chains for the same model, and three chains is usually
+sufficient. The easiest way to obtain multiple chains is with the
+<code>LaplacesDemon.hpc</code> function.
+</p>
+<p>Although the <code>LaplacesDemon</code> function does not
+simultaneously update multiple MCMC chains, it is easy enough to
+obtain multiple chains, and if the computer has multiple processors
+(which is common), then multiple chains may be obtained simultaneously
+as follows. The model file may be opened in separate, concurrent R
+sessions, and it is recommended that a maximum number of sessions is
+equal to the number of processors, minus one. Each session constitutes
+its own chain, and the code is identical, except the initial values
+should be randomized with the <code>GIV</code> function so the chains
+begin in different places. The resulting object of class
+<code>demonoid</code> for each chain is saved, all objects are read into one
+session, put into a list, and passed to the <code>Gelman.Diagnostic</code>
+function.
+</p>
+<p>Initial values must be overdispersed with respect to each target
+distribution, though these distributions are unknown in the
+beginning. Since the <code>Gelman.Diagnostic</code> function relies heavily
+on overdispersion with respect to the target distribution, the user
+should consider using MCMC twice, first to estimate the target
+distributions, and secondly to overdisperse initial values with
+respect to them. This may help identify multimodal target
+distributions. If multiple modes are found, it remain possible that
+more modes exist. When multiple modes are found, and if chains are
+combined with the <code>Combine</code> function, each mode is
+probably not represented in a proportion correct to the distribution.
+</p>
+<p>The ‘potential scale reduction factor’ (PSRF) is an estimated factor
+by which the scale of the current distribution for the target
+distribution might be reduced if the simulations were continued for
+an infinite number of iterations. Each PSRF declines to 1 as the
+number of iterations approaches infinity. PSRF is also often
+represented as R-hat. PSRF is calculated for each marginal posterior
+distribution in <code>x</code>, together with upper and lower confidence
+limits. Approximate convergence is diagnosed when the upper limit is
+close to 1. The recommended proximity of each PSRF to 1 varies with
+each problem, but a general goal is to achieve PSRF &lt; 1.1. PSRF is an
+estimate of how much narrower the posterior might become with an
+infinite number of iterations. When PSRF = 1.1, for example, it may be
+interpreted as a potential reduction of 10% in posterior interval
+width, given infinite iterations. The multivariate form bounds above
+the potential scale reduction factor for any linear combination of the
+(possibly transformed) variables.
+</p>
+<p>The confidence limits are based on the assumption that the
+target distribution is stationary and normally distributed. The
+<code>transform</code> argument may be used to improve the normal
+approximation.
+</p>
+<p>A large PSRF indicates that the between-chain variance is
+substantially greater than the within-chain variance, so that longer
+simulation is needed. If a PSRF is close to 1, then the associated
+chains are likely to have converged to one target distribution. A
+large PSRF (perhaps generally when a PSRF &gt; 1.2) indicates convergence
+failure, and can indicate the presence of a multimodal marginal
+posterior distribution in which different chains may have converged
+to different local modes (see <code>is.multimodal</code>), or the
+need to update the associated chains longer, because burn-in (see
+<code>burnin</code>) has yet to be completed.
+</p>
+<p>The <code>Gelman.Diagnostic</code> is essentially the same as the
+<code>gelman.diag</code> function in the <code>coda</code> package, but here it is 
+programmed to work with objects of class <code>demonoid</code>.
+</p>
+<p>There are two ways to estimate the variance of the stationary
+distribution: the mean of the empirical variance within each chain,
+<code class="reqn">W</code>, and the empirical variance from all chains combined, which
+can be expressed as
+</p>
+<p style="text-align: center;"><code class="reqn"> \widehat{\sigma}^2 = \frac{(n-1) W}{n} +
+    \frac{B}{n}</code>
+</p>
+ 
+<p>where <code class="reqn">n</code> is the number of iterations and <code class="reqn">B/n</code> is the
+empirical between-chain variance.
+</p>
+<p>If the chains have converged, then both estimates are
+unbiased. Otherwise the first method will <em>underestimate</em> the
+variance, since the individual chains have not had time to range all
+over the stationary distribution, and the second method will
+<em>overestimate</em> the variance, since the initial values were
+chosen to be overdispersed (and this assumes the target distribution
+is known, see above).
+</p>
+<p>This convergence diagnostic is based on the assumption that each
+target distribution is normal. A Bayesian probability interval (see
+<code>p.interval</code>) can be constructed using a t-distribution
+with mean
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat{\mu}=\mbox{Sample mean of all chains combined,}</code>
+</p>
+
+<p>variance
+</p>
+<p style="text-align: center;"><code class="reqn">\widehat{V} = \widehat{\sigma}^2 + \frac{B}{mn},</code>
+</p>
+
+<p>and degrees of freedom estimated by the method of moments
+</p>
+<p style="text-align: center;"><code class="reqn">d = \frac{2\widehat{V}^2}{\mbox{Var}(\widehat{V})}</code>
+</p>
+
+<p>Use of the t-distribution accounts for the fact that the mean and
+variance of the posterior distribution are estimated. The convergence
+diagnostic itself is
+</p>
+<p style="text-align: center;"><code class="reqn">R=\sqrt{\frac{(d+3) \widehat{V}}{(d+1)W}}</code>
+</p>
+
+<p>Values substantially above 1 indicate lack of convergence. If the
+chains have not converged, then Bayesian probability intervals based
+on the t-distribution are too wide, and have the potential to shrink
+by this factor if the MCMC run is continued.
+</p>
+<p>The multivariate version of Gelman and Rubin's diagnostic was proposed
+by Brooks and Gelman (1998). Unlike the univariate proportional scale
+reduction factor, the multivariate version does not include an
+adjustment for the estimated number of degrees of freedom.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list is returned with the following components:
+</p>
+<table>
+<tr style="vertical-align: top;">
+<td><code>PSRF</code></td>
+<td>
+<p>This is a list containing the point-estimates of the
+potential scale reduction factor (labelled <code>Point Est.</code>) and
+the associated upper confidence limits (labelled <code>Upper C.I.</code>).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>MPSRF</code></td>
+<td>
+<p>This is the point-estimate of the multivariate potential
+scale reduction factor.</p>
+</td>
+</tr>
+</table>
+<h3>References</h3>
+
+<p>Brooks, S.P. and Gelman, A. (1998). "General Methods for Monitoring
+Convergence of Iterative Simulations". <em>Journal of Computational
+and Graphical Statistics</em>, 7, p. 434–455.
+</p>
+<p>Gelman, A. and Rubin, D.B. (1992). "Inference from Iterative Simulation
+using Multiple Sequences". <em>Statistical Science</em>, 7, p. 457–511.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>Combine</code>,
+<code>GIV</code>,
+<code>is.multimodal</code>,
+<code>LaplacesDemon</code>,
+<code>LaplacesDemon.hpc</code>,
+<code>MCSE</code>, and
+<code>p.interval</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#library(LaplacesDemon)
+###After updating multiple chains with LaplacesDemon.hpc, do:
+#Gelman.Diagnostic(Fit)
+</code></pre>
+
+
+</div>

@@ -1,0 +1,147 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lglasso</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Graphical Lasso for Longitudinal Data</h2>
+
+<h3>Description</h3>
+
+<p>This function implements the L_1 penalized maximum likelihood estimation for precision matrix (network)  based on correlated data, e.g., irregularly spaced longitudinal
+data. It can be regarded as an extension of the package <code>glasso</code> (Friedman,Hastie and Tibshirani, 2008) which aims
+to find the sparse estimate of the network from independent continuous data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lglasso(
+  data,
+  rho,
+  heter = TRUE,
+  type = 1,
+  tole = 0.01,
+  lower = 0.01,
+  upper = 10
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>data</code></td>
+<td>
+<p>Data matrix  in which the first column is subject id, the second column is
+time points of observations for temporal data or site id for spatial data.  Columns <code>3</code> to <code>(p+2)</code> is the observations for <code>p</code> variables.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>rho</code></td>
+<td>
+<p>Tuning parameter used in <code>L_1</code> penalty</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>heter</code></td>
+<td>
+<p>Binary variable <code>TRUE</code> or <code>FALSE</code>, indicating heterogeneous model or homogeneous model is fitted. In heterogeneous model,
+subjects are allowed to have his/her own temporal correlation parameter <code>tau_i</code>; while in homogeneous model, all the subjects are assumed to
+share the same temporal correlation parameter,i.e., <code>tau_1=tau_2=...tau_m</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>type</code></td>
+<td>
+<p>A positive number which specify the correlation function. The general form of correlation function  is given by <code> exp(tau|t_i-t_j|^type)</code>.
+in which <code>type=0</code> can be used for spatial correlation while <code>type&gt;0</code> are used for temporal correlation. For latter, the default value is set to be <code>type=1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tole</code></td>
+<td>
+<p>Threshold for convergence. Default value is <code>1e-2</code>. Iterations stop when maximum
+absolute difference between consecutive estimates of parameter change is less than <code>tole</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>lower</code></td>
+<td>
+<p>Lower bound for predicts of correlation parameter <code>tau</code>.
+Default value is <code>1e-2</code>. The estimate of <code>tau</code>(<code>alpha</code>) will be searched in the
+interval <code>[lower,upper]</code>, where parameter <code>upper</code> is explained in the following.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>upper</code></td>
+<td>
+<p>Upper bound for predicts of correlation parameter <code>tau</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>If <code>heter=TRUE</code>, then a list with three components is returned which are  respectively
+the estimate of parameter <code>alpha</code> in exponent distribution, correlation parameter <code>tau</code> and precision matrix <code>omega</code>. If <code>heter=FALSE</code>,
+then a list with two components is returned which are respectively the estimate of correlation parameter <code>tau</code> and precision matrix <code>omega</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Jie Zhou
+</p>
+
+
+<h3>References</h3>
+
+<p>Jie Zhou, Jiang Gui, Weston D.Viles, Anne G.Hoen Identifying Microbial Interaction Networks Based on Irregularly Spaced Longitudinal 16S rRNA sequence data. bioRxiv 2021.11.26.470159; doi: https://doi.org/10.1101/2021.11.26.470159
+</p>
+<p>Friedman J, Tibshirani TH and R. Glasso: Graphical Lasso: Estimation of Gaussian Graphical Models.; 2019. Accessed November 28, 2021. https://CRAN.R-project.org/package=glasso
+</p>
+<p>Friedman J, Hastie T, Tibshirani TH, Sparse inverse covariance estimation with the graphical lasso, Biostatistics, Volume 9, Issue 3, July 2008, Pages 432–441, https://doi.org/10.1093/biostatistics/kxm045
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">sample_data[1:5,1:5]
+dim(sample_data)
+## Heterogeneous model with dampening correlation rate using the first three clusters
+a=lglasso(data = sample_data[1:11,], rho = 0.7,heter=TRUE, type=1)
+### Estimates of correlation parameters
+a$tau
+### Sub-network for the first five variables
+a$omega[1:5,1:5]
+### Total number of the edges in the estimated network
+(length(which(a$omega!=0))-ncol(a$omega))/2
+## Homogeneous model with dampening correlation rate using the first three clusters
+b=lglasso(data = sample_data[1:11,], rho = 0.7,heter=FALSE,type=1)
+### Estimates of correlation parameters
+b$tau
+### Sub-network for the first five  variables
+b$omega[1:5,1:5]
+### Total number of the edges in the estimated network
+(length(which(b$omega!=0))-ncol(b$omega))/2
+## Heterogeneous model with uniform correlation rate using the first three clusters
+c=lglasso(data = sample_data[1:11,], rho = 0.7,heter=TRUE,type=0)
+### Estimates of correlation parameters
+c$tau
+### Sub-network for the first five  variables
+c$omega[1:5,1:5]
+### Total number of the edges in the estimated network
+(length(which(c$omega!=0))-ncol(c$omega))/2
+## Homogeneous model with uniform correlation rate using the first three clusters
+d=lglasso(data = sample_data[1:11,], rho = 0.7,heter=FALSE,type=0)
+### Estimates of correlation parameters
+d$tau
+### Sub-network for the first five  variables
+d$omega[1:5,1:5]
+### Total number of the edges in the estimated network
+(length(which(d$omega!=0))-ncol(d$omega))/2
+</code></pre>
+
+
+</div>

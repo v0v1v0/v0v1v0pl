@@ -1,0 +1,158 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>Heidelberger.Diagnostic</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Heidelberger and Welch's MCMC Convergence Diagnostic</h2>
+
+<h3>Description</h3>
+
+<p>Heidelberger and Welch (1981; 1983) proposed a two-part MCMC
+convergence diagnostic that calculates a test statistic (based on the
+Cramer-von Mises test statistic) to accept or reject the null
+hypothesis that the Markov chain is from a stationary distribution.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">Heidelberger.Diagnostic(x, eps=0.1, pvalue=0.05)</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>This required argument accepts an object of class
+<code>demonoid</code>. It attempts to use <code>Posterior2</code>, but when this
+is missing it uses <code>Posterior1</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>eps</code></td>
+<td>
+<p>This argument specifies the target value for the ratio of
+halfwidth to sample mean.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pvalue</code></td>
+<td>
+<p>This argument specifies the level of statistical
+significance.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The Heidelberg and Welch MCMC convergence diagnostic consists of two
+parts:
+</p>
+<p>First Part
+1. Generate a chain of <code class="reqn">N</code> iterations and define an alpha level.
+2. Calculate the test statistic on the whole chain. Accept or reject
+the null hypothesis that the chain is from a stationary distribution.
+3. If the null hypothesis is rejected, then discard the first 10% of
+the chain. Calculate the test statistic and accept or reject the null
+hypothesis.
+4. If the null hypothesis is rejected, then discard the next 10% and
+calculate the test statistic.
+5. Repeat until the null hypothesis is accepted or 50% of the chain
+is discarded. If the test still rejects the null hypothesis, then
+the chain fails the test and needs to be run longer.
+</p>
+<p>Second Part
+If the chain passes the first part of the diagnostic, then the part of
+the chain that was not discarded from the first part is used to test
+the second part.
+</p>
+<p>The halfwidth test calculates half the width of the (1 - alpha)%
+probability interval (credible interval) around the mean.
+</p>
+<p>If the ratio of the halfwidth and the mean is lower than <code>eps</code>,
+then the chain passes the halfwidth test. Otherwise, the chain fails
+the halfwidth test and must be updated for more iterations until
+sufficient accuracy is obtained. In order to avoid problems caused by
+sequential testing, the test should not be repeated too frequently.
+Heidelberger and Welch (1981) suggest increasing the run length by a
+factor I &gt; 1.5, each time, so that estimate has the same, reasonably
+large, proportion of new data.
+</p>
+<p>The Heidelberger and Welch MCMC convergence diagnostic conducts
+multiple hypothesis tests. The number of potentially wrong results
+increases with the number of non-independent hypothesis tests
+conducted.
+</p>
+<p>The <code>Heidelberger.Diagnostic</code> is a univariate diagnostic that is
+usually applied to each marginal posterior distribution. A
+multivariate form is not included. By chance alone due to multiple
+independent tests, 5% of the marginal posterior distributions should
+appear non-stationary when stationarity exists. Assessing multivariate
+convergence is difficult.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The <code>Heidelberger.Diagnostic</code> function returns an object of class
+<code>heidelberger</code>. This object is a <code class="reqn">J \times 6</code>
+matrix, and it is intended to be summarized with the
+<code>print.heidelberger</code> function. Nonetheless, this object of
+class <code>heidelberger</code> has <code class="reqn">J</code> rows, each of which corresponds
+to a Markov chain. The column names are <code>stest</code>, <code>start</code>,
+<code>pvalue</code>, <code>htest</code>, <code>mean</code>, and <code>halfwidth</code>. The
+<code>stest</code> column indicates convergence with a one, and
+non-convergence with a zero, regarding the stationarity test. When
+non-convergence is indicated, the remaining columns have missing
+values. The <code>start</code> column indicates the starting iteration, and
+the <code>pvalue</code> column shows the p-value associated with the first
+test. The <code>htest</code> column indicates convergence for the halfwidth
+test. The <code>mean</code> and <code>halfwidth</code> columns report the mean and
+halfwidth.
+</p>
+
+
+<h3>Note</h3>
+
+<p>The <code>Heidelberger.Diagnostic</code> function was adapted from the
+<code>heidel.diag</code> function in the coda package.
+</p>
+
+
+<h3>References</h3>
+
+<p>Heidelberger, P. and Welch, P.D. (1981). "A Spectral Method for
+Confidence Interval Generation and Run Length Control in Simulations".
+<em>Comm. ACM.</em>, 24, p. 233–245.
+</p>
+<p>Heidelberger, P. and Welch, P.D. (1983). "Simulation Run Length Control
+in the Presence of an Initial Transient". <em>Opns Res.</em>, 31,
+p. 1109–1144.
+</p>
+<p>Schruben, L.W. (1982). "Detecting Initialization Bias in Simulation
+Experiments". <em>Opns. Res.</em>, 30, p. 569–590.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>burnin</code>,
+<code>is.stationary</code>,
+<code>LaplacesDemon</code>, and
+<code>print.heidelberger</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#library(LaplacesDemon)
+###After updating with LaplacesDemon, do:
+#hd &lt;- Heidelberger.Diagnostic(Fit)
+#print(hd)
+</code></pre>
+
+
+</div>

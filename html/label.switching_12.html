@@ -1,0 +1,106 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>pra</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>
+PRA algorithm
+</h2>
+
+<h3>Description</h3>
+
+<p>This function reorders the MCMC output using the geometrically-based Pivotal Reordering Algorithm (PRA) (Marin et al, 2005, Marin and Robert, 2007). The method requires as input the generated MCMC sample and a pivot parameter vector. The user should be careful in order the pivot elements have the same parameters with the generated MCMC output. The simulated MCMC sample should be provided by the useR as a <code class="reqn">m\times K\times J</code> dimensional array, where <code class="reqn">m</code> denotes the number of MCMC samples, <code class="reqn">K</code> denotes the number of mixture components and <code class="reqn">J</code> corresponds to the number of different parameter types of the model. The pivot should correspond to a high-posterior density point.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">pra(mcmc.pars, pivot)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>mcmc.pars</code></td>
+<td>
+
+
+<p><code class="reqn">m\times K\times J</code> array of simulated MCMC parameters.
+</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>pivot</code></td>
+<td>
+
+
+<p><code class="reqn">K\times J</code> array containing the parameter that will be used as a pivot.
+</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>The positive integer <code class="reqn">J</code> denotes the number of different parameter types of the model. For example, in a univariate normal mixture model there are <code class="reqn">J = 3</code> different types: means, variances and weights. In a Poisson mixture there are <code class="reqn">J=2</code> types: means and weights.
+</p>
+
+
+<h3>Value</h3>
+
+<table><tr style="vertical-align: top;">
+<td><code>permutations </code></td>
+<td>
+<p><code class="reqn">m\times K</code> dimensional array of permutations</p>
+</td>
+</tr></table>
+<h3>Author(s)</h3>
+
+<p>Panagiotis Papastamoulis
+</p>
+
+
+<h3>References</h3>
+
+
+<p>Marin, J.M., Mengersen, K. and Robert, C.P. (2005). Bayesian modelling and inference on mixtures of distributions. Handbook of Statistics (25), D. Dey and C.R. Rao (eds). Elsevier-Sciences.
+</p>
+<p>Marin, J.M. and Robert, C.P. (2007). Bayesian Core: A Practical Approach to Computational Bayesian Statistics, Springer-Verlag, New York.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>permute.mcmc</code>, <code>label.switching</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">#load a toy example: MCMC output consists of the random beta model
+# applied to a normal mixture of \code{K=2} components. The number of
+# observations is equal to \code{n=5}. The number of MCMC samples is
+# equal to \code{m=300}. The 1000 generated MCMC samples are stored 
+#to array mcmc.pars. 
+data("mcmc_output")
+mcmc.pars&lt;-data_list$"mcmc.pars"
+mapindex&lt;-data_list$"mapindex"
+
+# mcmc parameters are stored to array \code{mcmc.pars}
+# mcmc.pars[,,1]: simulated means of the two components
+# mcmc.pars[,,2]: simulated variances of the two components
+# mcmc.pars[,,3]: simulated weights of the two components
+# We will apply PRA using as pivot the complete MAP estimate
+# which corresponds to \code{mcmc.pars[mapindex,,]}
+run&lt;-pra(mcmc = mcmc.pars, pivot = mcmc.pars[mapindex,,])
+# apply the permutations returned by typing:
+reordered.mcmc&lt;-permute.mcmc(mcmc.pars,run$permutations)
+# reordered.mcmc[,,1]: reordered means of the two components
+# reordered.mcmc[,,2]: reordered variances of the components
+# reordered.mcmc[,,3]: reordered weights 
+</code></pre>
+
+
+</div>

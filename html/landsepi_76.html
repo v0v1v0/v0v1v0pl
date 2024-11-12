@@ -1,0 +1,247 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>runSimul</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Run a simulation</h2>
+
+<h3>Description</h3>
+
+<p>Runs a simulation with landsepi,
+a stochastic, spatially-explicit, demo-genetic model simulating the spread and evolution
+of a pathogen in a heterogeneous landscape and generating a wide range of epidemiological,
+evolutionary and economic outputs.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">runSimul(
+  params,
+  graphic = TRUE,
+  writeTXT = TRUE,
+  videoMP4 = FALSE,
+  keepRawResults = FALSE
+)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>params</code></td>
+<td>
+<p>a LandsepiParams Object containing all simulation parameters. Must be initialised
+with <code>createSimulParams</code> and updated using <code>set*()</code> methods
+(see vignettes for details).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>graphic</code></td>
+<td>
+<p>a logical indicating if graphics must be generated (TRUE, default)
+or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>writeTXT</code></td>
+<td>
+<p>a logical indicating if outputs must be written in text files (TRUE, default)
+or not (FALSE).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>videoMP4</code></td>
+<td>
+<p>a logical indicating if a video must be generated (TRUE) or not (FALSE, default).
+Works only if graphic=TRUE and audpc_rel is computed.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>keepRawResults</code></td>
+<td>
+<p>a logical indicating if binary files must be kept after the end of
+the simulation (default=FALSE). Careful, many files may be generated if keepRawResults=TRUE.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p>See <code>?landsepi</code> for details on the model, assumptions and outputs, and our
+vignettes for tutorials (<code>browseVignettes("landsepi")</code>). The function runs the model
+simulation using a LandsepiParams object.
+Briefly, the model is stochastic, spatially explicit (the basic spatial unit is an
+individual field or polygon), based on a SEIR (‘susceptible-exposed-infectious-removed’,
+renamed HLIR for 'healthy-latent-infectious-removed' to avoid confusions with 'susceptible host')
+structure with a discrete time step. It simulates the spread and
+evolution (via mutation, recombination through sexual reproduction, selection and drift)
+of a pathogen in a heterogeneous cropping landscape, across cropping seasons split
+by host harvests which impose potential bottlenecks to the pathogen. A wide array of
+resistance deployment strategies (possibly including chemical treatments)
+can be simulated and evaluated using several possible
+outputs to assess the epidemiological, evolutionary and economic performance
+of deployment strategies.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A list containing all required outputs.
+A set of text files, graphics and a video showing epidemic dynamics can be generated.
+If keepRawResults=TRUE, a set of binary files is generated for every year of simulation and
+every compartment: </p>
+
+<ul>
+<li>
+<p> H: healthy hosts,
+</p>
+</li>
+<li>
+<p> Hjuv: juvenile healthy hosts (for host reproduction),
+</p>
+</li>
+<li>
+<p> L: latently infected hosts,
+</p>
+</li>
+<li>
+<p> I: infectious hosts,
+</p>
+</li>
+<li>
+<p> R: removed hosts,
+</p>
+</li>
+<li>
+<p> P: propagules.</p>
+</li>
+</ul>
+<p>Each file indicates for every time step the number of individuals in each polygon, and when
+appropriate for each host and pathogen genotype. Additionally, a binary file called TFI is
+generated and gives the Treatment Frequency Indicator (expressed as the number of treatment
+applications per polygon).
+</p>
+
+
+<h3>References</h3>
+
+<p>Rimbaud L., Papaïx J., Rey J.-F., Barrett L. G. and Thrall P. H. (2018).
+Assessing the durability and efficiency of landscape-based strategies to deploy plant
+resistance to pathogens. <em>PLoS Computational Biology</em> 14(4):e1006067.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>demo_landsepi
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">## Not run: 
+### Here is an example of simulation of a mosaic of three cultivars (S + R1 + R2).
+## See our tutorials for more examples.
+
+## Initialisation
+simul_params &lt;- createSimulParams(outputDir = getwd())
+## Seed &amp; Time parameters
+simul_params &lt;- setSeed(simul_params, seed = 1)
+simul_params &lt;- setTime(simul_params, Nyears = 10, nTSpY = 120)
+## Pathogen parameters
+simul_params &lt;- setPathogen(simul_params, loadPathogen("rust"))
+## Landscape &amp; dispersal
+simul_params &lt;- setLandscape(simul_params, loadLandscape(1))
+simul_params &lt;- setDispersalPathogen(simul_params, loadDispersalPathogen[[1]])
+## Genes
+gene1 &lt;- loadGene(name = "MG 1", type = "majorGene")
+gene2 &lt;- loadGene(name = "MG 2", type = "majorGene")
+genes &lt;- data.frame(rbind(gene1, gene2), stringsAsFactors = FALSE)
+simul_params &lt;- setGenes(simul_params, genes)
+## Cultivars
+cultivar1 &lt;- loadCultivar(name = "Susceptible", type = "wheat")
+cultivar2 &lt;- loadCultivar(name = "Resistant1", type = "wheat")
+cultivar3 &lt;- loadCultivar(name = "Resistant2", type = "wheat")
+cultivars &lt;- data.frame(rbind(cultivar1, cultivar2, cultivar3), stringsAsFactors = FALSE)
+simul_params &lt;- setCultivars(simul_params, cultivars)
+## Allocate genes to cultivars
+simul_params &lt;- allocateCultivarGenes(simul_params, "Resistant1", c("MG 1"))
+simul_params &lt;- allocateCultivarGenes(simul_params, "Resistant2", c("MG 2"))
+## Allocate cultivars to croptypes
+croptypes &lt;- loadCroptypes(simul_params, names = c("Susceptible crop",
+"Resistant crop 1", "Resistant crop 2"))
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Susceptible crop", "Susceptible")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop 1", "Resistant1")
+croptypes &lt;- allocateCroptypeCultivars(croptypes, "Resistant crop 2", "Resistant2")
+simul_params &lt;- setCroptypes(simul_params, croptypes)
+## Allocate croptypes to landscape        
+rotation_sequence &lt;- croptypes$croptypeID ## No rotation =&gt; 1 rotation_sequence element
+rotation_period &lt;- 0 ## same croptypes every years
+prop &lt;- c(1 / 3, 1 / 3, 1 / 3) ## croptypes proportions
+aggreg &lt;- 10 ## aggregated landscape
+simul_params &lt;- allocateLandscapeCroptypes(simul_params,
+rotation_period = rotation_period,
+rotation_sequence = rotation_sequence,
+rotation_realloc = FALSE, prop = prop, aggreg = aggreg)
+## Set the inoculum
+simul_params &lt;- setInoculum(simul_params, 5e-4)
+## list of outputs to be generated
+simul_params &lt;- setOutputs(simul_params, loadOutputs())
+## Check simulation parameters
+checkSimulParams(simul_params)
+## Save deployment strategy into GPKG file
+simul_params &lt;- saveDeploymentStrategy(simul_params)
+## Run simulation
+runSimul(simul_params)
+
+### Simulation of rust epidemics in a 1-km^2 patch cultivated
+### with a susceptible wheat cultivar
+seed=10
+Nyears=5
+disease="rust"
+hostType="wheat"
+simul_params &lt;- createSimulParams(outputDir = getwd())
+
+## Seed and time parameters
+simul_params &lt;- setSeed(simul_params, seed)
+simul_params &lt;- setTime(simul_params, Nyears, nTSpY=120)
+
+## Pathogen parameters
+simul_params &lt;- setPathogen(simul_params, loadPathogen(disease))
+myLand &lt;- Polygons(list(Polygon(matrix(c(0,0,1,1,0,1,1,0)*1000, nrow=4))), "ID1")
+myLand &lt;- SpatialPolygons(list(myLand))
+simul_params &lt;- setLandscape(simul_params, myLand)
+
+## Simulation, pathogen, landscape and dispersal parameters
+simul_params &lt;- setDispersalPathogen(simul_params, c(1))
+
+## Cultivars
+simul_params &lt;- setCultivars(simul_params, loadCultivar(name = "Susceptible",
+ type = hostType))
+
+## Croptypes
+croptype &lt;- data.frame(croptypeID = 0, croptypeName = c("Fully susceptible crop"),
+Susceptible = 1)
+simul_params &lt;- setCroptypes(simul_params, croptype)
+simul_params &lt;- allocateLandscapeCroptypes(simul_params,
+rotation_period = 0, rotation_sequence = list(c(0)),
+rotation_realloc = FALSE, prop = 1, aggreg = 1)
+
+## Inoculum
+simul_params &lt;- setInoculum(simul_params, 5e-4)
+
+## list of outputs to be generated
+outputlist &lt;- loadOutputs(epid_outputs = "all", evol_outputs = "")
+simul_params &lt;- setOutputs(simul_params, outputlist)
+
+## Check, save and run simulation
+checkSimulParams(simul_params)
+runSimul(simul_params, graphic = TRUE)
+
+## End(Not run)
+</code></pre>
+
+
+</div>

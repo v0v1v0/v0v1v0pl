@@ -1,0 +1,109 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>cdfwei</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Cumulative Distribution Function of the Weibull Distribution</h2>
+
+<h3>Description</h3>
+
+<p>This function computes the cumulative probability or nonexceedance probability of the Weibull distribution given parameters (<code class="reqn">\zeta</code>, <code class="reqn">\beta</code>, and <code class="reqn">\delta</code>) of the distribution computed by <code>parwei</code>. The cumulative distribution function is
+</p>
+<p style="text-align: center;"><code class="reqn">F(x) = 1 - \exp(Y^\delta) \mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">Y</code> is
+</p>
+<p style="text-align: center;"><code class="reqn">Y = -\frac{x+\zeta}{\beta}\mbox{,}</code>
+</p>
+
+<p>where <code class="reqn">F(x)</code> is the nonexceedance probability for quantile <code class="reqn">x</code>,
+<code class="reqn">\zeta</code> is a location parameter, <code class="reqn">\beta</code> is a scale parameter, and
+<code class="reqn">\delta</code> is a shape parameter.
+</p>
+<p>The Weibull distribution is a reverse Generalized Extreme Value distribution.  As result, the Generalized Extreme Value algorithms are used for implementation of the Weibull in this package. The relations between the Generalized Extreme Value parameters (<code class="reqn">\xi</code>, <code class="reqn">\alpha</code>, and <code class="reqn">\kappa</code>) are
+</p>
+<p style="text-align: center;"><code class="reqn">\kappa = 1/\delta \mbox{,}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\alpha = \beta/\delta \mbox{, and}</code>
+</p>
+
+<p style="text-align: center;"><code class="reqn">\xi = \zeta - \beta \mbox{,}</code>
+</p>
+
+<p>which are taken from Hosking and Wallis (1997).
+</p>
+<p>In <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>, the cumulative distribution function of the Weibull distribution is <code>pweibull</code>. Given a Weibull parameter object <code>para</code>, the <span style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span> syntax is <code>pweibull(x+para$para[1], para$para[3],</code> <br><code>scale=para$para[2])</code>. For the current implementation for this package, the reversed Generalized Extreme Value distribution is used <code>1-cdfgev(-x,para)</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">cdfwei(x, para)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>x</code></td>
+<td>
+<p>A real value vector.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>para</code></td>
+<td>
+<p>The parameters from <code>parwei</code> or  <code>vec2par</code>.</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>Nonexceedance probability (<code class="reqn">F</code>) for <code class="reqn">x</code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>W.H. Asquith</p>
+
+
+<h3>References</h3>
+
+<p>Hosking, J.R.M., and Wallis, J.R., 1997, Regional frequency analysis—An
+approach based on L-moments: Cambridge University Press.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>pdfwei</code>, <code>quawei</code>, <code>lmomwei</code>, <code>parwei</code></p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">  # Evaluate Weibull deployed here and within R (pweibull)
+  lmr &lt;- lmoms(c(123,34,4,654,37,78))
+  WEI &lt;- parwei(lmr)
+  F1  &lt;- cdfwei(50,WEI)
+  F2  &lt;- pweibull(50+WEI$para[1],shape=WEI$para[3],scale=WEI$para[2])
+  if(F1 == F2) EQUAL &lt;- TRUE
+
+  # The Weibull is a reversed generalized extreme value
+  Q &lt;- sort(rlmomco(34,WEI)) # generate Weibull sample
+  lm1 &lt;- lmoms(Q)    # regular L-moments
+  lm2 &lt;- lmoms(-Q)   # L-moment of negated (reversed) data
+  WEI &lt;- parwei(lm1) # parameters of Weibull
+  GEV &lt;- pargev(lm2) # parameters of GEV
+  F &lt;- nonexceeds()  # Get a vector of nonexceedance probs
+  plot(pp(Q),Q)
+  lines(cdfwei(Q,WEI),Q,lwd=5,col=8)
+  lines(1-cdfgev(-Q,GEV),Q,col=2) # line overlaps previous
+</code></pre>
+
+
+</div>

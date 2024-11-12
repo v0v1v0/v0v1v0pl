@@ -1,0 +1,211 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>filter_Datetime</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Filter Datetimes in a dataset.</h2>
+
+<h3>Description</h3>
+
+<p>Filtering a dataset based on Dates or Datetimes may often be necessary prior
+to calcuation or visualization. The functions allow for a filtering based on
+simple <code>strings</code> or <code>Datetime</code> scalars, or by specifying a length. They also
+support prior <span class="pkg">dplyr</span> grouping, which is useful, e.g., when you only want to
+filter the first two days of measurement data for every participant,
+regardless of the actual date. If you want to filter based on times of the
+day, look to <code>filter_Time()</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">filter_Datetime(
+  dataset,
+  Datetime.colname = Datetime,
+  start = NULL,
+  end = NULL,
+  length = NULL,
+  length_from_start = TRUE,
+  full.day = FALSE,
+  tz = NULL,
+  only_Id = NULL,
+  filter.expr = NULL
+)
+
+filter_Date(..., start = NULL, end = NULL)
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>dataset</code></td>
+<td>
+<p>A light logger dataset. Expects a <code>dataframe</code>. If not imported
+by LightLogR, take care to choose a sensible variable for the
+<code>Datetime.colname</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>Datetime.colname</code></td>
+<td>
+<p>column name that contains the datetime. Defaults to
+<code>"Datetime"</code> which is automatically correct for data imported with
+LightLogR. Expects a <code>symbol</code>. Needs to be part of the <code>dataset</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>start, end</code></td>
+<td>
+<p>For <code>filter_Datetime()</code> a <code>POSIXct</code> or <code>character</code> scalar in
+the form of <code>"yyyy-mm-dd hh-mm-ss"</code> giving the respective start and end
+time positions for the filtered dataframe. If you only want to provide
+<code>dates</code> in the form of <code>"yyyy-mm-dd"</code>, use the wrapper function
+<code>filter_Date()</code>.
+</p>
+
+<ul>
+<li>
+<p> If one or both of start/end are not provided, the times will be taken from the respective extreme values of the <code>dataset</code>.
+</p>
+</li>
+<li>
+<p> If <code>length</code> is provided and one of start/end is not, the other will be calculated based on the given value.
+</p>
+</li>
+<li>
+<p> If <code>length</code> is provided and both of start/end are NULL, the time from the
+respective start is taken.
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length</code></td>
+<td>
+<p>Either a Period or Duration from <span class="pkg">lubridate</span>. E.g., <code>days(2) + hours(12)</code> will give a period of 2.5 days, whereas <code>ddays(2) + dhours(12)</code>
+will give a duration. For the difference between periods and durations look
+at the documentation from <span class="pkg">lubridate</span>. Basically, periods model clocktimes,
+whereas durations model physical processes. This matters on several
+occasions, like leap years, or daylight savings. You can also provide a
+<code>character</code> scalar in the form of e.g. "1 day", which will be converted
+into a period.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>length_from_start</code></td>
+<td>
+<p>A <code>logical</code> indicating whether the <code>length</code> argument
+should be applied to the start (default, TRUE) or the end of the data
+(FALSE). Only relevant if neither the <code>start</code> nor the <code>end</code> arguments are
+provided.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>full.day</code></td>
+<td>
+<p>A <code>logical</code> indicating whether the <code>start</code> param should be
+rounded to a full day, when only the <code>length</code> argument is provided (Default
+is FALSE). This is useful, e.g., when the first observation in the dataset
+is slightly after midnight. If TRUE, it will count the length from midnight
+on to avoid empty days in plotting with <code>gg_day()</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>tz</code></td>
+<td>
+<p>Timezone of the start/end times. If <code>NULL</code> (the default), it will
+take the timezone from the <code>Datetime.colname</code> column.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>only_Id</code></td>
+<td>
+<p>An expression of <code>ids</code> where the filtering should be applied
+to. If <code>NULL</code> (the default), the filtering will be applied to all <code>ids</code>.
+Based on the this expression, the dataset will be split in two and only
+where the given expression evaluates to <code>TRUE</code>, will the filtering take
+place. Afterwards both sets are recombined and sorted by <code>Datetime</code>.</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>filter.expr</code></td>
+<td>
+<p>Advanced filtering conditions. If not <code>NULL</code> (default) and
+given an <code>expression</code>, this is used to <code>dplyr::filter()</code> the results. This
+can be useful to filter, e.g. for group-specific conditions, like starting
+after the first two days of measurement (see examples).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Parameter handed over to <code>lubridate::round_date()</code> and siblings</p>
+</td>
+</tr>
+</table>
+<h3>Value</h3>
+
+<p>a <code>data.frame</code> object identical to <code>dataset</code> but with only the
+specified Dates/Times.
+</p>
+
+
+<h3>See Also</h3>
+
+<p>Other filter: 
+<code>filter_Time()</code>
+</p>
+<p>Other filter: 
+<code>filter_Time()</code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+library(lubridate)
+library(dplyr)
+#baseline
+range.unfiltered &lt;- sample.data.environment$Datetime %&gt;% range()
+range.unfiltered
+
+#setting the start of a dataset
+sample.data.environment %&gt;%
+filter_Datetime(start = "2023-08-18 12:00:00") %&gt;%
+pull(Datetime) %&gt;%
+range()
+
+#setting the end of a dataset
+sample.data.environment %&gt;%
+filter_Datetime(end = "2023-08-18 12:00:00") %&gt;% pull(Datetime) %&gt;% range()
+
+#setting a period of a dataset
+sample.data.environment %&gt;%
+filter_Datetime(end = "2023-08-18 12:00:00", length = days(2)) %&gt;%
+pull(Datetime) %&gt;% range()
+
+#setting only the period of a dataset
+sample.data.environment %&gt;%
+filter_Datetime(length = days(2)) %&gt;%
+pull(Datetime) %&gt;% range()
+
+#advanced filtering based on grouping (second day of each group)
+sample.data.environment %&gt;%
+#shift the "Environment" group by one day
+mutate(
+Datetime = ifelse(Id == "Environment", Datetime + ddays(1), Datetime) %&gt;%
+as_datetime()) -&gt; sample
+sample %&gt;% summarize(Daterange = paste(min(Datetime), max(Datetime), sep = " - "))
+#now we can use the `filter.expr` argument to filter from the second day of each group
+sample %&gt;%
+filter_Datetime(filter.expr = Datetime &gt; Datetime[1] + days(1)) %&gt;%
+summarize(Daterange = paste(min(Datetime), max(Datetime), sep = " - "))
+sample.data.environment %&gt;% filter_Date(end = "2023-08-17")
+</code></pre>
+
+
+</div>

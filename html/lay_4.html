@@ -1,0 +1,209 @@
+<div class="container">
+
+<table style="width: 100%;"><tr>
+<td>lay</td>
+<td style="text-align: right;">R Documentation</td>
+</tr></table>
+<h2>Apply a function within each row</h2>
+
+<h3>Description</h3>
+
+<p>Create efficiently new column(s) in data frame (including tibble) by applying a function one row
+at a time.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre><code class="language-R">lay(.data, .fn, ..., .method = c("apply", "tidy"))
+</code></pre>
+
+
+<h3>Arguments</h3>
+
+<table>
+<tr style="vertical-align: top;">
+<td><code>.data</code></td>
+<td>
+<p>A data frame or tibble (or other data frame extensions).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.fn</code></td>
+<td>
+<p>A function to apply to each row of <code>.data</code>.
+Possible values are:
+</p>
+
+<ul>
+<li>
+<p> A function, e.g. <code>mean</code>
+</p>
+</li>
+<li>
+<p> An anonymous function, .e.g. <code>function(x) mean(x, na.rm = TRUE)</code>
+</p>
+</li>
+<li>
+<p> An anonymous function with shorthand, .e.g. <code style="white-space: pre;">⁠\(x) mean(x, na.rm = TRUE)⁠</code>
+</p>
+</li>
+<li>
+<p> A purrr-style lambda, e.g. <code>~ mean(.x, na.rm = TRUE)</code>
+</p>
+<p>(wrap the output in a data frame to apply several functions at once, e.g.
+<code>~ tibble(min = min(.x), max = max(.x))</code>)
+</p>
+</li>
+</ul>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>...</code></td>
+<td>
+<p>Additional arguments for the function calls in <code>.fn</code> (must be named!).</p>
+</td>
+</tr>
+<tr style="vertical-align: top;">
+<td><code>.method</code></td>
+<td>
+<p>This is an experimental argument that allows you to control which internal method
+is used to apply the rowwise job:
+</p>
+
+<ul>
+<li>
+<p> "apply", the default internally uses the function <code>apply()</code>.
+</p>
+</li>
+<li>
+<p> "tidy", internally uses <code>purrr::pmap()</code> and is stricter with respect to class coercion
+across columns.
+</p>
+</li>
+</ul>
+<p>The default has been chosen based on these <a href="https://courtiol.github.io/lay/articles/benchmarks.html"><strong>benchmarks</strong></a>.</p>
+</td>
+</tr>
+</table>
+<h3>Details</h3>
+
+<p><code>lay()</code> create a vector or a data frame (or tibble), by considering in turns each row of a data
+frame (<code>.data</code>) as the vector input of some function(s) <code>.fn</code>.
+</p>
+<p>This makes the creation of new columns based on a rowwise operation both simple (see
+<strong>Examples</strong>; below) and efficient (see the Article <a href="https://courtiol.github.io/lay/articles/benchmarks.html"><strong>benchmarks</strong></a>).
+</p>
+<p>The function should be fully compatible with <code>{dplyr}</code>-based workflows and follows a syntax close
+to <code>dplyr::across()</code>.
+</p>
+<p>Yet, it takes <code>.data</code> instead of <code>.cols</code> as a main argument, which makes it possible to also use
+<code>lay()</code> outside <code>dplyr</code> verbs (see <strong>Examples</strong>).
+</p>
+<p>The function <code>lay()</code> should work in a wide range of situations, provided that:
+</p>
+
+<ul>
+<li>
+<p> The input <code>.data</code> should be a data frame (including tibble) with columns of same class, or of
+classes similar enough to be easily coerced into a single class. Note that <code>.method = "apply"</code>
+also allows for the input to be a matrix and is more permissive in terms of data coercion.
+</p>
+</li>
+<li>
+<p> The output of <code>.fn</code> should be a scalar (i.e., vector of length 1) or a 1 row data frame (or
+tibble).
+</p>
+</li>
+</ul>
+<p>If you use <code>lay()</code> within <code>dplyr::mutate()</code>, make sure that the data used by <code>dplyr::mutate()</code>
+contain no row-grouping, i.e., what is passed to <code>.data</code> in <code>dplyr::mutate()</code> should not be of
+class <code>grouped_df</code> or <code>rowwise_df</code>. If it is, <code>lay()</code> will be called multiple times, which will
+slow down the computation despite not influencing the output.
+</p>
+
+
+<h3>Value</h3>
+
+<p>A vector with one element per row of <code>.data</code>, or a data frame (or tibble) with one row per row of <code>.data</code>. The class of the output is determined by <code>.fn</code>.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre><code class="language-R">
+# usage without dplyr -------------------------------------------------------------------------
+
+# lay can return a vector
+lay(drugs[1:10, -1], any)
+
+# lay can return a data frame
+## using the shorthand function syntax \(x) .fn(x)
+lay(drugs[1:10, -1],
+   \(x) data.frame(drugs_taken = sum(x), drugs_not_taken = sum(x == 0)))
+
+## using the rlang lambda syntax ~ fn(.x)
+lay(drugs[1:10, -1],
+   ~ data.frame(drugs_taken = sum(.x), drugs_not_taken = sum(.x == 0)))
+
+# lay can be used to augment a data frame
+cbind(drugs[1:10, ],
+      lay(drugs[1:10, -1],
+         ~ data.frame(drugs_taken = sum(.x), drugs_not_taken = sum(.x == 0))))
+
+
+# usage with dplyr ----------------------------------------------------------------------------
+
+if (require("dplyr")) {
+
+  # apply any() to each row
+  drugs |&gt;
+    mutate(everused = lay(pick(-caseid), any))
+
+  # apply any() to each row using all columns
+  drugs |&gt;
+    select(-caseid) |&gt;
+    mutate(everused = lay(pick(everything()), any))
+
+  # a workaround would be to use `rowSums`
+  drugs |&gt;
+    mutate(everused = rowSums(pick(-caseid)) &gt; 0)
+
+  # but we can lay any function taking a vector as input, e.g. median
+  drugs |&gt;
+    mutate(used_median = lay(pick(-caseid), median))
+
+  # you can pass arguments to the function
+  drugs_with_NA &lt;- drugs
+  drugs_with_NA[1, 2] &lt;- NA
+
+  drugs_with_NA |&gt;
+    mutate(everused = lay(pick(-caseid), any))
+  drugs_with_NA |&gt;
+    mutate(everused = lay(pick(-caseid), any, na.rm = TRUE))
+
+  # you can lay the output into a 1-row tibble (or data.frame)
+  # if you want to apply multiple functions
+  drugs |&gt;
+    mutate(lay(pick(-caseid),
+             ~ tibble(drugs_taken = sum(.x), drugs_not_taken = sum(.x == 0))))
+
+  # note that naming the output prevent the automatic splicing and you obtain a df-column
+  drugs |&gt;
+    mutate(usage = lay(pick(-caseid),
+              ~ tibble(drugs_taken = sum(.x), drugs_not_taken = sum(.x == 0))))
+
+  # if your function returns a vector longer than a scalar, you should turn the output
+  # into a tibble, which is the job of as_tibble_row()
+  drugs |&gt;
+    mutate(lay(pick(-caseid), ~ as_tibble_row(quantile(.x))))
+
+  # note that you could also wrap the output in a list and name it to obtain a list-column
+  drugs |&gt;
+    mutate(usage_quantiles = lay(pick(-caseid), ~ list(quantile(.x))))
+}
+
+</code></pre>
+
+
+</div>
